@@ -14,7 +14,29 @@
 - **Phát triển 8 Admin Views (Sử dụng Mock Data):** Dashboard, Users, Posts, Moderation, Categories, Groups, Analytics, Settings.
 - **Fix bugs & Linter:** Chuyển `bg-gradient-to-*` thành `bg-linear-to-*`. Thêm `.vscode/settings.json` tắt warning CSS cho Tailwind v4.
 
----
+### Session 2: Best Practice Refactoring — API Layer & Architecture (2026-08-28)
+- **Cài đặt Axios** và tạo `.env` chứa `VITE_API_URL`, `VITE_WS_URL`.
+- **Tạo API Service Layer (`src/api/`):**
+  - `client.ts`: Axios instance với request interceptor (auto-attach JWT) và response interceptor (xử lý 401/403/500 tập trung).
+  - `auth.api.ts`: login, register, logout, refreshToken, getProfile.
+  - `posts.api.ts`: CRUD bài viết + trending, nearby (PostGIS), semantic search, image search.
+  - `chat.api.ts`: conversations, messages.
+  - `admin.api.ts`: dashboard stats, user management, moderation, categories, settings.
+- **Tạo Composables (`src/composables/`):**
+  - `useAuth.ts`: Login/logout/register, session restore từ localStorage, computed isAdmin/isModerator.
+  - `usePosts.ts`: Fetch posts (paginated + filtered), single post, trending, vote, bookmark.
+  - `useSearch.ts`: 3 search modes (keyword, semantic, image upload).
+  - `useWebSocket.ts`: WebSocket connection với auto-reconnect (max 5 attempts), auto-cleanup on unmount.
+- **Tách Pinia Store:**
+  - `auth.store.ts`: User state, token management, role checks.
+  - `ui.store.ts`: Theme, sidebar, notifications, search UI state.
+  - `app.ts`: Wrapper delegate sang 2 store mới (backward compatibility).
+- **Tạo Utils (`src/utils/`):**
+  - `formatters.ts`: formatNumber, formatDate, formatDateTime, formatRelativeTime, truncateText, slugify.
+  - `validators.ts`: validateEmail, validatePassword, validateRequired, validateConfirmPassword.
+- **Tạo Constants (`src/constants/index.ts`):** ROLES, POST_STATUS, REPORT_TYPE, ROUTE_NAMES, PAGINATION, STORAGE_KEYS.
+- **Tạo TypeScript env declarations** (`src/env.d.ts`).
+
 
 ## 💡 Design Decisions (Quyết định thiết kế)
 
@@ -63,18 +85,47 @@ src/
 ├── App.vue                 # Layout switcher (auth/main/admin)
 ├── main.ts                 # App entry point
 ├── style.css               # Tailwind theme + custom utilities
-├── router/
-│   └── index.ts            # 20 routes, 3 layout groups
-├── stores/
-│   └── app.ts              # Pinia (Theme, auth, sidebar, notifications)
+├── env.d.ts                # TypeScript env declarations
+│
+├── api/                    # 🔗 HTTP Client + API endpoints
+│   ├── client.ts           # Axios instance (interceptors, JWT auto-attach)
+│   ├── auth.api.ts         # login, register, logout, refreshToken, getProfile
+│   ├── posts.api.ts        # CRUD + trending + nearby + semantic/image search
+│   ├── chat.api.ts         # conversations, messages
+│   └── admin.api.ts        # stats, users, reports, categories, settings
+│
+├── composables/            # ♻️ Reusable logic (Vue Composition API)
+│   ├── useAuth.ts          # Login/logout, session restore, isAdmin
+│   ├── usePosts.ts         # Fetch posts (paginated), vote, bookmark
+│   ├── useSearch.ts        # Keyword, semantic, image search
+│   └── useWebSocket.ts     # WS connect + auto-reconnect
+│
+├── stores/                 # 📦 Pinia State Management (tách nhỏ)
+│   ├── app.ts              # Wrapper backward-compat (delegate → auth + ui)
+│   ├── auth.store.ts       # User state, tokens, role checks
+│   └── ui.store.ts         # Theme, sidebar, notifications, search UI
+│
+├── constants/
+│   └── index.ts            # ROLES, POST_STATUS, STORAGE_KEYS, ROUTE_NAMES
+│
+├── utils/
+│   ├── formatters.ts       # formatDate, formatNumber, formatRelativeTime, slugify
+│   └── validators.ts       # validateEmail, validatePassword, validateRequired
+│
 ├── types/
 │   └── index.ts            # Interfaces (Post, User, Comment, Group...)
+│
 ├── data/
-│   └── mockData.ts         # Mock data tĩnh tiếng Việt
+│   └── mockData.ts         # Mock data tĩnh tiếng Việt (sẽ xóa khi có API)
+│
+├── router/
+│   └── index.ts            # 20 routes, 3 layout groups
+│
 ├── layouts/
 │   ├── AuthLayout.vue      # Floating orbs animated bg
 │   ├── MainLayout.vue      # Client: sidebar + navbar
 │   └── AdminLayout.vue     # Admin: dark sidebar + breadcrumbs
+│
 └── views/
     ├── HomeView.vue         # Feed + trending + categories
     ├── auth/                # LoginView.vue, RegisterView.vue
@@ -85,6 +136,23 @@ src/
     ├── map/                 # MapView.vue
     └── admin/               # 8 views (Dashboard, Users, Moderation, v.v...)
 ```
+
+### 📌 Luồng gọi API (Quy tắc bắt buộc)
+
+```
+View (UI) → Composable (Logic) → API Service (Endpoint) → HTTP Client (Axios) → Backend
+```
+**KHÔNG BAO GIỜ gọi API trực tiếp trong View.** Luôn đi qua composable hoặc store.
+
+### 📌 Thêm tính năng mới — Checklist
+
+1. `types/index.ts` → Thêm interface
+2. `constants/index.ts` → Thêm constants (nếu cần)
+3. `api/xxx.api.ts` → Thêm API endpoint functions
+4. `composables/useXxx.ts` → Thêm logic xử lý
+5. `stores/xxx.store.ts` → Thêm store (nếu cần cache state)
+6. `views/xxx/XxxView.vue` → Thêm UI
+7. `router/index.ts` → Thêm route
 
 ---
 

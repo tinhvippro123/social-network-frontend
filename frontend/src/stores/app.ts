@@ -1,54 +1,49 @@
+// ==========================================
+// Store — App (Backward Compatibility Wrapper)
+// ==========================================
+// File này giữ lại useAppStore cũ để các components hiện tại không bị lỗi.
+// Bên trong nó delegate sang auth.store + ui.store.
+//
+// Khi refactor xong các view components, sẽ import trực tiếp:
+//   import { useAuthStore } from '@/stores/auth.store'
+//   import { useUiStore } from '@/stores/ui.store'
+// ==========================================
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { User, Notification } from '@/types'
-import { currentUser, mockNotifications } from '@/data/mockData'
+import { useAuthStore } from './auth.store'
+import { useUiStore } from './ui.store'
+import { computed } from 'vue'
 
 export const useAppStore = defineStore('app', () => {
-  // ---- Theme ----
-  const isDark = ref(true)
-  const toggleTheme = () => {
-    isDark.value = !isDark.value
-    document.documentElement.classList.toggle('dark', isDark.value)
-    localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
-  }
-  const initTheme = () => {
-    const saved = localStorage.getItem('theme')
-    isDark.value = saved ? saved === 'dark' : true
-    document.documentElement.classList.toggle('dark', isDark.value)
-  }
-
-  // ---- Sidebar ----
-  const isSidebarOpen = ref(true)
-  const isMobileSidebarOpen = ref(false)
-  const toggleSidebar = () => { isSidebarOpen.value = !isSidebarOpen.value }
-  const toggleMobileSidebar = () => { isMobileSidebarOpen.value = !isMobileSidebarOpen.value }
-  const closeMobileSidebar = () => { isMobileSidebarOpen.value = false }
-
-  // ---- Auth (mock) ----
-  const user = ref<User | null>(currentUser)
-  const isLoggedIn = computed(() => !!user.value)
-  const isAdmin = computed(() => user.value?.role === 'admin')
-
-  // ---- Notifications ----
-  const notifications = ref<Notification[]>(mockNotifications)
-  const unreadNotifications = computed(() => notifications.value.filter(n => !n.isRead).length)
-  const markNotificationRead = (id: string) => {
-    const n = notifications.value.find(n => n.id === id)
-    if (n) n.isRead = true
-  }
-  const markAllRead = () => {
-    notifications.value.forEach(n => n.isRead = true)
-  }
-
-  // ---- Search ----
-  const searchQuery = ref('')
-  const isSearchOpen = ref(false)
+  const authStore = useAuthStore()
+  const uiStore = useUiStore()
 
   return {
-    isDark, toggleTheme, initTheme,
-    isSidebarOpen, isMobileSidebarOpen, toggleSidebar, toggleMobileSidebar, closeMobileSidebar,
-    user, isLoggedIn, isAdmin,
-    notifications, unreadNotifications, markNotificationRead, markAllRead,
-    searchQuery, isSearchOpen
+    // Auth (delegate)
+    user: computed(() => authStore.user),
+    isLoggedIn: computed(() => authStore.isLoggedIn),
+    isAdmin: computed(() => authStore.isAdmin),
+
+    // UI (delegate)
+    isDark: computed(() => uiStore.isDark),
+    isSidebarOpen: computed({
+      get: () => uiStore.isSidebarOpen,
+      set: (val: boolean) => { uiStore.isSidebarOpen = val },
+    }),
+    isMobileSidebarOpen: computed(() => uiStore.isMobileSidebarOpen),
+    toggleTheme: () => uiStore.toggleTheme(),
+    initTheme: () => uiStore.initTheme(),
+    toggleSidebar: () => uiStore.toggleSidebar(),
+    toggleMobileSidebar: () => uiStore.toggleMobileSidebar(),
+    closeMobileSidebar: () => uiStore.closeMobileSidebar(),
+
+    // Notifications (delegate)
+    notifications: computed(() => uiStore.notifications),
+    unreadNotifications: computed(() => uiStore.unreadCount),
+    markNotificationRead: (id: string) => uiStore.markNotificationRead(id),
+    markAllRead: () => uiStore.markAllRead(),
+
+    // Search (delegate)
+    searchQuery: computed(() => uiStore.searchQuery),
+    isSearchOpen: computed(() => uiStore.isSearchOpen),
   }
 })
