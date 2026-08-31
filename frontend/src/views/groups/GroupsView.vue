@@ -26,7 +26,7 @@ const formatNumber = (num: number) => {
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
       <div>
@@ -76,10 +76,10 @@ const formatNumber = (num: number) => {
         v-for="group in filteredGroups"
         :key="group.id"
         @click="router.push(`/groups/${group.id}`)"
-        class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer group"
+        class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer group"
       >
         <!-- Cover -->
-        <div class="relative h-32 overflow-hidden">
+        <div class="relative h-32 overflow-hidden rounded-t-2xl">
           <img :src="group.coverImage" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
           <div class="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
           <div class="absolute top-3 right-3">
@@ -96,9 +96,9 @@ const formatNumber = (num: number) => {
 
         <!-- Content -->
         <div class="p-4">
-          <div class="flex items-start gap-3 -mt-8">
-            <img :src="group.avatar" class="w-12 h-12 rounded-xl ring-3 ring-white dark:ring-surface-800 shrink-0 bg-gray-100 dark:bg-surface-700" />
-            <div class="pt-6">
+          <div class="flex items-start gap-3 -mt-10 relative z-10">
+            <img :src="group.avatar" class="w-14 h-14 object-cover rounded-xl ring-4 ring-white dark:ring-surface-800 shrink-0 bg-gray-100 dark:bg-surface-700" />
+            <div class="pt-7">
               <h3 class="font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors line-clamp-1">
                 {{ group.name }}
               </h3>

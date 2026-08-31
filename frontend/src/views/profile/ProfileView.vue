@@ -27,11 +27,11 @@ const formatNumber = (num: number) => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Profile Header -->
-    <div class="relative bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden mb-6">
+    <div class="relative bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 mb-6">
       <!-- Cover -->
-      <div class="h-40 sm:h-52 bg-linear-to-r from-primary-600 via-purple-600 to-pink-600 relative">
+      <div class="h-40 sm:h-52 bg-linear-to-r from-primary-600 via-purple-600 to-pink-600 relative overflow-hidden rounded-t-2xl">
         <div class="absolute inset-0 opacity-20"
           style="background-image: radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px); background-size: 20px 20px;"
         />
@@ -39,7 +39,7 @@ const formatNumber = (num: number) => {
 
       <!-- Avatar & Info -->
       <div class="px-6 pb-6">
-        <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12 sm:-mt-16">
+        <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12 sm:-mt-16 relative z-10">
           <img
             :src="currentUser.avatar"
             class="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl ring-4 ring-white dark:ring-surface-800 shadow-xl"

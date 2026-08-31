@@ -14,6 +14,11 @@
 - **Phát triển 8 Admin Views (Sử dụng Mock Data):** Dashboard, Users, Posts, Moderation, Categories, Groups, Analytics, Settings.
 - **Fix bugs & Linter:** Chuyển `bg-gradient-to-*` thành `bg-linear-to-*`. Thêm `.vscode/settings.json` tắt warning CSS cho Tailwind v4.
 
+### Session 3: UI Refinement & Component Extraction (2026-08-31)
+- **Cải thiện Layout:** Bỏ giới hạn `max-w` ở các trang chính (`PostDetail`, `Profile`, `CreatePost`, `GroupsView`, `GroupDetail`, `Admin Dashboard`) để tận dụng tối đa màn hình (vì giao diện đã có Sidebar).
+- **Tách Component (`src/components/`):** Tách `PostCard.vue`, `TrendingSidebar.vue`, và `CategoryTabs.vue` từ `HomeView` để tái sử dụng ở các trang khác (Trending, Bookmarks). Xóa các file mặc định của Vite (`HelloWorld.vue`, `vue.svg`, `vite.svg`).
+- **Sửa lỗi CSS:** Fix lỗi avatar bị ẩn dưới cover image trong `ProfileView` và `GroupDetailView` bằng cách đưa `relative z-10` vào thẻ bao chứa margin âm (`-mt-12`). Thêm class `.scrollbar-hide` ẩn thanh cuộn nhưng vẫn giữ chức năng cuộn ngang ở danh mục.
+
 ### Session 2: Best Practice Refactoring — API Layer & Architecture (2026-08-28)
 - **Cài đặt Axios** và tạo `.env` chứa `VITE_API_URL`, `VITE_WS_URL`.
 - **Tạo API Service Layer (`src/api/`):**

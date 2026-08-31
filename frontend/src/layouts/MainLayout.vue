@@ -5,7 +5,7 @@ import { useAppStore } from '@/stores/app'
 import {
   Home, TrendingUp, Bookmark, PenSquare, Users, MessageCircle,
   MapPin, Search, Bell, Sun, Moon, Menu, X, LogOut,
-  Settings, User, ChevronDown, Shield
+  Settings, User, ChevronDown, Shield, ChevronLeft, ChevronRight
 } from '@lucide/vue'
 
 const router = useRouter()
@@ -79,7 +79,7 @@ const logout = () => {
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed lg:static inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-surface-800 border-r border-gray-200 dark:border-surface-700 transition-all duration-300 ease-in-out',
+        'fixed lg:relative inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-surface-800 border-r border-gray-200 dark:border-surface-700 transition-all duration-300 ease-in-out',
         isMobile
           ? (appStore.isMobileSidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full w-72')
           : (appStore.isSidebarOpen ? 'w-64' : 'w-20')
@@ -166,10 +166,12 @@ const logout = () => {
 
           <!-- Desktop sidebar toggle -->
           <button
-            class="hidden lg:flex p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+            class="hidden lg:flex p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all duration-200"
             @click="appStore.toggleSidebar"
+            :title="appStore.isSidebarOpen ? 'Thu gọn sidebar' : 'Mở rộng sidebar'"
           >
-            <Menu :size="22" />
+            <ChevronLeft v-if="appStore.isSidebarOpen" :size="22" class="transition-transform duration-200" />
+            <ChevronRight v-else :size="22" class="transition-transform duration-200" />
           </button>
 
           <!-- Search Bar -->

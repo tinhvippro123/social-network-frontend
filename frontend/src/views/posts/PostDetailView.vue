@@ -85,7 +85,7 @@ public class Post {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Back button -->
     <button
       @click="router.back()"
@@ -95,7 +95,7 @@ public class Post {
       Quay lại
     </button>
 
-    <div class="flex flex-col lg:flex-row gap-8">
+    <div class="flex flex-col lg:flex-row gap-8 items-start">
       <!-- Article -->
       <article class="flex-1 min-w-0">
         <!-- Cover Image -->
