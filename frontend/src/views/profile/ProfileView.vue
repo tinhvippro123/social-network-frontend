@@ -5,16 +5,24 @@ import {
   Calendar, MapPin, Link as LinkIcon, Edit3, Settings,
   FileText, Bookmark, Users, Eye, ArrowUp, MessageCircle, Clock
 } from '@lucide/vue'
-import { currentUser, mockPosts } from '@/data/mockData'
+import { usePosts } from '@/composables/usePosts'
+import { useAuth } from '@/composables/useAuth'
+import { onMounted, computed } from 'vue'
 
 const router = useRouter()
 const activeTab = ref('posts')
+const { posts, fetchPosts } = usePosts()
+const { user: currentUser } = useAuth() // Assuming useAuth has user state
 
-const tabs = [
-  { key: 'posts', label: 'Bài viết', icon: FileText, count: currentUser.postsCount },
+const tabs = computed(() => [
+  { key: 'posts', label: 'Bài viết', icon: FileText, count: currentUser.value?.postsCount || 0 },
   { key: 'bookmarks', label: 'Đã lưu', icon: Bookmark, count: 12 },
   { key: 'groups', label: 'Nhóm', icon: Users, count: 5 },
-]
+])
+
+onMounted(() => {
+  fetchPosts()
+})
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -27,7 +35,7 @@ const formatNumber = (num: number) => {
 </script>
 
 <template>
-  <div class="mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div v-if="currentUser" class="mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Profile Header -->
     <div class="relative bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 mb-6">
       <!-- Cover -->
@@ -103,7 +111,7 @@ const formatNumber = (num: number) => {
     <!-- Posts List -->
     <div class="space-y-4 stagger-children">
       <article
-        v-for="post in mockPosts.slice(0, 4)"
+        v-for="post in posts.slice(0, 4)"
         :key="post.id"
         @click="router.push(`/posts/${post.id}`)"
         class="flex gap-4 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-5 hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer group"
@@ -128,5 +136,8 @@ const formatNumber = (num: number) => {
         </div>
       </article>
     </div>
+  </div>
+  <div v-else class="text-center py-20 text-gray-500">
+    Đang tải hồ sơ...
   </div>
 </template>

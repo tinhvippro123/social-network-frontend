@@ -4,15 +4,23 @@ import {
   ArrowUp, ArrowDown, Bookmark, BookmarkCheck, Share2, MessageCircle,
   Eye, Clock, MapPin, Flag, Heart, MoreHorizontal, Send, ChevronLeft
 } from '@lucide/vue'
-import { useRouter } from 'vue-router'
-import { mockPosts, mockComments } from '@/data/mockData'
+import { useRoute, useRouter } from 'vue-router'
+import { usePosts } from '@/composables/usePosts'
+import { onMounted } from 'vue'
 
 const router = useRouter()
-const post = ref(mockPosts[0])
-const comments = ref(mockComments)
+const route = useRoute()
+const { currentPost: post, posts, comments, fetchPost, fetchComments, fetchPosts } = usePosts()
 const newComment = ref('')
 const isBookmarked = ref(false)
 const isUpvoted = ref(false)
+
+onMounted(async () => {
+  const postId = route.params.id as string || '1'
+  await fetchPost(postId)
+  await fetchComments(postId)
+  await fetchPosts({ limit: 4 })
+})
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -95,7 +103,7 @@ public class Post {
       Quay lại
     </button>
 
-    <div class="flex flex-col lg:flex-row gap-8 items-start">
+    <div v-if="post" class="flex flex-col lg:flex-row gap-8 items-start">
       <!-- Article -->
       <article class="flex-1 min-w-0">
         <!-- Cover Image -->
@@ -302,7 +310,7 @@ public class Post {
           <h4 class="font-bold text-gray-900 dark:text-white mb-4">Bài viết liên quan</h4>
           <div class="space-y-3">
             <div
-              v-for="p in mockPosts.slice(1, 4)"
+              v-for="p in posts.slice(0, 3)"
               :key="p.id"
               @click="router.push(`/posts/${p.id}`)"
               class="flex items-start gap-3 cursor-pointer group"
@@ -318,6 +326,10 @@ public class Post {
           </div>
         </div>
       </aside>
+    </div>
+    
+    <div v-else class="text-center py-20 text-gray-500">
+      Đang tải bài viết...
     </div>
   </div>
 </template>

@@ -4,24 +4,34 @@ import {
   Send, Smile, Paperclip, Image, Phone, Video, MoreVertical,
   Search, Plus, Check, CheckCheck, Circle
 } from '@lucide/vue'
-import { mockConversations, mockMessages } from '@/data/mockData'
+import { useChat } from '@/composables/useChat'
+import { onMounted } from 'vue'
 
-const selectedConversation = ref(mockConversations[0])
-const messages = ref(mockMessages)
+const { conversations, messages, fetchConversations, fetchMessages } = useChat()
+const selectedConversation = ref<any>(null)
 const newMessage = ref('')
+
+onMounted(async () => {
+  await fetchConversations()
+  if (conversations.value.length > 0) {
+    selectedConversation.value = conversations.value[0]
+    await fetchMessages(selectedConversation.value.id)
+  }
+})
 const searchChat = ref('')
 const showMobileChat = ref(false)
 
 const filteredConversations = computed(() => {
-  if (!searchChat.value) return mockConversations
-  return mockConversations.filter(c =>
+  if (!searchChat.value) return conversations.value
+  return conversations.value.filter(c =>
     c.name.toLowerCase().includes(searchChat.value.toLowerCase())
   )
 })
 
-const selectConversation = (conv: typeof mockConversations[0]) => {
+const selectConversation = async (conv: any) => {
   selectedConversation.value = conv
   showMobileChat.value = true
+  await fetchMessages(conv.id)
 }
 
 const sendMessage = () => {

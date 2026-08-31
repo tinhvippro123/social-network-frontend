@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ChevronLeft, Users, FileText, Settings, Globe, Lock, Calendar, Shield, MessageCircle, Eye, ArrowUp } from '@lucide/vue'
-import { mockGroups, mockPosts, mockUsers } from '@/data/mockData'
+import { useGroups } from '@/composables/useGroups'
+import { usePosts } from '@/composables/usePosts'
+import { useUsers } from '@/composables/useUsers'
+import { onMounted } from 'vue'
 
 const router = useRouter()
-const group = ref(mockGroups[0])
+const route = useRoute()
+const { currentGroup: group, fetchGroup } = useGroups()
+const { posts, fetchPosts } = usePosts()
+const { users, fetchUsers } = useUsers()
 const activeTab = ref('posts')
+
+onMounted(async () => {
+  const groupId = route.params.id as string || '1'
+  await fetchGroup(groupId)
+  await fetchPosts()
+  await fetchUsers()
+})
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -19,7 +32,7 @@ const formatDate = (dateStr: string) => {
       <ChevronLeft :size="16" /> Quay lại nhóm
     </button>
 
-    <div class="flex flex-col lg:flex-row gap-6">
+    <div v-if="group" class="flex flex-col lg:flex-row gap-6">
       <!-- Main Content -->
       <div class="flex-1 min-w-0">
         <!-- Group Header -->
@@ -62,7 +75,7 @@ const formatDate = (dateStr: string) => {
 
         <!-- Tab Content: Bài viết -->
         <div v-if="activeTab === 'posts'" class="space-y-4">
-          <article v-for="post in mockPosts.slice(0, 5)" :key="post.id" @click="router.push(`/posts/${post.id}`)"
+          <article v-for="post in posts.slice(0, 5)" :key="post.id" @click="router.push(`/posts/${post.id}`)"
             class="flex gap-4 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 hover:border-primary-500/30 transition-all cursor-pointer group">
             <img :src="post.coverImage" class="hidden sm:block w-28 h-20 rounded-xl object-cover shrink-0" />
             <div class="flex-1">
@@ -81,7 +94,7 @@ const formatDate = (dateStr: string) => {
 
         <!-- Tab Content: Thành viên -->
         <div v-if="activeTab === 'members'" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div v-for="user in mockUsers" :key="user.id" class="flex items-center gap-3 bg-white dark:bg-surface-800 rounded-xl border border-gray-200 dark:border-surface-700 p-3">
+          <div v-for="user in users" :key="user.id" class="flex items-center gap-3 bg-white dark:bg-surface-800 rounded-xl border border-gray-200 dark:border-surface-700 p-3">
             <img :src="user.avatar" class="w-10 h-10 rounded-full" />
             <div class="flex-1">
               <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ user.name }}</p>
@@ -150,7 +163,7 @@ const formatDate = (dateStr: string) => {
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
           <h3 class="font-bold text-gray-900 dark:text-white mb-3">⭐ Thành viên nổi bật</h3>
           <div class="space-y-3">
-            <div v-for="user in mockUsers.slice(0, 4)" :key="user.id" class="flex items-center gap-3">
+            <div v-for="user in users.slice(0, 4)" :key="user.id" class="flex items-center gap-3">
               <img :src="user.avatar" class="w-8 h-8 rounded-full" />
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ user.name }}</p>

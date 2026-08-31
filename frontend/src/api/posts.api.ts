@@ -4,6 +4,9 @@
 import http from './client'
 import type { ApiResponse } from './client'
 import type { Post } from '@/types'
+import { mockPosts } from '@/data/mockData'
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 export interface PostsQuery {
   page?: number
@@ -29,48 +32,73 @@ export interface CreatePostRequest {
 
 const postsApi = {
   // ── CRUD ──────────────────────────────────
-  getAll: (params?: PostsQuery) =>
-    http.get<ApiResponse<Post[]>>('/posts', { params }),
+  getAll: async (params?: PostsQuery) => {
+    await delay(500)
+    return { data: { data: mockPosts, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+  },
 
-  getById: (id: string) =>
-    http.get<ApiResponse<Post>>(`/posts/${id}`),
+  getById: async (id: string) => {
+    await delay(500)
+    const post = mockPosts.find(p => p.id === id) || mockPosts[0]
+    return { data: { data: post, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post> }>
+  },
 
-  create: (data: CreatePostRequest) =>
-    http.post<ApiResponse<Post>>('/posts', data),
+  create: async (data: CreatePostRequest) => {
+    await delay(500)
+    return { data: { data: mockPosts[0], status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post> }>
+  },
 
-  update: (id: string, data: Partial<CreatePostRequest>) =>
-    http.put<ApiResponse<Post>>(`/posts/${id}`, data),
+  update: async (id: string, data: Partial<CreatePostRequest>) => {
+    await delay(500)
+    return { data: { data: mockPosts[0], status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post> }>
+  },
 
-  delete: (id: string) =>
-    http.delete<ApiResponse>(`/posts/${id}`),
+  delete: async (id: string) => {
+    await delay(500)
+    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+  },
 
   // ── Interactions ──────────────────────────
-  upvote: (id: string) =>
-    http.post<ApiResponse>(`/posts/${id}/upvote`),
+  upvote: async (id: string) => {
+    await delay(500)
+    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+  },
 
-  downvote: (id: string) =>
-    http.post<ApiResponse>(`/posts/${id}/downvote`),
+  downvote: async (id: string) => {
+    await delay(500)
+    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+  },
 
-  bookmark: (id: string) =>
-    http.post<ApiResponse>(`/posts/${id}/bookmark`),
+  bookmark: async (id: string) => {
+    await delay(500)
+    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+  },
 
-  removeBookmark: (id: string) =>
-    http.delete<ApiResponse>(`/posts/${id}/bookmark`),
+  removeBookmark: async (id: string) => {
+    await delay(500)
+    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+  },
 
   // ── Đặc biệt ─────────────────────────────
-  getTrending: (limit?: number) =>
-    http.get<ApiResponse<Post[]>>('/posts/trending', { params: { limit } }),
+  getTrending: async (limit?: number) => {
+    await delay(500)
+    return { data: { data: mockPosts.slice(0, limit || 5), status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+  },
 
-  getNearby: (lat: number, lng: number, radiusKm: number) =>
-    http.get<ApiResponse<Post[]>>('/posts/nearby', { params: { lat, lng, radius: radiusKm } }),
+  getNearby: async (lat: number, lng: number, radiusKm: number) => {
+    await delay(500)
+    return { data: { data: mockPosts.filter(p => p.location), status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+  },
 
-  searchSemantic: (query: string) =>
-    http.get<ApiResponse<Post[]>>('/search/semantic', { params: { q: query } }),
+  searchSemantic: async (query: string) => {
+    await delay(500)
+    return { data: { data: mockPosts, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+  },
 
-  searchByImage: (formData: FormData) =>
-    http.post<ApiResponse<Post[]>>('/search/image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  searchByImage: async (formData: FormData) => {
+    await delay(500)
+    return { data: { data: mockPosts, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+  },
 }
 
 export default postsApi

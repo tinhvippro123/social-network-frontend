@@ -2,7 +2,14 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search, Plus, Users, Globe, Lock, ArrowRight } from '@lucide/vue'
-import { mockGroups } from '@/data/mockData'
+import { useGroups } from '@/composables/useGroups'
+import { onMounted } from 'vue'
+
+const { groups, fetchGroups } = useGroups()
+
+onMounted(() => {
+  fetchGroups()
+})
 
 const router = useRouter()
 const searchGroup = ref('')
@@ -10,13 +17,13 @@ const showCreateModal = ref(false)
 const filterType = ref<'all' | 'joined' | 'discover'>('all')
 
 const filteredGroups = computed(() => {
-  let groups = mockGroups
-  if (filterType.value === 'joined') groups = groups.filter(g => g.isJoined)
-  if (filterType.value === 'discover') groups = groups.filter(g => !g.isJoined)
+  let g = groups.value
+  if (filterType.value === 'joined') g = g.filter(item => item.isJoined)
+  if (filterType.value === 'discover') g = g.filter(item => !item.isJoined)
   if (searchGroup.value) {
-    groups = groups.filter(g => g.name.toLowerCase().includes(searchGroup.value.toLowerCase()))
+    g = g.filter(item => item.name.toLowerCase().includes(searchGroup.value.toLowerCase()))
   }
-  return groups
+  return g
 })
 
 const formatNumber = (num: number) => {

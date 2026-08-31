@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Users, Globe, Lock, Trash2, Eye, Ban } from '@lucide/vue'
-import { mockGroups } from '@/data/mockData'
+import { useGroups } from '@/composables/useGroups'
+import { onMounted } from 'vue'
+
+const { groups, fetchGroups } = useGroups()
+
+onMounted(() => {
+  fetchGroups()
+})
 
 const formatNumber = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.toString()
 </script>
@@ -27,7 +34,7 @@ const formatNumber = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.to
             </tr>
           </thead>
           <tbody>
-            <tr v-for="group in mockGroups" :key="group.id" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
+            <tr v-for="group in groups" :key="group.id" class="border-b border-gray-100 dark:border-surface-700 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   <img :src="group.avatar" class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-surface-700" />

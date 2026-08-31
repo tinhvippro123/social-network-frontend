@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { BarChart3, TrendingUp, Users, FileText, Eye, ArrowUp, MessageCircle } from '@lucide/vue'
-import { mockAdminStats } from '@/data/mockData'
+import { useAdmin } from '@/composables/useAdmin'
+import { onMounted } from 'vue'
 
-const stats = ref(mockAdminStats)
+const { stats, fetchStats } = useAdmin()
+
+onMounted(() => {
+  fetchStats()
+})
 const timeRange = ref('7d')
 
 const recentActivities = [
@@ -35,24 +40,38 @@ const recentActivities = [
 
     <!-- Quick Stats -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <div v-for="s in [
-        { label: 'Lượt xem', value: '45.2k', change: '+12%', icon: Eye, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-        { label: 'Bài viết mới', value: '324', change: '+8%', icon: FileText, color: 'text-green-500', bg: 'bg-green-500/10' },
-        { label: 'Upvotes', value: '12.8k', change: '+23%', icon: ArrowUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-        { label: 'Bình luận', value: '5.6k', change: '+15%', icon: MessageCircle, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-      ]" :key="s.label"
-        class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
-        <div class="flex items-center justify-between mb-3">
-          <div :class="['p-2.5 rounded-xl', s.bg]"><component :is="s.icon" :size="18" :class="s.color" /></div>
-          <span class="text-xs font-medium text-green-500 flex items-center gap-0.5"><TrendingUp :size="10" /> {{ s.change }}</span>
+        <div v-if="stats" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
+          <h3 class="text-sm font-medium text-gray-500 mb-2">Tổng người dùng</h3>
+          <div class="flex items-end gap-3">
+            <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.totalUsers.toLocaleString() }}</span>
+            <span class="text-sm font-medium text-green-500 bg-green-500/10 px-2 py-0.5 rounded-lg">
+              +{{ stats.newUsersToday }}
+            </span>
+          </div>
         </div>
-        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ s.value }}</p>
-        <p class="text-xs text-gray-400 mt-1">{{ s.label }}</p>
+        <div v-if="stats" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
+          <h3 class="text-sm font-medium text-gray-500 mb-2">Tổng bài viết</h3>
+          <div class="flex items-end gap-3">
+            <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.totalPosts.toLocaleString() }}</span>
+            <span class="text-sm font-medium text-green-500 bg-green-500/10 px-2 py-0.5 rounded-lg">
+              +{{ stats.newPostsToday }}
+            </span>
+          </div>
+        </div>
+        <div v-if="stats" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
+        <h3 class="font-bold text-gray-900 dark:text-white mb-6">Tăng trưởng người dùng</h3>
+        <div class="flex items-end justify-between gap-2 h-48">
+          <div v-for="(val, i) in stats.userGrowth" :key="i" class="flex-1 flex flex-col items-center gap-2">
+            <span class="text-xs text-gray-400 font-medium">{{ val }}</span>
+            <div class="w-full bg-linear-to-t from-red-500 to-orange-400 rounded-t-lg transition-all duration-700" :style="{ height: `${(val / Math.max(...stats.userGrowth)) * 140}px` }" />
+            <span class="text-xs text-gray-400">{{ ['T2','T3','T4','T5','T6','T7','CN'][i] }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Charts -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div v-if="stats" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- User Growth Chart -->
       <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
         <h3 class="font-bold text-gray-900 dark:text-white mb-6">Tăng trưởng người dùng</h3>

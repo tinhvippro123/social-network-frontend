@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   MapPin, Navigation, Minus, Plus, Layers, Search,
@@ -7,7 +7,8 @@ import {
 } from '@lucide/vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { mockPosts } from '@/data/mockData'
+import { usePosts } from '@/composables/usePosts'
+import type { Post } from '@/types'
 
 // Fix leaflet default icon issue in Vue/Vite
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
@@ -23,20 +24,23 @@ L.Icon.Default.mergeOptions({
 const router = useRouter()
 const searchRadius = ref(5)
 const searchLocation = ref('')
-const selectedPost = ref<typeof mockPosts[0] | null>(null)
+const selectedPost = ref<Post | null>(null)
 const showFilters = ref(false)
 const mapContainer = ref<HTMLElement | null>(null)
 let map: L.Map | null = null
 
-const postsWithLocation = mockPosts.filter(p => p.location)
+const { posts, fetchPosts } = usePosts()
+const postsWithLocation = computed(() => posts.value.filter(p => p.location))
 
 const formatNumber = (num: number) => {
   if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
   return num.toString()
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (!mapContainer.value) return
+  
+  await fetchPosts()
 
   // Initialize map centered at Ho Chi Minh City
   map = L.map(mapContainer.value, {
@@ -48,7 +52,7 @@ onMounted(() => {
   }).addTo(map)
 
   // Add markers
-  postsWithLocation.forEach(post => {
+  postsWithLocation.value.forEach(post => {
     if (!post.location) return
     const marker = L.marker([post.location.lat, post.location.lng]).addTo(map!)
     marker.on('click', () => {
@@ -150,7 +154,7 @@ const zoomOut = () => map?.zoomOut()
       <div ref="mapContainer" class="absolute inset-0 z-0"></div>
 
       <!-- Map Controls -->
-      <div class="absolute top-4 right-4 flex flex-col gap-2 z-[1000]">
+      <div class="absolute top-4 right-4 flex flex-col gap-2 z-1000">
         <button @click="zoomIn" class="p-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
           <Plus :size="18" />
         </button>
@@ -169,7 +173,7 @@ const zoomOut = () => map?.zoomOut()
       <transition name="slide-up">
         <div
           v-if="selectedPost"
-          class="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-surface-700 overflow-hidden z-[1000]"
+          class="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-surface-700 overflow-hidden z-1000"
         >
           <div class="relative">
             <img :src="selectedPost.coverImage" class="w-full h-32 object-cover" />

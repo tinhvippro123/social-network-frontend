@@ -6,10 +6,12 @@ import { ref, reactive } from 'vue'
 import postsApi from '@/api/posts.api'
 import type { PostsQuery } from '@/api/posts.api'
 import type { Post } from '@/types'
+import { mockComments } from '@/data/mockData'
 
 export function usePosts() {
   const posts = ref<Post[]>([])
   const currentPost = ref<Post | null>(null)
+  const comments = ref<any[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const pagination = reactive({
@@ -66,6 +68,13 @@ export function usePosts() {
     }
   }
 
+  /** Lấy bình luận */
+  async function fetchComments(postId: string) {
+    // Fake delay
+    await new Promise(resolve => setTimeout(resolve, 500))
+    comments.value = mockComments
+  }
+
   /** Vote */
   async function upvote(postId: string) {
     await postsApi.upvote(postId)
@@ -93,12 +102,14 @@ export function usePosts() {
   return {
     posts,
     currentPost,
+    comments,
     isLoading,
     error,
     pagination,
     fetchPosts,
     fetchPost,
     fetchTrending,
+    fetchComments,
     upvote,
     downvote,
     toggleBookmark,

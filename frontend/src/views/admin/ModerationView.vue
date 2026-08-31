@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ShieldAlert, Check, X, Ban, Eye, AlertTriangle, Clock } from '@lucide/vue'
-import { mockReports } from '@/data/mockData'
+import { useAdmin } from '@/composables/useAdmin'
+import { onMounted } from 'vue'
+
+const { reports: extendedReports, fetchReports } = useAdmin()
+
+onMounted(() => {
+  fetchReports()
+})
 
 const filterStatus = ref('pending')
-
-const extendedReports = [
-  ...mockReports,
-  { id: 'r4', type: 'post' as const, reason: 'Nội dung sai sự thật, gây hiểu lầm', reporter: mockReports[0].reporter, targetId: 'p11', targetTitle: 'Bài viết quảng cáo thuốc...', status: 'pending' as const, createdAt: '2025-08-27T10:00:00' },
-  { id: 'r5', type: 'comment' as const, reason: 'Spam link quảng cáo', reporter: mockReports[1].reporter, targetId: 'cm11', targetTitle: 'Comment chứa link quảng cáo...', status: 'pending' as const, createdAt: '2025-08-27T11:30:00' },
-  { id: 'r6', type: 'post' as const, reason: 'Vi phạm bản quyền', reporter: mockReports[0].reporter, targetId: 'p12', targetTitle: 'Copy bài viết từ blog khác...', status: 'dismissed' as const, createdAt: '2025-08-24T09:00:00' },
-]
 
 const formatDate = (d: string) => new Date(d).toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 </script>

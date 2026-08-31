@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Search, Eye, EyeOff, Trash2, ChevronLeft, ChevronRight, Clock } from '@lucide/vue'
-import { mockPosts } from '@/data/mockData'
+import { usePosts } from '@/composables/usePosts'
+import { onMounted } from 'vue'
+
+const { posts, fetchPosts } = usePosts()
+
+onMounted(() => {
+  fetchPosts()
+})
 
 const searchQuery = ref('')
 const filterStatus = ref('all')
@@ -44,7 +51,7 @@ const formatNumber = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.to
             </tr>
           </thead>
           <tbody>
-            <tr v-for="post in mockPosts" :key="post.id" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
+            <tr v-for="post in posts" :key="post.id" class="border-b border-gray-100 dark:border-surface-700 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   <img :src="post.coverImage" class="w-14 h-10 rounded-lg object-cover shrink-0" />
@@ -91,7 +98,7 @@ const formatNumber = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.to
       </div>
 
       <div class="flex items-center justify-between px-5 py-3 border-t border-gray-200 dark:border-surface-700">
-        <p class="text-xs text-gray-400">Hiển thị 1-{{ mockPosts.length }} / {{ mockPosts.length }} bài viết</p>
+        <p class="text-xs text-gray-400">Hiển thị 1-{{ posts.length }} / {{ posts.length }} bài viết</p>
         <div class="flex items-center gap-1">
           <button class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700"><ChevronLeft :size="16" /></button>
           <button class="px-3 py-1 rounded-lg text-xs font-medium bg-red-500 text-white">1</button>

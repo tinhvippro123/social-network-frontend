@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Plus, Edit3, Trash2, GripVertical, FolderTree } from '@lucide/vue'
-import { mockCategories } from '@/data/mockData'
+import { useCategories } from '@/composables/useCategories'
+import { onMounted } from 'vue'
+
+const { categories, fetchCategories } = useCategories()
+
+onMounted(() => {
+  fetchCategories()
+})
 
 const showAddModal = ref(false)
 const newCategoryName = ref('')
@@ -37,7 +44,7 @@ const newCategoryIcon = ref('')
             </tr>
           </thead>
           <tbody>
-            <tr v-for="cat in mockCategories" :key="cat.id" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors group">
+            <tr v-for="cat in categories" :key="cat.slug" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors group">
               <td class="px-3 py-4 text-center">
                 <GripVertical :size="16" class="text-gray-300 dark:text-surface-600 cursor-grab mx-auto opacity-0 group-hover:opacity-100 transition-opacity" />
               </td>

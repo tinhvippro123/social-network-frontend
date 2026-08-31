@@ -5,7 +5,8 @@ import {
   Eye, ShieldAlert, Ban, Check, X, MoreVertical, Search,
   ArrowUp, ArrowDown, UserPlus, AlertTriangle
 } from '@lucide/vue'
-import { mockAdminStats, mockUsers, mockReports } from '@/data/mockData'
+import { useAdmin } from '@/composables/useAdmin'
+import { onMounted } from 'vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,6 +20,13 @@ import {
 } from 'chart.js'
 import { Line } from 'vue-chartjs'
 
+const { stats, users, reports, fetchStats, fetchUsers, fetchReports } = useAdmin()
+
+onMounted(async () => {
+  await fetchStats()
+  await fetchUsers()
+  await fetchReports()
+})
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -31,15 +39,16 @@ ChartJS.register(
 )
 
 const activeTab = ref('overview')
-const stats = ref(mockAdminStats)
-const reports = ref(mockReports)
 
-const statCards = [
-  { label: 'Tổng người dùng', value: stats.value.totalUsers.toLocaleString(), change: `+${stats.value.newUsersToday} hôm nay`, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-  { label: 'Tổng bài viết', value: stats.value.totalPosts.toLocaleString(), change: `+${stats.value.newPostsToday} hôm nay`, icon: FileText, color: 'text-green-500', bg: 'bg-green-500/10' },
-  { label: 'Tổng nhóm', value: stats.value.totalGroups.toString(), change: '+3 tuần này', icon: Users, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-  { label: 'Report đang chờ', value: stats.value.pendingReports.toString(), change: '2 cần xử lý gấp', icon: Flag, color: 'text-red-500', bg: 'bg-red-500/10' },
-]
+const statCards = computed(() => {
+  if (!stats.value) return []
+  return [
+    { label: 'Tổng người dùng', value: stats.value.totalUsers.toLocaleString(), change: `+${stats.value.newUsersToday} hôm nay`, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: 'Tổng bài viết', value: stats.value.totalPosts.toLocaleString(), change: `+${stats.value.newPostsToday} hôm nay`, icon: FileText, color: 'text-green-500', bg: 'bg-green-500/10' },
+    { label: 'Tổng nhóm', value: stats.value.totalGroups.toString(), change: '+3 tuần này', icon: Users, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { label: 'Report đang chờ', value: stats.value.pendingReports.toString(), change: '2 cần xử lý gấp', icon: Flag, color: 'text-red-500', bg: 'bg-red-500/10' },
+  ]
+})
 
 const formatNumber = (num: number) => {
   if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
@@ -51,7 +60,7 @@ const chartData = computed(() => ({
   datasets: [
     {
       label: 'Người dùng mới',
-      data: stats.value.userGrowth,
+      data: stats.value?.userGrowth || [],
       borderColor: '#3b82f6',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
       borderWidth: 2,
@@ -60,7 +69,7 @@ const chartData = computed(() => ({
     },
     {
       label: 'Bài viết mới',
-      data: stats.value.postGrowth,
+      data: stats.value?.postGrowth || [],
       borderColor: '#22c55e',
       backgroundColor: 'rgba(34, 197, 94, 0.1)',
       borderWidth: 2,
@@ -126,7 +135,7 @@ const chartOptions = {
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 stagger-children">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
       <div
         v-for="stat in statCards"
         :key="stat.label"
@@ -257,7 +266,7 @@ const chartOptions = {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in mockUsers" :key="user.id" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
+            <tr v-for="user in users" :key="user.id" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
               <td class="px-5 py-3">
                 <div class="flex items-center gap-3">
                   <img :src="user.avatar" class="w-9 h-9 rounded-full" />

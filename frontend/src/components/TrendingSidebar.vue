@@ -1,8 +1,18 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { TrendingUp, ArrowUp, Hash, Star } from '@lucide/vue'
-import { mockPosts, popularTags, mockUsers } from '@/data/mockData'
-import type { Post, User } from '@/types'
+import { popularTags } from '@/data/mockData'
+import { usePosts } from '@/composables/usePosts'
+import { useUsers } from '@/composables/useUsers'
+import { onMounted } from 'vue'
+
+const { posts, fetchPosts } = usePosts()
+const { users, fetchUsers } = useUsers()
+
+onMounted(async () => {
+  await fetchPosts()
+  await fetchUsers()
+})
 
 const router = useRouter()
 
@@ -22,7 +32,7 @@ const formatNumber = (num: number) => {
       </h3>
       <div class="space-y-4">
         <div
-          v-for="(post, i) in mockPosts.slice(0, 5)"
+          v-for="(post, i) in posts.slice(0, 5)"
           :key="post.id"
           @click="router.push(`/posts/${post.id}`)"
           class="flex items-start gap-3 cursor-pointer group"
@@ -69,14 +79,9 @@ const formatNumber = (num: number) => {
         <Star :size="18" class="text-amber-400" />
         Tác giả nổi bật
       </h3>
-      <div class="space-y-3">
-        <div
-          v-for="user in mockUsers.slice(0, 4)"
-          :key="user.id"
-          @click="router.push(`/profile/${user.id}`)"
-          class="flex items-center gap-3 cursor-pointer group"
-        >
-          <img :src="user.avatar" class="w-10 h-10 rounded-full ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all" />
+      <div class="space-y-4">
+        <div v-for="user in users.slice(0, 3)" :key="user.id" class="flex items-center gap-3">
+          <img :src="user.avatar" class="w-10 h-10 rounded-full ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all cursor-pointer" @click="router.push(`/profile/${user.id}`)" />
           <div class="flex-1 min-w-0">
             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary-500 transition-colors truncate">
               {{ user.name }}

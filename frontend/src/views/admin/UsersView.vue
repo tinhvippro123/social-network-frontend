@@ -4,18 +4,18 @@ import {
   Search, MoreVertical, Shield, Ban, Trash2, Filter,
   UserCheck, UserX, ChevronLeft, ChevronRight, Mail, Calendar
 } from '@lucide/vue'
-import { mockUsers } from '@/data/mockData'
+import { useAdmin } from '@/composables/useAdmin'
+import { onMounted, computed } from 'vue'
+
+const { users: allUsers, fetchUsers } = useAdmin()
+
+onMounted(() => {
+  fetchUsers()
+})
 
 const searchQuery = ref('')
 const filterRole = ref('all')
 const currentPage = ref(1)
-
-const allUsers = [...mockUsers, ...mockUsers.map((u, i) => ({
-  ...u, id: `u${10+i}`, name: `User Demo ${i+1}`,
-  email: `demo${i+1}@example.com`,
-  avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=demo${i}`,
-  role: 'user' as const, postsCount: Math.floor(Math.random() * 50)
-}))]
 </script>
 
 <template>
@@ -57,8 +57,8 @@ const allUsers = [...mockUsers, ...mockUsers.map((u, i) => ({
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in allUsers" :key="user.id" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
-              <td class="px-5 py-4">
+          <tr v-for="user in allUsers" :key="user.id" class="border-b border-gray-100 dark:border-surface-700 hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors">
+            <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
                   <img :src="user.avatar" class="w-10 h-10 rounded-full" />
                   <div>

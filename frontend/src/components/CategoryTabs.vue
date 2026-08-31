@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ChevronRight, ChevronLeft, Flame } from '@lucide/vue'
-import { mockCategories } from '@/data/mockData'
+import { useCategories } from '@/composables/useCategories'
+import { onMounted } from 'vue'
+
+const { categories, fetchCategories } = useCategories()
+
+onMounted(async () => {
+  await fetchCategories()
+})
 
 const props = defineProps<{
   modelValue: string
@@ -53,8 +60,8 @@ const scrollCategories = (direction: 'left' | 'right') => {
         </span>
       </button>
       <button
-        v-for="cat in mockCategories"
-        :key="cat.id"
+        v-for="cat in categories"
+        :key="cat.slug"
         @click="emit('update:modelValue', cat.slug)"
         :class="[
           'shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',

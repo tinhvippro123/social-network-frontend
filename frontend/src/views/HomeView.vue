@@ -2,22 +2,34 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ChevronRight, ChevronLeft, Flame } from '@lucide/vue'
-import { mockPosts, mockCategories } from '@/data/mockData'
 import PostCard from '@/components/PostCard.vue'
 import TrendingSidebar from '@/components/TrendingSidebar.vue'
 import CategoryTabs from '@/components/CategoryTabs.vue'
+import { usePosts } from '@/composables/usePosts'
+import { useCategories } from '@/composables/useCategories'
+import { onMounted } from 'vue'
 
 const router = useRouter()
 const selectedCategory = ref('all')
+const { posts, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
+const { categories, fetchCategories } = useCategories()
+
+onMounted(() => {
+  fetchPosts()
+  fetchCategories()
+})
 
 const filteredPosts = computed(() => {
-  if (selectedCategory.value === 'all') return mockPosts
-  return mockPosts.filter(p => p.category.slug === selectedCategory.value)
+  if (selectedCategory.value === 'all') return posts.value
+  return posts.value.filter(p => p.category.slug === selectedCategory.value)
 })
 
 const toggleBookmark = (postId: string) => {
-  const post = mockPosts.find(p => p.id === postId)
-  if (post) post.bookmarked = !post.bookmarked
+  const post = posts.value.find(p => p.id === postId)
+  if (post) {
+    post.bookmarked = !post.bookmarked
+    apiToggleBookmark(postId, !post.bookmarked)
+  }
 }
 </script>
 
@@ -45,8 +57,12 @@ const toggleBookmark = (postId: string) => {
           <div class="absolute bottom-0 right-20 w-24 h-24 bg-white/5 rounded-full translate-y-1/2" />
         </div>
 
-        <!-- Category Tabs -->
-        <CategoryTabs v-model="selectedCategory" class="mb-6" />
+        <!-- Categories -->
+        <CategoryTabs
+          v-model="selectedCategory"
+          :categories="categories"
+          class="mb-6"
+        />
 
         <!-- Posts Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5 stagger-children">

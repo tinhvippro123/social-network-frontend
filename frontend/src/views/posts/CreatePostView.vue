@@ -4,11 +4,18 @@ import {
   Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, List, ListOrdered,
   Code, Image, Link, Quote, Eye, Save, Send, MapPin, Tag, ChevronDown, X
 } from '@lucide/vue'
-import { mockCategories } from '@/data/mockData'
+import { useCategories } from '@/composables/useCategories'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import ImageExtension from '@tiptap/extension-image'
 import LinkExtension from '@tiptap/extension-link'
+import { onMounted } from 'vue'
+
+const { categories, fetchCategories } = useCategories()
+
+onMounted(() => {
+  fetchCategories()
+})
 
 const title = ref('')
 const content = ref('')
@@ -137,8 +144,8 @@ const handleToolbarAction = (action: string) => {
             class="appearance-none pl-4 pr-10 py-2 rounded-xl text-sm font-medium bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/50 cursor-pointer"
           >
             <option value="">Chọn danh mục</option>
-            <option v-for="cat in mockCategories" :key="cat.id" :value="cat.slug">
-              {{ cat.icon }} {{ cat.name }}
+            <option v-for="cat in categories" :key="cat.slug" :value="cat.slug">
+              {{ cat.name }}
             </option>
           </select>
           <ChevronDown :size="14" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
