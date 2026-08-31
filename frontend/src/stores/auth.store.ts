@@ -6,11 +6,10 @@ import { ref, computed } from 'vue'
 import type { User } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
 
-// Tạm thời dùng mock data, sau thay bằng API
-import { currentUser } from '@/data/mockData'
-
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(currentUser) // TODO: thay bằng null khi có API
+  const savedUser = localStorage.getItem(STORAGE_KEYS.USER)
+  const initialUser = savedUser ? JSON.parse(savedUser) : null
+  const user = ref<User | null>(initialUser)
   const accessToken = ref<string | null>(localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN))
 
   const isLoggedIn = computed(() => !!user.value)

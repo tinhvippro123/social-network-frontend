@@ -26,10 +26,7 @@ const filteredGroups = computed(() => {
   return g
 })
 
-const formatNumber = (num: number) => {
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toString()
-}
+import { formatNumber } from '@/utils/formatters'
 </script>
 
 <template>

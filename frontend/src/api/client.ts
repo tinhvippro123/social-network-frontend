@@ -48,6 +48,8 @@ http.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 )
 
+import router from '@/router'
+
 // ── Response Interceptor ─────────────────────────────
 // Xử lý lỗi tập trung: 401 → logout, 403 → redirect, 500 → toast
 http.interceptors.response.use(
@@ -57,10 +59,9 @@ http.interceptors.response.use(
 
     if (status === 401) {
       // Token hết hạn → xóa token, redirect login
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
-      localStorage.removeItem(STORAGE_KEYS.USER)
-      window.location.href = '/login'
+      const { useAuthStore } = await import('@/stores/auth.store')
+      useAuthStore().clearAuth()
+      router.push('/login')
     }
 
     if (status === 403) {

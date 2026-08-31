@@ -6,8 +6,7 @@ import { ref, computed } from 'vue'
 import type { Notification } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
 
-// Tạm thời dùng mock data
-import { mockNotifications } from '@/data/mockData'
+import notificationsApi from '@/api/notifications.api'
 
 export const useUiStore = defineStore('ui', () => {
   // ── Theme ──────────────────────────────────
@@ -34,7 +33,16 @@ export const useUiStore = defineStore('ui', () => {
   function closeMobileSidebar() { isMobileSidebarOpen.value = false }
 
   // ── Notifications ──────────────────────────
-  const notifications = ref<Notification[]>(mockNotifications) // TODO: thay bằng API
+  const notifications = ref<Notification[]>([])
+  
+  async function fetchNotifications() {
+    try {
+      const { data } = await notificationsApi.getAll()
+      notifications.value = data.data
+    } catch (e) {
+      console.error('Lỗi lấy thông báo:', e)
+    }
+  }
 
   const unreadCount = computed(() =>
     notifications.value.filter(n => !n.isRead).length
@@ -62,5 +70,6 @@ export const useUiStore = defineStore('ui', () => {
     notifications, unreadCount, markNotificationRead, markAllRead,
     // Search
     searchQuery, isSearchOpen,
+    fetchNotifications,
   }
 })

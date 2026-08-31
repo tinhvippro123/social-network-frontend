@@ -26,8 +26,8 @@ export interface UserProfile {
   name: string
   email: string
   avatar: string
-  bio?: string
-  role: string
+  bio: string
+  role: 'user' | 'admin' | 'moderator'
   joinedAt: string
   followersCount: number
   followingCount: number

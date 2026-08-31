@@ -6,14 +6,14 @@ import { ref, reactive } from 'vue'
 import postsApi from '@/api/posts.api'
 import type { PostsQuery } from '@/api/posts.api'
 import type { Post } from '@/types'
-import { mockComments } from '@/data/mockData'
+import { useAsyncState } from './useAsyncState'
 
 export function usePosts() {
   const posts = ref<Post[]>([])
   const currentPost = ref<Post | null>(null)
   const comments = ref<any[]>([])
-  const isLoading = ref(false)
-  const error = ref<string | null>(null)
+  const tags = ref<any[]>([])
+  const { isLoading, error, execute } = useAsyncState()
   const pagination = reactive({
     page: 1,
     limit: 10,
@@ -23,9 +23,7 @@ export function usePosts() {
 
   /** Lấy danh sách bài viết (có filter + pagination) */
   async function fetchPosts(params?: PostsQuery) {
-    isLoading.value = true
-    error.value = null
-    try {
+    await execute(async () => {
       const { data } = await postsApi.getAll({
         page: pagination.page,
         limit: pagination.limit,
@@ -37,29 +35,20 @@ export function usePosts() {
         pagination.total = data.meta.total
         pagination.totalPages = data.meta.totalPages
       }
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Không thể tải bài viết'
-    } finally {
-      isLoading.value = false
-    }
+    }, 'Không thể tải bài viết')
   }
 
   /** Lấy chi tiết 1 bài viết */
   async function fetchPost(id: string) {
-    isLoading.value = true
-    error.value = null
-    try {
+    await execute(async () => {
       const { data } = await postsApi.getById(id)
       currentPost.value = data.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Không tìm thấy bài viết'
-    } finally {
-      isLoading.value = false
-    }
+    }, 'Không tìm thấy bài viết')
   }
 
   /** Lấy bài viết trending */
   async function fetchTrending(limit = 10) {
+    // Không dùng execute để tránh ảnh hưởng loading state chung nếu gọi ngầm
     try {
       const { data } = await postsApi.getTrending(limit)
       return data.data
@@ -70,9 +59,10 @@ export function usePosts() {
 
   /** Lấy bình luận */
   async function fetchComments(postId: string) {
-    // Fake delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    comments.value = mockComments
+    await execute(async () => {
+      const { data } = await postsApi.getComments(postId)
+      comments.value = data.data
+    }, 'Lỗi lấy comments')
   }
 
   /** Vote */
@@ -84,25 +74,43 @@ export function usePosts() {
     await postsApi.downvote(postId)
   }
 
-  /** Bookmark */
+  /** Lấy bài viết xung quanh (bản đồ) */
+  async function fetchNearby(lat: number, lng: number, radius: number = 5) {
+    await execute(async () => {
+      const { data } = await postsApi.getNearby(lat, lng, radius)
+      posts.value = data.data
+    }, 'Không tìm thấy bài viết lân cận')
+  }
+
+  /** Tạo bài viết mới */
+  async function createPost(payload: any) {
+    return await execute(async () => {
+      const { data } = await postsApi.create(payload)
+      return data.data
+    }, 'Tạo bài viết thất bại')
+  }
+
   async function toggleBookmark(postId: string, isBookmarked: boolean) {
     if (isBookmarked) {
-      await postsApi.removeBookmark(postId)
-    } else {
       await postsApi.bookmark(postId)
+    } else {
+      await postsApi.removeBookmark(postId)
     }
   }
 
-  /** Chuyển trang */
-  function goToPage(page: number) {
-    pagination.page = page
-    fetchPosts()
+  /** Lấy các tag phổ biến */
+  async function fetchPopularTags() {
+    await execute(async () => {
+      const { data } = await postsApi.getPopularTags()
+      tags.value = data.data
+    }, 'Lỗi tải tags')
   }
 
   return {
     posts,
     currentPost,
     comments,
+    tags,
     isLoading,
     error,
     pagination,
@@ -110,9 +118,11 @@ export function usePosts() {
     fetchPost,
     fetchTrending,
     fetchComments,
+    fetchPopularTags,
     upvote,
     downvote,
+    fetchNearby,
+    createPost,
     toggleBookmark,
-    goToPage,
   }
 }

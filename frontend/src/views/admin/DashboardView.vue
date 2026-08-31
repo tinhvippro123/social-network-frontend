@@ -7,6 +7,8 @@ import {
 } from '@lucide/vue'
 import { useAdmin } from '@/composables/useAdmin'
 import { onMounted } from 'vue'
+import { formatNumber } from '@/utils/formatters'
+import UserAvatar from '@/components/UserAvatar.vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -43,17 +45,14 @@ const activeTab = ref('overview')
 const statCards = computed(() => {
   if (!stats.value) return []
   return [
-    { label: 'Tổng người dùng', value: stats.value.totalUsers.toLocaleString(), change: `+${stats.value.newUsersToday} hôm nay`, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: 'Tổng bài viết', value: stats.value.totalPosts.toLocaleString(), change: `+${stats.value.newPostsToday} hôm nay`, icon: FileText, color: 'text-green-500', bg: 'bg-green-500/10' },
+    { label: 'Tổng người dùng', value: formatNumber(stats.value.totalUsers), change: `+${stats.value.newUsersToday} hôm nay`, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: 'Tổng bài viết', value: formatNumber(stats.value.totalPosts), change: `+${stats.value.newPostsToday} hôm nay`, icon: FileText, color: 'text-green-500', bg: 'bg-green-500/10' },
     { label: 'Tổng nhóm', value: stats.value.totalGroups.toString(), change: '+3 tuần này', icon: Users, color: 'text-purple-500', bg: 'bg-purple-500/10' },
     { label: 'Report đang chờ', value: stats.value.pendingReports.toString(), change: '2 cần xử lý gấp', icon: Flag, color: 'text-red-500', bg: 'bg-red-500/10' },
   ]
 })
 
-const formatNumber = (num: number) => {
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toString()
-}
+const selectedPeriod = ref('7d')
 
 const chartData = computed(() => ({
   labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
@@ -269,7 +268,7 @@ const chartOptions = {
             <tr v-for="user in users" :key="user.id" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
               <td class="px-5 py-3">
                 <div class="flex items-center gap-3">
-                  <img :src="user.avatar" class="w-9 h-9 rounded-full" />
+                  <UserAvatar :user="user" size="sm" />
                   <div>
                     <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ user.name }}</p>
                     <p class="text-xs text-gray-400">Tham gia {{ new Date(user.joinedAt).toLocaleDateString('vi-VN') }}</p>

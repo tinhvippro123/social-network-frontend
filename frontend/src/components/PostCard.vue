@@ -14,21 +14,8 @@ const emit = defineEmits<{
   (e: 'bookmark', postId: string): void
 }>()
 
-const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-  if (diffHours < 1) return 'Vừa xong'
-  if (diffHours < 24) return `${diffHours} giờ trước`
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 7) return `${diffDays} ngày trước`
-  return date.toLocaleDateString('vi-VN')
-}
-
-const formatNumber = (num: number) => {
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toString()
-}
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatRelativeTime, formatNumber } from '@/utils/formatters'
 </script>
 
 <template>
@@ -62,12 +49,12 @@ const formatNumber = (num: number) => {
     <div class="p-5">
       <!-- Author -->
       <div class="flex items-center gap-2 mb-3">
-        <img :src="post.author.avatar" class="w-7 h-7 rounded-full" />
+        <UserAvatar :user="post.author" size="sm" />
         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ post.author.name }}</span>
         <span class="text-gray-300 dark:text-surface-600">·</span>
         <span class="text-xs text-gray-400 flex items-center gap-1">
           <Clock :size="12" />
-          {{ formatDate(post.createdAt) }}
+          {{ formatRelativeTime(post.createdAt) }}
         </span>
       </div>
 

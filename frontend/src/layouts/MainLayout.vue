@@ -2,6 +2,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import { useAuth } from '@/composables/useAuth'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatRelativeTime } from '@/utils/formatters'
 import {
   Home, TrendingUp, Bookmark, PenSquare, Users, MessageCircle,
   MapPin, Search, Bell, Sun, Moon, Menu, X, LogOut,
@@ -55,13 +58,15 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
+const { logout: authLogout } = useAuth()
+
 const navigateTo = (path: string) => {
   router.push(path)
   if (isMobile.value) appStore.closeMobileSidebar()
 }
 
 const logout = () => {
-  router.push('/login')
+  authLogout()
 }
 </script>
 
@@ -255,7 +260,7 @@ const logout = () => {
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{{ notif.message }}</p>
-                      <p class="text-xs text-gray-400 mt-1">{{ notif.createdAt }}</p>
+                      <p class="text-xs text-gray-400 mt-1">{{ formatRelativeTime(notif.createdAt) }}</p>
                     </div>
                     <div v-if="!notif.isRead" class="w-2 h-2 rounded-full bg-primary-500 shrink-0 mt-2" />
                   </div>
@@ -270,9 +275,11 @@ const logout = () => {
               class="user-trigger flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
               @click.stop="showUserMenu = !showUserMenu"
             >
-              <img
-                :src="appStore.user?.avatar"
-                class="w-8 h-8 rounded-full ring-2 ring-primary-500/30"
+              <UserAvatar
+                v-if="appStore.user"
+                :user="appStore.user"
+                size="sm"
+                class="ring-2 ring-primary-500/30"
               />
               <ChevronDown :size="14" class="hidden sm:block text-gray-400" />
             </button>

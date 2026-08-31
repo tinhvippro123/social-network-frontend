@@ -7,8 +7,12 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 import { usePosts } from '@/composables/usePosts'
 import { onMounted } from 'vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatDate, formatNumber } from '@/utils/formatters'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
+const { user } = useAuth()
 const route = useRoute()
 const { currentPost: post, posts, comments, fetchPost, fetchComments, fetchPosts } = usePosts()
 const newComment = ref('')
@@ -22,14 +26,7 @@ onMounted(async () => {
   await fetchPosts({ limit: 4 })
 })
 
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })
-}
 
-const formatNumber = (num: number) => {
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toString()
-}
 
 const postContent = `
 <h2>1. Clean Architecture là gì?</h2>
@@ -121,7 +118,7 @@ public class Post {
         <!-- Author Info -->
         <div class="flex items-center justify-between mb-6 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4">
           <div class="flex items-center gap-3">
-            <img :src="post.author.avatar" class="w-12 h-12 rounded-full ring-2 ring-primary-500/30" />
+            <UserAvatar :user="post.author" size="lg" class="ring-2 ring-primary-500/30" />
             <div>
               <p class="font-semibold text-gray-900 dark:text-white">{{ post.author.name }}</p>
               <div class="flex items-center gap-3 text-xs text-gray-400">
@@ -216,7 +213,8 @@ public class Post {
 
           <!-- Comment Input -->
           <div class="flex items-start gap-3 mb-6">
-            <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=tinh" class="w-9 h-9 rounded-full shrink-0" />
+            <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0" />
+            <div v-else class="w-9 h-9 rounded-full bg-gray-200 dark:bg-surface-700 shrink-0"></div>
             <div class="flex-1 relative">
               <textarea
                 v-model="newComment"
@@ -235,7 +233,7 @@ public class Post {
             <div v-for="comment in comments" :key="comment.id" class="animate-slide-up">
               <!-- Main Comment -->
               <div class="flex items-start gap-3">
-                <img :src="comment.author.avatar" class="w-9 h-9 rounded-full shrink-0" />
+                <UserAvatar :user="comment.author" size="md" class="shrink-0" />
                 <div class="flex-1">
                   <div class="bg-gray-50 dark:bg-surface-700 rounded-2xl p-4">
                     <div class="flex items-center justify-between mb-1">
@@ -256,7 +254,7 @@ public class Post {
                   <!-- Replies -->
                   <div v-if="comment.replies.length > 0" class="ml-6 mt-3 space-y-3">
                     <div v-for="reply in comment.replies" :key="reply.id" class="flex items-start gap-3">
-                      <img :src="reply.author.avatar" class="w-7 h-7 rounded-full shrink-0" />
+                      <UserAvatar :user="reply.author" size="sm" class="shrink-0" />
                       <div class="flex-1">
                         <div class="bg-gray-50 dark:bg-surface-700/50 rounded-xl p-3">
                           <div class="flex items-center justify-between mb-1">
@@ -287,7 +285,7 @@ public class Post {
       <aside class="w-full lg:w-72 shrink-0 space-y-5">
         <!-- Author Card -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5 text-center">
-          <img :src="post.author.avatar" class="w-16 h-16 rounded-full mx-auto ring-3 ring-primary-500/20 mb-3" />
+          <UserAvatar :user="post.author" size="lg" class="mx-auto ring-3 ring-primary-500/20 mb-3" />
           <h4 class="font-bold text-gray-900 dark:text-white">{{ post.author.name }}</h4>
           <p class="text-xs text-gray-400 mt-1 mb-3">{{ post.author.bio }}</p>
           <div class="flex justify-center gap-4 text-center mb-4">

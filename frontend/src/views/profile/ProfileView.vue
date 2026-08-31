@@ -7,7 +7,9 @@ import {
 } from '@lucide/vue'
 import { usePosts } from '@/composables/usePosts'
 import { useAuth } from '@/composables/useAuth'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { onMounted, computed } from 'vue'
+import { formatDate, formatNumber } from '@/utils/formatters'
 
 const router = useRouter()
 const activeTab = ref('posts')
@@ -24,14 +26,7 @@ onMounted(() => {
   fetchPosts()
 })
 
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })
-}
 
-const formatNumber = (num: number) => {
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toString()
-}
 </script>
 
 <template>
@@ -48,8 +43,9 @@ const formatNumber = (num: number) => {
       <!-- Avatar & Info -->
       <div class="px-6 pb-6">
         <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12 sm:-mt-16 relative z-10">
-          <img
-            :src="currentUser.avatar"
+          <UserAvatar
+            :user="currentUser"
+            size="lg"
             class="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl ring-4 ring-white dark:ring-surface-800 shadow-xl"
           />
           <div class="flex-1 pt-2 sm:pb-2">

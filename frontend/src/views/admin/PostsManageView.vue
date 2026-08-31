@@ -3,6 +3,10 @@ import { ref } from 'vue'
 import { Search, Eye, EyeOff, Trash2, ChevronLeft, ChevronRight, Clock } from '@lucide/vue'
 import { usePosts } from '@/composables/usePosts'
 import { onMounted } from 'vue'
+import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
+import AdminPagination from '@/components/admin/AdminPagination.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatDate, formatNumber } from '@/utils/formatters'
 
 const { posts, fetchPosts } = usePosts()
 
@@ -12,30 +16,24 @@ onMounted(() => {
 
 const searchQuery = ref('')
 const filterStatus = ref('all')
-
-const formatDate = (d: string) => new Date(d).toLocaleDateString('vi-VN')
-const formatNumber = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.toString()
+const currentPage = ref(1)
 </script>
 
 <template>
   <div class="p-6">
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Quản lý bài viết</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Duyệt và quản lý tất cả bài viết trong hệ thống</p>
-    </div>
-
-    <div class="flex flex-col sm:flex-row gap-3 mb-6">
-      <div class="flex-1 flex items-center gap-2 bg-white dark:bg-surface-800 rounded-xl px-4 py-2.5 border border-gray-200 dark:border-surface-700">
-        <Search :size="18" class="text-gray-400" />
-        <input v-model="searchQuery" type="text" placeholder="Tìm bài viết..." class="bg-transparent border-none outline-none text-sm w-full text-gray-700 dark:text-gray-300 placeholder-gray-400" />
-      </div>
-      <div class="flex gap-2">
+    <AdminPageHeader
+      title="Quản lý bài viết"
+      subtitle="Duyệt và quản lý tất cả bài viết trong hệ thống"
+      searchPlaceholder="Tìm bài viết..."
+      v-model="searchQuery"
+    >
+      <template #filters>
         <button v-for="f in [{key:'all',label:'Tất cả'},{key:'published',label:'Đã đăng'},{key:'draft',label:'Nháp'},{key:'hidden',label:'Đã ẩn'}]" :key="f.key" @click="filterStatus = f.key"
           :class="['px-4 py-2.5 rounded-xl text-sm font-medium transition-all', filterStatus === f.key ? 'bg-red-500 text-white' : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700']">
           {{ f.label }}
         </button>
-      </div>
-    </div>
+      </template>
+    </AdminPageHeader>
 
     <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden">
       <div class="overflow-x-auto">
@@ -63,7 +61,7 @@ const formatNumber = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.to
               </td>
               <td class="px-5 py-4 hidden md:table-cell">
                 <div class="flex items-center gap-2">
-                  <img :src="post.author.avatar" class="w-6 h-6 rounded-full" />
+                  <UserAvatar :user="post.author" size="sm" />
                   <span class="text-sm text-gray-600 dark:text-gray-400">{{ post.author.name }}</span>
                 </div>
               </td>
@@ -97,14 +95,11 @@ const formatNumber = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.to
         </table>
       </div>
 
-      <div class="flex items-center justify-between px-5 py-3 border-t border-gray-200 dark:border-surface-700">
-        <p class="text-xs text-gray-400">Hiển thị 1-{{ posts.length }} / {{ posts.length }} bài viết</p>
-        <div class="flex items-center gap-1">
-          <button class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700"><ChevronLeft :size="16" /></button>
-          <button class="px-3 py-1 rounded-lg text-xs font-medium bg-red-500 text-white">1</button>
-          <button class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700"><ChevronRight :size="16" /></button>
-        </div>
-      </div>
+      <AdminPagination 
+        v-model:current-page="currentPage"
+        :total-items="posts.length"
+        item-name="bài viết"
+      />
     </div>
   </div>
 </template>

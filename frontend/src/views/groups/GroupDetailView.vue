@@ -6,6 +6,8 @@ import { useGroups } from '@/composables/useGroups'
 import { usePosts } from '@/composables/usePosts'
 import { useUsers } from '@/composables/useUsers'
 import { onMounted } from 'vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatNumber, formatDate } from '@/utils/formatters'
 
 const router = useRouter()
 const route = useRoute()
@@ -21,9 +23,6 @@ onMounted(async () => {
   await fetchUsers()
 })
 
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })
-}
 </script>
 
 <template>
@@ -82,7 +81,7 @@ const formatDate = (dateStr: string) => {
               <h3 class="font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors line-clamp-2 mb-1">{{ post.title }}</h3>
               <p class="text-sm text-gray-400 line-clamp-1">{{ post.excerpt }}</p>
               <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                <img :src="post.author.avatar" class="w-5 h-5 rounded-full" />
+                <UserAvatar :user="post.author" size="sm" />
                 <span>{{ post.author.name }}</span>
                 <span class="flex items-center gap-1"><Eye :size="12" /> {{ post.viewsCount }}</span>
                 <span class="flex items-center gap-1"><ArrowUp :size="12" /> {{ post.upvotesCount }}</span>
@@ -95,7 +94,7 @@ const formatDate = (dateStr: string) => {
         <!-- Tab Content: Thành viên -->
         <div v-if="activeTab === 'members'" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div v-for="user in users" :key="user.id" class="flex items-center gap-3 bg-white dark:bg-surface-800 rounded-xl border border-gray-200 dark:border-surface-700 p-3">
-            <img :src="user.avatar" class="w-10 h-10 rounded-full" />
+            <UserAvatar :user="user" size="md" />
             <div class="flex-1">
               <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ user.name }}</p>
               <p class="text-xs text-gray-400">{{ user.postsCount }} bài viết</p>
@@ -151,7 +150,7 @@ const formatDate = (dateStr: string) => {
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
           <h3 class="font-bold text-gray-900 dark:text-white mb-3">👑 Quản trị viên</h3>
           <div class="flex items-center gap-3">
-            <img :src="group.owner.avatar" class="w-10 h-10 rounded-full ring-2 ring-primary-500/30" />
+            <UserAvatar :user="group.owner" size="md" class="ring-2 ring-primary-500/30" />
             <div>
               <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ group.owner.name }}</p>
               <p class="text-xs text-gray-400">{{ group.owner.postsCount }} bài viết</p>
@@ -164,7 +163,7 @@ const formatDate = (dateStr: string) => {
           <h3 class="font-bold text-gray-900 dark:text-white mb-3">⭐ Thành viên nổi bật</h3>
           <div class="space-y-3">
             <div v-for="user in users.slice(0, 4)" :key="user.id" class="flex items-center gap-3">
-              <img :src="user.avatar" class="w-8 h-8 rounded-full" />
+              <UserAvatar :user="user" size="sm" />
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ user.name }}</p>
                 <p class="text-xs text-gray-400">{{ user.postsCount }} bài viết</p>

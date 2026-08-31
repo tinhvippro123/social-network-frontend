@@ -2,47 +2,33 @@ import { ref } from 'vue'
 import adminApi from '@/api/admin.api'
 import type { AdminStats, Report, User } from '@/types'
 
+import { useAsyncState } from './useAsyncState'
+
 export function useAdmin() {
   const stats = ref<AdminStats | null>(null)
   const users = ref<User[]>([])
   const reports = ref<Report[]>([])
-  const isLoading = ref(false)
-  const error = ref<string | null>(null)
+  const { isLoading, error, execute } = useAsyncState()
 
   async function fetchStats() {
-    isLoading.value = true
-    try {
+    await execute(async () => {
       const { data } = await adminApi.getStats()
       stats.value = data.data
-    } catch (err: any) {
-      error.value = err.message || 'Không thể tải thống kê'
-    } finally {
-      isLoading.value = false
-    }
+    }, 'Không thể tải thống kê')
   }
 
   async function fetchUsers(params?: any) {
-    isLoading.value = true
-    try {
+    await execute(async () => {
       const { data } = await adminApi.getUsers(params)
       users.value = data.data
-    } catch (err: any) {
-      error.value = err.message || 'Không thể tải người dùng'
-    } finally {
-      isLoading.value = false
-    }
+    }, 'Không thể tải người dùng')
   }
 
   async function fetchReports(params?: any) {
-    isLoading.value = true
-    try {
+    await execute(async () => {
       const { data } = await adminApi.getReports(params)
       reports.value = data.data
-    } catch (err: any) {
-      error.value = err.message || 'Không thể tải báo cáo'
-    } finally {
-      isLoading.value = false
-    }
+    }, 'Không thể tải báo cáo')
   }
 
   return {

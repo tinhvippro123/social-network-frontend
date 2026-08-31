@@ -1,25 +1,23 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { TrendingUp, ArrowUp, Hash, Star } from '@lucide/vue'
-import { popularTags } from '@/data/mockData'
 import { usePosts } from '@/composables/usePosts'
 import { useUsers } from '@/composables/useUsers'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { onMounted } from 'vue'
 
-const { posts, fetchPosts } = usePosts()
+const { posts, fetchTrending, tags, fetchPopularTags } = usePosts()
 const { users, fetchUsers } = useUsers()
 
 onMounted(async () => {
-  await fetchPosts()
+  await fetchTrending(5)
   await fetchUsers()
+  await fetchPopularTags()
 })
 
 const router = useRouter()
 
-const formatNumber = (num: number) => {
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toString()
-}
+import { formatNumber } from '@/utils/formatters'
 </script>
 
 <template>
@@ -64,11 +62,11 @@ const formatNumber = (num: number) => {
       </h3>
       <div class="flex flex-wrap gap-2">
         <span
-          v-for="tag in popularTags"
-          :key="tag"
-          class="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-500 cursor-pointer transition-colors"
+          v-for="tag in tags"
+          :key="tag.id"
+          class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700 hover:bg-gray-100 dark:hover:bg-surface-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors cursor-pointer border border-gray-200 dark:border-surface-600"
         >
-          #{{ tag }}
+          #{{ tag.name }}
         </span>
       </div>
     </div>
@@ -81,7 +79,7 @@ const formatNumber = (num: number) => {
       </h3>
       <div class="space-y-4">
         <div v-for="user in users.slice(0, 3)" :key="user.id" class="flex items-center gap-3">
-          <img :src="user.avatar" class="w-10 h-10 rounded-full ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all cursor-pointer" @click="router.push(`/profile/${user.id}`)" />
+          <UserAvatar :user="user" size="md" class="ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all cursor-pointer" @click="router.push(`/profile/${user.id}`)" />
           <div class="flex-1 min-w-0">
             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary-500 transition-colors truncate">
               {{ user.name }}

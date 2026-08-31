@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { Plus, Edit3, Trash2, GripVertical, FolderTree } from '@lucide/vue'
 import { useCategories } from '@/composables/useCategories'
 import { onMounted } from 'vue'
+import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 
 const { categories, fetchCategories } = useCategories()
 
@@ -17,18 +18,19 @@ const newCategoryIcon = ref('')
 
 <template>
   <div class="p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <FolderTree :size="24" class="text-red-500" />
-          Quản lý danh mục
-        </h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Thêm, sửa, xóa các danh mục bài viết</p>
-      </div>
-      <button @click="showAddModal = true" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-500/25">
-        <Plus :size="16" /> Thêm danh mục
-      </button>
-    </div>
+    <AdminPageHeader
+      title="Quản lý danh mục"
+      subtitle="Thêm, sửa, xóa các danh mục bài viết"
+    >
+      <template #title-icon>
+        <FolderTree :size="24" class="text-red-500" />
+      </template>
+      <template #actions>
+        <button @click="showAddModal = true" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-500/25">
+          <Plus :size="16" /> Thêm danh mục
+        </button>
+      </template>
+    </AdminPageHeader>
 
     <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden">
       <div class="overflow-x-auto">

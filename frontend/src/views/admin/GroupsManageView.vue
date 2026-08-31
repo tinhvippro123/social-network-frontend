@@ -3,22 +3,23 @@ import { ref } from 'vue'
 import { Users, Globe, Lock, Trash2, Eye, Ban } from '@lucide/vue'
 import { useGroups } from '@/composables/useGroups'
 import { onMounted } from 'vue'
+import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatNumber } from '@/utils/formatters'
 
 const { groups, fetchGroups } = useGroups()
 
 onMounted(() => {
   fetchGroups()
 })
-
-const formatNumber = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.toString()
 </script>
 
 <template>
   <div class="p-6">
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Quản lý nhóm</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Giám sát và quản lý các nhóm cộng đồng</p>
-    </div>
+    <AdminPageHeader
+      title="Quản lý nhóm"
+      subtitle="Giám sát và quản lý các nhóm cộng đồng"
+    />
 
     <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden">
       <div class="overflow-x-auto">
@@ -57,7 +58,7 @@ const formatNumber = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.to
               <td class="px-5 py-4 text-sm text-gray-500 hidden md:table-cell">{{ group.postsCount }}</td>
               <td class="px-5 py-4 hidden lg:table-cell">
                 <div class="flex items-center gap-2">
-                  <img :src="group.owner.avatar" class="w-5 h-5 rounded-full" />
+                  <UserAvatar :user="group.owner" size="sm" />
                   <span class="text-xs text-gray-500">{{ group.owner.name }}</span>
                 </div>
               </td>

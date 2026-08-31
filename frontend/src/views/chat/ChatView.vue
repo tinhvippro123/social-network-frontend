@@ -6,8 +6,10 @@ import {
 } from '@lucide/vue'
 import { useChat } from '@/composables/useChat'
 import { onMounted } from 'vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatRelativeTime } from '@/utils/formatters'
 
-const { conversations, messages, fetchConversations, fetchMessages } = useChat()
+const { conversations, messages, fetchConversations, fetchMessages, sendMessage: apiSendMessage } = useChat()
 const selectedConversation = ref<any>(null)
 const newMessage = ref('')
 
@@ -34,16 +36,9 @@ const selectConversation = async (conv: any) => {
   await fetchMessages(conv.id)
 }
 
-const sendMessage = () => {
-  if (!newMessage.value.trim()) return
-  messages.value.push({
-    id: `m${messages.value.length + 1}`,
-    content: newMessage.value,
-    sender: { id: 'u1', name: 'Lê Thanh Tính', email: '', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=tinh', bio: '', role: 'admin', joinedAt: '', postsCount: 0, followersCount: 0, followingCount: 0 },
-    createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-    isOwn: true,
-    type: 'text'
-  })
+const handleSendMessage = async () => {
+  if (!newMessage.value.trim() || !selectedConversation.value) return
+  await apiSendMessage(selectedConversation.value.id, newMessage.value)
   newMessage.value = ''
 }
 </script>
@@ -91,7 +86,7 @@ const sendMessage = () => {
         >
           <!-- Avatar -->
           <div class="relative shrink-0">
-            <img :src="conv.avatar" class="w-12 h-12 rounded-full" />
+            <UserAvatar :user="{ name: conv.name, avatar: conv.avatar }" size="md" />
             <div
               v-if="conv.isOnline"
               class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800"
@@ -141,7 +136,7 @@ const sendMessage = () => {
             ←
           </button>
           <div class="relative">
-            <img :src="selectedConversation?.avatar" class="w-10 h-10 rounded-full" />
+            <UserAvatar :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="sm" />
             <div v-if="selectedConversation?.isOnline" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800" />
           </div>
           <div>
@@ -177,10 +172,11 @@ const sendMessage = () => {
           :key="msg.id"
           :class="['flex items-end gap-2', msg.isOwn ? 'justify-end' : 'justify-start']"
         >
-          <img
+          <UserAvatar
             v-if="!msg.isOwn"
-            :src="msg.sender.avatar"
-            class="w-7 h-7 rounded-full shrink-0"
+            :user="msg.sender"
+            class="w-7 h-7 shrink-0"
+            size="sm"
           />
           <div
             :class="[
@@ -213,7 +209,7 @@ const sendMessage = () => {
           <div class="flex-1 flex items-end gap-2 bg-gray-100 dark:bg-surface-700 rounded-2xl px-4 py-2">
             <textarea
               v-model="newMessage"
-              @keydown.enter.exact.prevent="sendMessage"
+              @keydown.enter.exact.prevent="handleSendMessage"
               placeholder="Nhập tin nhắn..."
               rows="1"
               class="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 resize-none max-h-24"
@@ -223,7 +219,7 @@ const sendMessage = () => {
             </button>
           </div>
           <button
-            @click="sendMessage"
+            @click="handleSendMessage"
             class="p-3 rounded-xl gradient-primary text-white hover:opacity-90 transition-all shadow-lg shadow-primary-500/25"
           >
             <Send :size="18" />
