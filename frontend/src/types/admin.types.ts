@@ -13,7 +13,7 @@ export interface Notification {
 export interface Report {
   id: string
   targetId: string
-  targetType: 'post' | 'comment' | 'user' | 'group'
+  type: 'post' | 'comment' | 'user' | 'group'
   targetTitle: string
   reason: string
   description?: string
@@ -24,9 +24,12 @@ export interface Report {
 
 export interface AdminStats {
   totalUsers: number
+  newUsersToday: number
   totalPosts: number
+  newPostsToday: number
   totalGroups: number
   totalReports: number
+  pendingReports: number
   userGrowth: number[]
   postGrowth: number[]
 }

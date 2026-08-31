@@ -14,6 +14,13 @@
 - **Phát triển 8 Admin Views (Sử dụng Mock Data):** Dashboard, Users, Posts, Moderation, Categories, Groups, Analytics, Settings.
 - **Fix bugs & Linter:** Chuyển `bg-gradient-to-*` thành `bg-linear-to-*`. Thêm `.vscode/settings.json` tắt warning CSS cho Tailwind v4.
 
+### Session 4: Frontend Enhancements (2026-08-31)
+- **Bản đồ tương tác (Leaflet):** Tích hợp Leaflet.js vào `MapView.vue`, thay thế map giả lập bằng bản đồ thật có khả năng zoom/pan và ghim (markers) hiển thị bài viết theo vị trí tọa độ.
+- **Biểu đồ thống kê (Chart.js):** Thay thế biểu đồ CSS thuần ở `DashboardView.vue` bằng Chart.js (`vue-chartjs`), hiển thị biểu đồ Line và Bar cho Người dùng mới / Bài viết mới chuyên nghiệp.
+- **Rich-text Editor (TipTap):** Nâng cấp trang Viết bài mới (`CreatePostView.vue`) với TipTap Editor hỗ trợ markdown, bold, italic, heading, danh sách, và ảnh.
+- **Form Validation (VeeValidate + Zod):** Thêm rule kiểm tra chặt chẽ cho form Đăng nhập và Đăng ký, hiển thị lỗi realtime và đảm bảo password trùng khớp.
+- **Bảo mật Route (Navigation Guards):** Thêm cơ chế bảo vệ trong `router/index.ts` chặn người dùng bình thường truy cập route `/admin`, và cập nhật logic `LoginView` để điều hướng admin thẳng vào dashboard.
+
 ### Session 3: UI Refinement & Component Extraction (2026-08-31)
 - **Cải thiện Layout:** Bỏ giới hạn `max-w` ở các trang chính (`PostDetail`, `Profile`, `CreatePost`, `GroupsView`, `GroupDetail`, `Admin Dashboard`) để tận dụng tối đa màn hình (vì giao diện đã có Sidebar).
 - **Tách Component (`src/components/`):** Tách `PostCard.vue`, `TrendingSidebar.vue`, và `CategoryTabs.vue` từ `HomeView` để tái sử dụng ở các trang khác (Trending, Bookmarks). Xóa các file mặc định của Vite (`HelloWorld.vue`, `vue.svg`, `vite.svg`).

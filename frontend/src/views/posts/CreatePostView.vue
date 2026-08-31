@@ -5,6 +5,10 @@ import {
   Code, Image, Link, Quote, Eye, Save, Send, MapPin, Tag, ChevronDown, X
 } from '@lucide/vue'
 import { mockCategories } from '@/data/mockData'
+import { useEditor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+import ImageExtension from '@tiptap/extension-image'
+import LinkExtension from '@tiptap/extension-link'
 
 const title = ref('')
 const content = ref('')
@@ -31,7 +35,7 @@ const removeTag = (tag: string) => {
 const toolbarItems = [
   { icon: Bold, label: 'Bold', action: 'bold' },
   { icon: Italic, label: 'Italic', action: 'italic' },
-  { icon: UnderlineIcon, label: 'Underline', action: 'underline' },
+  { icon: UnderlineIcon, label: 'Strike', action: 'strike' },
   { icon: null, label: 'divider', action: '' },
   { icon: Heading1, label: 'Heading 1', action: 'h1' },
   { icon: Heading2, label: 'Heading 2', action: 'h2' },
@@ -44,6 +48,46 @@ const toolbarItems = [
   { icon: Link, label: 'Link', action: 'link' },
   { icon: Image, label: 'Image', action: 'image' },
 ]
+
+const editor = useEditor({
+  content: content.value,
+  extensions: [
+    StarterKit,
+    ImageExtension,
+    LinkExtension.configure({ openOnClick: false })
+  ],
+  onUpdate: ({ editor }) => {
+    content.value = editor.getHTML()
+  },
+  editorProps: {
+    attributes: {
+      class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-full h-full p-6 text-base leading-relaxed text-gray-700 dark:text-gray-300'
+    }
+  }
+})
+
+const handleToolbarAction = (action: string) => {
+  if (!editor.value) return
+  switch (action) {
+    case 'bold': editor.value.chain().focus().toggleBold().run(); break;
+    case 'italic': editor.value.chain().focus().toggleItalic().run(); break;
+    case 'strike': editor.value.chain().focus().toggleStrike().run(); break;
+    case 'h1': editor.value.chain().focus().toggleHeading({ level: 1 }).run(); break;
+    case 'h2': editor.value.chain().focus().toggleHeading({ level: 2 }).run(); break;
+    case 'ul': editor.value.chain().focus().toggleBulletList().run(); break;
+    case 'ol': editor.value.chain().focus().toggleOrderedList().run(); break;
+    case 'quote': editor.value.chain().focus().toggleBlockquote().run(); break;
+    case 'code': editor.value.chain().focus().toggleCodeBlock().run(); break;
+    case 'link': 
+      const url = window.prompt('URL:')
+      if (url) editor.value.chain().focus().setLink({ href: url }).run();
+      break;
+    case 'image':
+      const src = window.prompt('Image URL:')
+      if (src) editor.value.chain().focus().setImage({ src }).run();
+      break;
+  }
+}
 </script>
 
 <template>
@@ -135,6 +179,7 @@ const toolbarItems = [
             <button
               v-else
               :title="item.label"
+              @click="handleToolbarAction(item.action)"
               class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
               <component :is="item.icon" :size="16" />
@@ -142,11 +187,9 @@ const toolbarItems = [
           </template>
         </div>
         
-        <textarea
-          v-model="content"
-          placeholder="Nội dung bài viết (Hỗ trợ Markdown)..."
-          class="w-full p-6 flex-1 bg-transparent border-none outline-none text-gray-700 dark:text-gray-300 placeholder-gray-400 resize-none text-base leading-relaxed"
-        />
+        <div class="flex-1 overflow-y-auto bg-white dark:bg-surface-800 cursor-text" @click="editor?.commands.focus()">
+          <editor-content :editor="editor" class="h-full" />
+        </div>
         
         <div class="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-surface-700 bg-gray-50 dark:bg-surface-800/50">
           <p class="text-xs text-gray-400">{{ content.length }} ký tự</p>
@@ -163,8 +206,8 @@ const toolbarItems = [
         
         <div class="flex-1 overflow-y-auto p-8">
           <div class="prose dark:prose-invert max-w-none prose-img:rounded-xl">
-            <p v-if="!content" class="text-gray-400 italic">Chưa có nội dung. Hãy nhập nội dung ở ô bên trái để xem trước...</p>
-            <div v-else class="whitespace-pre-wrap">{{ content }}</div>
+            <p v-if="!content || content === '<p></p>'" class="text-gray-400 italic">Chưa có nội dung. Hãy nhập nội dung ở ô bên trái để xem trước...</p>
+            <div v-else v-html="content" class="tiptap-preview"></div>
           </div>
         </div>
       </div>

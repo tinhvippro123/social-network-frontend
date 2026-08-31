@@ -2,15 +2,35 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Check } from '@lucide/vue'
+import { useForm, useField } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
 
 const router = useRouter()
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
 const agreeTerms = ref(false)
+
+const schema = toTypedSchema(
+  z.object({
+    name: z.string().min(1, 'Vui lòng nhập họ tên'),
+    email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
+    password: z.string().min(1, 'Vui lòng nhập mật khẩu').min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
+    confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu')
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: "Mật khẩu không khớp",
+    path: ["confirmPassword"],
+  })
+)
+
+const { handleSubmit } = useForm({
+  validationSchema: schema,
+})
+
+const { value: name, errorMessage: nameError } = useField<string>('name')
+const { value: email, errorMessage: emailError } = useField<string>('email')
+const { value: password, errorMessage: passwordError } = useField<string>('password')
+const { value: confirmPassword, errorMessage: confirmPasswordError } = useField<string>('confirmPassword')
 
 const passwordStrength = ref(0)
 const watchPassword = (val: string) => {
@@ -25,13 +45,13 @@ const watchPassword = (val: string) => {
 const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500']
 const strengthLabels = ['Yếu', 'Trung bình', 'Khá', 'Mạnh']
 
-const handleRegister = async () => {
+const handleRegister = handleSubmit(async (values) => {
   isLoading.value = true
   setTimeout(() => {
     isLoading.value = false
     router.push('/')
   }, 1500)
-}
+})
 </script>
 
 <template>
@@ -49,9 +69,13 @@ const handleRegister = async () => {
             v-model="name"
             type="text"
             placeholder="Nguyễn Văn A"
-            class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
+            :class="[
+              'w-full pl-11 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              nameError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+            ]"
           />
         </div>
+        <p v-if="nameError" class="mt-1.5 text-sm text-red-500">{{ nameError }}</p>
       </div>
 
       <!-- Email -->
@@ -63,9 +87,13 @@ const handleRegister = async () => {
             v-model="email"
             type="email"
             placeholder="name@example.com"
-            class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
+            :class="[
+              'w-full pl-11 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              emailError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+            ]"
           />
         </div>
+        <p v-if="emailError" class="mt-1.5 text-sm text-red-500">{{ emailError }}</p>
       </div>
 
       <!-- Password -->
@@ -78,7 +106,10 @@ const handleRegister = async () => {
             :type="showPassword ? 'text' : 'password'"
             placeholder="Tối thiểu 8 ký tự"
             @input="watchPassword(($event.target as HTMLInputElement).value)"
-            class="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
+            :class="[
+              'w-full pl-11 pr-12 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              passwordError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+            ]"
           />
           <button
             type="button"
@@ -89,6 +120,7 @@ const handleRegister = async () => {
             <Eye v-else :size="18" />
           </button>
         </div>
+        <p v-if="passwordError" class="mt-1.5 text-sm text-red-500">{{ passwordError }}</p>
         <!-- Password strength indicator -->
         <div v-if="password.length > 0" class="mt-2">
           <div class="flex gap-1 mb-1">
@@ -116,14 +148,18 @@ const handleRegister = async () => {
             v-model="confirmPassword"
             :type="showPassword ? 'text' : 'password'"
             placeholder="Nhập lại mật khẩu"
-            class="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
+            :class="[
+              'w-full pl-11 pr-12 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              confirmPasswordError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+            ]"
           />
           <Check
-            v-if="confirmPassword && confirmPassword === password"
+            v-if="confirmPassword && confirmPassword === password && !confirmPasswordError"
             :size="18"
             class="absolute right-4 top-1/2 -translate-y-1/2 text-green-400"
           />
         </div>
+        <p v-if="confirmPasswordError" class="mt-1.5 text-sm text-red-500">{{ confirmPasswordError }}</p>
       </div>
 
       <!-- Terms -->

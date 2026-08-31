@@ -150,10 +150,29 @@ const router = createRouter({
     return { top: 0 }
   }
 })
+import { useAuthStore } from '@/stores/auth.store'
 
-// Update document title
-router.beforeEach((to) => {
+// Global Navigation Guards
+router.beforeEach((to, from, next) => {
+  // Update document title
   document.title = `${to.meta.title || 'Trang chủ'} | VietBlog`
+
+  const authStore = useAuthStore()
+
+  // Check if route requires admin privileges
+  if (to.meta.requiresAdmin) {
+    if (!authStore.isLoggedIn) {
+      // Not logged in -> redirect to login
+      next({ name: 'login', query: { redirect: to.fullPath } })
+    } else if (!authStore.isAdmin) {
+      // Logged in but not admin -> redirect to home or forbidden
+      next({ name: 'home' }) // or you could have a 403 Forbidden page
+    } else {
+      next() // proceed
+    }
+  } else {
+    next() // Does not require admin
+  }
 })
 
 export default router

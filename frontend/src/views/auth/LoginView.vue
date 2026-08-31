@@ -2,21 +2,41 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from '@lucide/vue'
+import { useForm, useField } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
 
 const router = useRouter()
-const email = ref('')
-const password = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
 const rememberMe = ref(false)
 
-const handleLogin = async () => {
+// Validation Schema
+const schema = toTypedSchema(
+  z.object({
+    email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
+    password: z.string().min(1, 'Vui lòng nhập mật khẩu').min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+  })
+)
+
+const { handleSubmit } = useForm({
+  validationSchema: schema,
+})
+
+const { value: email, errorMessage: emailError } = useField<string>('email')
+const { value: password, errorMessage: passwordError } = useField<string>('password')
+
+const handleLogin = handleSubmit(async (values) => {
   isLoading.value = true
   setTimeout(() => {
     isLoading.value = false
-    router.push('/')
+    if (values.email.includes('admin')) {
+      router.push('/admin')
+    } else {
+      router.push('/')
+    }
   }, 1500)
-}
+})
 </script>
 
 <template>
@@ -34,9 +54,13 @@ const handleLogin = async () => {
             v-model="email"
             type="email"
             placeholder="name@example.com"
-            class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
+            :class="[
+              'w-full pl-11 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              emailError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+            ]"
           />
         </div>
+        <p v-if="emailError" class="mt-1.5 text-sm text-red-500">{{ emailError }}</p>
       </div>
 
       <!-- Password -->
@@ -48,7 +72,10 @@ const handleLogin = async () => {
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="••••••••"
-            class="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
+            :class="[
+              'w-full pl-11 pr-12 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              passwordError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+            ]"
           />
           <button
             type="button"
@@ -59,6 +86,7 @@ const handleLogin = async () => {
             <Eye v-else :size="18" />
           </button>
         </div>
+        <p v-if="passwordError" class="mt-1.5 text-sm text-red-500">{{ passwordError }}</p>
       </div>
 
       <!-- Remember + Forgot -->

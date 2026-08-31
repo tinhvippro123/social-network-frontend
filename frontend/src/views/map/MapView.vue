@@ -1,17 +1,32 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   MapPin, Navigation, Minus, Plus, Layers, Search,
   Clock, Eye, ArrowUp, X, SlidersHorizontal
 } from '@lucide/vue'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { mockPosts } from '@/data/mockData'
+
+// Fix leaflet default icon issue in Vue/Vite
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
+import iconUrl from 'leaflet/dist/images/marker-icon.png'
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+})
 
 const router = useRouter()
 const searchRadius = ref(5)
 const searchLocation = ref('')
 const selectedPost = ref<typeof mockPosts[0] | null>(null)
 const showFilters = ref(false)
+const mapContainer = ref<HTMLElement | null>(null)
+let map: L.Map | null = null
 
 const postsWithLocation = mockPosts.filter(p => p.location)
 
@@ -19,6 +34,38 @@ const formatNumber = (num: number) => {
   if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
   return num.toString()
 }
+
+onMounted(() => {
+  if (!mapContainer.value) return
+
+  // Initialize map centered at Ho Chi Minh City
+  map = L.map(mapContainer.value, {
+    zoomControl: false // We will use our custom controls
+  }).setView([10.762622, 106.660172], 13)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map)
+
+  // Add markers
+  postsWithLocation.forEach(post => {
+    if (!post.location) return
+    const marker = L.marker([post.location.lat, post.location.lng]).addTo(map!)
+    marker.on('click', () => {
+      selectedPost.value = post
+      map?.setView([post.location!.lat, post.location!.lng], 15, { animate: true })
+    })
+  })
+})
+
+onUnmounted(() => {
+  if (map) {
+    map.remove()
+  }
+})
+
+const zoomIn = () => map?.zoomIn()
+const zoomOut = () => map?.zoomOut()
 </script>
 
 <template>
@@ -99,68 +146,15 @@ const formatNumber = (num: number) => {
 
     <!-- Map Area -->
     <div class="flex-1 relative bg-gray-200 dark:bg-surface-900">
-      <!-- Map Placeholder -->
-      <div class="absolute inset-0 flex items-center justify-center">
-        <div class="relative w-full h-full overflow-hidden">
-          <!-- Stylized map background -->
-          <div class="absolute inset-0 bg-linear-to-br from-blue-100 via-green-50 to-blue-100 dark:from-surface-900 dark:via-surface-800 dark:to-surface-900">
-            <!-- Grid lines to simulate map -->
-            <div class="absolute inset-0 opacity-20 dark:opacity-10"
-              style="background-image: linear-gradient(rgba(99,102,241,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.3) 1px, transparent 1px); background-size: 60px 60px;"
-            />
-            <!-- Road-like lines -->
-            <div class="absolute top-1/3 left-0 right-0 h-0.5 bg-gray-300 dark:bg-surface-600 opacity-50" />
-            <div class="absolute top-2/3 left-0 right-0 h-0.5 bg-gray-300 dark:bg-surface-600 opacity-50" />
-            <div class="absolute left-1/4 top-0 bottom-0 w-0.5 bg-gray-300 dark:bg-surface-600 opacity-50" />
-            <div class="absolute left-2/3 top-0 bottom-0 w-0.5 bg-gray-300 dark:bg-surface-600 opacity-50" />
-          </div>
-
-          <!-- Animated Markers -->
-          <div
-            v-for="(post, i) in postsWithLocation"
-            :key="post.id"
-            @click="selectedPost = post"
-            :class="[
-              'absolute cursor-pointer transition-all duration-300 hover:scale-125 z-10',
-              selectedPost?.id === post.id ? 'scale-125' : ''
-            ]"
-            :style="{
-              top: `${25 + i * 20}%`,
-              left: `${20 + i * 25}%`,
-            }"
-          >
-            <div class="relative">
-              <div :class="[
-                'w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all',
-                selectedPost?.id === post.id ? 'gradient-primary glow' : 'bg-primary-500'
-              ]">
-                <MapPin :size="18" class="text-white" />
-              </div>
-              <!-- Pulse ring -->
-              <div class="absolute inset-0 rounded-full bg-primary-500/30 animate-ping" />
-              <!-- Label -->
-              <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white dark:bg-surface-800 text-xs font-medium text-gray-700 dark:text-gray-300 px-2 py-1 rounded-lg shadow-lg border border-gray-200 dark:border-surface-700">
-                {{ post.location?.address }}
-              </div>
-            </div>
-          </div>
-
-          <!-- User location marker -->
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-            <div class="relative">
-              <div class="w-6 h-6 rounded-full bg-blue-500 border-3 border-white shadow-lg" />
-              <div class="absolute inset-0 rounded-full bg-blue-500/20 animate-ping" style="animation-duration: 2s;" />
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Map Container -->
+      <div ref="mapContainer" class="absolute inset-0 z-0"></div>
 
       <!-- Map Controls -->
-      <div class="absolute top-4 right-4 flex flex-col gap-2 z-20">
-        <button class="p-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
+      <div class="absolute top-4 right-4 flex flex-col gap-2 z-[1000]">
+        <button @click="zoomIn" class="p-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
           <Plus :size="18" />
         </button>
-        <button class="p-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
+        <button @click="zoomOut" class="p-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
           <Minus :size="18" />
         </button>
         <button class="p-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
@@ -175,7 +169,7 @@ const formatNumber = (num: number) => {
       <transition name="slide-up">
         <div
           v-if="selectedPost"
-          class="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-surface-700 overflow-hidden z-20"
+          class="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-surface-700 overflow-hidden z-[1000]"
         >
           <div class="relative">
             <img :src="selectedPost.coverImage" class="w-full h-32 object-cover" />

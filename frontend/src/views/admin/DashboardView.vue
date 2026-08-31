@@ -1,11 +1,34 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import {
   Users, FileText, Flag, BarChart3, TrendingUp, TrendingDown,
   Eye, ShieldAlert, Ban, Check, X, MoreVertical, Search,
   ArrowUp, ArrowDown, UserPlus, AlertTriangle
 } from '@lucide/vue'
 import { mockAdminStats, mockUsers, mockReports } from '@/data/mockData'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js'
+import { Line } from 'vue-chartjs'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+)
 
 const activeTab = ref('overview')
 const stats = ref(mockAdminStats)
@@ -21,6 +44,70 @@ const statCards = [
 const formatNumber = (num: number) => {
   if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
   return num.toString()
+}
+
+const chartData = computed(() => ({
+  labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+  datasets: [
+    {
+      label: 'Người dùng mới',
+      data: stats.value.userGrowth,
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true
+    },
+    {
+      label: 'Bài viết mới',
+      data: stats.value.postGrowth,
+      borderColor: '#22c55e',
+      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true
+    }
+  ]
+}))
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: {
+    mode: 'index' as const,
+    intersect: false,
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      grid: {
+        color: 'rgba(156, 163, 175, 0.1)'
+      },
+      ticks: {
+        color: '#9ca3af'
+      }
+    },
+    x: {
+      grid: {
+        display: false
+      },
+      ticks: {
+        color: '#9ca3af'
+      }
+    }
+  },
+  plugins: {
+    legend: {
+      display: false
+    },
+    tooltip: {
+      backgroundColor: 'rgba(17, 24, 39, 0.8)',
+      padding: 12,
+      titleFont: { size: 13 },
+      bodyFont: { size: 13 },
+      cornerRadius: 8
+    }
+  }
 }
 </script>
 
@@ -77,28 +164,16 @@ const formatNumber = (num: number) => {
         </div>
 
         <!-- Chart bars -->
-        <div class="flex items-end justify-between gap-3 h-48 px-4">
-          <div v-for="(val, i) in stats.userGrowth" :key="i" class="flex-1 flex flex-col items-center gap-2">
-            <div class="w-full flex flex-col gap-1">
-              <div
-                class="w-full rounded-t-lg gradient-primary transition-all duration-500"
-                :style="{ height: `${(val / Math.max(...stats.userGrowth)) * 120}px` }"
-              />
-              <div
-                class="w-full rounded-b-lg bg-green-500/50"
-                :style="{ height: `${(stats.postGrowth[i] / Math.max(...stats.postGrowth)) * 60}px` }"
-              />
-            </div>
-            <span class="text-xs text-gray-400">{{ ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'][i] }}</span>
-          </div>
+        <div class="h-64 mt-4 relative w-full">
+          <Line :data="chartData" :options="chartOptions" />
         </div>
 
         <div class="flex items-center gap-6 mt-4 pt-4 border-t border-gray-200 dark:border-surface-700">
-          <span class="flex items-center gap-2 text-xs text-gray-400">
-            <span class="w-3 h-3 rounded-sm gradient-primary" /> Người dùng mới
+          <span class="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+            <span class="w-3 h-3 rounded-sm bg-blue-500" /> Người dùng mới
           </span>
-          <span class="flex items-center gap-2 text-xs text-gray-400">
-            <span class="w-3 h-3 rounded-sm bg-green-500/50" /> Bài viết mới
+          <span class="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+            <span class="w-3 h-3 rounded-sm bg-green-500" /> Bài viết mới
           </span>
         </div>
       </div>
