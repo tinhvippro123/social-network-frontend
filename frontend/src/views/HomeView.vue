@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronRight, ChevronLeft, Flame } from '@lucide/vue'
+import { Flame, Loader2, CheckCircle } from '@lucide/vue'
 import PostCard from '@/components/PostCard.vue'
 import TrendingSidebar from '@/components/TrendingSidebar.vue'
 import CategoryTabs from '@/components/CategoryTabs.vue'
@@ -12,6 +12,8 @@ import { onMounted } from 'vue'
 
 const router = useRouter()
 const selectedCategory = ref('all')
+const visibleCount = ref(4)
+const loadingMore = ref(false)
 const { posts, isLoading, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
 const { categories, fetchCategories } = useCategories()
 
@@ -21,9 +23,26 @@ onMounted(() => {
 })
 
 const filteredPosts = computed(() => {
-  if (selectedCategory.value === 'all') return posts.value
-  return posts.value.filter(p => p.category.slug === selectedCategory.value)
+  const all = selectedCategory.value === 'all'
+    ? posts.value
+    : posts.value.filter(p => p.category.slug === selectedCategory.value)
+  return all.slice(0, visibleCount.value)
 })
+
+const totalFiltered = computed(() => {
+  if (selectedCategory.value === 'all') return posts.value.length
+  return posts.value.filter(p => p.category.slug === selectedCategory.value).length
+})
+
+const hasMore = computed(() => visibleCount.value < totalFiltered.value)
+
+const loadMore = async () => {
+  loadingMore.value = true
+  // Giả lập delay tải thêm từ API
+  await new Promise(r => setTimeout(r, 800))
+  visibleCount.value += 4
+  loadingMore.value = false
+}
 
 const toggleBookmark = (postId: string) => {
   const post = posts.value.find(p => p.id === postId)
@@ -94,9 +113,19 @@ const toggleBookmark = (postId: string) => {
 
         <!-- Load More -->
         <div class="flex justify-center mt-8">
-          <button class="px-6 py-3 rounded-xl text-sm font-medium text-primary-500 border border-primary-500/30 hover:bg-primary-500/10 transition-all duration-200">
-            Xem thêm bài viết
+          <button
+            v-if="hasMore"
+            @click="loadMore"
+            :disabled="loadingMore"
+            class="px-6 py-3 rounded-xl text-sm font-medium text-primary-500 border border-primary-500/30 hover:bg-primary-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Loader2 v-if="loadingMore" :size="16" class="animate-spin" />
+            {{ loadingMore ? 'Đang tải...' : 'Xem thêm bài viết' }}
           </button>
+          <div v-else-if="!isLoading && filteredPosts.length > 0" class="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500">
+            <CheckCircle :size="16" />
+            Đã hiển thị tất cả bài viết
+          </div>
         </div>
       </div>
 

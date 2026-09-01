@@ -31,13 +31,13 @@ const router = createRouter({
     {
       path: '/trending',
       name: 'trending',
-      component: () => import('@/views/HomeView.vue'),
+      component: () => import('@/views/TrendingView.vue'),
       meta: { title: 'Thịnh hành' }
     },
     {
       path: '/bookmarks',
       name: 'bookmarks',
-      component: () => import('@/views/HomeView.vue'),
+      component: () => import('@/views/BookmarksView.vue'),
       meta: { title: 'Đã lưu' }
     },
     {
