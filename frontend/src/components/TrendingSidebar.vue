@@ -1,19 +1,28 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { TrendingUp, ArrowUp, Hash, Star } from '@lucide/vue'
+import { ArrowUp, Hash, Star, TrendingUp } from '@lucide/vue'
 import { usePosts } from '@/composables/usePosts'
 import { useUsers } from '@/composables/useUsers'
 import UserAvatar from '@/components/UserAvatar.vue'
-import { onMounted } from 'vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { onMounted, ref } from 'vue'
 import { formatNumber } from '@/utils/formatters'
 
 const { posts, fetchTrending, tags, fetchPopularTags } = usePosts()
+const isLoading = ref(true)
+
 const { users, fetchUsers } = useUsers()
 
 onMounted(async () => {
-  posts.value = await fetchTrending(5)
-  await fetchUsers()
-  await fetchPopularTags()
+  isLoading.value = true
+  // Tải dữ liệu song song
+  const [trendingPosts] = await Promise.all([
+    fetchTrending(5),
+    fetchUsers(),
+    fetchPopularTags()
+  ])
+  posts.value = trendingPosts
+  isLoading.value = false
 })
 
 const router = useRouter()
@@ -27,7 +36,16 @@ const router = useRouter()
         <TrendingUp :size="18" class="text-primary-500" />
         Thịnh hành
       </h3>
-      <div class="space-y-4">
+      <div v-if="isLoading" class="space-y-4">
+        <div v-for="i in 5" :key="i" class="flex items-start gap-3">
+          <Skeleton type="text" class="w-7 h-7 rounded shrink-0" />
+          <div class="flex-1 space-y-2">
+            <Skeleton type="text" class="w-full" />
+            <Skeleton type="text" class="w-24" />
+          </div>
+        </div>
+      </div>
+      <div v-else class="space-y-4">
         <div
           v-for="(post, i) in posts.slice(0, 5)"
           :key="post.id"
@@ -59,7 +77,10 @@ const router = useRouter()
         <Hash :size="18" class="text-primary-500" />
         Tags phổ biến
       </h3>
-      <div class="flex flex-wrap gap-2">
+      <div v-if="isLoading" class="flex flex-wrap gap-2">
+        <Skeleton v-for="i in 6" :key="i" type="button" class="w-20 h-8 rounded-xl" />
+      </div>
+      <div v-else class="flex flex-wrap gap-2">
         <span
           v-for="tag in tags"
           :key="tag.id"
@@ -76,7 +97,17 @@ const router = useRouter()
         <Star :size="18" class="text-amber-400" />
         Tác giả nổi bật
       </h3>
-      <div class="space-y-4">
+      <div v-if="isLoading" class="space-y-4">
+        <div v-for="i in 3" :key="i" class="flex items-center gap-3">
+          <Skeleton type="avatar" class="w-10 h-10 shrink-0" />
+          <div class="flex-1 space-y-2">
+            <Skeleton type="text" class="w-24" />
+            <Skeleton type="text" class="w-16" />
+          </div>
+          <Skeleton type="button" class="w-20 h-7 rounded-lg" />
+        </div>
+      </div>
+      <div v-else class="space-y-4">
         <div v-for="user in users.slice(0, 3)" :key="user.id" class="flex items-center gap-3">
           <UserAvatar :user="user" size="md" class="ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all cursor-pointer" @click="router.push(`/profile/${user.id}`)" />
           <div class="flex-1 min-w-0">

@@ -10,11 +10,12 @@ import { onMounted } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import { useAuth } from '@/composables/useAuth'
+import Skeleton from '@/components/ui/Skeleton.vue'
 
 const router = useRouter()
 const { user } = useAuth()
 const route = useRoute()
-const { currentPost: post, posts, comments, fetchPost, fetchComments, fetchPosts } = usePosts()
+const { currentPost: post, posts, comments, isLoading, fetchPost, fetchComments, fetchPosts } = usePosts()
 const newComment = ref('')
 const isBookmarked = ref(false)
 const isUpvoted = ref(false)
@@ -100,7 +101,22 @@ public class Post {
       Quay lại
     </button>
 
-    <div v-if="post" class="flex flex-col lg:flex-row gap-8 items-start">
+    <!-- Loading Skeleton -->
+    <div v-if="isLoading" class="flex flex-col lg:flex-row gap-8 items-start">
+      <div class="flex-1 min-w-0 space-y-6">
+        <Skeleton type="image" class="w-full h-64 sm:h-96 rounded-2xl" />
+        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6 sm:p-8 space-y-4">
+          <Skeleton type="title" width="w-3/4" height="h-8" />
+          <Skeleton type="text" width="w-full" height="h-4" v-for="i in 5" :key="i" />
+          <Skeleton type="text" width="w-2/3" height="h-4" />
+        </div>
+      </div>
+      <aside class="w-full lg:w-72 shrink-0 space-y-5">
+        <Skeleton type="image" class="w-full h-48 rounded-2xl" />
+      </aside>
+    </div>
+
+    <div v-else-if="post" class="flex flex-col lg:flex-row gap-8 items-start">
       <!-- Article -->
       <article class="flex-1 min-w-0">
         <!-- Cover Image -->

@@ -5,13 +5,14 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
+import { mockUsers } from '@/data/mockData'
 
 export const useAuthStore = defineStore('auth', () => {
   const savedUser = localStorage.getItem(STORAGE_KEYS.USER)
-  let initialUser = null
+  let initialUser = mockUsers[0]
   try {
-    if (savedUser) {
-      initialUser = JSON.parse(savedUser)
+    if (savedUser && savedUser !== 'null' && savedUser !== 'undefined') {
+      initialUser = JSON.parse(savedUser) || mockUsers[0]
     }
   } catch (e) {
     console.error('Lỗi khi đọc dữ liệu User từ bộ nhớ tạm:', e)

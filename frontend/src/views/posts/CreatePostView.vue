@@ -5,13 +5,17 @@ import {
   Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote, Eye, Save, Send, MapPin, Tag, ChevronDown, X
 } from '@lucide/vue'
 import { useCategories } from '@/composables/useCategories'
+import { useToast } from '@/composables/useToast'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import ImageExtension from '@tiptap/extension-image'
 import LinkExtension from '@tiptap/extension-link'
 import { onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 
 const { categories, fetchCategories } = useCategories()
+const { success, error } = useToast()
+const router = useRouter()
 
 onMounted(() => {
   fetchCategories()
@@ -98,8 +102,22 @@ const handleToolbarAction = (action: string) => {
     case 'image':
       const src = window.prompt('Image URL:')
       if (src) editor.value.chain().focus().setImage({ src }).run();
-      break;
   }
+}
+
+const handlePublish = () => {
+  if (!title.value.trim()) {
+    error('Vui lòng nhập tiêu đề bài viết')
+    return
+  }
+  if (!content.value.trim() || content.value === '<p></p>') {
+    error('Nội dung bài viết không được để trống')
+    return
+  }
+  success('Xuất bản bài viết thành công!')
+  setTimeout(() => {
+    router.push('/')
+  }, 1000)
 }
 </script>
 
@@ -116,7 +134,10 @@ const handleToolbarAction = (action: string) => {
           <Save :size="16" />
           <span class="hidden sm:inline">Lưu nháp</span>
         </button>
-        <button class="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25">
+        <button 
+          @click="handlePublish"
+          class="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25"
+        >
           <Send :size="16" />
           Xuất bản
         </button>

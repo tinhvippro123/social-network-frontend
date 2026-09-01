@@ -9,17 +9,23 @@ import { onMounted } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import { formatRelativeTime } from '@/utils/formatters'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { MessageCircle as MessageCircleIcon } from '@lucide/vue'
 
-const { conversations, messages, fetchConversations, fetchMessages, sendMessage: apiSendMessage } = useChat()
+const { conversations, messages, isLoading, fetchConversations, fetchMessages, sendMessage: apiSendMessage } = useChat()
 const selectedConversation = ref<any>(null)
 const newMessage = ref('')
 
+const isInitialLoading = ref(true)
+
 onMounted(async () => {
+  isInitialLoading.value = true
   await fetchConversations()
   if (conversations.value.length > 0) {
     selectedConversation.value = conversations.value[0]
     await fetchMessages(selectedConversation.value.id)
   }
+  isInitialLoading.value = false
 })
 const searchChat = ref('')
 const showMobileChat = ref(false)
@@ -72,9 +78,23 @@ const handleSendMessage = async () => {
         </div>
       </div>
 
-      <!-- Conversation List -->
-      <div class="flex-1 overflow-y-auto">
+      <!-- Conversations -->
+      <div class="flex-1 overflow-y-auto p-3 space-y-1">
+        <div v-if="isInitialLoading" class="space-y-3">
+          <div v-for="i in 5" :key="i" class="flex items-center gap-3 p-3">
+            <Skeleton type="avatar" class="w-12 h-12 shrink-0" />
+            <div class="flex-1 space-y-2">
+              <Skeleton type="text" class="w-32 h-4" />
+              <Skeleton type="text" class="w-24 h-3" />
+            </div>
+          </div>
+        </div>
+        <div v-else-if="!isInitialLoading && conversations.length === 0" class="flex flex-col items-center justify-center h-full p-4 text-center opacity-50">
+          <MessageCircleIcon class="w-12 h-12 text-gray-400 mb-2" />
+          <p class="text-sm text-gray-500">Chưa có cuộc trò chuyện nào.</p>
+        </div>
         <div
+          v-else
           v-for="conv in filteredConversations"
           :key="conv.id"
           @click="selectConversation(conv)"
@@ -120,9 +140,23 @@ const handleSendMessage = async () => {
       </div>
     </div>
 
+    <!-- Empty Chat Area -->
+    <div
+      v-if="!selectedConversation && !isInitialLoading"
+      class="hidden sm:flex flex-1 flex-col items-center justify-center bg-gray-50 dark:bg-surface-900"
+    >
+      <div class="bg-white dark:bg-surface-800 p-8 rounded-full shadow-sm mb-6 border border-gray-100 dark:border-surface-700">
+        <MessageCircleIcon class="w-16 h-16 text-primary-500" />
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Xin chào!</h3>
+      <p class="text-gray-500 dark:text-gray-400 max-w-sm text-center">
+        Chọn một cuộc trò chuyện từ danh sách bên trái hoặc bắt đầu một cuộc trò chuyện mới.
+      </p>
+    </div>
+
     <!-- Chat Area -->
     <div
-      v-if="selectedConversation"
+      v-else
       :class="[
         'flex-1 flex flex-col min-w-0',
         showMobileChat ? 'flex' : 'hidden sm:flex'
@@ -138,13 +172,20 @@ const handleSendMessage = async () => {
             ←
           </button>
           <div class="relative">
-            <UserAvatar :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="sm" />
-            <div v-if="selectedConversation?.isOnline" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800" />
+            <UserAvatar v-if="selectedConversation && !isInitialLoading" :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="sm" />
+            <Skeleton v-else type="avatar" class="w-8 h-8" rounded="rounded-full" />
+            <div v-if="selectedConversation?.isOnline && !isInitialLoading" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800" />
           </div>
           <div>
-            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedConversation?.name }}</p>
-            <p class="text-xs text-green-500" v-if="selectedConversation?.isOnline">Đang hoạt động</p>
-            <p class="text-xs text-gray-400" v-else>Hoạt động 15 phút trước</p>
+            <template v-if="selectedConversation && !isInitialLoading">
+              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedConversation.name }}</p>
+              <p class="text-xs text-green-500" v-if="selectedConversation.isOnline">Đang hoạt động</p>
+              <p class="text-xs text-gray-400" v-else>Hoạt động 15 phút trước</p>
+            </template>
+            <template v-else>
+              <Skeleton type="text" class="w-24 h-4 mb-1" />
+              <Skeleton type="text" class="w-16 h-3" />
+            </template>
           </div>
         </div>
         <div class="flex items-center gap-1">
@@ -169,8 +210,16 @@ const handleSendMessage = async () => {
           <div class="flex-1 h-px bg-gray-200 dark:bg-surface-700" />
         </div>
 
-        <div
-          v-for="msg in messages"
+        <div v-if="isLoading || isInitialLoading" class="space-y-4">
+          <div v-for="i in 3" :key="i" :class="['flex items-end gap-2', i % 2 === 0 ? 'justify-end' : 'justify-start']">
+            <Skeleton v-if="i % 2 !== 0" type="avatar" class="w-7 h-7 shrink-0" />
+            <Skeleton type="text" :class="['w-48 h-10', i % 2 === 0 ? 'rounded-l-2xl rounded-tr-2xl' : 'rounded-r-2xl rounded-tl-2xl']" />
+          </div>
+        </div>
+
+        <template v-else>
+          <div
+            v-for="msg in messages"
           :key="msg.id"
           :class="['flex items-end gap-2', msg.isOwn ? 'justify-end' : 'justify-start']"
         >
@@ -195,6 +244,7 @@ const handleSendMessage = async () => {
             </div>
           </div>
         </div>
+        </template>
       </div>
 
       <!-- Message Input -->
@@ -228,14 +278,6 @@ const handleSendMessage = async () => {
           </button>
         </div>
       </div>
-    </div>
-
-    <!-- Empty State -->
-    <div v-else class="hidden sm:flex flex-1 items-center justify-center bg-gray-50 dark:bg-surface-900">
-      <EmptyState
-        title="Bắt đầu trò chuyện"
-        description="Chọn một cuộc trò chuyện từ danh sách hoặc tạo tin nhắn mới để bắt đầu giao tiếp với mọi người."
-      />
     </div>
   </div>
 </template>
