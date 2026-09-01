@@ -59,7 +59,7 @@ const toggleBookmark = (postId: string) => {
         </div>
 
         <!-- Categories -->
-        <CategoryTabs v-model="selectedCategory" />
+        <CategoryTabs v-model="selectedCategory" class="mb-6" />
 
         <!-- Feed -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger-children">
