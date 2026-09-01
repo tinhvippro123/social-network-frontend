@@ -49,6 +49,7 @@ const handleClickOutside = (e: Event) => {
 
 onMounted(() => {
   checkMobile()
+  appStore.fetchNotifications()
   window.addEventListener('resize', checkMobile)
   document.addEventListener('click', handleClickOutside)
 })
@@ -241,7 +242,12 @@ const logout = () => {
                   </button>
                 </div>
                 <div class="max-h-80 overflow-y-auto">
+                  <div v-if="appStore.notifications.length === 0" class="py-8 text-center text-gray-500 dark:text-gray-400">
+                    <Bell class="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <p class="text-sm">Không có thông báo nào</p>
+                  </div>
                   <div
+                    v-else
                     v-for="notif in appStore.notifications"
                     :key="notif.id"
                     @click="appStore.markNotificationRead(notif.id); showNotifications = false"

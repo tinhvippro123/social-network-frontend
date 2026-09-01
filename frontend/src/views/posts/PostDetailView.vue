@@ -22,9 +22,12 @@ const isUpvoted = ref(false)
 
 onMounted(async () => {
   const postId = route.params.id as string || '1'
-  await fetchPost(postId)
-  await fetchComments(postId)
-  await fetchPosts({ limit: 4 })
+  // Chạy song song 3 API để tiết kiệm thời gian (500ms thay vì 1500ms)
+  await Promise.all([
+    fetchPost(postId),
+    fetchComments(postId),
+    fetchPosts({ limit: 4 })
+  ])
 })
 
 

@@ -9,6 +9,7 @@ import { useAdmin } from '@/composables/useAdmin'
 import { onMounted } from 'vue'
 import { formatNumber } from '@/utils/formatters'
 import UserAvatar from '@/components/UserAvatar.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -22,12 +23,14 @@ import {
 } from 'chart.js'
 import { Line } from 'vue-chartjs'
 
-const { stats, users, reports, fetchStats, fetchUsers, fetchReports } = useAdmin()
+const { stats, users, reports, isLoading, fetchStats, fetchUsers, fetchReports } = useAdmin()
 
 onMounted(async () => {
-  await fetchStats()
-  await fetchUsers()
-  await fetchReports()
+  await Promise.all([
+    fetchStats(),
+    fetchUsers(),
+    fetchReports()
+  ])
 })
 ChartJS.register(
   CategoryScale,
@@ -135,25 +138,34 @@ const chartOptions = {
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-      <div
-        v-for="stat in statCards"
-        :key="stat.label"
-        class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5 hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300"
-      >
-        <div class="flex items-start justify-between">
-          <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stat.value }}</p>
-            <p class="text-xs mt-2 flex items-center gap-1" :class="stat.color">
-              <TrendingUp :size="12" />
-              {{ stat.change }}
-            </p>
-          </div>
-          <div :class="['p-3 rounded-xl', stat.bg]">
-            <component :is="stat.icon" :size="22" :class="stat.color" />
+      <template v-if="isLoading">
+        <div v-for="i in 4" :key="i" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
+          <Skeleton class="h-4 w-24 mb-2 rounded" />
+          <Skeleton class="h-8 w-16 mb-2 rounded" />
+          <Skeleton class="h-4 w-32 rounded" />
+        </div>
+      </template>
+      <template v-else-if="statCards.length">
+        <div
+          v-for="stat in statCards"
+          :key="stat.label"
+          class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5 hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300"
+        >
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stat.value }}</p>
+              <p class="text-xs mt-2 flex items-center gap-1" :class="stat.color">
+                <TrendingUp :size="12" />
+                {{ stat.change }}
+              </p>
+            </div>
+            <div :class="['p-3 rounded-xl', stat.bg]">
+              <component :is="stat.icon" :size="22" :class="stat.color" />
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -173,7 +185,8 @@ const chartOptions = {
 
         <!-- Chart bars -->
         <div class="h-64 mt-4 relative w-full">
-          <Line :data="chartData" :options="chartOptions" />
+          <Skeleton v-if="isLoading" class="w-full h-full rounded-xl" />
+          <Line v-else :data="chartData" :options="chartOptions" />
         </div>
 
         <div class="flex items-center gap-6 mt-4 pt-4 border-t border-gray-200 dark:border-surface-700">
@@ -192,7 +205,10 @@ const chartOptions = {
           <ShieldAlert :size="18" class="text-red-500" />
           Hàng đợi kiểm duyệt
         </h3>
-        <div class="space-y-3">
+        <div v-if="isLoading" class="space-y-3">
+          <Skeleton v-for="i in 4" :key="i" class="h-24 w-full rounded-xl" />
+        </div>
+        <div v-else-if="reports.length" class="space-y-3">
           <div
             v-for="report in reports"
             :key="report.id"
@@ -238,6 +254,9 @@ const chartOptions = {
             </div>
           </div>
         </div>
+        <div v-else class="text-sm text-gray-500 text-center py-8">
+          Không có báo cáo nào đang chờ xử lý
+        </div>
       </div>
     </div>
 
@@ -265,7 +284,15 @@ const chartOptions = {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in users" :key="user.id" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
+            <tr v-if="isLoading">
+              <td colspan="5" class="px-5 py-4">
+                <div class="space-y-3">
+                  <Skeleton v-for="i in 5" :key="i" class="h-12 w-full rounded-xl" />
+                </div>
+              </td>
+            </tr>
+            <template v-else-if="users.length">
+              <tr v-for="user in users" :key="user.id" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
               <td class="px-5 py-3">
                 <div class="flex items-center gap-3">
                   <UserAvatar :user="user" size="sm" />
@@ -291,6 +318,12 @@ const chartOptions = {
                 <button class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
                   <MoreVertical :size="16" />
                 </button>
+              </td>
+            </tr>
+            </template>
+            <tr v-else>
+              <td colspan="5" class="px-5 py-8 text-center text-gray-500 text-sm">
+                Không có dữ liệu người dùng
               </td>
             </tr>
           </tbody>

@@ -257,7 +257,7 @@ const isActive = (path: string) => {
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 overflow-y-auto">
+      <main class="flex-1 overflow-y-scroll">
         <slot />
       </main>
     </div>

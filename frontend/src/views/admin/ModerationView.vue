@@ -5,9 +5,10 @@ import { useAdmin } from '@/composables/useAdmin'
 import { onMounted } from 'vue'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatDateTime } from '@/utils/formatters'
 
-const { reports: extendedReports, fetchReports } = useAdmin()
+const { reports: extendedReports, isLoading, fetchReports } = useAdmin()
 
 onMounted(() => {
   fetchReports()
@@ -41,9 +42,40 @@ const filterStatus = ref('pending')
 
     <!-- Reports -->
     <div class="space-y-4">
-      <div v-for="report in extendedReports.filter(r => filterStatus === 'all' || r.status === filterStatus)" :key="report.id"
-        :class="['bg-white dark:bg-surface-800 rounded-2xl border p-5 transition-all',
-          report.status === 'pending' ? 'border-red-200 dark:border-red-900/30' : 'border-gray-200 dark:border-surface-700']">
+      <template v-if="isLoading">
+        <div v-for="i in 3" :key="i" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-3">
+                <Skeleton class="h-6 w-24 rounded-lg" />
+                <Skeleton class="h-6 w-24 rounded-lg" />
+              </div>
+              <Skeleton class="h-5 w-1/3 mb-1 rounded" />
+              <Skeleton class="h-4 w-2/3 mb-2 rounded" />
+              <div class="flex items-center gap-3 mt-3">
+                <Skeleton class="h-8 w-8 rounded-full" />
+                <div class="flex-1 min-w-0 flex items-center gap-2">
+                  <Skeleton class="h-4 w-24 rounded" />
+                  <Skeleton class="h-3 w-16 rounded" />
+                  <Skeleton class="h-4 w-32 rounded" />
+                </div>
+                <Skeleton class="h-3 w-20 rounded hidden sm:block" />
+              </div>
+            </div>
+
+            <div class="flex-col gap-2 shrink-0 hidden sm:flex">
+              <Skeleton class="h-8 w-32 rounded-xl" />
+              <Skeleton class="h-8 w-32 rounded-xl" />
+              <Skeleton class="h-8 w-32 rounded-xl" />
+              <Skeleton class="h-8 w-32 rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="extendedReports.length">
+        <div v-for="report in extendedReports.filter(r => filterStatus === 'all' || r.status === filterStatus)" :key="report.id"
+          :class="['bg-white dark:bg-surface-800 rounded-2xl border p-5 transition-all',
+            report.status === 'pending' ? 'border-red-200 dark:border-red-900/30' : 'border-gray-200 dark:border-surface-700']">
 
         <div class="flex items-start justify-between gap-4">
           <div class="flex-1">
@@ -94,6 +126,12 @@ const filterStatus = ref('pending')
             </button>
           </div>
         </div>
+      </div>
+      </template>
+      <div v-else class="text-center py-16 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700">
+        <ShieldAlert class="mx-auto h-16 w-16 text-gray-300 mb-4" />
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Không có báo cáo nào</h3>
+        <p class="text-gray-500">Hệ thống hiện tại sạch sẽ, không có vi phạm nào cần xử lý.</p>
       </div>
     </div>
   </div>

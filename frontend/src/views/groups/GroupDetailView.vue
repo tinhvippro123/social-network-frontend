@@ -7,20 +7,23 @@ import { usePosts } from '@/composables/usePosts'
 import { useUsers } from '@/composables/useUsers'
 import { onMounted } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber, formatDate } from '@/utils/formatters'
 
 const router = useRouter()
 const route = useRoute()
-const { currentGroup: group, fetchGroup } = useGroups()
-const { posts, fetchPosts } = usePosts()
-const { users, fetchUsers } = useUsers()
+const { currentGroup: group, isLoading: isGroupLoading, fetchGroup } = useGroups()
+const { posts, isLoading: isPostsLoading, fetchPosts } = usePosts()
+const { users, isLoading: isUsersLoading, fetchUsers } = useUsers()
 const activeTab = ref('posts')
 
 onMounted(async () => {
   const groupId = route.params.id as string || '1'
-  await fetchGroup(groupId)
-  await fetchPosts()
-  await fetchUsers()
+  await Promise.all([
+    fetchGroup(groupId),
+    fetchPosts(),
+    fetchUsers()
+  ])
 })
 
 </script>
@@ -31,7 +34,20 @@ onMounted(async () => {
       <ChevronLeft :size="16" /> Quay lại nhóm
     </button>
 
-    <div v-if="group" class="flex flex-col lg:flex-row gap-6">
+    <div v-if="isGroupLoading" class="flex flex-col lg:flex-row gap-6">
+      <div class="flex-1 min-w-0 space-y-6">
+        <Skeleton class="h-64 w-full rounded-2xl" />
+        <Skeleton class="h-12 w-full max-w-sm rounded-xl" />
+        <div class="space-y-4">
+          <Skeleton v-for="i in 3" :key="i" class="h-32 w-full rounded-2xl" />
+        </div>
+      </div>
+      <aside class="w-full lg:w-80 shrink-0 space-y-5">
+        <Skeleton v-for="i in 4" :key="i" class="h-40 w-full rounded-2xl" />
+      </aside>
+    </div>
+
+    <div v-else-if="group" class="flex flex-col lg:flex-row gap-6">
       <!-- Main Content -->
       <div class="flex-1 min-w-0">
         <!-- Group Header -->
@@ -73,33 +89,53 @@ onMounted(async () => {
         </div>
 
         <!-- Tab Content: Bài viết -->
-        <div v-if="activeTab === 'posts'" class="space-y-4">
-          <article v-for="post in posts.slice(0, 5)" :key="post.id" @click="router.push(`/posts/${post.id}`)"
-            class="flex gap-4 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 hover:border-primary-500/30 transition-all cursor-pointer group">
-            <img :src="post.coverImage" class="hidden sm:block w-28 h-20 rounded-xl object-cover shrink-0" />
-            <div class="flex-1">
-              <h3 class="font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors line-clamp-2 mb-1">{{ post.title }}</h3>
-              <p class="text-sm text-gray-400 line-clamp-1">{{ post.excerpt }}</p>
-              <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                <UserAvatar :user="post.author" size="sm" />
-                <span>{{ post.author.name }}</span>
-                <span class="flex items-center gap-1"><Eye :size="12" /> {{ post.viewsCount }}</span>
-                <span class="flex items-center gap-1"><ArrowUp :size="12" /> {{ post.upvotesCount }}</span>
-                <span class="flex items-center gap-1"><MessageCircle :size="12" /> {{ post.commentsCount }}</span>
+        <div v-if="activeTab === 'posts'">
+          <div v-if="isPostsLoading" class="space-y-4">
+            <Skeleton v-for="i in 3" :key="i" class="h-32 w-full rounded-2xl" />
+          </div>
+          <div v-else-if="posts.length" class="space-y-4">
+            <article v-for="post in posts.slice(0, 5)" :key="post.id" @click="router.push(`/posts/${post.id}`)"
+              class="flex gap-4 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 hover:border-primary-500/30 transition-all cursor-pointer group">
+              <img :src="post.coverImage" class="hidden sm:block w-28 h-20 rounded-xl object-cover shrink-0" />
+              <div class="flex-1">
+                <h3 class="font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors line-clamp-2 mb-1">{{ post.title }}</h3>
+                <p class="text-sm text-gray-400 line-clamp-1">{{ post.excerpt }}</p>
+                <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                  <UserAvatar :user="post.author" size="sm" />
+                  <span>{{ post.author.name }}</span>
+                  <span class="flex items-center gap-1"><Eye :size="12" /> {{ post.viewsCount }}</span>
+                  <span class="flex items-center gap-1"><ArrowUp :size="12" /> {{ post.upvotesCount }}</span>
+                  <span class="flex items-center gap-1"><MessageCircle :size="12" /> {{ post.commentsCount }}</span>
+                </div>
               </div>
-            </div>
-          </article>
+            </article>
+          </div>
+          <div v-else class="text-center py-12 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700">
+            <FileText :size="48" class="mx-auto text-gray-300 mb-4" />
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Chưa có bài viết</h3>
+            <p class="text-gray-500">Nhóm này chưa có bài viết nào.</p>
+          </div>
         </div>
 
         <!-- Tab Content: Thành viên -->
-        <div v-if="activeTab === 'members'" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div v-for="user in users" :key="user.id" class="flex items-center gap-3 bg-white dark:bg-surface-800 rounded-xl border border-gray-200 dark:border-surface-700 p-3">
-            <UserAvatar :user="user" size="md" />
-            <div class="flex-1">
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ user.name }}</p>
-              <p class="text-xs text-gray-400">{{ user.postsCount }} bài viết</p>
+        <div v-if="activeTab === 'members'">
+          <div v-if="isUsersLoading" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Skeleton v-for="i in 6" :key="i" class="h-16 w-full rounded-xl" />
+          </div>
+          <div v-else-if="users.length" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div v-for="user in users" :key="user.id" class="flex items-center gap-3 bg-white dark:bg-surface-800 rounded-xl border border-gray-200 dark:border-surface-700 p-3">
+              <UserAvatar :user="user" size="md" />
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ user.name }}</p>
+                <p class="text-xs text-gray-400">{{ user.postsCount }} bài viết</p>
+              </div>
+              <span class="text-xs text-gray-400 bg-gray-100 dark:bg-surface-700 px-2 py-1 rounded-lg">{{ user.role }}</span>
             </div>
-            <span class="text-xs text-gray-400 bg-gray-100 dark:bg-surface-700 px-2 py-1 rounded-lg">{{ user.role }}</span>
+          </div>
+          <div v-else class="text-center py-12 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700">
+            <Users :size="48" class="mx-auto text-gray-300 mb-4" />
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Chưa có thành viên</h3>
+            <p class="text-gray-500">Nhóm này chưa có thành viên nào.</p>
           </div>
         </div>
 
@@ -161,7 +197,10 @@ onMounted(async () => {
         <!-- Thành viên nổi bật -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
           <h3 class="font-bold text-gray-900 dark:text-white mb-3">⭐ Thành viên nổi bật</h3>
-          <div class="space-y-3">
+          <div v-if="isUsersLoading" class="space-y-3">
+            <Skeleton v-for="i in 4" :key="i" class="h-10 w-full rounded-lg" />
+          </div>
+          <div v-else-if="users.length" class="space-y-3">
             <div v-for="user in users.slice(0, 4)" :key="user.id" class="flex items-center gap-3">
               <UserAvatar :user="user" size="sm" />
               <div class="flex-1 min-w-0">
@@ -170,6 +209,7 @@ onMounted(async () => {
               </div>
             </div>
           </div>
+          <div v-else class="text-sm text-gray-500 text-center py-4">Chưa có thành viên</div>
         </div>
 
         <!-- Quy tắc nhóm -->
