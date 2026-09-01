@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import {
-  Send, Smile, Paperclip, Image, Phone, Video, MoreVertical,
-  Search, Plus, Check, CheckCheck, Circle
+  Send as SendIcon, Smile as SmileIcon, Paperclip as PaperclipIcon, Image as ImageIcon, Phone as PhoneIcon, Video as VideoIcon, MoreVertical as MoreVerticalIcon,
+  Search as SearchIcon, Plus as PlusIcon, Check as CheckIcon, CheckCheck as CheckCheckIcon, Circle as CircleIcon
 } from '@lucide/vue'
 import { useChat } from '@/composables/useChat'
 import { onMounted } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import EmptyState from '@/components/EmptyState.vue'
 import { formatRelativeTime } from '@/utils/formatters'
 
 const { conversations, messages, fetchConversations, fetchMessages, sendMessage: apiSendMessage } = useChat()
@@ -57,11 +58,11 @@ const handleSendMessage = async () => {
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold text-gray-900 dark:text-white">Tin nhắn</h2>
           <button class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-            <Plus :size="20" />
+            <PlusIcon :size="20" />
           </button>
         </div>
         <div class="flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-3 py-2">
-          <Search :size="16" class="text-gray-400" />
+          <SearchIcon :size="16" class="text-gray-400" />
           <input
             v-model="searchChat"
             type="text"
@@ -121,6 +122,7 @@ const handleSendMessage = async () => {
 
     <!-- Chat Area -->
     <div
+      v-if="selectedConversation"
       :class="[
         'flex-1 flex flex-col min-w-0',
         showMobileChat ? 'flex' : 'hidden sm:flex'
@@ -147,13 +149,13 @@ const handleSendMessage = async () => {
         </div>
         <div class="flex items-center gap-1">
           <button class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-            <Phone :size="18" />
+            <PhoneIcon :size="18" />
           </button>
           <button class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-            <Video :size="18" />
+            <VideoIcon :size="18" />
           </button>
           <button class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-            <MoreVertical :size="18" />
+            <MoreVerticalIcon :size="18" />
           </button>
         </div>
       </div>
@@ -189,7 +191,7 @@ const handleSendMessage = async () => {
             <p>{{ msg.content }}</p>
             <div :class="['flex items-center justify-end gap-1 mt-1', msg.isOwn ? 'text-primary-100' : 'text-gray-400']">
               <span class="text-[10px]">{{ msg.createdAt }}</span>
-              <CheckCheck v-if="msg.isOwn" :size="12" />
+              <CheckCheckIcon v-if="msg.isOwn" :size="12" />
             </div>
           </div>
         </div>
@@ -200,10 +202,10 @@ const handleSendMessage = async () => {
         <div class="flex items-end gap-2">
           <div class="flex items-center gap-1">
             <button class="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-              <Paperclip :size="18" />
+              <PaperclipIcon :size="18" />
             </button>
             <button class="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-              <Image :size="18" />
+              <ImageIcon :size="18" />
             </button>
           </div>
           <div class="flex-1 flex items-end gap-2 bg-gray-100 dark:bg-surface-700 rounded-2xl px-4 py-2">
@@ -215,17 +217,25 @@ const handleSendMessage = async () => {
               class="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 resize-none max-h-24"
             />
             <button class="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-              <Smile :size="18" />
+              <SmileIcon :size="18" />
             </button>
           </div>
           <button
             @click="handleSendMessage"
             class="p-3 rounded-xl gradient-primary text-white hover:opacity-90 transition-all shadow-lg shadow-primary-500/25"
           >
-            <Send :size="18" />
+            <SendIcon :size="18" />
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else class="hidden sm:flex flex-1 items-center justify-center bg-gray-50 dark:bg-surface-900">
+      <EmptyState
+        title="Bắt đầu trò chuyện"
+        description="Chọn một cuộc trò chuyện từ danh sách hoặc tạo tin nhắn mới để bắt đầu giao tiếp với mọi người."
+      />
     </div>
   </div>
 </template>

@@ -4,7 +4,7 @@
 import http from './client'
 import type { ApiResponse } from './client'
 import type { Post } from '@/types'
-import { mockPosts } from '@/data/mockData'
+import { mockPosts, mockComments } from '@/data/mockData'
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -114,8 +114,6 @@ const postsApi = {
 
   getComments: async (postId: string) => {
     await delay(500)
-    // Dynamic import to avoid circular dependency or just importing it at top
-    const { mockComments } = await import('@/data/mockData')
     return { data: { data: mockComments, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<any[]> }>
   },
 }

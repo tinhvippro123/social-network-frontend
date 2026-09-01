@@ -8,7 +8,15 @@ import { STORAGE_KEYS } from '@/constants'
 
 export const useAuthStore = defineStore('auth', () => {
   const savedUser = localStorage.getItem(STORAGE_KEYS.USER)
-  const initialUser = savedUser ? JSON.parse(savedUser) : null
+  let initialUser = null
+  try {
+    if (savedUser) {
+      initialUser = JSON.parse(savedUser)
+    }
+  } catch (e) {
+    console.error('Lỗi khi đọc dữ liệu User từ bộ nhớ tạm:', e)
+    localStorage.removeItem(STORAGE_KEYS.USER)
+  }
   const user = ref<User | null>(initialUser)
   const accessToken = ref<string | null>(localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN))
 

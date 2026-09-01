@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, Plus, Users, Globe, Lock, ArrowRight } from '@lucide/vue'
+import { Search as SearchIcon, Plus, Users, Globe, Lock, ArrowRight } from '@lucide/vue'
 import { useGroups } from '@/composables/useGroups'
 import { onMounted } from 'vue'
 
@@ -49,7 +49,7 @@ import { formatNumber } from '@/utils/formatters'
     <!-- Search & Filter -->
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
       <div class="flex-1 flex items-center gap-2 bg-white dark:bg-surface-800 rounded-xl px-4 py-2.5 border border-gray-200 dark:border-surface-700">
-        <Search :size="18" class="text-gray-400" />
+        <SearchIcon :size="18" class="text-gray-400" />
         <input
           v-model="searchGroup"
           type="text"

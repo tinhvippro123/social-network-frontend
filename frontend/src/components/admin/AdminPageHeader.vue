@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Search } from '@lucide/vue'
+import { Search as SearchIcon } from '@lucide/vue'
 
 defineProps<{
   title: string
@@ -31,7 +31,7 @@ defineEmits<{
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
       <!-- Search -->
       <div v-if="searchPlaceholder" class="flex-1 flex items-center gap-2 bg-white dark:bg-surface-800 rounded-xl px-4 py-2.5 border border-gray-200 dark:border-surface-700">
-        <Search :size="18" class="text-gray-400" />
+        <SearchIcon :size="18" class="text-gray-400" />
         <input 
           :value="modelValue"
           @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"

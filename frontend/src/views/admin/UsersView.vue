@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import {
-  Search, MoreVertical, Shield, Ban, Trash2, Filter,
+  Search as SearchIcon, MoreVertical, Shield, Ban, Trash2, Filter,
   UserCheck, UserX, ChevronLeft, ChevronRight, Mail, Calendar
 } from '@lucide/vue'
 import { useAdmin } from '@/composables/useAdmin'

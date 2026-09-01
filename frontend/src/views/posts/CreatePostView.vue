@@ -2,14 +2,14 @@
 import { ref } from 'vue'
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, List, ListOrdered,
-  Code, Image, Link, Quote, Eye, Save, Send, MapPin, Tag, ChevronDown, X
+  Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote, Eye, Save, Send, MapPin, Tag, ChevronDown, X
 } from '@lucide/vue'
 import { useCategories } from '@/composables/useCategories'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import ImageExtension from '@tiptap/extension-image'
 import LinkExtension from '@tiptap/extension-link'
-import { onMounted } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 
 const { categories, fetchCategories } = useCategories()
 
@@ -51,9 +51,9 @@ const toolbarItems = [
   { icon: ListOrdered, label: 'Numbered list', action: 'ol' },
   { icon: Quote, label: 'Quote', action: 'quote' },
   { icon: null, label: 'divider', action: '' },
-  { icon: Code, label: 'Code', action: 'code' },
-  { icon: Link, label: 'Link', action: 'link' },
-  { icon: Image, label: 'Image', action: 'image' },
+  { icon: CodeIcon, label: 'Code', action: 'code' },
+  { icon: LinkIcon, label: 'Link', action: 'link' },
+  { icon: ImageIcon, label: 'Image', action: 'image' },
 ]
 
 const editor = useEditor({
@@ -70,6 +70,12 @@ const editor = useEditor({
     attributes: {
       class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-full h-full p-6 text-base leading-relaxed text-gray-700 dark:text-gray-300'
     }
+  }
+})
+
+onBeforeUnmount(() => {
+  if (editor.value) {
+    editor.value.destroy()
   }
 })
 
@@ -120,12 +126,10 @@ const handleToolbarAction = (action: string) => {
     <!-- TOP SECTION: Settings (Cover, Title, Tags) -->
     <div class="flex flex-col gap-6 bg-white dark:bg-surface-800 p-6 rounded-2xl border border-gray-200 dark:border-surface-700 shadow-sm">
       <!-- Cover Image Upload -->
-      <div class="relative rounded-2xl border-2 border-dashed border-gray-300 dark:border-surface-600 hover:border-primary-500/50 transition-colors overflow-hidden group cursor-pointer bg-gray-50 dark:bg-surface-900/50">
-        <div class="flex flex-col items-center justify-center py-10 text-center">
-          <Image :size="32" class="text-gray-300 dark:text-surface-600 mb-3 group-hover:text-primary-500 transition-colors" />
-          <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Nhấp để tải ảnh bìa</p>
-          <p class="text-xs text-gray-400 mt-1">PNG, JPG tối đa 5MB</p>
-        </div>
+      <div class="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 dark:border-surface-600 rounded-xl bg-gray-50 dark:bg-surface-800/50 hover:bg-gray-100 dark:hover:bg-surface-700/50 transition-colors cursor-pointer group">
+        <ImageIcon :size="32" class="text-gray-300 dark:text-surface-600 mb-3 group-hover:text-primary-500 transition-colors" />
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Kéo thả ảnh hoặc click để tải lên</p>
+        <p class="text-xs text-gray-400 mt-1">PNG, JPG tối đa 5MB</p>
       </div>
 
       <!-- Title -->

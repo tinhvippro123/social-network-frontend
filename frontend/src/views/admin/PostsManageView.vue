@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Search, Eye, EyeOff, Trash2, ChevronLeft, ChevronRight, Clock } from '@lucide/vue'
+import { Search as SearchIcon, Eye, EyeOff, Trash2, ChevronLeft, ChevronRight, Clock } from '@lucide/vue'
 import { usePosts } from '@/composables/usePosts'
 import { onMounted } from 'vue'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'

@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import {
   Users, FileText, Flag, BarChart3, TrendingUp, TrendingDown,
-  Eye, ShieldAlert, Ban, Check, X, MoreVertical, Search,
+  Eye, ShieldAlert, Ban, Check, X, MoreVertical, Search as SearchIcon,
   ArrowUp, ArrowDown, UserPlus, AlertTriangle
 } from '@lucide/vue'
 import { useAdmin } from '@/composables/useAdmin'
@@ -249,7 +249,7 @@ const chartOptions = {
           Quản lý người dùng
         </h3>
         <div class="flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-3 py-1.5">
-          <Search :size="14" class="text-gray-400" />
+          <SearchIcon :size="14" class="text-gray-400" />
           <input type="text" placeholder="Tìm kiếm..." class="bg-transparent border-none outline-none text-xs text-gray-600 dark:text-gray-400 placeholder-gray-400 w-32" />
         </div>
       </div>

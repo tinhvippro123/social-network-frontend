@@ -4,10 +4,10 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useAppStore } from '@/stores/app'
 import UserAvatar from '@/components/UserAvatar.vue'
-import {
-  LayoutDashboard, Users, FileText, ShieldAlert, FolderTree,
-  Settings, Sun, Moon, Menu, X, LogOut, ChevronLeft,
-  Bell, ChevronDown, BarChart3, MessageCircle, Flag, User
+import { 
+  Home, Users, FileText, Settings, Shield, Bell, Menu as MenuIcon, X, LogOut,
+  ChevronRight, Database, Box, BarChart3, ShieldAlert, FolderTree, ChevronLeft,
+  Sun, Moon, MessageCircle, Flag, User
 } from '@lucide/vue'
 
 const router = useRouter()
@@ -21,7 +21,7 @@ const mobileSidebarOpen = ref(false)
 const showUserMenu = ref(false)
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', to: '/admin' },
+  { icon: Home, label: 'Dashboard', to: '/admin' },
   { icon: Users, label: 'Người dùng', to: '/admin/users' },
   { icon: FileText, label: 'Bài viết', to: '/admin/posts' },
   { icon: ShieldAlert, label: 'Kiểm duyệt', to: '/admin/moderation' },
@@ -173,18 +173,18 @@ const isActive = (path: string) => {
       <header class="h-16 shrink-0 flex items-center justify-between px-4 lg:px-6 bg-white dark:bg-surface-800 border-b border-gray-200 dark:border-surface-700 z-30">
         <!-- Left -->
         <div class="flex items-center gap-3">
-          <button
-            class="lg:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
-            @click="mobileSidebarOpen = !mobileSidebarOpen"
+          <button 
+            @click="mobileSidebarOpen = true"
+            class="p-2 -ml-2 mr-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors lg:hidden"
           >
-            <Menu v-if="!mobileSidebarOpen" :size="22" />
+            <MenuIcon v-if="!mobileSidebarOpen" :size="22" />
             <X v-else :size="22" />
           </button>
           <button
             class="hidden lg:flex p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
             @click="sidebarOpen = !sidebarOpen"
           >
-            <Menu :size="22" />
+            <MenuIcon :size="22" />
           </button>
 
           <!-- Breadcrumb -->

@@ -5,19 +5,18 @@ import { usePosts } from '@/composables/usePosts'
 import { useUsers } from '@/composables/useUsers'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { onMounted } from 'vue'
+import { formatNumber } from '@/utils/formatters'
 
 const { posts, fetchTrending, tags, fetchPopularTags } = usePosts()
 const { users, fetchUsers } = useUsers()
 
 onMounted(async () => {
-  await fetchTrending(5)
+  posts.value = await fetchTrending(5)
   await fetchUsers()
   await fetchPopularTags()
 })
 
 const router = useRouter()
-
-import { formatNumber } from '@/utils/formatters'
 </script>
 
 <template>

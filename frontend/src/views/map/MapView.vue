@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  MapPin, Navigation, Minus, Plus, Layers, Search,
+  MapPin, Navigation, Minus, Plus, Layers, Search as SearchIcon,
   Clock, Eye, ArrowUp, X, SlidersHorizontal
 } from '@lucide/vue'
 import L from 'leaflet'
@@ -83,7 +83,7 @@ const zoomOut = () => map?.zoomOut()
           Bản đồ bài viết
         </h2>
         <div class="flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-3 py-2 mb-3">
-          <Search :size="16" class="text-gray-400" />
+          <SearchIcon :size="16" class="text-gray-400" />
           <input
             v-model="searchLocation"
             type="text"

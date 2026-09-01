@@ -7,7 +7,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import { formatRelativeTime } from '@/utils/formatters'
 import {
   Home, TrendingUp, Bookmark, PenSquare, Users, MessageCircle,
-  MapPin, Search, Bell, Sun, Moon, Menu, X, LogOut,
+  MapPin, SearchIcon, Bell, Sun, Moon, MenuIcon, X, LogOut,
   Settings, User, ChevronDown, Shield, ChevronLeft, ChevronRight
 } from '@lucide/vue'
 
@@ -165,7 +165,7 @@ const logout = () => {
             class="lg:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
             @click="appStore.toggleMobileSidebar"
           >
-            <Menu v-if="!appStore.isMobileSidebarOpen" :size="22" />
+            <MenuIcon v-if="!appStore.isMobileSidebarOpen" :size="22" />
             <X v-else :size="22" />
           </button>
 
@@ -181,7 +181,7 @@ const logout = () => {
 
           <!-- Search Bar -->
           <div class="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-4 py-2 w-64 lg:w-96 transition-all duration-200 focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:bg-white dark:focus-within:bg-surface-600">
-            <Search :size="18" class="text-gray-400 shrink-0" />
+            <SearchIcon :size="18" class="text-gray-400 shrink-0" />
             <input
               v-model="appStore.searchQuery"
               type="text"
@@ -198,7 +198,7 @@ const logout = () => {
         <div class="flex items-center gap-2">
           <!-- Mobile search -->
           <button class="sm:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-            <Search :size="20" />
+            <SearchIcon :size="20" />
           </button>
 
           <!-- Write button -->

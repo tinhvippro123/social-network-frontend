@@ -4,6 +4,7 @@
 import axios from 'axios'
 import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { STORAGE_KEYS } from '@/constants'
+import router from '@/router'
 
 /** Response chuẩn từ Backend */
 export interface ApiResponse<T = unknown> {
@@ -48,7 +49,6 @@ http.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 )
 
-import router from '@/router'
 
 // ── Response Interceptor ─────────────────────────────
 // Xử lý lỗi tập trung: 401 → logout, 403 → redirect, 500 → toast

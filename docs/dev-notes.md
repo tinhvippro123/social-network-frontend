@@ -78,6 +78,39 @@
 - **Quyết định**: Xóa toàn bộ các lệnh `import ... from '@/data/mockData'` khỏi các file `.vue` (tầng View & UI Component). Đẩy việc sử dụng Mock Data xuống tầng `src/api/` và truy xuất qua `src/composables/`.
 - **Lý do**: Tách biệt hoàn toàn phần giao diện (UI) và phần dữ liệu (Data). Giao diện giờ đây chỉ giao tiếp với Composables (bằng các hàm `fetch`, biến `ref`), không quan tâm dữ liệu đến từ đâu. Việc này giúp quá trình tích hợp Backend REST API sau này cực kỳ dễ dàng (chỉ việc sửa file ở thư mục `api/` mà không cần đụng lại một dòng code nào ở tầng giao diện).
 
+> **3. Tách Mock Data khỏi Component UI**
+> ```ts
+> // ❌ CŨ: Component phụ thuộc trực tiếp vào mockData tĩnh
+> import { mockPosts } from '@/data/mockData'
+> const posts = ref(mockPosts)
+> 
+> // ✅ MỚI: Thông qua Composable gọi API, dữ liệu mock bị cô lập hoàn toàn ở tầng Backend ảo
+> import { usePosts } from '@/composables/usePosts'
+> const { posts, fetchPosts } = usePosts()
+> ```
+> 
+> **4. Khắc phục trùng lặp DOM Element (Blank Screen)**
+> ```javascript
+> // ❌ CŨ: LỖI SẬP TRANG do Vue hiểu nhầm là thẻ HTML Native (<image>, <video>)
+> import { Image, Video } from '@lucide/vue'
+> 
+> // ✅ MỚI: Sử dụng Alias Icon để an toàn tuyệt đối
+> import { Image as ImageIcon, Video as VideoIcon } from '@lucide/vue'
+> ```
+> 
+> **5. Fix lỗi Component Factory (Vue withDefaults)**
+> ```javascript
+> // ❌ CŨ: LỖI SẬP TRANG do Vue tự động thực thi Functional Component (Inbox)
+> withDefaults(defineProps<{ icon?: Component }>(), {
+>   icon: Inbox as any
+> })
+> 
+> // ✅ MỚI: Bọc trong Arrow Function để trở về đúng chức năng cung cấp giá trị mặc định
+> withDefaults(defineProps<{ icon?: Component }>(), {
+>   icon: () => Inbox as any
+> })
+> ```
+
 ---
 
 ## 🎨 Quy ước Code & UI/UX Component
@@ -188,13 +221,21 @@ View (UI) → Composable (Logic) → API Service (Endpoint) → HTTP Client (Axi
 
 ---
 
+## ✅ Những Hạng Mục Đã Hoàn Thành (Accomplishments)
+
+1. **Bản đồ (MapView)**: Đã tích hợp thư viện `Leaflet.js` hiển thị bản đồ trực quan.
+2. **Trình soạn thảo (CreatePostView)**: Đã thay thế thẻ `<textarea>` thuần bằng Rich-text editor cao cấp `TipTap`. Đã sửa lỗi Memory Leak của TipTap.
+3. **Form Validation**: Đã tích hợp `VeeValidate` và `Zod` để validate các form Auth an toàn.
+4. **Biểu đồ (Analytics/Dashboard)**: Đã tích hợp thành công `Chart.js` (`vue-chartjs`) cho màn hình Admin.
+5. **Route Guards**: Đã bổ sung `router.beforeEach` check token / role (chặn truy cập `/admin` khi không phải Admin).
+6. **Kiến trúc Data Fetching**: Đã đóng gói logic fetch dữ liệu bất đồng bộ vào `useAsyncState`, tự động xử lý `isLoading` và `error` chung cho toàn ứng dụng.
+7. **Tối ưu Avatar Component**: Đã refactor toàn bộ mã lặp lại thành một Component duy nhất `<UserAvatar />` có tích hợp ảnh dự phòng (Fallback UI) an toàn.
+
+---
+
 ## 🛠️ Technical Debt & Known Issues (Cần làm)
 
-1. **Bản đồ (MapView)**: UI hiện tại chỉ là placeholder. Cần tích hợp thư viện `Leaflet.js` và gọi API backend PostGIS.
-2. **Trình soạn thảo (CreatePostView)**: Hiện đang dùng `<textarea>` thuần. Cần thay thế bằng Rich-text editor (như TipTap, Vditor, hoặc Quill).
-3. **Form Validation**: Các form (Login, Register, Create Post) chưa có logic validate. Cần tích hợp `VeeValidate` hoặc xử lý thủ công trước.
-4. **Biểu đồ (Analytics/Dashboard)**: Đang "fake" bằng thẻ `<div>` với inline-style. Cần tích hợp `Chart.js` (vue-chartjs) hoặc `ECharts` khi có API.
-5. **Route Guards**: Chưa chặn route. Hiện tại ai vào `/admin` cũng được. Cần thêm `router.beforeEach` check token / role.
+- Hiện tại phần Frontend chưa phát hiện thêm nợ kỹ thuật (Technical Debt) nào nghiêm trọng. Các tính năng cốt lõi đều hoạt động tốt bằng Mock Data. Đã sẵn sàng để kết nối Backend API.
 
 ---
 
