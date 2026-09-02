@@ -266,32 +266,65 @@ export const mockConversations: ChatConversation[] = [
   {
     id: 'conv1', name: 'Nguyễn Văn An', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=an',
     lastMessage: 'Bạn đã xong phần frontend chưa?', lastMessageTime: '10:30', unreadCount: 2,
-    isGroup: false, isOnline: true, participants: [mockUsers[0], mockUsers[1]]
+    isGroup: false, isOnline: true, isPinned: true, isMuted: false, participants: [mockUsers[0], mockUsers[1]]
   },
   {
     id: 'conv2', name: 'Vietnam Developers', avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=vndev',
     lastMessage: 'Phạm Tuấn: Có ai biết cách fix lỗi CORS không?', lastMessageTime: '09:45', unreadCount: 5,
-    isGroup: true, isOnline: false, participants: [mockUsers[0], mockUsers[1], mockUsers[3]]
+    isGroup: true, isOnline: false, isPinned: false, isMuted: false, participants: [mockUsers[0], mockUsers[1], mockUsers[3]]
   },
   {
     id: 'conv3', name: 'Trần Thị Mai', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=mai',
     lastMessage: 'Mình gửi bạn file design nha', lastMessageTime: 'Hôm qua', unreadCount: 0,
-    isGroup: false, isOnline: false, participants: [mockUsers[0], mockUsers[2]]
+    isGroup: false, isOnline: false, isPinned: false, isMuted: true, participants: [mockUsers[0], mockUsers[2]]
   },
   {
     id: 'conv4', name: 'Nhóm ĐACN', avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=hcmunre',
     lastMessage: 'Thầy: Các em nhớ nộp báo cáo tuần này nha', lastMessageTime: 'Hôm qua', unreadCount: 0,
-    isGroup: true, isOnline: false, participants: mockUsers
+    isGroup: true, isOnline: false, isPinned: false, isMuted: false, participants: mockUsers
   }
 ]
 
 export const mockMessages: ChatMessage[] = [
-  { id: 'm1', content: 'Chào bạn! Mình muốn hỏi về phần REST API', sender: mockUsers[1], createdAt: '10:15', isOwn: false, type: 'text' },
-  { id: 'm2', content: 'Chào bạn! Bạn hỏi đi, mình sẽ giúp 😊', sender: mockUsers[0], createdAt: '10:18', isOwn: true, type: 'text' },
-  { id: 'm3', content: 'Mình đang implement phần authentication, bạn có recommend dùng JWT hay Session-based không?', sender: mockUsers[1], createdAt: '10:20', isOwn: false, type: 'text' },
-  { id: 'm4', content: 'Theo mình nên dùng JWT cho REST API vì nó stateless, phù hợp với microservices. Còn nếu monolith thì Session cũng ổn.', sender: mockUsers[0], createdAt: '10:22', isOwn: true, type: 'text' },
-  { id: 'm5', content: 'Tuyệt vời! Cảm ơn bạn nhiều nha 🙏', sender: mockUsers[1], createdAt: '10:25', isOwn: false, type: 'text' },
-  { id: 'm6', content: 'Bạn đã xong phần frontend chưa?', sender: mockUsers[1], createdAt: '10:30', isOwn: false, type: 'text' }
+  {
+    id: 'm1', content: 'Chào bạn! Mình muốn hỏi về phần REST API', sender: mockUsers[1], createdAt: '10:15', isOwn: false, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[0], readAt: '10:16' }]
+  },
+  {
+    id: 'm2', content: 'Chào bạn! Bạn hỏi đi, mình sẽ giúp 😊', sender: mockUsers[0], createdAt: '10:18', isOwn: true, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[1], readAt: '10:19' }]
+  },
+  {
+    id: 'm3', content: 'Mình đang implement phần authentication, bạn có recommend dùng JWT hay Session-based không?', sender: mockUsers[1], createdAt: '10:20', isOwn: false, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[0], readAt: '10:20' }]
+  },
+  {
+    id: 'm4', content: 'Theo mình nên dùng JWT cho REST API vì nó stateless, phù hợp với microservices. Còn nếu monolith thì Session cũng ổn.', sender: mockUsers[0], createdAt: '10:22', isOwn: true, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[1], readAt: '10:23' }],
+    reactions: [{ emoji: '👍', userId: 'u2', userName: 'Nguyễn Văn An' }]
+  },
+  {
+    id: 'm5', content: '', sender: mockUsers[0], createdAt: '10:24', isOwn: true, type: 'image', status: 'read',
+    imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80',
+    readBy: [{ user: mockUsers[1], readAt: '10:24' }]
+  },
+  {
+    id: 'm6', content: 'Tuyệt vời! Cảm ơn bạn nhiều nha 🙏', sender: mockUsers[1], createdAt: '10:25', isOwn: false, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[0], readAt: '10:25' }],
+    replyTo: { id: 'm4', content: 'Theo mình nên dùng JWT cho REST API vì nó stateless...', senderName: 'Lê Thanh Tính' }
+  },
+  {
+    id: 'm7', content: '', sender: mockUsers[1], createdAt: '10:28', isOwn: false, type: 'file', status: 'read',
+    fileName: 'project-requirements.pdf', fileSize: '2.4 MB',
+    readBy: [{ user: mockUsers[0], readAt: '10:28' }]
+  },
+  {
+    id: 'm8', content: 'Bạn đã xong phần frontend chưa?', sender: mockUsers[1], createdAt: '10:30', isOwn: false, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[0], readAt: '10:30' }]
+  },
+  {
+    id: 'm9', content: 'Gần xong rồi, đang polish UI thêm 🚀', sender: mockUsers[0], createdAt: '10:32', isOwn: true, type: 'text', status: 'delivered'
+  }
 ]
 
 // ---- Notifications ----

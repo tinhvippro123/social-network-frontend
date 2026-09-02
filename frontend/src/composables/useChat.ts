@@ -1,12 +1,13 @@
 import { ref } from 'vue'
 import chatApi from '@/api/chat.api'
-import type { ChatConversation, ChatMessage } from '@/types'
-
+import type { ChatConversation, ChatMessage, MessageStatus } from '@/types'
 import { useAsyncState } from './useAsyncState'
 
 export function useChat() {
   const conversations = ref<ChatConversation[]>([])
   const messages = ref<ChatMessage[]>([])
+  const isTyping = ref(false)
+  const typingUser = ref('')
   const { isLoading, error, execute } = useAsyncState()
 
   async function fetchConversations() {
@@ -23,13 +24,101 @@ export function useChat() {
     }, 'Không thể tải tin nhắn')
   }
 
-  async function sendMessage(conversationId: string, content: string, type: 'text' | 'image' | 'file' = 'text') {
+  async function sendMessage(
+    conversationId: string,
+    content: string,
+    type: 'text' | 'image' | 'file' = 'text',
+    options?: {
+      replyToId?: string
+      fileName?: string
+      fileSize?: string
+      imageUrl?: string
+    }
+  ) {
     return await execute(async () => {
-      const { data } = await chatApi.sendMessage({ conversationId, content, type })
-      // Tạm thời push vào messages để UI update ngay
-      messages.value.push(data.data)
-      return data.data
+      const { data } = await chatApi.sendMessage({
+        conversationId,
+        content,
+        type,
+        replyToId: options?.replyToId,
+        fileName: options?.fileName,
+        fileSize: options?.fileSize,
+        imageUrl: options?.imageUrl,
+      })
+      const msg = data.data
+      // Push vào messages ngay để UI update instant
+      messages.value.push(msg)
+
+      // Giả lập: sending → sent → delivered (auto-transition)
+      setTimeout(() => {
+        updateMessageStatus(msg.id, 'sent')
+      }, 500)
+      setTimeout(() => {
+        updateMessageStatus(msg.id, 'delivered')
+      }, 1500)
+      // Giả lập đã xem sau 4 giây
+      setTimeout(() => {
+        updateMessageStatus(msg.id, 'read')
+      }, 4000)
+
+      return msg
     }, 'Gửi tin nhắn thất bại')
+  }
+
+  function updateMessageStatus(messageId: string, status: MessageStatus) {
+    const msg = messages.value.find(m => m.id === messageId)
+    if (msg) {
+      msg.status = status
+    }
+  }
+
+  async function markAsRead(conversationId: string) {
+    await chatApi.markAsRead(conversationId)
+    // Cập nhật unread count
+    const conv = conversations.value.find(c => c.id === conversationId)
+    if (conv) conv.unreadCount = 0
+  }
+
+  async function pinConversation(conversationId: string) {
+    const conv = conversations.value.find(c => c.id === conversationId)
+    if (conv) {
+      const newState = !conv.isPinned
+      await chatApi.pinConversation(conversationId, newState)
+      conv.isPinned = newState
+    }
+  }
+
+  async function muteConversation(conversationId: string) {
+    const conv = conversations.value.find(c => c.id === conversationId)
+    if (conv) {
+      const newState = !conv.isMuted
+      await chatApi.muteConversation(conversationId, newState)
+      conv.isMuted = newState
+    }
+  }
+
+  async function deleteConversation(conversationId: string) {
+    await chatApi.deleteConversation(conversationId)
+    conversations.value = conversations.value.filter(c => c.id !== conversationId)
+  }
+
+  async function blockUser(userId: string) {
+    await chatApi.blockUser(userId)
+  }
+
+  async function searchMessages(conversationId: string, query: string) {
+    const { data } = await chatApi.searchMessages(conversationId, query)
+    return data.data
+  }
+
+  // Giả lập typing indicator
+  function simulateTyping(userName: string) {
+    isTyping.value = true
+    typingUser.value = userName
+    setTimeout(() => {
+      isTyping.value = false
+      typingUser.value = ''
+    }, 3000)
   }
 
   return {
@@ -37,8 +126,18 @@ export function useChat() {
     messages,
     isLoading,
     error,
+    isTyping,
+    typingUser,
     fetchConversations,
     fetchMessages,
     sendMessage,
+    markAsRead,
+    pinConversation,
+    muteConversation,
+    deleteConversation,
+    blockUser,
+    searchMessages,
+    simulateTyping,
+    updateMessageStatus,
   }
 }
