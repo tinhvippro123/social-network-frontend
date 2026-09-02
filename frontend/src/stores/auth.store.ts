@@ -5,12 +5,20 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
-
-// Tạm thời dùng mock data, sau thay bằng API
-import { currentUser } from '@/data/mockData'
+import { mockUsers } from '@/data/mockData'
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(currentUser) // TODO: thay bằng null khi có API
+  const savedUser = localStorage.getItem(STORAGE_KEYS.USER)
+  let initialUser = mockUsers[0]
+  try {
+    if (savedUser && savedUser !== 'null' && savedUser !== 'undefined') {
+      initialUser = JSON.parse(savedUser) || mockUsers[0]
+    }
+  } catch (e) {
+    console.error('Lỗi khi đọc dữ liệu User từ bộ nhớ tạm:', e)
+    localStorage.removeItem(STORAGE_KEYS.USER)
+  }
+  const user = ref<User | null>(initialUser)
   const accessToken = ref<string | null>(localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN))
 
   const isLoggedIn = computed(() => !!user.value)

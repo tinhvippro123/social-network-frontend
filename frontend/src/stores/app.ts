@@ -39,6 +39,7 @@ export const useAppStore = defineStore('app', () => {
     // Notifications (delegate)
     notifications: computed(() => uiStore.notifications),
     unreadNotifications: computed(() => uiStore.unreadCount),
+    fetchNotifications: () => uiStore.fetchNotifications(),
     markNotificationRead: (id: string) => uiStore.markNotificationRead(id),
     markAllRead: () => uiStore.markAllRead(),
 

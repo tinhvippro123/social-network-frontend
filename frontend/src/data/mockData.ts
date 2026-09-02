@@ -317,6 +317,7 @@ export const mockAdminStats: AdminStats = {
   totalPosts: 8920,
   newPostsToday: 67,
   totalGroups: 156,
+  totalReports: 15,
   pendingReports: 8,
   userGrowth: [120, 145, 180, 210, 195, 230, 280],
   postGrowth: [45, 62, 58, 75, 82, 91, 67]

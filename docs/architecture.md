@@ -50,16 +50,42 @@ App.vue
 
 ```
 stores/
-└── app.ts
-    ├── isDark          → Theme toggle (dark/light)
-    ├── isSidebarOpen   → Sidebar collapse state
-    ├── user            → Current user info
-    ├── isAdmin         → Computed from user.role
-    ├── notifications   → Notification list
-    └── unreadCount     → Computed unread count
+├── auth.store.ts
+│   ├── user            → Current user info
+│   ├── token           → JWT Token
+│   ├── isAuthenticated → Check auth status
+│   └── isAdmin         → Computed from user.role
+│
+├── ui.store.ts
+│   ├── isDark          → Theme toggle (dark/light)
+│   ├── isSidebarOpen   → Sidebar collapse state
+│   ├── searchMode      → Keyword, Semantic, Image
+│   └── notifications   → System notifications
+│
+└── app.ts              → Legacy wrapper for backward compatibility
 ```
 
-### 1.3 Design System
+### 1.3 Service Layer & Composables
+
+Để đạt chuẩn DRY và tách biệt UI khỏi Logic/Data, kiến trúc Frontend tuân theo mô hình **View -> Composable -> API Layer**:
+
+```
+src/
+├── api/             → Chứa các hàm Axios/Fetch gọi HTTP request tới Backend
+│   ├── auth.api.ts
+│   ├── posts.api.ts
+│   └── ...
+│
+├── composables/     → Vue Composition API hooks, quản lý State (loading, error)
+│   ├── useAsyncState.ts → Core xử lý try/catch và loading state tập trung
+│   ├── usePosts.ts
+│   └── ...
+│
+└── utils/           → Hàm tiện ích toàn cục không liên quan tới Vue State
+    └── formatters.ts    → formatDate, formatNumber, formatRelativeTime
+```
+
+### 1.4 Design System
 
 | Token | Giá trị | Sử dụng |
 |---|---|---|
@@ -71,7 +97,7 @@ stores/
 
 **Responsive breakpoints**: Tailwind default (sm: 640px, md: 768px, lg: 1024px, xl: 1280px)
 
-### 1.4 Routing Strategy
+### 1.5 Routing Strategy
 
 | Path Pattern | Layout | Guard | Mô tả |
 |---|---|---|---|

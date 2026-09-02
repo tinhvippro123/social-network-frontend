@@ -3,8 +3,9 @@ import { ref } from 'vue'
 import { BarChart3, TrendingUp, Users, FileText, Eye, ArrowUp, MessageCircle } from '@lucide/vue'
 import { useAdmin } from '@/composables/useAdmin'
 import { onMounted } from 'vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 
-const { stats, fetchStats } = useAdmin()
+const { stats, isLoading, fetchStats } = useAdmin()
 
 onMounted(() => {
   fetchStats()
@@ -40,7 +41,14 @@ const recentActivities = [
 
     <!-- Quick Stats -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div v-if="stats" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
+      <template v-if="isLoading">
+        <div v-for="i in 4" :key="i" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
+          <Skeleton class="h-4 w-24 mb-2 rounded" />
+          <Skeleton class="h-8 w-16 mb-2 rounded" />
+        </div>
+      </template>
+      <template v-else-if="stats">
+        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
           <h3 class="text-sm font-medium text-gray-500 mb-2">Tổng người dùng</h3>
           <div class="flex items-end gap-3">
             <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.totalUsers.toLocaleString() }}</span>
@@ -49,7 +57,7 @@ const recentActivities = [
             </span>
           </div>
         </div>
-        <div v-if="stats" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
+        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
           <h3 class="text-sm font-medium text-gray-500 mb-2">Tổng bài viết</h3>
           <div class="flex items-end gap-3">
             <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.totalPosts.toLocaleString() }}</span>
@@ -58,43 +66,64 @@ const recentActivities = [
             </span>
           </div>
         </div>
-        <div v-if="stats" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
-        <h3 class="font-bold text-gray-900 dark:text-white mb-6">Tăng trưởng người dùng</h3>
-        <div class="flex items-end justify-between gap-2 h-48">
-          <div v-for="(val, i) in stats.userGrowth" :key="i" class="flex-1 flex flex-col items-center gap-2">
-            <span class="text-xs text-gray-400 font-medium">{{ val }}</span>
-            <div class="w-full bg-linear-to-t from-red-500 to-orange-400 rounded-t-lg transition-all duration-700" :style="{ height: `${(val / Math.max(...stats.userGrowth)) * 140}px` }" />
-            <span class="text-xs text-gray-400">{{ ['T2','T3','T4','T5','T6','T7','CN'][i] }}</span>
+        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
+          <h3 class="text-sm font-medium text-gray-500 mb-2">Lượt xem hôm nay</h3>
+          <div class="flex items-end gap-3">
+            <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ (24500).toLocaleString() }}</span>
+            <span class="text-sm font-medium text-green-500 bg-green-500/10 px-2 py-0.5 rounded-lg">
+              +12%
+            </span>
           </div>
         </div>
-      </div>
+        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
+          <h3 class="text-sm font-medium text-gray-500 mb-2">Báo cáo chờ xử lý</h3>
+          <div class="flex items-end gap-3">
+            <span class="text-3xl font-bold text-gray-900 dark:text-white">12</span>
+            <span class="text-sm font-medium text-red-500 bg-red-500/10 px-2 py-0.5 rounded-lg">
+              -3
+            </span>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- Charts -->
-    <div v-if="stats" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- User Growth Chart -->
-      <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
-        <h3 class="font-bold text-gray-900 dark:text-white mb-6">Tăng trưởng người dùng</h3>
-        <div class="flex items-end justify-between gap-2 h-48">
-          <div v-for="(val, i) in stats.userGrowth" :key="i" class="flex-1 flex flex-col items-center gap-2">
-            <span class="text-xs text-gray-400 font-medium">{{ val }}</span>
-            <div class="w-full bg-linear-to-t from-red-500 to-orange-400 rounded-t-lg transition-all duration-700" :style="{ height: `${(val / Math.max(...stats.userGrowth)) * 140}px` }" />
-            <span class="text-xs text-gray-400">{{ ['T2','T3','T4','T5','T6','T7','CN'][i] }}</span>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <template v-if="isLoading">
+        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
+          <Skeleton class="h-6 w-48 mb-6 rounded" />
+          <Skeleton class="h-48 w-full rounded-lg" />
+        </div>
+        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
+          <Skeleton class="h-6 w-48 mb-6 rounded" />
+          <Skeleton class="h-48 w-full rounded-lg" />
+        </div>
+      </template>
+      <template v-else-if="stats">
+        <!-- User Growth Chart -->
+        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
+          <h3 class="font-bold text-gray-900 dark:text-white mb-6">Tăng trưởng người dùng</h3>
+          <div class="flex items-end justify-between gap-2 h-48">
+            <div v-for="(val, i) in stats.userGrowth" :key="i" class="flex-1 flex flex-col items-center gap-2">
+              <span class="text-xs text-gray-400 font-medium">{{ val }}</span>
+              <div class="w-full bg-linear-to-t from-red-500 to-orange-400 rounded-t-lg transition-all duration-700" :style="{ height: `${(val / Math.max(...stats.userGrowth)) * 140}px` }" />
+              <span class="text-xs text-gray-400">{{ ['T2','T3','T4','T5','T6','T7','CN'][i] }}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Post Growth Chart -->
-      <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
-        <h3 class="font-bold text-gray-900 dark:text-white mb-6">Bài viết mới theo ngày</h3>
-        <div class="flex items-end justify-between gap-2 h-48">
-          <div v-for="(val, i) in stats.postGrowth" :key="i" class="flex-1 flex flex-col items-center gap-2">
-            <span class="text-xs text-gray-400 font-medium">{{ val }}</span>
-            <div class="w-full bg-linear-to-t from-blue-500 to-cyan-400 rounded-t-lg transition-all duration-700" :style="{ height: `${(val / Math.max(...stats.postGrowth)) * 140}px` }" />
-            <span class="text-xs text-gray-400">{{ ['T2','T3','T4','T5','T6','T7','CN'][i] }}</span>
+        <!-- Post Growth Chart -->
+        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
+          <h3 class="font-bold text-gray-900 dark:text-white mb-6">Bài viết mới theo ngày</h3>
+          <div class="flex items-end justify-between gap-2 h-48">
+            <div v-for="(val, i) in stats.postGrowth" :key="i" class="flex-1 flex flex-col items-center gap-2">
+              <span class="text-xs text-gray-400 font-medium">{{ val }}</span>
+              <div class="w-full bg-linear-to-t from-blue-500 to-cyan-400 rounded-t-lg transition-all duration-700" :style="{ height: `${(val / Math.max(...stats.postGrowth)) * 140}px` }" />
+              <span class="text-xs text-gray-400">{{ ['T2','T3','T4','T5','T6','T7','CN'][i] }}</span>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </div>
 
     <!-- Top content -->

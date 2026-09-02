@@ -2,9 +2,12 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import { useAuth } from '@/composables/useAuth'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatRelativeTime } from '@/utils/formatters'
 import {
   Home, TrendingUp, Bookmark, PenSquare, Users, MessageCircle,
-  MapPin, Search, Bell, Sun, Moon, Menu, X, LogOut,
+  MapPin, SearchIcon, Bell, Sun, Moon, MenuIcon, X, LogOut,
   Settings, User, ChevronDown, Shield, ChevronLeft, ChevronRight
 } from '@lucide/vue'
 
@@ -46,6 +49,7 @@ const handleClickOutside = (e: Event) => {
 
 onMounted(() => {
   checkMobile()
+  appStore.fetchNotifications()
   window.addEventListener('resize', checkMobile)
   document.addEventListener('click', handleClickOutside)
 })
@@ -55,13 +59,15 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
+const { logout: authLogout } = useAuth()
+
 const navigateTo = (path: string) => {
   router.push(path)
   if (isMobile.value) appStore.closeMobileSidebar()
 }
 
 const logout = () => {
-  router.push('/login')
+  authLogout()
 }
 </script>
 
@@ -160,7 +166,7 @@ const logout = () => {
             class="lg:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
             @click="appStore.toggleMobileSidebar"
           >
-            <Menu v-if="!appStore.isMobileSidebarOpen" :size="22" />
+            <MenuIcon v-if="!appStore.isMobileSidebarOpen" :size="22" />
             <X v-else :size="22" />
           </button>
 
@@ -176,7 +182,7 @@ const logout = () => {
 
           <!-- Search Bar -->
           <div class="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-4 py-2 w-64 lg:w-96 transition-all duration-200 focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:bg-white dark:focus-within:bg-surface-600">
-            <Search :size="18" class="text-gray-400 shrink-0" />
+            <SearchIcon :size="18" class="text-gray-400 shrink-0" />
             <input
               v-model="appStore.searchQuery"
               type="text"
@@ -193,7 +199,7 @@ const logout = () => {
         <div class="flex items-center gap-2">
           <!-- Mobile search -->
           <button class="sm:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-            <Search :size="20" />
+            <SearchIcon :size="20" />
           </button>
 
           <!-- Write button -->
@@ -236,7 +242,12 @@ const logout = () => {
                   </button>
                 </div>
                 <div class="max-h-80 overflow-y-auto">
+                  <div v-if="appStore.notifications.length === 0" class="py-8 text-center text-gray-500 dark:text-gray-400">
+                    <Bell class="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <p class="text-sm">Không có thông báo nào</p>
+                  </div>
                   <div
+                    v-else
                     v-for="notif in appStore.notifications"
                     :key="notif.id"
                     @click="appStore.markNotificationRead(notif.id); showNotifications = false"
@@ -255,7 +266,7 @@ const logout = () => {
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{{ notif.message }}</p>
-                      <p class="text-xs text-gray-400 mt-1">{{ notif.createdAt }}</p>
+                      <p class="text-xs text-gray-400 mt-1">{{ formatRelativeTime(notif.createdAt) }}</p>
                     </div>
                     <div v-if="!notif.isRead" class="w-2 h-2 rounded-full bg-primary-500 shrink-0 mt-2" />
                   </div>
@@ -270,9 +281,11 @@ const logout = () => {
               class="user-trigger flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
               @click.stop="showUserMenu = !showUserMenu"
             >
-              <img
-                :src="appStore.user?.avatar"
-                class="w-8 h-8 rounded-full ring-2 ring-primary-500/30"
+              <UserAvatar
+                v-if="appStore.user"
+                :user="appStore.user"
+                size="sm"
+                class="ring-2 ring-primary-500/30"
               />
               <ChevronDown :size="14" class="hidden sm:block text-gray-400" />
             </button>

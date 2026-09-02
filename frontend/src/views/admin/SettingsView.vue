@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Settings, Globe, Bell, Shield, Database, Palette, Save } from '@lucide/vue'
+import { useAdmin } from '@/composables/useAdmin'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { onMounted } from 'vue'
+
+const { isLoading, fetchStats } = useAdmin()
+
+onMounted(() => {
+  fetchStats() // Giả lập load settings
+})
 
 const siteName = ref('VietBlog')
 const siteDescription = ref('Nền tảng chia sẻ kiến thức cho cộng đồng')
@@ -24,6 +33,16 @@ const maintenanceMode = ref(false)
     </div>
 
     <div class="space-y-6">
+      <template v-if="isLoading">
+        <div v-for="i in 3" :key="i" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
+          <Skeleton class="h-6 w-48 mb-5 rounded" />
+          <div class="space-y-4">
+            <Skeleton class="h-10 w-full rounded-xl" />
+            <Skeleton class="h-20 w-full rounded-xl" />
+          </div>
+        </div>
+      </template>
+      <template v-else>
       <!-- General -->
       <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
         <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-5">
@@ -117,6 +136,7 @@ const maintenanceMode = ref(false)
       <button class="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-500/25">
         <Save :size="16" /> Lưu cài đặt
       </button>
+      </template>
     </div>
   </div>
 </template>

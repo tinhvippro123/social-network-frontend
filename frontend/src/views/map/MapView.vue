@@ -2,12 +2,14 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  MapPin, Navigation, Minus, Plus, Layers, Search,
+  MapPin, Navigation, Minus, Plus, Layers, Search as SearchIcon,
   Clock, Eye, ArrowUp, X, SlidersHorizontal
 } from '@lucide/vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { usePosts } from '@/composables/usePosts'
+import { formatDate, formatNumber } from '@/utils/formatters'
+import UserAvatar from '@/components/UserAvatar.vue'
 import type { Post } from '@/types'
 
 // Fix leaflet default icon issue in Vue/Vite
@@ -32,10 +34,7 @@ let map: L.Map | null = null
 const { posts, fetchPosts } = usePosts()
 const postsWithLocation = computed(() => posts.value.filter(p => p.location))
 
-const formatNumber = (num: number) => {
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toString()
-}
+const viewMode = ref('map')
 
 onMounted(async () => {
   if (!mapContainer.value) return
@@ -84,7 +83,7 @@ const zoomOut = () => map?.zoomOut()
           Bản đồ bài viết
         </h2>
         <div class="flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-3 py-2 mb-3">
-          <Search :size="16" class="text-gray-400" />
+          <SearchIcon :size="16" class="text-gray-400" />
           <input
             v-model="searchLocation"
             type="text"
@@ -187,7 +186,7 @@ const zoomOut = () => map?.zoomOut()
           <div class="p-4">
             <h4 class="font-bold text-gray-900 dark:text-white line-clamp-2 mb-2">{{ selectedPost.title }}</h4>
             <div class="flex items-center gap-2 mb-2">
-              <img :src="selectedPost.author.avatar" class="w-6 h-6 rounded-full" />
+              <UserAvatar :user="selectedPost.author" size="sm" />
               <span class="text-sm text-gray-600 dark:text-gray-400">{{ selectedPost.author.name }}</span>
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">

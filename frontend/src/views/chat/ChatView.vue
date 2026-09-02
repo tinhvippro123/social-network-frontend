@@ -1,22 +1,31 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import {
-  Send, Smile, Paperclip, Image, Phone, Video, MoreVertical,
-  Search, Plus, Check, CheckCheck, Circle
+  Send as SendIcon, Smile as SmileIcon, Paperclip as PaperclipIcon, Image as ImageIcon, Phone as PhoneIcon, Video as VideoIcon, MoreVertical as MoreVerticalIcon,
+  Search as SearchIcon, Plus as PlusIcon, Check as CheckIcon, CheckCheck as CheckCheckIcon, Circle as CircleIcon
 } from '@lucide/vue'
 import { useChat } from '@/composables/useChat'
 import { onMounted } from 'vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { formatRelativeTime } from '@/utils/formatters'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { MessageCircle as MessageCircleIcon } from '@lucide/vue'
 
-const { conversations, messages, fetchConversations, fetchMessages } = useChat()
+const { conversations, messages, isLoading, fetchConversations, fetchMessages, sendMessage: apiSendMessage } = useChat()
 const selectedConversation = ref<any>(null)
 const newMessage = ref('')
 
+const isInitialLoading = ref(true)
+
 onMounted(async () => {
+  isInitialLoading.value = true
   await fetchConversations()
   if (conversations.value.length > 0) {
     selectedConversation.value = conversations.value[0]
     await fetchMessages(selectedConversation.value.id)
   }
+  isInitialLoading.value = false
 })
 const searchChat = ref('')
 const showMobileChat = ref(false)
@@ -34,16 +43,9 @@ const selectConversation = async (conv: any) => {
   await fetchMessages(conv.id)
 }
 
-const sendMessage = () => {
-  if (!newMessage.value.trim()) return
-  messages.value.push({
-    id: `m${messages.value.length + 1}`,
-    content: newMessage.value,
-    sender: { id: 'u1', name: 'Lê Thanh Tính', email: '', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=tinh', bio: '', role: 'admin', joinedAt: '', postsCount: 0, followersCount: 0, followingCount: 0 },
-    createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-    isOwn: true,
-    type: 'text'
-  })
+const handleSendMessage = async () => {
+  if (!newMessage.value.trim() || !selectedConversation.value) return
+  await apiSendMessage(selectedConversation.value.id, newMessage.value)
   newMessage.value = ''
 }
 </script>
@@ -62,11 +64,11 @@ const sendMessage = () => {
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold text-gray-900 dark:text-white">Tin nhắn</h2>
           <button class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-            <Plus :size="20" />
+            <PlusIcon :size="20" />
           </button>
         </div>
         <div class="flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-3 py-2">
-          <Search :size="16" class="text-gray-400" />
+          <SearchIcon :size="16" class="text-gray-400" />
           <input
             v-model="searchChat"
             type="text"
@@ -76,9 +78,23 @@ const sendMessage = () => {
         </div>
       </div>
 
-      <!-- Conversation List -->
-      <div class="flex-1 overflow-y-auto">
+      <!-- Conversations -->
+      <div class="flex-1 overflow-y-auto p-3 space-y-1">
+        <div v-if="isInitialLoading" class="space-y-3">
+          <div v-for="i in 5" :key="i" class="flex items-center gap-3 p-3">
+            <Skeleton type="avatar" class="w-12 h-12 shrink-0" />
+            <div class="flex-1 space-y-2">
+              <Skeleton type="text" class="w-32 h-4" />
+              <Skeleton type="text" class="w-24 h-3" />
+            </div>
+          </div>
+        </div>
+        <div v-else-if="!isInitialLoading && conversations.length === 0" class="flex flex-col items-center justify-center h-full p-4 text-center opacity-50">
+          <MessageCircleIcon class="w-12 h-12 text-gray-400 mb-2" />
+          <p class="text-sm text-gray-500">Chưa có cuộc trò chuyện nào.</p>
+        </div>
         <div
+          v-else
           v-for="conv in filteredConversations"
           :key="conv.id"
           @click="selectConversation(conv)"
@@ -91,7 +107,7 @@ const sendMessage = () => {
         >
           <!-- Avatar -->
           <div class="relative shrink-0">
-            <img :src="conv.avatar" class="w-12 h-12 rounded-full" />
+            <UserAvatar :user="{ name: conv.name, avatar: conv.avatar }" size="md" />
             <div
               v-if="conv.isOnline"
               class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800"
@@ -124,8 +140,23 @@ const sendMessage = () => {
       </div>
     </div>
 
+    <!-- Empty Chat Area -->
+    <div
+      v-if="!selectedConversation && !isInitialLoading"
+      class="hidden sm:flex flex-1 flex-col items-center justify-center bg-gray-50 dark:bg-surface-900"
+    >
+      <div class="bg-white dark:bg-surface-800 p-8 rounded-full shadow-sm mb-6 border border-gray-100 dark:border-surface-700">
+        <MessageCircleIcon class="w-16 h-16 text-primary-500" />
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Xin chào!</h3>
+      <p class="text-gray-500 dark:text-gray-400 max-w-sm text-center">
+        Chọn một cuộc trò chuyện từ danh sách bên trái hoặc bắt đầu một cuộc trò chuyện mới.
+      </p>
+    </div>
+
     <!-- Chat Area -->
     <div
+      v-else
       :class="[
         'flex-1 flex flex-col min-w-0',
         showMobileChat ? 'flex' : 'hidden sm:flex'
@@ -141,24 +172,31 @@ const sendMessage = () => {
             ←
           </button>
           <div class="relative">
-            <img :src="selectedConversation?.avatar" class="w-10 h-10 rounded-full" />
-            <div v-if="selectedConversation?.isOnline" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800" />
+            <UserAvatar v-if="selectedConversation && !isInitialLoading" :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="sm" />
+            <Skeleton v-else type="avatar" class="w-8 h-8" rounded="rounded-full" />
+            <div v-if="selectedConversation?.isOnline && !isInitialLoading" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800" />
           </div>
           <div>
-            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedConversation?.name }}</p>
-            <p class="text-xs text-green-500" v-if="selectedConversation?.isOnline">Đang hoạt động</p>
-            <p class="text-xs text-gray-400" v-else>Hoạt động 15 phút trước</p>
+            <template v-if="selectedConversation && !isInitialLoading">
+              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedConversation.name }}</p>
+              <p class="text-xs text-green-500" v-if="selectedConversation.isOnline">Đang hoạt động</p>
+              <p class="text-xs text-gray-400" v-else>Hoạt động 15 phút trước</p>
+            </template>
+            <template v-else>
+              <Skeleton type="text" class="w-24 h-4 mb-1" />
+              <Skeleton type="text" class="w-16 h-3" />
+            </template>
           </div>
         </div>
         <div class="flex items-center gap-1">
           <button class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-            <Phone :size="18" />
+            <PhoneIcon :size="18" />
           </button>
           <button class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-            <Video :size="18" />
+            <VideoIcon :size="18" />
           </button>
           <button class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-            <MoreVertical :size="18" />
+            <MoreVerticalIcon :size="18" />
           </button>
         </div>
       </div>
@@ -172,15 +210,24 @@ const sendMessage = () => {
           <div class="flex-1 h-px bg-gray-200 dark:bg-surface-700" />
         </div>
 
-        <div
-          v-for="msg in messages"
+        <div v-if="isLoading || isInitialLoading" class="space-y-4">
+          <div v-for="i in 3" :key="i" :class="['flex items-end gap-2', i % 2 === 0 ? 'justify-end' : 'justify-start']">
+            <Skeleton v-if="i % 2 !== 0" type="avatar" class="w-7 h-7 shrink-0" />
+            <Skeleton type="text" :class="['w-48 h-10', i % 2 === 0 ? 'rounded-l-2xl rounded-tr-2xl' : 'rounded-r-2xl rounded-tl-2xl']" />
+          </div>
+        </div>
+
+        <template v-else>
+          <div
+            v-for="msg in messages"
           :key="msg.id"
           :class="['flex items-end gap-2', msg.isOwn ? 'justify-end' : 'justify-start']"
         >
-          <img
+          <UserAvatar
             v-if="!msg.isOwn"
-            :src="msg.sender.avatar"
-            class="w-7 h-7 rounded-full shrink-0"
+            :user="msg.sender"
+            class="w-7 h-7 shrink-0"
+            size="sm"
           />
           <div
             :class="[
@@ -193,10 +240,11 @@ const sendMessage = () => {
             <p>{{ msg.content }}</p>
             <div :class="['flex items-center justify-end gap-1 mt-1', msg.isOwn ? 'text-primary-100' : 'text-gray-400']">
               <span class="text-[10px]">{{ msg.createdAt }}</span>
-              <CheckCheck v-if="msg.isOwn" :size="12" />
+              <CheckCheckIcon v-if="msg.isOwn" :size="12" />
             </div>
           </div>
         </div>
+        </template>
       </div>
 
       <!-- Message Input -->
@@ -204,29 +252,29 @@ const sendMessage = () => {
         <div class="flex items-end gap-2">
           <div class="flex items-center gap-1">
             <button class="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-              <Paperclip :size="18" />
+              <PaperclipIcon :size="18" />
             </button>
             <button class="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-              <Image :size="18" />
+              <ImageIcon :size="18" />
             </button>
           </div>
           <div class="flex-1 flex items-end gap-2 bg-gray-100 dark:bg-surface-700 rounded-2xl px-4 py-2">
             <textarea
               v-model="newMessage"
-              @keydown.enter.exact.prevent="sendMessage"
+              @keydown.enter.exact.prevent="handleSendMessage"
               placeholder="Nhập tin nhắn..."
               rows="1"
               class="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 resize-none max-h-24"
             />
             <button class="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-              <Smile :size="18" />
+              <SmileIcon :size="18" />
             </button>
           </div>
           <button
-            @click="sendMessage"
+            @click="handleSendMessage"
             class="p-3 rounded-xl gradient-primary text-white hover:opacity-90 transition-all shadow-lg shadow-primary-500/25"
           >
-            <Send :size="18" />
+            <SendIcon :size="18" />
           </button>
         </div>
       </div>

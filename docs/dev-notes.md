@@ -14,6 +14,12 @@
 - **Phát triển 8 Admin Views (Sử dụng Mock Data):** Dashboard, Users, Posts, Moderation, Categories, Groups, Analytics, Settings.
 - **Fix bugs & Linter:** Chuyển `bg-gradient-to-*` thành `bg-linear-to-*`. Thêm `.vscode/settings.json` tắt warning CSS cho Tailwind v4.
 
+### Session 6: UX/UI Polishing & Optimizations (2026-09-01)
+- **Tối ưu hóa Performance:** Cải thiện tốc độ tải trang `PostDetailView` bằng cách thay đổi cơ chế fetch dữ liệu từ tuần tự (Sequential) sang song song (Parallel) với `Promise.all()`, giảm thời gian chờ từ 1.5s xuống 0.5s.
+- **Hoàn thiện UI Skeleton:** Tích hợp Skeleton Loading mượt mà cho toàn bộ ứng dụng (Home, Groups, Chat, Sidebar, PostDetail). Xử lý đặc biệt cho `ChatView` để hiển thị đồng bộ Skeleton của danh sách và nội dung chat cùng lúc, tránh hiện tượng giật khung hình (Layout Shift).
+- **Xử lý Empty States:** Bổ sung giao diện trạng thái trống tinh tế cho hộp thoại Thông báo (`MainLayout`), Tin nhắn và Danh sách nhóm. Khắc phục lỗi quên gọi hàm `fetchNotifications` khi khởi tạo ứng dụng.
+- **Fix bugs & Linter (Zero Warnings):** Xử lý dứt điểm tình trạng mất avatar khi F5 (do `localStorage` trống), sửa lỗi cú pháp `z-index` cho Tailwind v4, dọn dẹp cấu hình lỗi thời trong `tsconfig.app.json` để đạt 100% build thành công không warning.
+
 ### Session 5: Decouple Mock Data & UI Components (2026-08-31)
 - **Hoàn thành kiến trúc API Fake:** Thay thế hoàn toàn việc import `mockData.ts` trực tiếp trong 15 file `.vue` (Views) và các UI Components (`TrendingSidebar`, `CategoryTabs`, `ui.store`, `auth.store`).
 - **Tích hợp Composables:** Toàn bộ Views hiện tại render dữ liệu thông qua các Composables (`usePosts`, `useUsers`, `useAdmin`, v.v.) gọi tới tầng API `*.api.ts`.
@@ -77,6 +83,51 @@
 ### DD-005: Decouple Mock Data khỏi Views (Giai đoạn 2)
 - **Quyết định**: Xóa toàn bộ các lệnh `import ... from '@/data/mockData'` khỏi các file `.vue` (tầng View & UI Component). Đẩy việc sử dụng Mock Data xuống tầng `src/api/` và truy xuất qua `src/composables/`.
 - **Lý do**: Tách biệt hoàn toàn phần giao diện (UI) và phần dữ liệu (Data). Giao diện giờ đây chỉ giao tiếp với Composables (bằng các hàm `fetch`, biến `ref`), không quan tâm dữ liệu đến từ đâu. Việc này giúp quá trình tích hợp Backend REST API sau này cực kỳ dễ dàng (chỉ việc sửa file ở thư mục `api/` mà không cần đụng lại một dòng code nào ở tầng giao diện).
+
+### DD-006: Tránh Fetch Tuần tự (Sequential) nếu không cần thiết
+- **Quyết định**: Sử dụng `Promise.all()` để tải đồng thời các luồng dữ liệu độc lập nhau trên cùng một trang (ví dụ: Chi tiết bài viết, Bình luận, Bài viết liên quan).
+- **Lý do**: Giảm thiểu thời gian tải trang theo cấp số nhân. Thay vì chờ tổng thời gian của các request cộng lại, trang web chỉ mất thời gian bằng request chậm nhất.
+
+### DD-007: Đồng bộ hóa Skeleton & Empty States
+- **Quyết định**: Bắt buộc thiết kế Trạng thái trống (Empty State) cho tất cả các danh sách có thể rỗng (Thông báo, Tin nhắn, Nhóm). Các Skeleton Loading của những component gần nhau (như 2 cột trong Chat) phải được đồng bộ xuất hiện và biến mất cùng lúc.
+- **Lý do**: Ngăn chặn hiện tượng Layout Shift (giật khung hình), tạo cảm giác UI phản hồi mượt mà và thông báo rõ ràng cho người dùng thay vì để một khoảng trống khó hiểu.
+
+> **3. Tách Mock Data khỏi Component UI**
+> ```ts
+> // ❌ CŨ: Component phụ thuộc trực tiếp vào mockData tĩnh
+> import { mockPosts } from '@/data/mockData'
+> const posts = ref(mockPosts)
+> 
+> // ✅ MỚI: Thông qua Composable gọi API, dữ liệu mock bị cô lập hoàn toàn ở tầng Backend ảo
+> import { usePosts } from '@/composables/usePosts'
+> const { posts, fetchPosts } = usePosts()
+> ```
+> 
+> **4. Khắc phục trùng lặp DOM Element (Blank Screen)**
+> ```javascript
+> // ❌ CŨ: LỖI SẬP TRANG do Vue hiểu nhầm là thẻ HTML Native (<image>, <video>)
+> import { Image, Video } from '@lucide/vue'
+> 
+> // ✅ MỚI: Sử dụng Alias Icon để an toàn tuyệt đối
+> import { Image as ImageIcon, Video as VideoIcon } from '@lucide/vue'
+> ```
+> 
+> **5. Xử lý triệt để Layout Shift & Table Width (UX Best Practice)**
+> ```html
+> <!-- ❌ CŨ: Skeleton dùng w-full hoặc flex-1 làm bảng tự động dãn cột bất chấp % của thẻ <th>, gây giật giao diện lúc load xong -->
+> <table class="w-full">
+>   <th class="w-[30%]">Nhóm</th>
+>   <td class="w-full"> <Skeleton /> </td> <!-- Lỗi ở đây -->
+> </table>
+> <main class="overflow-y-auto"> <!-- Lỗi giật giao diện vì scrollbar ẩn/hiện -->
+> 
+> <!-- ✅ MỚI: Dùng table-fixed, % cố định và overflow-y-scroll -->
+> <table class="w-full table-fixed">
+>   <th class="w-[30%]">Nhóm</th> <!-- Phải set % hoặc px cứng -->
+>   <td> <div class="w-48"> <Skeleton /> </div> </td> <!-- Không dùng w-full -->
+> </table>
+> <main class="overflow-y-scroll"> <!-- Luôn chừa không gian cho Scrollbar -->
+> ```
 
 ---
 
@@ -188,13 +239,21 @@ View (UI) → Composable (Logic) → API Service (Endpoint) → HTTP Client (Axi
 
 ---
 
+## ✅ Những Hạng Mục Đã Hoàn Thành (Accomplishments)
+
+1. **Bản đồ (MapView)**: Đã tích hợp thư viện `Leaflet.js` hiển thị bản đồ trực quan.
+2. **Trình soạn thảo (CreatePostView)**: Đã thay thế thẻ `<textarea>` thuần bằng Rich-text editor cao cấp `TipTap`. Đã sửa lỗi Memory Leak của TipTap.
+3. **Form Validation**: Đã tích hợp `VeeValidate` và `Zod` để validate các form Auth an toàn.
+4. **Biểu đồ (Analytics/Dashboard)**: Đã tích hợp thành công `Chart.js` (`vue-chartjs`) cho màn hình Admin.
+5. **Route Guards**: Đã bổ sung `router.beforeEach` check token / role (chặn truy cập `/admin` khi không phải Admin).
+6. **Kiến trúc Data Fetching**: Đã đóng gói logic fetch dữ liệu bất đồng bộ vào `useAsyncState`, tự động xử lý `isLoading` và `error` chung cho toàn ứng dụng.
+7. **Tối ưu Avatar Component**: Đã refactor toàn bộ mã lặp lại thành một Component duy nhất `<UserAvatar />` có tích hợp ảnh dự phòng (Fallback UI) an toàn.
+
+---
+
 ## 🛠️ Technical Debt & Known Issues (Cần làm)
 
-1. **Bản đồ (MapView)**: UI hiện tại chỉ là placeholder. Cần tích hợp thư viện `Leaflet.js` và gọi API backend PostGIS.
-2. **Trình soạn thảo (CreatePostView)**: Hiện đang dùng `<textarea>` thuần. Cần thay thế bằng Rich-text editor (như TipTap, Vditor, hoặc Quill).
-3. **Form Validation**: Các form (Login, Register, Create Post) chưa có logic validate. Cần tích hợp `VeeValidate` hoặc xử lý thủ công trước.
-4. **Biểu đồ (Analytics/Dashboard)**: Đang "fake" bằng thẻ `<div>` với inline-style. Cần tích hợp `Chart.js` (vue-chartjs) hoặc `ECharts` khi có API.
-5. **Route Guards**: Chưa chặn route. Hiện tại ai vào `/admin` cũng được. Cần thêm `router.beforeEach` check token / role.
+- Hiện tại phần Frontend chưa phát hiện thêm nợ kỹ thuật (Technical Debt) nào nghiêm trọng. Các tính năng cốt lõi đều hoạt động tốt bằng Mock Data. Đã sẵn sàng để kết nối Backend API.
 
 ---
 

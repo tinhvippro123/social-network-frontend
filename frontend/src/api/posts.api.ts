@@ -4,7 +4,7 @@
 import http from './client'
 import type { ApiResponse } from './client'
 import type { Post } from '@/types'
-import { mockPosts } from '@/data/mockData'
+import { mockPosts, mockComments } from '@/data/mockData'
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -98,6 +98,23 @@ const postsApi = {
   searchByImage: async (formData: FormData) => {
     await delay(500)
     return { data: { data: mockPosts, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+  },
+
+  getPopularTags: async () => {
+    await delay(500)
+    const mockTags = [
+      { id: '1', name: 'Frontend', count: 1250 },
+      { id: '2', name: 'Vue 3', count: 850 },
+      { id: '3', name: 'React', count: 720 },
+      { id: '4', name: 'JavaScript', count: 640 },
+      { id: '5', name: 'TypeScript', count: 590 },
+    ]
+    return { data: { data: mockTags, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<{id: string, name: string, count: number}[]> }>
+  },
+
+  getComments: async (postId: string) => {
+    await delay(500)
+    return { data: { data: mockComments, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<any[]> }>
   },
 }
 

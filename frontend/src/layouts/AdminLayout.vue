@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import { useAppStore } from '@/stores/app'
-import {
-  LayoutDashboard, Users, FileText, ShieldAlert, FolderTree,
-  Settings, Sun, Moon, Menu, X, LogOut, ChevronLeft,
-  Bell, ChevronDown, BarChart3, MessageCircle, Flag, User
+import UserAvatar from '@/components/UserAvatar.vue'
+import { 
+  Home, Users, FileText, Settings, Shield, Bell, Menu as MenuIcon, X, LogOut,
+  ChevronRight, Database, Box, BarChart3, ShieldAlert, FolderTree, ChevronLeft,
+  Sun, Moon, MessageCircle, Flag, User
 } from '@lucide/vue'
 
 const router = useRouter()
 const route = useRoute()
 const appStore = useAppStore()
+const { logout } = useAuth()
 
 const isMobile = ref(false)
 const sidebarOpen = ref(true)
@@ -18,7 +21,7 @@ const mobileSidebarOpen = ref(false)
 const showUserMenu = ref(false)
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', to: '/admin' },
+  { icon: Home, label: 'Dashboard', to: '/admin' },
   { icon: Users, label: 'Người dùng', to: '/admin/users' },
   { icon: FileText, label: 'Bài viết', to: '/admin/posts' },
   { icon: ShieldAlert, label: 'Kiểm duyệt', to: '/admin/moderation' },
@@ -170,18 +173,18 @@ const isActive = (path: string) => {
       <header class="h-16 shrink-0 flex items-center justify-between px-4 lg:px-6 bg-white dark:bg-surface-800 border-b border-gray-200 dark:border-surface-700 z-30">
         <!-- Left -->
         <div class="flex items-center gap-3">
-          <button
-            class="lg:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
-            @click="mobileSidebarOpen = !mobileSidebarOpen"
+          <button 
+            @click="mobileSidebarOpen = true"
+            class="p-2 -ml-2 mr-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors lg:hidden"
           >
-            <Menu v-if="!mobileSidebarOpen" :size="22" />
+            <MenuIcon v-if="!mobileSidebarOpen" :size="22" />
             <X v-else :size="22" />
           </button>
           <button
             class="hidden lg:flex p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
             @click="sidebarOpen = !sidebarOpen"
           >
-            <Menu :size="22" />
+            <MenuIcon :size="22" />
           </button>
 
           <!-- Breadcrumb -->
@@ -208,7 +211,7 @@ const isActive = (path: string) => {
               class="user-trigger flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
               @click.stop="showUserMenu = !showUserMenu"
             >
-              <img :src="appStore.user?.avatar" class="w-8 h-8 rounded-full ring-2 ring-red-500/30" />
+              <UserAvatar v-if="appStore.user" :user="appStore.user" size="sm" class="ring-2 ring-red-500/30" />
               <div class="hidden sm:block text-left">
                 <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ appStore.user?.name }}</p>
                 <p class="text-[10px] text-red-500 font-medium uppercase">Administrator</p>
@@ -241,7 +244,7 @@ const isActive = (path: string) => {
                 </div>
                 <div class="border-t border-gray-200 dark:border-surface-700 py-2">
                   <button
-                    @click="router.push('/login'); showUserMenu = false"
+                    @click="logout(); showUserMenu = false"
                     class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
                   >
                     <LogOut :size="16" /> Đăng xuất
@@ -254,7 +257,7 @@ const isActive = (path: string) => {
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 overflow-y-auto">
+      <main class="flex-1 overflow-y-scroll">
         <slot />
       </main>
     </div>

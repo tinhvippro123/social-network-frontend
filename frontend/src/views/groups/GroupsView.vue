@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, Plus, Users, Globe, Lock, ArrowRight } from '@lucide/vue'
+import { Search as SearchIcon, Plus, Users, Globe, Lock, ArrowRight } from '@lucide/vue'
 import { useGroups } from '@/composables/useGroups'
 import { onMounted } from 'vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 
-const { groups, fetchGroups } = useGroups()
+const { groups, isLoading, fetchGroups } = useGroups()
 
 onMounted(() => {
   fetchGroups()
@@ -26,10 +27,7 @@ const filteredGroups = computed(() => {
   return g
 })
 
-const formatNumber = (num: number) => {
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toString()
-}
+import { formatNumber } from '@/utils/formatters'
 </script>
 
 <template>
@@ -52,7 +50,7 @@ const formatNumber = (num: number) => {
     <!-- Search & Filter -->
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
       <div class="flex-1 flex items-center gap-2 bg-white dark:bg-surface-800 rounded-xl px-4 py-2.5 border border-gray-200 dark:border-surface-700">
-        <Search :size="18" class="text-gray-400" />
+        <SearchIcon :size="18" class="text-gray-400" />
         <input
           v-model="searchGroup"
           type="text"
@@ -79,12 +77,42 @@ const formatNumber = (num: number) => {
 
     <!-- Groups Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
-      <div
-        v-for="group in filteredGroups"
-        :key="group.id"
-        @click="router.push(`/groups/${group.id}`)"
-        class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer group"
-      >
+      <!-- Skeletons -->
+      <template v-if="isLoading">
+        <div
+          v-for="i in 6"
+          :key="'sk-' + i"
+          class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden"
+        >
+          <!-- Cover -->
+          <div class="relative h-32 overflow-hidden rounded-t-2xl">
+            <Skeleton type="image" class="w-full h-full" rounded="rounded-none" />
+          </div>
+          <!-- Content -->
+          <div class="p-4">
+            <div class="flex items-start gap-3 -mt-10 relative z-10">
+              <Skeleton type="avatar" class="w-14 h-14 ring-4 ring-white dark:ring-surface-800 shrink-0 bg-white" rounded="rounded-xl" />
+              <div class="pt-7 w-full space-y-2">
+                <Skeleton type="title" width="w-3/4" height="h-5" />
+                <Skeleton type="text" width="w-full" />
+                <Skeleton type="text" width="w-2/3" />
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-surface-700">
+              <Skeleton type="button" width="w-full" height="h-9" rounded="rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Actual Groups -->
+      <template v-else>
+        <div
+          v-for="group in filteredGroups"
+          :key="group.id"
+          @click="router.push(`/groups/${group.id}`)"
+          class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer group"
+        >
         <!-- Cover -->
         <div class="relative h-32 overflow-hidden rounded-t-2xl">
           <img :src="group.coverImage" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -135,6 +163,7 @@ const formatNumber = (num: number) => {
           </div>
         </div>
       </div>
+    </template>
     </div>
 
     <!-- Create Group Modal -->
