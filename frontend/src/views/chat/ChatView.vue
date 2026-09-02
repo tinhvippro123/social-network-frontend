@@ -9,7 +9,8 @@ import {
   X as XIcon, Reply as ReplyIcon, Pin as PinIcon, BellOff as BellOffIcon,
   Bell as BellIcon, Trash2 as TrashIcon, Ban as BanIcon, User as UserIcon,
   FileText as FileTextIcon, Download as DownloadIcon, Loader2 as LoaderIcon,
-  ChevronLeft as ChevronLeftIcon, Info as InfoIcon
+  ChevronLeft as ChevronLeftIcon, Info as InfoIcon, Flag as FlagIcon,
+  Users as UsersIcon, ChevronDown as ChevronDownIcon
 } from '@lucide/vue'
 import { useChat } from '@/composables/useChat'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -43,6 +44,18 @@ const chatContainer = ref<HTMLElement | null>(null)
 const showScrollBottom = ref(false)
 const searchChat = ref('')
 const imagePreview = ref<string | null>(null)
+const showInfoPanel = ref(false)
+const showMediaSection = ref(true)
+const showFileSection = ref(true)
+const showMembersSection = ref(true)
+
+// Computed: shared media & files
+const sharedMedia = computed(() =>
+  messages.value.filter(m => m.type === 'image' && m.imageUrl)
+)
+const sharedFiles = computed(() =>
+  messages.value.filter(m => m.type === 'file' && m.fileName)
+)
 
 // Emoji grid
 const emojiList = [
@@ -352,6 +365,9 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
           <button @click="openCall('video')" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
             <VideoIcon :size="18" />
           </button>
+          <button @click="showInfoPanel = !showInfoPanel" :class="['p-2 rounded-xl transition-colors', showInfoPanel ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700']">
+            <InfoIcon :size="18" />
+          </button>
           <!-- More Menu -->
           <div class="relative">
             <button @click.stop="showMoreMenu = !showMoreMenu" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
@@ -653,6 +669,147 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
         </div>
       </div>
     </div>
+
+    <!-- Info Panel (Right Sidebar) -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="w-0 opacity-0"
+      enter-to-class="w-80 opacity-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="w-80 opacity-100"
+      leave-to-class="w-0 opacity-0"
+    >
+      <aside
+        v-if="showInfoPanel && selectedConversation"
+        class="hidden lg:flex w-80 shrink-0 flex-col bg-white dark:bg-surface-800 border-l border-gray-200 dark:border-surface-700 overflow-y-auto overflow-x-hidden"
+      >
+        <!-- Profile Header -->
+        <div class="flex flex-col items-center py-6 px-4 border-b border-gray-100 dark:border-surface-700">
+          <div class="relative mb-3">
+            <UserAvatar :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="lg" class="w-20 h-20" />
+            <div v-if="selectedConversation.isOnline" class="absolute bottom-1 right-1 w-4 h-4 bg-green-500 rounded-full ring-3 ring-white dark:ring-surface-800" />
+          </div>
+          <h3 class="text-base font-bold text-gray-900 dark:text-white">{{ selectedConversation.name }}</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            {{ selectedConversation.isOnline ? 'Đang hoạt động' : 'Hoạt động 15 phút trước' }}
+          </p>
+          <!-- Quick Actions -->
+          <div class="flex items-center gap-4 mt-4">
+            <button v-if="!selectedConversation.isGroup" @click="router.push(`/profile/${selectedConversation.participants[1]?.id}`)" class="flex flex-col items-center gap-1 group">
+              <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
+                <UserIcon :size="16" class="text-gray-600 dark:text-gray-400 group-hover:text-primary-500" />
+              </div>
+              <span class="text-[10px] text-gray-500">Trang cá nhân</span>
+            </button>
+            <button @click="muteConversation(selectedConversation.id)" class="flex flex-col items-center gap-1 group">
+              <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
+                <component :is="selectedConversation.isMuted ? BellIcon : BellOffIcon" :size="16" class="text-gray-600 dark:text-gray-400 group-hover:text-primary-500" />
+              </div>
+              <span class="text-[10px] text-gray-500">{{ selectedConversation.isMuted ? 'Bật TB' : 'Tắt TB' }}</span>
+            </button>
+            <button @click="showSearchInChat = true; showInfoPanel = false" class="flex flex-col items-center gap-1 group">
+              <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
+                <SearchIcon :size="16" class="text-gray-600 dark:text-gray-400 group-hover:text-primary-500" />
+              </div>
+              <span class="text-[10px] text-gray-500">Tìm kiếm</span>
+            </button>
+            <button @click="pinConversation(selectedConversation.id)" class="flex flex-col items-center gap-1 group">
+              <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
+                <PinIcon :size="16" class="text-gray-600 dark:text-gray-400 group-hover:text-primary-500" />
+              </div>
+              <span class="text-[10px] text-gray-500">{{ selectedConversation.isPinned ? 'Bỏ ghim' : 'Ghim' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Shared Media -->
+        <div class="border-b border-gray-100 dark:border-surface-700">
+          <button @click="showMediaSection = !showMediaSection" class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors">
+            File phương tiện
+            <ChevronDownIcon :size="16" :class="['transition-transform', showMediaSection ? 'rotate-180' : '']" />
+          </button>
+          <div v-if="showMediaSection" class="px-4 pb-3">
+            <div v-if="sharedMedia.length === 0" class="text-xs text-gray-400 text-center py-3">Chưa có ảnh nào</div>
+            <div v-else class="grid grid-cols-3 gap-1.5">
+              <img
+                v-for="media in sharedMedia.slice(0, 9)"
+                :key="media.id"
+                :src="media.imageUrl"
+                alt=""
+                class="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                @click="imagePreview = media.imageUrl || null"
+              />
+            </div>
+            <button v-if="sharedMedia.length > 9" class="w-full text-xs text-primary-500 font-medium mt-2 hover:underline">
+              Xem tất cả ({{ sharedMedia.length }})
+            </button>
+          </div>
+        </div>
+
+        <!-- Shared Files -->
+        <div class="border-b border-gray-100 dark:border-surface-700">
+          <button @click="showFileSection = !showFileSection" class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors">
+            File đính kèm
+            <ChevronDownIcon :size="16" :class="['transition-transform', showFileSection ? 'rotate-180' : '']" />
+          </button>
+          <div v-if="showFileSection" class="px-4 pb-3 space-y-2">
+            <div v-if="sharedFiles.length === 0" class="text-xs text-gray-400 text-center py-3">Chưa có file nào</div>
+            <div
+              v-for="file in sharedFiles.slice(0, 5)"
+              :key="file.id"
+              class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors cursor-pointer"
+            >
+              <div class="w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center shrink-0">
+                <FileTextIcon :size="16" class="text-primary-500" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{{ file.fileName }}</p>
+                <p class="text-[10px] text-gray-400">{{ file.fileSize }}</p>
+              </div>
+              <button class="p-1 rounded-md text-gray-400 hover:text-gray-600 transition-colors">
+                <DownloadIcon :size="14" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group Members -->
+        <div v-if="selectedConversation.isGroup" class="border-b border-gray-100 dark:border-surface-700">
+          <button @click="showMembersSection = !showMembersSection" class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors">
+            <span class="flex items-center gap-2">
+              <UsersIcon :size="16" />
+              Thành viên ({{ selectedConversation.participants.length }})
+            </span>
+            <ChevronDownIcon :size="16" :class="['transition-transform', showMembersSection ? 'rotate-180' : '']" />
+          </button>
+          <div v-if="showMembersSection" class="px-4 pb-3 space-y-2">
+            <div
+              v-for="member in selectedConversation.participants"
+              :key="member.id"
+              @click="router.push(`/profile/${member.id}`)"
+              class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors cursor-pointer"
+            >
+              <UserAvatar :user="member" size="sm" />
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{{ member.name }}</p>
+                <p class="text-[10px] text-gray-400">{{ member.role === 'admin' ? 'Quản trị viên' : 'Thành viên' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Privacy & Support -->
+        <div class="py-2">
+          <p class="px-4 py-2 text-xs font-medium text-gray-400 uppercase tracking-wider">Quyền riêng tư</p>
+          <button v-if="!selectedConversation.isGroup" @click="blockUser(selectedConversation.participants[1]?.id)" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors">
+            <BanIcon :size="16" class="text-gray-400" /> Chặn
+          </button>
+          <button class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+            <FlagIcon :size="16" /> Báo cáo
+          </button>
+        </div>
+      </aside>
+    </Transition>
 
     <!-- Call Dialog -->
     <Transition
