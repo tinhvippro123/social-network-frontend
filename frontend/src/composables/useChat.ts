@@ -111,6 +111,44 @@ export function useChat() {
     return data.data
   }
 
+  // Mock functions for new message actions
+  async function addReaction(messageId: string, emoji: string, user: { id: string, name: string }) {
+    const msg = messages.value.find(m => m.id === messageId)
+    if (msg) {
+      if (!msg.reactions) msg.reactions = []
+      const existingIdx = msg.reactions.findIndex(r => r.userId === user.id)
+      if (existingIdx >= 0) {
+        if (msg.reactions[existingIdx].emoji === emoji) {
+          msg.reactions.splice(existingIdx, 1) // Toggle off
+        } else {
+          msg.reactions[existingIdx].emoji = emoji // Change emoji
+        }
+      } else {
+        msg.reactions.push({ emoji, userId: user.id, userName: user.name })
+      }
+    }
+  }
+
+  async function deleteMessage(messageId: string) {
+    messages.value = messages.value.filter(m => m.id !== messageId)
+  }
+
+  async function revokeMessage(messageId: string) {
+    const msg = messages.value.find(m => m.id === messageId)
+    if (msg && msg.isOwn) {
+      msg.status = 'revoked'
+      msg.content = ''
+      msg.type = 'text'
+    }
+  }
+
+  async function pinMessage(messageId: string) {
+    const msg = messages.value.find(m => m.id === messageId)
+    if (msg) {
+      msg.isPinned = !msg.isPinned
+    }
+  }
+
   // Giả lập typing indicator
   function simulateTyping(userName: string) {
     isTyping.value = true
@@ -137,6 +175,10 @@ export function useChat() {
     deleteConversation,
     blockUser,
     searchMessages,
+    addReaction,
+    deleteMessage,
+    revokeMessage,
+    pinMessage,
     simulateTyping,
     updateMessageStatus,
   }

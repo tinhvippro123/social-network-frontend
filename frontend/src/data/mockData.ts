@@ -256,7 +256,7 @@ export const mockGroups: Group[] = [
   },
   {
     id: 'g6', name: 'Nhóm ĐACN - HCMUNRE', description: 'Nhóm thảo luận đồ án chuyên ngành khoa CNTT - Trường ĐH TN&MT TP.HCM.',
-    avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=hcmunre', coverImage: 'https://images.unsplash.com/photo-1523050854058-8df90110c476?w=800&q=80',
+    avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=hcmunre', coverImage: 'https://picsum.photos/seed/hcmunre/800/400',
     membersCount: 45, postsCount: 12, isJoined: true, isPublic: false, createdAt: '2025-08-01', owner: mockUsers[0]
   }
 ]
@@ -323,8 +323,34 @@ export const mockMessages: ChatMessage[] = [
     readBy: [{ user: mockUsers[0], readAt: '10:30' }]
   },
   {
-    id: 'm9', content: 'Gần xong rồi, đang polish UI thêm 🚀', sender: mockUsers[0], createdAt: '10:32', isOwn: true, type: 'text', status: 'delivered'
-  }
+    id: 'm9', content: 'Gần xong rồi, đang polish UI thêm 🚀', sender: mockUsers[0], createdAt: '10:32', isOwn: true, type: 'text', status: 'read',
+    readBy: [
+      { user: mockUsers[1], readAt: '10:33' },
+      { user: mockUsers[2], readAt: '10:33' },
+      { user: mockUsers[3], readAt: '10:34' },
+      { user: mockUsers[4], readAt: '10:35' }
+    ]
+  },
+  // --- Mock data to test "Xem tất cả" ---
+  ...Array.from({ length: 11 }).map((_, i) => {
+    // Generate dates spread across last 3 months
+    const date = new Date()
+    date.setDate(date.getDate() - (i * 15)) // Every 15 days ago
+    return {
+      id: `m_img_${i}`, content: '', sender: mockUsers[0], createdAt: date.toISOString(), isOwn: true, type: 'image' as const, status: 'read' as const,
+      imageUrl: `https://picsum.photos/seed/chatimg${i}/400/400`,
+      readBy: [{ user: mockUsers[1], readAt: '10:35' }]
+    }
+  }),
+  ...Array.from({ length: 7 }).map((_, i) => {
+    const date = new Date()
+    date.setDate(date.getDate() - (i * 20)) // Every 20 days ago
+    return {
+      id: `m_file_${i}`, content: '', sender: mockUsers[1], createdAt: date.toISOString(), isOwn: false, type: 'file' as const, status: 'read' as const,
+      fileName: `tai_lieu_tham_khao_${i + 1}.pdf`, fileSize: `${(Math.random() * 5 + 1).toFixed(1)} MB`,
+      readBy: [{ user: mockUsers[0], readAt: '10:36' }]
+    }
+  })
 ]
 
 // ---- Notifications ----

@@ -1,6 +1,6 @@
 import type { User } from './user.types'
 
-export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read'
+export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'revoked'
 
 export interface ChatConversation {
   id: string
@@ -40,4 +40,5 @@ export interface ChatMessage {
   fileName?: string
   fileSize?: string
   imageUrl?: string
+  isPinned?: boolean
 }
