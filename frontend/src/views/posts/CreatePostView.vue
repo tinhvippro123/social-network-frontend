@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, List, ListOrdered,
-  Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote, Eye, Save, Send, MapPin, Tag, ChevronDown, X
+  Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote, Eye, Save, Send, MapPin, Tag, ChevronDown, X, Clock, CalendarDays
 } from '@lucide/vue'
 import { useCategories } from '@/composables/useCategories'
 import { useToast } from '@/composables/useToast'
@@ -12,6 +12,8 @@ import ImageExtension from '@tiptap/extension-image'
 import LinkExtension from '@tiptap/extension-link'
 import { onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import LocationPickerModal from '@/components/LocationPickerModal.vue'
+import type { GeoLocation } from '@/types'
 
 const { categories, fetchCategories } = useCategories()
 const { success, error } = useToast()
@@ -29,7 +31,25 @@ const tagInput = ref('')
 const isPreview = ref(false)
 const isDraft = ref(false)
 const showLocationPicker = ref(false)
-const location = ref('')
+const postLocation = ref<GeoLocation | null>(null)
+
+const handleLocationConfirm = (loc: GeoLocation) => {
+  postLocation.value = loc
+  success('Đã ghim vị trí thành công!')
+}
+
+const removeLocation = () => {
+  postLocation.value = null
+}
+
+// Event time fields (only for 'su-kien' category)
+const eventStartTime = ref('')
+const eventEndTime = ref('')
+
+// Categories that should suggest location pinning
+const locationCategories = ['tim-tro', 'pass-do', 'review-dia-diem', 'su-kien']
+const isLocationCategory = computed(() => locationCategories.includes(selectedCategory.value))
+const isEventCategory = computed(() => selectedCategory.value === 'su-kien')
 
 const addTag = () => {
   const tag = tagInput.value.trim()
@@ -198,6 +218,84 @@ const handlePublish = () => {
             />
           </div>
         </div>
+
+        <!-- Location Picker Button -->
+        <div class="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-surface-700/50">
+          <button
+            v-if="!postLocation"
+            @click="showLocationPicker = true"
+            type="button"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-dashed border-gray-300 dark:border-surface-600 hover:border-red-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all"
+          >
+            <MapPin :size="16" />
+            Ghim vị trí
+          </button>
+
+          <!-- Selected Location Display -->
+          <div
+            v-else
+            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30"
+          >
+            <MapPin :size="14" class="text-red-500 shrink-0" />
+            <span
+              class="text-red-700 dark:text-red-400 font-medium truncate max-w-xs cursor-pointer hover:underline"
+              @click="showLocationPicker = true"
+            >
+              {{ postLocation.address }}
+            </span>
+            <button
+              @click="removeLocation"
+              class="p-0.5 rounded-md text-red-400 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors shrink-0"
+            >
+              <X :size="14" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Location Suggestion (when selecting location-relevant categories) -->
+        <Transition enter-active-class="transition-all duration-300 ease-out" enter-from-class="opacity-0 -translate-y-2" leave-active-class="transition-all duration-200 ease-in" leave-to-class="opacity-0 -translate-y-2">
+          <div v-if="isLocationCategory && !postLocation" class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30">
+            <MapPin :size="14" class="text-amber-500 shrink-0" />
+            <span class="text-amber-700 dark:text-amber-400">
+              Danh mục này nên có vị trí! 
+              <button @click="showLocationPicker = true" class="font-semibold underline hover:no-underline">Ghim ngay</button>
+            </span>
+          </div>
+        </Transition>
+
+        <!-- Event Time Picker (only for 'su-kien' category) -->
+        <Transition enter-active-class="transition-all duration-300 ease-out" enter-from-class="opacity-0 -translate-y-2" leave-active-class="transition-all duration-200 ease-in" leave-to-class="opacity-0 -translate-y-2">
+          <div v-if="isEventCategory" class="flex flex-col gap-3 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800/30">
+            <div class="flex items-center gap-2">
+              <CalendarDays :size="16" class="text-purple-500" />
+              <span class="text-sm font-semibold text-purple-700 dark:text-purple-400">Thời gian sự kiện</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">Bắt đầu</label>
+                <div class="flex items-center gap-2 bg-white dark:bg-surface-800 rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800/30">
+                  <Clock :size="14" class="text-purple-400 shrink-0" />
+                  <input
+                    v-model="eventStartTime"
+                    type="datetime-local"
+                    class="bg-transparent border-none outline-none text-sm w-full text-gray-700 dark:text-gray-300"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">Kết thúc</label>
+                <div class="flex items-center gap-2 bg-white dark:bg-surface-800 rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800/30">
+                  <Clock :size="14" class="text-purple-400 shrink-0" />
+                  <input
+                    v-model="eventEndTime"
+                    type="datetime-local"
+                    class="bg-transparent border-none outline-none text-sm w-full text-gray-700 dark:text-gray-300"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
       </div>
     </div>
 
@@ -244,5 +342,12 @@ const handlePublish = () => {
         </div>
       </div>
     </div>
+
+    <!-- Location Picker Modal -->
+    <LocationPickerModal
+      v-model="showLocationPicker"
+      :initial-location="postLocation"
+      @confirm="handleLocationConfirm"
+    />
   </div>
 </template>

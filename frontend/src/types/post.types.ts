@@ -32,6 +32,8 @@ export interface Post {
   upvoted: boolean
   status: 'draft' | 'published' | 'hidden'
   location?: GeoLocation
+  eventStartTime?: string
+  eventEndTime?: string
 }
 
 export interface Comment {
