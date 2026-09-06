@@ -82,6 +82,12 @@ const router = createRouter({
       component: () => import('@/views/map/MapView.vue'),
       meta: { title: 'Bản đồ' }
     },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('@/views/settings/SettingsView.vue'),
+      meta: { title: 'Cài đặt' }
+    },
 
     // ==========================================
     // Admin routes (AdminLayout - admin sidebar)

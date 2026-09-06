@@ -36,6 +36,12 @@ export interface Post {
   eventEndTime?: string
 }
 
+export interface Reaction {
+  emoji: string
+  count: number
+  reacted: boolean // Người dùng hiện tại đã react chưa
+}
+
 export interface Comment {
   id: string
   content: string
@@ -43,4 +49,6 @@ export interface Comment {
   createdAt: string
   replies: Comment[]
   upvotesCount: number
+  reactions: Reaction[]
+  replyTo?: string // Tên người đang reply (cho cấp 3+)
 }

@@ -351,20 +351,74 @@ export const mockComments: Comment[] = [
   {
     id: 'cm1', content: 'Bài viết rất chi tiết và dễ hiểu! Cảm ơn tác giả 🔥',
     author: mockUsers[1], createdAt: '2025-08-25T12:00:00', upvotesCount: 12,
+    reactions: [
+      { emoji: '👍', count: 8, reacted: false },
+      { emoji: '❤️', count: 3, reacted: true },
+      { emoji: '🔥', count: 5, reacted: false }
+    ],
     replies: [
-      { id: 'cm1-1', content: 'Cảm ơn bạn! Mình sẽ viết thêm phần 2 về testing nhé 😊', author: mockUsers[0], createdAt: '2025-08-25T13:00:00', upvotesCount: 5, replies: [] },
+      {
+        id: 'cm1-1', content: 'Cảm ơn bạn! Mình sẽ viết thêm phần 2 về testing nhé 😊',
+        author: mockUsers[0], createdAt: '2025-08-25T13:00:00', upvotesCount: 5,
+        reactions: [{ emoji: '❤️', count: 2, reacted: false }],
+        replies: [
+          {
+            id: 'cm1-1-1', content: 'Mong chờ phần 2 quá!',
+            author: mockUsers[3], createdAt: '2025-08-25T13:30:00', upvotesCount: 2,
+            reactions: [{ emoji: '👍', count: 1, reacted: false }],
+            replies: []
+          },
+          {
+            id: 'cm1-1-2', content: 'Mình cũng đang chờ luôn. Phần testing mà kết hợp với Testcontainers thì hay lắm đó!',
+            author: mockUsers[4], createdAt: '2025-08-25T14:00:00', upvotesCount: 3,
+            reactions: [],
+            replyTo: 'Phạm Tuấn',
+            replies: []
+          }
+        ]
+      }
     ]
   },
   {
     id: 'cm2', content: 'Phần Clean Architecture mình thấy giải thích rõ ràng hơn nhiều tài liệu tiếng Anh. Mong tác giả viết thêm!',
     author: mockUsers[2], createdAt: '2025-08-25T14:30:00', upvotesCount: 8,
+    reactions: [
+      { emoji: '👍', count: 5, reacted: true },
+      { emoji: '😂', count: 1, reacted: false }
+    ],
     replies: []
   },
   {
     id: 'cm3', content: 'Mình có một câu hỏi: Khi nào nên dùng Clean Architecture và khi nào thì CRUD đơn giản là đủ?',
     author: mockUsers[3], createdAt: '2025-08-25T16:00:00', upvotesCount: 15,
+    reactions: [
+      { emoji: '🤔', count: 4, reacted: false },
+      { emoji: '👍', count: 6, reacted: false }
+    ],
     replies: [
-      { id: 'cm3-1', content: 'Theo kinh nghiệm mình, nếu project có hơn 5 modules và cần maintain lâu dài thì nên dùng Clean Architecture. Còn CRUD đơn giản thì 3-layer là đủ rồi.', author: mockUsers[0], createdAt: '2025-08-25T17:00:00', upvotesCount: 20, replies: [] }
+      {
+        id: 'cm3-1', content: 'Theo kinh nghiệm mình, nếu project có hơn 5 modules và cần maintain lâu dài thì nên dùng Clean Architecture. Còn CRUD đơn giản thì 3-layer là đủ rồi.',
+        author: mockUsers[0], createdAt: '2025-08-25T17:00:00', upvotesCount: 20,
+        reactions: [
+          { emoji: '👍', count: 12, reacted: true },
+          { emoji: '❤️', count: 3, reacted: false }
+        ],
+        replies: [
+          {
+            id: 'cm3-1-1', content: 'Cảm ơn anh nhiều! Vậy project đồ án của em khoảng 3 modules thôi thì dùng 3-layer cho đỡ phức tạp nhỉ?',
+            author: mockUsers[3], createdAt: '2025-08-25T17:30:00', upvotesCount: 3,
+            reactions: [],
+            replies: []
+          },
+          {
+            id: 'cm3-1-2', content: 'Đúng rồi, 3 modules thì 3-layer là hợp lý nhất. Clean Architecture sẽ overkill trong trường hợp này.',
+            author: mockUsers[0], createdAt: '2025-08-25T17:45:00', upvotesCount: 7,
+            reactions: [{ emoji: '👍', count: 4, reacted: false }],
+            replyTo: 'Phạm Tuấn',
+            replies: []
+          }
+        ]
+      }
     ]
   }
 ]
