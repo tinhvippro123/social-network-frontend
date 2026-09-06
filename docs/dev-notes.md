@@ -6,8 +6,13 @@
 
 ## 📅 Session Logs
 
+### Session 7: GIS/Map Enhancement & Real-world Use Cases (2026-09-06)
+- **Nâng cấp Mock Data:** Bổ sung trường `eventStartTime` và `eventEndTime` vào model `Post`. Cập nhật `mockData.ts` với 4 danh mục cộng đồng mới (Tìm trọ, Pass đồ, Review địa điểm, Sự kiện) kèm theo toạ độ (lat, lng) thực tế để phục vụ chức năng bản đồ.
+- **Nâng cấp Giao diện Bản đồ (`MapView.vue`):** Bổ sung bộ lọc danh mục (Chip Filters) hỗ trợ cuộn ngang linh hoạt. Thay thế marker mặc định bằng Emoji Markers (🏠, 🛒, 📍, 🎉) tương ứng với từng loại bài viết để cải thiện UX/UI trực quan. 
+- **Form Tạo Bài Viết (`CreatePostView.vue`):** Hiển thị động các trường dữ liệu. Khi chọn danh mục "Sự kiện", tự động hiển thị ô chọn thời gian (Bắt đầu/Kết thúc). Khi chọn các danh mục liên quan đến địa điểm, tự động đề xuất "Ghim vị trí ngay!".
+- **Responsive & Layout:** Đảm bảo toàn bộ form tạo bài và bản đồ tương thích tốt trên cả Mobile và Desktop (Responsive flexbox layout).
+
 ### Session 1: Frontend Setup & UI Implementation (2026-08-27)
-- **Scaffolded Vue 3 + Vite 8 project**
 - **Configured Tailwind CSS v4** bằng plugin `@tailwindcss/vite` (không dùng `tailwind.config.js`). Định nghĩa theme variables trực tiếp trong `src/style.css`.
 - **Tách 3 Layouts độc lập dựa trên route metadata:** AuthLayout, MainLayout (Client), và AdminLayout.
 - **Phát triển 10 Client Views (Sử dụng Mock Data):** Home, Login, Register, PostDetail, CreatePost, Profile, Chat, Groups, GroupDetail, Map.
@@ -127,7 +132,27 @@
 >   <td> <div class="w-48"> <Skeleton /> </div> </td> <!-- Không dùng w-full -->
 > </table>
 > <main class="overflow-y-scroll"> <!-- Luôn chừa không gian cho Scrollbar -->
+> 
+> **6. Kiến trúc Form Động (Dynamic Form) thay vì Nhiều Form Riêng Lẻ**
+> ```vue
+> <!-- ❌ CŨ: Phải tạo riêng EventPostView.vue, HousingPostView.vue, rất dư thừa code -->
+> 
+> <!-- ✅ MỚI: Dùng chung 1 CreatePostView.vue, ẩn/hiện trường dựa vào selectedCategory -->
+> <div v-if="selectedCategory === 'su-kien'" class="grid grid-cols-2 gap-4">
+>   <input type="datetime-local" v-model="form.eventStartTime" />
+> </div>
 > ```
+> 
+> ### DD-008: Danh mục duy nhất (Single Category) vs Nhiều Tags (Multiple Tags)
+> - **Quyết định**: Mỗi bài viết chỉ thuộc về **1 Danh mục duy nhất** (Ví dụ: "Sự kiện", "Tìm trọ"), nhưng có thể có **Nhiều Tags** (Ví dụ: `#nhạc_sống`, `#quận_1`).
+> - **Lý do**: Giúp hệ thống Bản đồ (GIS) và Bảng tin (Feed) dễ dàng phân loại và lọc bài viết mà không bị trùng lặp logic. Ví dụ: Bản đồ chỉ cần hiển thị marker dựa trên Category chính, không lo bị nhiễu do 1 bài viết thuộc nhiều Category.
+> 
+> ### DD-009: Tối ưu UI/UX cho Bản đồ (Leaflet GIS)
+> - **Quyết định**: Sử dụng `L.divIcon` kết hợp Emoji (🏠, 🎉, 📍) để render Custom Marker thay vì dùng file hình ảnh SVG/PNG.
+> - **Lý do**: 
+>   1. **Hiệu năng:** Rất nhẹ, không cần load external assets.
+>   2. **Dễ custom:** Có thể tuỳ biến CSS, màu sắc, animation (như nhấp nháy, đổi màu khi hover) trực tiếp trên mã HTML/CSS của `L.divIcon`.
+>   3. **Trực quan:** Người dùng nhìn Emoji là hiểu ngay bài viết thuộc chủ đề gì mà không cần zoom vào đọc chữ.
 
 ---
 
