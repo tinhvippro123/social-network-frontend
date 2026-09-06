@@ -42,8 +42,14 @@ const showEmojiPicker = ref(false)
 const showSearchInChat = ref(false)
 const showMediaSection = ref(true)
 const showFileSection = ref(true)
-const showAllMedia = ref(false)
-const showAllFiles = ref(false)
+const rightSidebarView = ref<'info' | 'media_files'>('info')
+const activeMediaTab = ref<'media' | 'files' | 'links'>('media')
+
+const openMediaView = (tab: 'media' | 'files' | 'links') => {
+  activeMediaTab.value = tab
+  rightSidebarView.value = 'media_files'
+}
+
 const showMembersSection = ref(true)
 const searchQuery = ref('')
 const searchResults = ref<ChatMessage[]>([])
@@ -265,7 +271,7 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
     <!-- Conversations List -->
     <div
       :class="[
-        'w-full sm:w-80 xl:w-96 shrink-0 flex flex-col bg-white dark:bg-surface-800 border-r border-gray-200 dark:border-surface-700',
+        'w-full sm:w-90 shrink-0 flex flex-col bg-white dark:bg-surface-800 border-r border-gray-200 dark:border-surface-700',
         showMobileChat ? 'hidden sm:flex' : 'flex'
       ]"
     >
@@ -385,26 +391,28 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
         <div class="flex items-center gap-3">
           <button
             @click="showMobileChat = false"
-            class="sm:hidden p-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700"
+            class="sm:hidden p-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 mr-1"
           >
             <ChevronLeftIcon :size="20" />
           </button>
-          <div class="relative">
-            <UserAvatar v-if="selectedConversation && !isInitialLoading" :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="sm" />
-            <Skeleton v-else type="avatar" class="w-8 h-8" rounded="rounded-full" />
-            <div v-if="selectedConversation?.isOnline && !isInitialLoading" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800" />
-          </div>
-          <div>
-            <template v-if="selectedConversation && !isInitialLoading">
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedConversation.name }}</p>
-              <p class="text-xs text-green-500" v-if="isTyping">{{ typingUser }} đang nhập...</p>
-              <p class="text-xs text-green-500" v-else-if="selectedConversation.isOnline">Đang hoạt động</p>
-              <p class="text-xs text-gray-400" v-else>Hoạt động 15 phút trước</p>
-            </template>
-            <template v-else>
-              <Skeleton type="text" class="w-24 h-4 mb-1" />
-              <Skeleton type="text" class="w-16 h-3" />
-            </template>
+          <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" @click="router.push(`/profile/${selectedConversation.id}`)">
+            <div class="relative">
+              <UserAvatar v-if="selectedConversation && !isInitialLoading" :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="sm" />
+              <Skeleton v-else type="avatar" class="w-8 h-8" rounded="rounded-full" />
+              <div v-if="selectedConversation?.isOnline && !isInitialLoading" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800" />
+            </div>
+            <div class="text-left">
+              <template v-if="selectedConversation && !isInitialLoading">
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedConversation.name }}</p>
+                <p class="text-xs text-green-500" v-if="isTyping">{{ typingUser }} đang nhập...</p>
+                <p class="text-xs text-green-500" v-else-if="selectedConversation.isOnline">Đang hoạt động</p>
+                <p class="text-xs text-gray-400" v-else>Hoạt động 15 phút trước</p>
+              </template>
+              <template v-else>
+                <Skeleton type="text" class="w-24 h-4 mb-1" />
+                <Skeleton type="text" class="w-16 h-3" />
+              </template>
+            </div>
           </div>
         </div>
         <div class="flex items-center gap-1">
@@ -764,12 +772,20 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
     </div>
 
       <!-- Info Panel (Right Sidebar) -->
-      <aside
-        v-if="showInfoPanel && selectedConversation"
-        class="absolute inset-0 z-20 xl:relative flex w-full xl:w-80 shrink-0 flex-col bg-white dark:bg-surface-800 border-l border-gray-200 dark:border-surface-700 overflow-y-auto"
+      <Transition
+        enter-active-class="transition-all duration-300 ease-in-out"
+        enter-from-class="opacity-0 translate-x-full xl:translate-x-0 xl:-mr-92 xl:opacity-0"
+        leave-active-class="transition-all duration-300 ease-in-out"
+        leave-to-class="opacity-0 translate-x-full xl:translate-x-0 xl:-mr-92 xl:opacity-0"
       >
-        <!-- Close button -->
-        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-surface-700">
+        <aside
+          v-if="showInfoPanel && selectedConversation"
+          class="absolute inset-0 z-20 xl:relative flex w-full xl:w-92 shrink-0 flex-col bg-white dark:bg-surface-800 border-l border-gray-200 dark:border-surface-700 overflow-y-auto custom-scrollbar"
+        >
+        <!-- View: Info Default -->
+        <div v-if="rightSidebarView === 'info'">
+          <!-- Close button -->
+          <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-surface-700">
           <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Thông tin</h3>
           <button @click="showInfoPanel = false" class="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
             <XIcon :size="16" />
@@ -827,43 +843,22 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
           <div v-if="showMediaSection" class="px-4 pb-3">
             <div v-if="sharedMedia.length === 0" class="text-xs text-gray-400 text-center py-3">Chưa có ảnh nào</div>
             <template v-else>
-              <div :class="['space-y-4', showAllMedia ? 'max-h-75 overflow-y-auto custom-scrollbar pr-1' : '']">
-                <!-- Grouped View -->
-                <template v-if="showAllMedia">
-                  <div v-for="group in groupedSharedMedia" :key="group.date">
-                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">{{ group.date }}</p>
-                    <div class="grid grid-cols-3 gap-1.5">
-                      <img
-                        v-for="media in group.items"
-                        :key="media.id"
-                        :src="media.imageUrl"
-                        alt=""
-                        class="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                        @click="imagePreview = media.imageUrl || null"
-                      />
-                    </div>
-                  </div>
-                </template>
-                <!-- Flat View (Collapsed) -->
-                <template v-else>
-                  <div class="grid grid-cols-3 gap-1.5">
-                    <img
-                      v-for="media in sharedMedia.slice(0, 9)"
-                      :key="media.id"
-                      :src="media.imageUrl"
-                      alt=""
-                      class="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                      @click="imagePreview = media.imageUrl || null"
-                    />
-                  </div>
-                </template>
+              <div class="grid grid-cols-3 gap-1.5">
+                <img
+                  v-for="media in sharedMedia.slice(0, 9)"
+                  :key="media.id"
+                  :src="media.imageUrl"
+                  alt=""
+                  class="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                  @click="imagePreview = media.imageUrl || null"
+                />
               </div>
               <button
                 v-if="sharedMedia.length > 9"
-                @click="showAllMedia = !showAllMedia"
+                @click="openMediaView('media')"
                 class="w-full mt-2 py-1.5 text-xs text-primary-500 hover:text-primary-600 font-medium transition-colors"
               >
-                {{ showAllMedia ? 'Thu gọn' : `Xem tất cả (${sharedMedia.length})` }}
+                Xem tất cả ({{ sharedMedia.length }})
               </button>
             </template>
           </div>
@@ -881,55 +876,30 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
           <div v-if="showFileSection" class="px-4 pb-3 space-y-2">
             <div v-if="sharedFiles.length === 0" class="text-xs text-gray-400 text-center py-3">Chưa có file nào</div>
             <template v-else>
-              <div :class="[showAllFiles ? 'max-h-75 overflow-y-auto custom-scrollbar pr-1 space-y-4' : 'space-y-2']">
-                <!-- Grouped View -->
-                <template v-if="showAllFiles">
-                  <div v-for="group in groupedSharedFiles" :key="group.date" class="space-y-2">
-                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{{ group.date }}</p>
-                    <div
-                      v-for="file in group.items"
-                      :key="file.id"
-                      class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors cursor-pointer"
-                    >
-                      <div class="w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center shrink-0">
-                        <FileTextIcon :size="16" class="text-primary-500" />
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{{ file.fileName }}</p>
-                        <p class="text-[10px] text-gray-400">{{ file.fileSize }}</p>
-                      </div>
-                      <button class="p-1 rounded-md text-gray-400 hover:text-gray-600 transition-colors">
-                        <DownloadIcon :size="14" />
-                      </button>
-                    </div>
+              <div class="space-y-2">
+                <div
+                  v-for="file in sharedFiles.slice(0, 5)"
+                  :key="file.id"
+                  class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors cursor-pointer"
+                >
+                  <div class="w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center shrink-0">
+                    <FileTextIcon :size="16" class="text-primary-500" />
                   </div>
-                </template>
-                <!-- Flat View (Collapsed) -->
-                <template v-else>
-                  <div
-                    v-for="file in sharedFiles.slice(0, 5)"
-                    :key="file.id"
-                    class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors cursor-pointer"
-                  >
-                    <div class="w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center shrink-0">
-                      <FileTextIcon :size="16" class="text-primary-500" />
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{{ file.fileName }}</p>
-                      <p class="text-[10px] text-gray-400">{{ file.fileSize }}</p>
-                    </div>
-                    <button class="p-1 rounded-md text-gray-400 hover:text-gray-600 transition-colors">
-                      <DownloadIcon :size="14" />
-                    </button>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{{ file.fileName }}</p>
+                    <p class="text-[10px] text-gray-400">{{ file.fileSize }}</p>
                   </div>
-                </template>
+                  <button class="p-1 rounded-md text-gray-400 hover:text-gray-600 transition-colors">
+                    <DownloadIcon :size="14" />
+                  </button>
+                </div>
               </div>
               <button
                 v-if="sharedFiles.length > 5"
-                @click="showAllFiles = !showAllFiles"
+                @click="openMediaView('files')"
                 class="w-full mt-1 py-1.5 text-xs text-primary-500 hover:text-primary-600 font-medium transition-colors"
               >
-                {{ showAllFiles ? 'Thu gọn' : `Xem tất cả (${sharedFiles.length})` }}
+                Xem tất cả ({{ sharedFiles.length }})
               </button>
             </template>
           </div>
@@ -972,7 +942,98 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
             <TrashIcon :size="16" /> Xóa cuộc trò chuyện
           </button>
         </div>
+        </div>
+        
+        <!-- View: Media & Files Drill-down -->
+        <div v-else-if="rightSidebarView === 'media_files'" class="flex flex-col h-full bg-white dark:bg-surface-800">
+          <!-- Sticky Header Group -->
+          <div class="sticky top-0 z-10 bg-white dark:bg-surface-800">
+            <!-- Header -->
+            <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-surface-700">
+              <button @click="rightSidebarView = 'info'" class="p-1.5 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+                <ArrowLeftIcon :size="20" />
+              </button>
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">File phương tiện và file</h3>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex px-2 pt-2 border-b border-gray-100 dark:border-surface-700">
+              <button 
+                @click="activeMediaTab = 'media'" 
+                :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', activeMediaTab === 'media' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
+              >
+                File phương tiện
+              </button>
+              <button 
+                @click="activeMediaTab = 'files'" 
+                :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', activeMediaTab === 'files' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
+              >
+                File
+              </button>
+              <button 
+                @click="activeMediaTab = 'links'" 
+                :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', activeMediaTab === 'links' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
+              >
+                Liên kết
+              </button>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="flex-1 p-4 space-y-6">
+            <!-- TAB: MEDIA -->
+            <div v-if="activeMediaTab === 'media'">
+              <div v-if="groupedSharedMedia.length === 0" class="text-center text-xs text-gray-400 py-10">Chưa có ảnh/video nào</div>
+              <div v-for="group in groupedSharedMedia" :key="group.date" class="mb-4">
+                <p class="text-xs font-semibold text-gray-900 dark:text-white mb-2">{{ group.date }}</p>
+                <div class="grid grid-cols-3 gap-1.5">
+                  <img
+                    v-for="media in group.items"
+                    :key="media.id"
+                    :src="media.imageUrl"
+                    alt=""
+                    class="w-full aspect-square object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity border border-gray-100 dark:border-surface-700"
+                    @click="imagePreview = media.imageUrl || null"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB: FILES -->
+            <div v-else-if="activeMediaTab === 'files'">
+              <div v-if="groupedSharedFiles.length === 0" class="text-center text-xs text-gray-400 py-10">Chưa có file nào</div>
+              <div v-for="group in groupedSharedFiles" :key="group.date" class="mb-4">
+                <p class="text-xs font-semibold text-gray-900 dark:text-white mb-2">{{ group.date }}</p>
+                <div class="space-y-2">
+                  <div
+                    v-for="file in group.items"
+                    :key="file.id"
+                    class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors cursor-pointer group border border-transparent hover:border-gray-100 dark:hover:border-surface-700"
+                  >
+                    <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
+                      <FileTextIcon :size="18" class="text-gray-500 dark:text-gray-400" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-[13px] font-medium text-gray-900 dark:text-gray-100 truncate">{{ file.fileName }}</p>
+                      <p class="text-[11px] text-gray-500 mt-0.5">{{ file.fileSize }} • {{ formatMessageTime(file.createdAt) }}</p>
+                    </div>
+                    <button class="p-1.5 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 hover:text-gray-600 hover:bg-gray-200 dark:hover:bg-surface-600 transition-all">
+                      <DownloadIcon :size="14" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB: LINKS -->
+            <div v-else-if="activeMediaTab === 'links'">
+              <div class="text-center text-xs text-gray-400 py-10">Chưa có liên kết nào được chia sẻ</div>
+            </div>
+          </div>
+        </div>
+
       </aside>
+      </Transition>
     </div>
 
     <!-- Call Dialog -->
