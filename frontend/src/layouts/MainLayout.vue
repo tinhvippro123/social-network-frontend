@@ -10,6 +10,7 @@ import {
   MapPin, SearchIcon, Bell, Sun, Moon, MenuIcon, X, LogOut,
   Settings, User, ChevronDown, Shield, ChevronLeft, ChevronRight
 } from '@lucide/vue'
+import { NAV_ITEMS } from '@/constants/ui'
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -18,15 +19,7 @@ const showNotifications = ref(false)
 const showUserMenu = ref(false)
 const isMobile = ref(false)
 
-const navItems = [
-  { icon: Home, label: 'Trang chủ', to: '/' },
-  { icon: TrendingUp, label: 'Thịnh hành', to: '/trending' },
-  { icon: Bookmark, label: 'Đã lưu', to: '/bookmarks' },
-  { icon: PenSquare, label: 'Viết bài', to: '/posts/create' },
-  { icon: Users, label: 'Nhóm', to: '/groups' },
-  { icon: MessageCircle, label: 'Tin nhắn', to: '/chat' },
-  { icon: MapPin, label: 'Bản đồ', to: '/map' },
-]
+const navItems = NAV_ITEMS
 
 // Admin link is now in user dropdown menu only
 
@@ -158,7 +151,7 @@ const logout = () => {
     <!-- Main Content -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <!-- Top Navbar -->
-      <header class="h-16 shrink-0 flex items-center justify-between px-4 lg:px-6 bg-white/80 dark:bg-surface-800/80 backdrop-blur-xl border-b border-gray-200 dark:border-surface-700 z-30">
+      <header class="h-16 shrink-0 flex items-center justify-between px-4 lg:px-6 bg-white dark:bg-surface-900 border-b border-gray-200 dark:border-surface-700 z-30">
         <!-- Left: Hamburger + Search -->
         <div class="flex items-center gap-3">
           <!-- Mobile hamburger -->
@@ -205,7 +198,7 @@ const logout = () => {
           <!-- Write button -->
           <button
             @click="navigateTo('/posts/create')"
-            class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-lg shadow-primary-500/25"
+            class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 transition-colors shadow-sm"
           >
             <PenSquare :size="16" />
             <span>Viết bài</span>

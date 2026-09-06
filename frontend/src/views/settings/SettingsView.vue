@@ -4,6 +4,7 @@ import {
   User, Mail, Lock, Bell, BellOff, Shield, Palette, Moon, Sun,
   Camera, Save, ChevronRight, Eye, EyeOff, Globe, MessageCircle, Monitor
 } from '@lucide/vue'
+import { SETTINGS_TABS } from '@/constants/ui'
 import { useAuth } from '@/composables/useAuth'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useAppStore } from '@/stores/app'
@@ -21,13 +22,7 @@ function setSystemTheme() {
   if (prefersDark !== appStore.isDark) appStore.toggleTheme()
 }
 
-const tabs = [
-  { id: 'profile', label: 'Thông tin cá nhân', icon: User },
-  { id: 'account', label: 'Tài khoản', icon: Lock },
-  { id: 'appearance', label: 'Giao diện', icon: Palette },
-  { id: 'notifications', label: 'Thông báo', icon: Bell },
-  { id: 'privacy', label: 'Quyền riêng tư', icon: Shield },
-]
+const tabs = SETTINGS_TABS
 
 // Profile form
 const profileForm = ref({

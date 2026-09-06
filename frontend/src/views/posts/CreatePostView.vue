@@ -5,6 +5,7 @@ import {
   Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote, Eye, Save, Send, MapPin, Tag, ChevronDown, X, Clock, CalendarDays
 } from '@lucide/vue'
 import { useCategories } from '@/composables/useCategories'
+import { LOCATION_SUPPORTED_CATEGORIES } from '@/constants'
 import { useToast } from '@/composables/useToast'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -47,8 +48,8 @@ const eventStartTime = ref('')
 const eventEndTime = ref('')
 
 // Categories that should suggest location pinning
-const locationCategories = ['tim-tro', 'pass-do', 'review-dia-diem', 'su-kien']
-const isLocationCategory = computed(() => locationCategories.includes(selectedCategory.value))
+const locationCategories = LOCATION_SUPPORTED_CATEGORIES
+const isLocationCategory = computed(() => locationCategories.includes(selectedCategory.value as any))
 const isEventCategory = computed(() => selectedCategory.value === 'su-kien')
 
 const addTag = () => {

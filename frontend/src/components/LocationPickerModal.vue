@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { X, MapPin, Search as SearchIcon, Navigation, Check, Loader2 } from '@lucide/vue'
+import { MAP_CONFIG, MAP_MARKERS } from '@/constants/map'
+import { mapApi } from '@/api/map.api'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -41,24 +43,13 @@ const isReverseGeocoding = ref(false)
 const showSearchResults = ref(false)
 
 // Custom red marker icon
-const redIcon = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-})
+const redIcon = L.icon(MAP_MARKERS.RED_ICON)
 
 // Reverse geocode: convert lat/lng to address
 const reverseGeocode = async (lat: number, lng: number) => {
   isReverseGeocoding.value = true
   try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
-      { headers: { 'Accept-Language': 'vi' } }
-    )
-    const data = await res.json()
+    const data = await mapApi.reverseGeocode(lat, lng)
     if (data.display_name) {
       selectedAddress.value = data.display_name
     } else {
@@ -84,11 +75,7 @@ const searchPlace = () => {
     isSearching.value = true
     showSearchResults.value = true
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery.value)}&limit=5&countrycodes=vn&addressdetails=1`,
-        { headers: { 'Accept-Language': 'vi' } }
-      )
-      searchResults.value = await res.json()
+      searchResults.value = await mapApi.searchAddress(searchQuery.value)
     } catch {
       searchResults.value = []
     } finally {
@@ -162,16 +149,17 @@ const initMap = async () => {
   await nextTick()
   if (!mapContainer.value || map) return
 
-  const initLat = props.initialLocation?.lat ?? 10.762622
-  const initLng = props.initialLocation?.lng ?? 106.660172
-  const initZoom = props.initialLocation ? 16 : 13
+  const initLat = props.initialLocation?.lat ?? MAP_CONFIG.DEFAULT_LAT
+  const initLng = props.initialLocation?.lng ?? MAP_CONFIG.DEFAULT_LNG
+  const initZoom = props.initialLocation ? 16 : MAP_CONFIG.DEFAULT_ZOOM
 
   map = L.map(mapContainer.value, {
     zoomControl: false
   }).setView([initLat, initLng], initZoom)
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: MAP_CONFIG.MAX_ZOOM
   }).addTo(map)
 
   // If there's an initial location, place a marker

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from '@lucide/vue'
 import { useForm, useField } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -26,16 +27,15 @@ const { handleSubmit } = useForm({
 const { value: email, errorMessage: emailError } = useField<string>('email')
 const { value: password, errorMessage: passwordError } = useField<string>('password')
 
+const { login } = useAuth()
+
 const handleLogin = handleSubmit(async (values) => {
   isLoading.value = true
-  setTimeout(() => {
+  try {
+    await login({ email: values.email, password: values.password })
+  } finally {
     isLoading.value = false
-    if (values.email.includes('admin')) {
-      router.push('/admin')
-    } else {
-      router.push('/')
-    }
-  }, 1500)
+  }
 })
 </script>
 

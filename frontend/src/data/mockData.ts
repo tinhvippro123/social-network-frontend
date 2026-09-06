@@ -63,7 +63,65 @@ export const mockPosts: Post[] = [
     id: 'p1',
     title: 'Hướng dẫn xây dựng REST API với Spring Boot 3 và Clean Architecture',
     excerpt: 'Trong bài viết này, mình sẽ chia sẻ cách xây dựng một REST API hoàn chỉnh sử dụng Spring Boot 3, áp dụng Clean Architecture để code dễ bảo trì và mở rộng...',
-    content: '',
+    content: `
+<h2>1. Clean Architecture là gì?</h2>
+<p>Clean Architecture là một kiến trúc phần mềm được đề xuất bởi Robert C. Martin (Uncle Bob). Mục tiêu chính là tạo ra một hệ thống phần mềm mà:</p>
+<ul>
+  <li><strong>Independent of Frameworks:</strong> Kiến trúc không phụ thuộc vào bất kỳ framework nào.</li>
+  <li><strong>Testable:</strong> Business logic có thể test mà không cần UI, Database, hay bất kỳ external element nào.</li>
+  <li><strong>Independent of UI:</strong> UI có thể thay đổi mà không ảnh hưởng đến phần còn lại.</li>
+  <li><strong>Independent of Database:</strong> Có thể swap database mà business rules không bị ảnh hưởng.</li>
+</ul>
+
+<h2>2. Cấu trúc thư mục trong Spring Boot</h2>
+<p>Chúng ta sẽ chia project thành 4 layer chính:</p>
+
+<pre><code>src/main/java/com/example/
+├── domain/          # Enterprise Business Rules
+│   ├── entity/
+│   └── repository/  # Interface only
+├── usecase/         # Application Business Rules
+├── adapter/         # Interface Adapters
+│   ├── controller/
+│   ├── presenter/
+│   └── gateway/
+└── infrastructure/  # Frameworks & Drivers
+    ├── config/
+    ├── persistence/
+    └── security/</code></pre>
+
+<h2>3. Implement Domain Layer</h2>
+<p>Domain layer chứa các entity và business rules cốt lõi. Đây là layer quan trọng nhất và không phụ thuộc vào bất kỳ layer nào khác.</p>
+
+<pre><code class="language-java">@Entity
+@Table(name = "posts")
+public class Post {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+    private String title;
+    private String content;
+    private PostStatus status;
+    private LocalDateTime createdAt;
+
+    // Business logic methods
+    public void publish() {
+        if (this.content == null || this.content.isEmpty()) {
+            throw new DomainException("Cannot publish empty post");
+        }
+        this.status = PostStatus.PUBLISHED;
+    }
+}</code></pre>
+
+<h2>4. Use Case Layer</h2>
+<p>Use Case layer chứa application-specific business rules. Mỗi use case đại diện cho một hành động cụ thể mà người dùng có thể thực hiện.</p>
+
+<blockquote>
+  <p>💡 <strong>Tip:</strong> Mỗi use case nên có một và chỉ một responsibility. Nếu use case quá phức tạp, hãy chia nhỏ nó ra.</p>
+</blockquote>
+
+<p>Đó là tổng quan về cách xây dựng REST API với Spring Boot 3 và Clean Architecture. Trong phần tiếp theo, chúng ta sẽ đi sâu vào việc viết test và deploy ứng dụng.</p>
+`,
     coverImage: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80',
     author: mockUsers[0],
     category: mockCategories[1],

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
+import { PASSWORD_STRENGTH } from '@/constants'
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Check } from '@lucide/vue'
 import { useForm, useField } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -42,15 +44,23 @@ const watchPassword = (val: string) => {
   passwordStrength.value = strength
 }
 
-const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500']
-const strengthLabels = ['Yếu', 'Trung bình', 'Khá', 'Mạnh']
+const strengthColors = PASSWORD_STRENGTH.COLORS
+const strengthLabels = PASSWORD_STRENGTH.LABELS
+
+const { register } = useAuth()
 
 const handleRegister = handleSubmit(async (values) => {
   isLoading.value = true
-  setTimeout(() => {
+  try {
+    await register({ 
+      name: values.name, 
+      email: values.email, 
+      password: values.password,
+      passwordConfirm: values.confirmPassword
+    })
+  } finally {
     isLoading.value = false
-    router.push('/')
-  }, 1500)
+  }
 })
 </script>
 
