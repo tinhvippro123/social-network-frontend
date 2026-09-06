@@ -625,15 +625,33 @@ export const mockReports: Report[] = [
 
 // ---- Admin Stats ----
 export const mockAdminStats: AdminStats = {
-  totalUsers: 12450,
-  newUsersToday: 34,
-  totalPosts: 8920,
-  newPostsToday: 67,
-  totalGroups: 156,
-  totalReports: 15,
-  pendingReports: 8,
-  userGrowth: [120, 145, 180, 210, 195, 230, 280],
-  postGrowth: [45, 62, 58, 75, 82, 91, 67]
+  totalUsers: 12500,
+  newUsersToday: 145,
+  totalPosts: 45200,
+  newPostsToday: 320,
+  totalGroups: 128,
+  totalReports: 450,
+  pendingReports: 12,
+  userGrowth: [120, 150, 140, 180, 250, 310, 420],
+  postGrowth: [80, 110, 95, 150, 200, 240, 320],
+  viewsToday: {
+    total: 24500,
+    growthPct: 12
+  },
+  topCategories: [
+    { name: 'Lập trình', count: 256, pct: 35 },
+    { name: 'AI & ML', count: 145, pct: 20 },
+    { name: 'Công nghệ', count: 128, pct: 17 },
+    { name: 'Mobile', count: 93, pct: 13 },
+    { name: 'Thiết kế', count: 89, pct: 12 }
+  ],
+  recentActivities: [
+    { text: 'Nguyễn Văn An đăng bài mới', time: '5 phút trước', color: 'text-green-500' },
+    { text: '3 báo cáo mới cần xử lý', time: '15 phút trước', color: 'text-red-500' },
+    { text: 'Nhóm Vue.js Vietnam đạt 5000 thành viên', time: '1 giờ trước', color: 'text-blue-500' },
+    { text: 'Trần Thị Mai được nâng lên Moderator', time: '2 giờ trước', color: 'text-purple-500' },
+    { text: 'Bài viết Docker đạt 5000 lượt xem', time: '3 giờ trước', color: 'text-orange-500' }
+  ]
 }
 
 export const popularTags = [

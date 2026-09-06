@@ -32,6 +32,20 @@ export interface AdminStats {
   pendingReports: number
   userGrowth: number[]
   postGrowth: number[]
+  viewsToday: {
+    total: number
+    growthPct: number
+  }
+  topCategories: Array<{
+    name: string
+    count: number
+    pct: number
+  }>
+  recentActivities: Array<{
+    text: string
+    time: string
+    color: string
+  }>
 }
 
 export interface PaginationParams {

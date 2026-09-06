@@ -12,13 +12,6 @@ onMounted(() => {
 })
 const timeRange = ref('7d')
 
-const recentActivities = [
-  { text: 'Nguyễn Văn An đăng bài mới', time: '5 phút trước', color: 'text-green-500' },
-  { text: '3 báo cáo mới cần xử lý', time: '15 phút trước', color: 'text-red-500' },
-  { text: 'Nhóm Vue.js Vietnam đạt 5000 thành viên', time: '1 giờ trước', color: 'text-blue-500' },
-  { text: 'Trần Thị Mai được nâng lên Moderator', time: '2 giờ trước', color: 'text-purple-500' },
-  { text: 'Bài viết Docker đạt 5000 lượt xem', time: '3 giờ trước', color: 'text-orange-500' },
-]
 </script>
 
 <template>
@@ -69,18 +62,18 @@ const recentActivities = [
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
           <h3 class="text-sm font-medium text-gray-500 mb-2">Lượt xem hôm nay</h3>
           <div class="flex items-end gap-3">
-            <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ (24500).toLocaleString() }}</span>
+            <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.viewsToday.total.toLocaleString() }}</span>
             <span class="text-sm font-medium text-green-500 bg-green-500/10 px-2 py-0.5 rounded-lg">
-              +12%
+              +{{ stats.viewsToday.growthPct }}%
             </span>
           </div>
         </div>
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
           <h3 class="text-sm font-medium text-gray-500 mb-2">Báo cáo chờ xử lý</h3>
           <div class="flex items-end gap-3">
-            <span class="text-3xl font-bold text-gray-900 dark:text-white">12</span>
+            <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.pendingReports }}</span>
             <span class="text-sm font-medium text-red-500 bg-red-500/10 px-2 py-0.5 rounded-lg">
-              -3
+              Cần xử lý
             </span>
           </div>
         </div>
@@ -130,8 +123,8 @@ const recentActivities = [
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
       <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
         <h3 class="font-bold text-gray-900 dark:text-white mb-4">Top danh mục</h3>
-        <div class="space-y-3">
-          <div v-for="(cat, i) in [{name:'Lập trình',count:256,pct:35},{name:'AI & ML',count:145,pct:20},{name:'Công nghệ',count:128,pct:17},{name:'Mobile',count:93,pct:13},{name:'Thiết kế',count:89,pct:12}]" :key="i" class="flex items-center gap-3">
+        <div class="space-y-3" v-if="stats">
+          <div v-for="(cat, i) in stats.topCategories" :key="i" class="flex items-center gap-3">
             <span class="text-sm font-medium text-gray-700 dark:text-gray-300 w-20">{{ cat.name }}</span>
             <div class="flex-1 h-2 bg-gray-100 dark:bg-surface-700 rounded-full overflow-hidden">
               <div class="h-full rounded-full bg-linear-to-r from-red-500 to-orange-400 transition-all duration-700" :style="{ width: `${cat.pct}%` }" />
@@ -143,8 +136,8 @@ const recentActivities = [
 
       <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
         <h3 class="font-bold text-gray-900 dark:text-white mb-4">Hoạt động gần đây</h3>
-        <div class="space-y-3">
-          <div v-for="(act, i) in recentActivities" :key="i" class="flex items-start gap-3">
+        <div class="space-y-3" v-if="stats">
+          <div v-for="(act, i) in stats.recentActivities" :key="i" class="flex items-start gap-3">
             <div :class="['w-2 h-2 rounded-full mt-1.5 shrink-0', act.color.replace('text-', 'bg-')]" />
             <div class="flex-1">
               <p class="text-sm text-gray-700 dark:text-gray-300">{{ act.text }}</p>
