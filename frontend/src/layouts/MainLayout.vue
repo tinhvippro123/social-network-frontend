@@ -308,6 +308,7 @@ const logout = () => {
                     <User :size="16" /> Trang cá nhân
                   </button>
                   <button
+                    @click="navigateTo('/settings'); showUserMenu = false"
                     class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-surface-700 transition-colors"
                   >
                     <Settings :size="16" /> Cài đặt
