@@ -1,17 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+
 import { X, MapPin, Search as SearchIcon, Navigation, Check, Loader2 } from '@lucide/vue'
-import { MAP_CONFIG, MAP_MARKERS } from '@/constants/map'
-import { mapApi } from '@/api/map.api'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-
-// Fix leaflet default icon issue
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
-import iconUrl from 'leaflet/dist/images/marker-icon.png'
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
-
-L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl })
+import { useLocationPickerModal } from '@/composables/useLocationPickerModal'
 
 interface LocationData {
   lat: number
@@ -29,209 +19,22 @@ const emit = defineEmits<{
   'confirm': [location: LocationData]
 }>()
 
-const mapContainer = ref<HTMLElement | null>(null)
-let map: L.Map | null = null
-let marker: L.Marker | null = null
-
-const selectedLat = ref<number | null>(null)
-const selectedLng = ref<number | null>(null)
-const selectedAddress = ref('')
-const searchQuery = ref('')
-const searchResults = ref<any[]>([])
-const isSearching = ref(false)
-const isReverseGeocoding = ref(false)
-const showSearchResults = ref(false)
-
-// Custom red marker icon
-const redIcon = L.icon(MAP_MARKERS.RED_ICON)
-
-// Reverse geocode: convert lat/lng to address
-const reverseGeocode = async (lat: number, lng: number) => {
-  isReverseGeocoding.value = true
-  try {
-    const data = await mapApi.reverseGeocode(lat, lng)
-    if (data.display_name) {
-      selectedAddress.value = data.display_name
-    } else {
-      selectedAddress.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`
-    }
-  } catch {
-    selectedAddress.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`
-  } finally {
-    isReverseGeocoding.value = false
-  }
-}
-
-// Search for a place by name
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
-const searchPlace = () => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  if (!searchQuery.value.trim()) {
-    searchResults.value = []
-    showSearchResults.value = false
-    return
-  }
-  searchTimeout = setTimeout(async () => {
-    isSearching.value = true
-    showSearchResults.value = true
-    try {
-      searchResults.value = await mapApi.searchAddress(searchQuery.value)
-    } catch {
-      searchResults.value = []
-    } finally {
-      isSearching.value = false
-    }
-  }, 400)
-}
-
-// Select a search result
-const selectSearchResult = (result: any) => {
-  const lat = parseFloat(result.lat)
-  const lng = parseFloat(result.lon)
-  selectedLat.value = lat
-  selectedLng.value = lng
-  selectedAddress.value = result.display_name
-  searchQuery.value = ''
-  searchResults.value = []
-  showSearchResults.value = false
-
-  if (map) {
-    map.setView([lat, lng], 16, { animate: true })
-    if (marker) {
-      marker.setLatLng([lat, lng])
-    } else {
-      marker = L.marker([lat, lng], { icon: redIcon, draggable: true }).addTo(map)
-      marker.on('dragend', async () => {
-        const pos = marker!.getLatLng()
-        selectedLat.value = pos.lat
-        selectedLng.value = pos.lng
-        await reverseGeocode(pos.lat, pos.lng)
-      })
-    }
-  }
-}
-
-// Get user's current location
-const getCurrentLocation = () => {
-  if (!navigator.geolocation) return
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const lat = pos.coords.latitude
-      const lng = pos.coords.longitude
-      selectedLat.value = lat
-      selectedLng.value = lng
-
-      if (map) {
-        map.setView([lat, lng], 16, { animate: true })
-        if (marker) {
-          marker.setLatLng([lat, lng])
-        } else {
-          marker = L.marker([lat, lng], { icon: redIcon, draggable: true }).addTo(map)
-          marker.on('dragend', async () => {
-            const p = marker!.getLatLng()
-            selectedLat.value = p.lat
-            selectedLng.value = p.lng
-            await reverseGeocode(p.lat, p.lng)
-          })
-        }
-      }
-      await reverseGeocode(lat, lng)
-    },
-    () => {
-      // If user denies location, stay on default view
-    },
-    { enableHighAccuracy: true }
-  )
-}
-
-// Initialize map
-const initMap = async () => {
-  await nextTick()
-  if (!mapContainer.value || map) return
-
-  const initLat = props.initialLocation?.lat ?? MAP_CONFIG.DEFAULT_LAT
-  const initLng = props.initialLocation?.lng ?? MAP_CONFIG.DEFAULT_LNG
-  const initZoom = props.initialLocation ? 16 : MAP_CONFIG.DEFAULT_ZOOM
-
-  map = L.map(mapContainer.value, {
-    zoomControl: false
-  }).setView([initLat, initLng], initZoom)
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
-    maxZoom: MAP_CONFIG.MAX_ZOOM
-  }).addTo(map)
-
-  // If there's an initial location, place a marker
-  if (props.initialLocation) {
-    selectedLat.value = props.initialLocation.lat
-    selectedLng.value = props.initialLocation.lng
-    selectedAddress.value = props.initialLocation.address ?? ''
-    marker = L.marker([props.initialLocation.lat, props.initialLocation.lng], { icon: redIcon, draggable: true }).addTo(map)
-    marker.on('dragend', async () => {
-      const pos = marker!.getLatLng()
-      selectedLat.value = pos.lat
-      selectedLng.value = pos.lng
-      await reverseGeocode(pos.lat, pos.lng)
-    })
-  }
-
-  // Click on map to place/move marker
-  map.on('click', async (e: L.LeafletMouseEvent) => {
-    selectedLat.value = e.latlng.lat
-    selectedLng.value = e.latlng.lng
-
-    if (marker) {
-      marker.setLatLng(e.latlng)
-    } else {
-      marker = L.marker(e.latlng, { icon: redIcon, draggable: true }).addTo(map!)
-      marker.on('dragend', async () => {
-        const pos = marker!.getLatLng()
-        selectedLat.value = pos.lat
-        selectedLng.value = pos.lng
-        await reverseGeocode(pos.lat, pos.lng)
-      })
-    }
-    await reverseGeocode(e.latlng.lat, e.latlng.lng)
-  })
-}
-
-const close = () => {
-  emit('update:modelValue', false)
-}
-
-const confirm = () => {
-  if (selectedLat.value !== null && selectedLng.value !== null) {
-    emit('confirm', {
-      lat: selectedLat.value,
-      lng: selectedLng.value,
-      address: selectedAddress.value
-    })
-    close()
-  }
-}
-
-// Watch for modal open/close to init/destroy map
-watch(() => props.modelValue, async (val) => {
-  if (val) {
-    await nextTick()
-    // Small delay for the DOM to fully render before initializing map
-    setTimeout(() => initMap(), 100)
-  } else {
-    if (map) {
-      map.remove()
-      map = null
-      marker = null
-    }
-  }
-})
-
-onUnmounted(() => {
-  if (map) {
-    map.remove()
-    map = null
-  }
-})
+const {
+  selectedLat,
+  selectedLng,
+  selectedAddress,
+  searchQuery,
+  searchResults,
+  isSearching,
+  isReverseGeocoding,
+  showSearchResults,
+  searchPlace,
+  selectSearchResult,
+  getCurrentLocation,
+  close,
+  confirm,
+  mapContainer
+} = useLocationPickerModal(props, emit)
 </script>
 
 <template>
@@ -290,13 +93,13 @@ onUnmounted(() => {
           </div>
 
           <!-- Map -->
-          <div class="flex-1 relative min-h-[350px]">
+          <div class="flex-1 relative min-h-87.5">
             <div ref="mapContainer" class="absolute inset-0" />
 
             <!-- Get Current Location Button -->
             <button
               @click="getCurrentLocation"
-              class="absolute bottom-4 right-4 z-[1000] flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-500 hover:border-primary-300 transition-all"
+              class="absolute bottom-4 right-4 z-1000 flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-500 hover:border-primary-300 transition-all"
             >
               <Navigation :size="14" />
               Vị trí hiện tại

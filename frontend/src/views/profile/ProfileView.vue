@@ -8,20 +8,13 @@ import {
 import { usePosts } from '@/composables/usePosts'
 import { useAuth } from '@/composables/useAuth'
 import UserAvatar from '@/components/UserAvatar.vue'
-import { onMounted, computed } from 'vue'
+import { onMounted } from 'vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useProfileTabs } from '@/composables/useProfileTabs'
 
 const router = useRouter()
-const activeTab = ref('posts')
-const { posts, isLoading, fetchPosts } = usePosts()
-const { user: currentUser } = useAuth() // Assuming useAuth has user state
-
-const tabs = computed(() => [
-  { key: 'posts', label: 'Bài viết', icon: FileText, count: currentUser.value?.postsCount || 0 },
-  { key: 'bookmarks', label: 'Đã lưu', icon: Bookmark, count: 12 },
-  { key: 'groups', label: 'Nhóm', icon: Users, count: 5 },
-])
+const { currentUser, activeTab, tabs, posts, isLoading, fetchPosts } = useProfileTabs()
 
 onMounted(() => {
   fetchPosts()
@@ -63,7 +56,7 @@ onMounted(() => {
               <span class="flex items-center gap-1"><LinkIcon :size="12" /> github.com/tinh</span>
             </div>
           </div>
-          <button class="shrink-0 mt-4 sm:mt-20 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
+          <button @click="router.push('/settings')" class="shrink-0 mt-4 sm:mt-20 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
             <Edit3 :size="14" /> Chỉnh sửa
           </button>
         </div>

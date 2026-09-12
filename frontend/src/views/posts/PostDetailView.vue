@@ -1,41 +1,45 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import {
   ArrowUp, ArrowDown, Bookmark, BookmarkCheck, Share2, MessageCircle,
   Eye, Clock, MapPin, Flag, Heart, MoreHorizontal, Send, ChevronLeft,
-  SmilePlus, X
+  SmilePlus, X, Edit3
 } from '@lucide/vue'
-import { useRoute, useRouter } from 'vue-router'
-import { usePosts } from '@/composables/usePosts'
-import { onMounted } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
-import { useAuth } from '@/composables/useAuth'
-import { COMMENT_EMOJIS } from '@/constants'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { usePostDetail } from '@/composables/usePostDetail'
+import { useCodeHighlight } from '@/composables/useCodeHighlight'
+import 'highlight.js/styles/github-dark.css'
 
-const router = useRouter()
-const { user } = useAuth()
-const route = useRoute()
-const { currentPost: post, posts, comments, isLoading, fetchPost, fetchComments, fetchPosts } = usePosts()
-const newComment = ref('')
-const isBookmarked = ref(false)
-const isUpvoted = ref(false)
-const replyingTo = ref<{ commentId: string; authorName: string } | null>(null)
-const activeEmojiPicker = ref<string | null>(null)
-const emojiList = COMMENT_EMOJIS
+const {
+  user,
+  router,
+  post,
+  posts,
+  comments,
+  isLoading,
+  newComment,
+  isBookmarked,
+  isUpvoted,
+  replyingTo,
+  activeEmojiPicker,
+  emojiList,
+  toggleUpvote,
+  toggleBookmark,
+  toggleEmojiPicker,
+  setReplyingTo,
+  clearReplyingTo
+} = usePostDetail()
 
-onMounted(async () => {
-  const postId = route.params.id as string || '1'
-  // Chạy song song 3 API để tiết kiệm thời gian (500ms thay vì 1500ms)
-  await Promise.all([
-    fetchPost(postId),
-    fetchComments(postId),
-    fetchPosts({ limit: 4 })
-  ])
-})
+const isFollowing = ref(false)
+function toggleFollow() {
+  isFollowing.value = !isFollowing.value
+}
 
-
+// Code syntax highlighting for post content
+const postContent = computed(() => post.value?.content || null)
+useCodeHighlight(postContent)
 
 
 </script>
@@ -82,16 +86,27 @@ onMounted(async () => {
         </div>
 
         <!-- Author Info -->
-        <div class="flex items-center gap-3 mb-6 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4">
-          <UserAvatar :user="post.author" size="lg" class="ring-2 ring-primary-500/30 cursor-pointer" @click="router.push(`/profile/${post.author.id}`)" />
-          <div>
-            <p class="font-semibold text-gray-900 dark:text-white cursor-pointer hover:text-primary-500 transition-colors" @click="router.push(`/profile/${post.author.id}`)">{{ post.author.name }}</p>
-            <div class="flex items-center gap-3 text-xs text-gray-400">
-              <span class="flex items-center gap-1"><Clock :size="12" /> {{ formatDate(post.createdAt) }}</span>
-              <span class="flex items-center gap-1"><Eye :size="12" /> {{ formatNumber(post.viewsCount) }} lượt xem</span>
-              <span v-if="post.location" class="flex items-center gap-1"><MapPin :size="12" /> {{ post.location.address }}</span>
+        <div class="flex items-center justify-between mb-6 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4">
+          <div class="flex items-center gap-3">
+            <UserAvatar :user="post.author" size="lg" class="ring-2 ring-primary-500/30 cursor-pointer" @click="router.push(`/profile/${post.author.id}`)" />
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white cursor-pointer hover:text-primary-500 transition-colors" @click="router.push(`/profile/${post.author.id}`)">{{ post.author.name }}</p>
+              <div class="flex items-center gap-3 text-xs text-gray-400">
+                <span class="flex items-center gap-1"><Clock :size="12" /> {{ formatDate(post.createdAt) }}</span>
+                <span class="flex items-center gap-1"><Eye :size="12" /> {{ formatNumber(post.viewsCount) }} lượt xem</span>
+                <span v-if="post.location" class="flex items-center gap-1"><MapPin :size="12" /> {{ post.location.address }}</span>
+              </div>
             </div>
           </div>
+          <!-- Edit button (only for own posts) -->
+          <button
+            v-if="user && user.id === post.author.id"
+            @click="router.push(`/posts/${post.id}/edit`)"
+            class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 border border-gray-200 dark:border-surface-700 transition-all"
+          >
+            <Edit3 :size="14" />
+            <span class="hidden sm:inline">Chỉnh sửa</span>
+          </button>
         </div>
 
         <!-- Content -->
@@ -114,6 +129,7 @@ onMounted(async () => {
             <span
               v-for="tag in post.tags"
               :key="tag"
+              @click="router.push(`/tags/${tag}`)"
               class="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/30 cursor-pointer transition-colors"
             >
               #{{ tag }}
@@ -125,7 +141,7 @@ onMounted(async () => {
         <div class="flex items-center justify-between bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 mb-6 sticky bottom-4 shadow-lg">
           <div class="flex items-center gap-1">
             <button
-              @click="isUpvoted = !isUpvoted"
+              @click="toggleUpvote"
               :class="[
                 'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200',
                 isUpvoted ? 'bg-primary-500/10 text-primary-500' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700'
@@ -145,7 +161,7 @@ onMounted(async () => {
               <span class="hidden sm:inline">{{ post.commentsCount }}</span>
             </button>
             <button
-              @click="isBookmarked = !isBookmarked"
+              @click="toggleBookmark"
               :class="[
                 'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200',
                 isBookmarked ? 'bg-amber-500/10 text-amber-500' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700'
@@ -179,7 +195,7 @@ onMounted(async () => {
               <p class="text-sm text-primary-600 dark:text-primary-400">
                 Đang trả lời <span class="font-semibold">@{{ replyingTo.authorName }}</span>
               </p>
-              <button @click="replyingTo = null" class="text-primary-400 hover:text-primary-600 transition-colors">
+              <button @click="clearReplyingTo" class="text-primary-400 hover:text-primary-600 transition-colors">
                 <X :size="16" />
               </button>
             </div>
@@ -234,7 +250,7 @@ onMounted(async () => {
                     <!-- Add Reaction Button -->
                     <div class="relative">
                       <button
-                        @click="activeEmojiPicker = activeEmojiPicker === comment.id ? null : comment.id"
+                        @click="toggleEmojiPicker(comment.id)"
                         class="flex items-center gap-1 text-xs text-gray-400 hover:text-primary-500 transition-colors"
                       >
                         <SmilePlus :size="14" />
@@ -251,10 +267,7 @@ onMounted(async () => {
                         </button>
                       </div>
                     </div>
-                    <button
-                      @click="replyingTo = { commentId: comment.id, authorName: comment.author.name }"
-                      class="text-xs text-gray-400 hover:text-primary-500 transition-colors font-medium"
-                    >
+                    <button @click="setReplyingTo(comment.id, comment.author.name)" class="text-xs font-semibold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
                       Phản hồi
                     </button>
                   </div>
@@ -367,7 +380,7 @@ onMounted(async () => {
       </article>
 
       <!-- Sidebar -->
-      <aside class="w-full lg:w-72 shrink-0 space-y-5">
+      <aside class="w-full lg:w-72 shrink-0 space-y-5 lg:sticky lg:top-6 lg:self-start">
         <!-- Author Card -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5 text-center">
           <UserAvatar :user="post.author" size="lg" class="mx-auto ring-3 ring-primary-500/20 mb-3" />
@@ -383,8 +396,16 @@ onMounted(async () => {
               <p class="text-xs text-gray-400">Followers</p>
             </div>
           </div>
-          <button class="w-full py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25">
-            Theo dõi
+          <button
+            @click="toggleFollow"
+            :class="[
+              'w-full py-2 rounded-xl text-sm font-medium transition-all',
+              isFollowing
+                ? 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-600 hover:border-red-300 hover:text-red-500 dark:hover:text-red-400'
+                : 'text-white gradient-primary hover:opacity-90 shadow-lg shadow-primary-500/25'
+            ]"
+          >
+            {{ isFollowing ? '✓ Đang theo dõi' : 'Theo dõi' }}
           </button>
         </div>
 

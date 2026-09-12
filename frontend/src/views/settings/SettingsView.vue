@@ -4,60 +4,27 @@ import {
   User, Mail, Lock, Bell, BellOff, Shield, Palette, Moon, Sun,
   Camera, Save, ChevronRight, Eye, EyeOff, Globe, MessageCircle, Monitor
 } from '@lucide/vue'
-import { SETTINGS_TABS } from '@/constants/ui'
-import { useAuth } from '@/composables/useAuth'
+import { useSettings } from '@/composables/useSettings'
 import UserAvatar from '@/components/UserAvatar.vue'
-import { useAppStore } from '@/stores/app'
 
-const appStore = useAppStore()
-const { user } = useAuth()
-
-// Active tab
-const activeTab = ref('profile')
-const themeMode = ref<'light' | 'dark' | 'system'>('dark')
-
-function setSystemTheme() {
-  themeMode.value = 'system'
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  if (prefersDark !== appStore.isDark) appStore.toggleTheme()
-}
-
-const tabs = SETTINGS_TABS
-
-// Profile form
-const profileForm = ref({
-  name: user.value?.name || '',
-  bio: user.value?.bio || '',
-  email: user.value?.email || '',
-})
-
-// Account form
-const accountForm = ref({
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: '',
-})
-const showCurrentPassword = ref(false)
-const showNewPassword = ref(false)
-
-// Notification settings
-const notificationSettings = ref({
-  emailNewFollower: true,
-  emailNewComment: true,
-  emailNewMessage: false,
-  pushNewFollower: true,
-  pushNewComment: true,
-  pushNewMessage: true,
-  pushTrending: false,
-})
-
-// Privacy settings
-const privacySettings = ref({
-  profileVisibility: 'public',
-  allowMessages: 'everyone',
-  showOnlineStatus: true,
-  showReadReceipts: true,
-})
+const {
+  user,
+  appStore,
+  activeTab,
+  themeMode,
+  tabs,
+  profileForm,
+  accountForm,
+  showCurrentPassword,
+  showNewPassword,
+  notificationSettings,
+  privacySettings,
+  setSystemTheme,
+  setTheme,
+  saveProfile,
+  changePassword,
+  saveSettings
+} = useSettings()
 </script>
 
 <template>

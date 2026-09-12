@@ -61,6 +61,19 @@ export const useUiStore = defineStore('ui', () => {
   const searchQuery = ref('')
   const isSearchOpen = ref(false)
 
+  // ── Auth Modal ──────────────────────────────
+  const showAuthModal = ref(false)
+  const authModalTab = ref<'login' | 'register'>('login')
+
+  function openAuthModal(tab: 'login' | 'register' = 'login') {
+    authModalTab.value = tab
+    showAuthModal.value = true
+  }
+
+  function closeAuthModal() {
+    showAuthModal.value = false
+  }
+
   return {
     // Theme
     isDark, toggleTheme, initTheme,
@@ -71,5 +84,7 @@ export const useUiStore = defineStore('ui', () => {
     // Search
     searchQuery, isSearchOpen,
     fetchNotifications,
+    // Auth Modal
+    showAuthModal, authModalTab, openAuthModal, closeAuthModal,
   }
 })

@@ -34,70 +34,70 @@ const postsApi = {
   // ── CRUD ──────────────────────────────────
   getAll: async (params?: PostsQuery) => {
     await delay(500)
-    return { data: { data: mockPosts, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+    return { data: { data: mockPosts, success: true, message: 'Success' } } as { data: ApiResponse<Post[]> }
   },
 
   getById: async (id: string) => {
     await delay(500)
     const post = mockPosts.find(p => p.id === id) || mockPosts[0]
-    return { data: { data: post, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post> }>
+    return { data: { data: post, success: true, message: 'Success' } } as { data: ApiResponse<Post> }
   },
 
   create: async (data: CreatePostRequest) => {
     await delay(500)
-    return { data: { data: mockPosts[0], status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post> }>
+    return { data: { data: mockPosts[0], success: true, message: 'Success' } } as { data: ApiResponse<Post> }
   },
 
   update: async (id: string, data: Partial<CreatePostRequest>) => {
     await delay(500)
-    return { data: { data: mockPosts[0], status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post> }>
+    return { data: { data: mockPosts[0], success: true, message: 'Success' } } as { data: ApiResponse<Post> }
   },
 
   delete: async (id: string) => {
     await delay(500)
-    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
   // ── Interactions ──────────────────────────
   upvote: async (id: string) => {
     await delay(500)
-    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
   downvote: async (id: string) => {
     await delay(500)
-    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
   bookmark: async (id: string) => {
     await delay(500)
-    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
   removeBookmark: async (id: string) => {
     await delay(500)
-    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
   // ── Đặc biệt ─────────────────────────────
   getTrending: async (limit?: number) => {
     await delay(500)
-    return { data: { data: mockPosts.slice(0, limit || 5), status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+    return { data: { data: mockPosts.slice(0, limit || 5), success: true, message: 'Success' } } as { data: ApiResponse<Post[]> }
   },
 
   getNearby: async (lat: number, lng: number, radiusKm: number) => {
     await delay(500)
-    return { data: { data: mockPosts.filter(p => p.location), status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+    return { data: { data: mockPosts.filter(p => p.location), success: true, message: 'Success' } } as { data: ApiResponse<Post[]> }
   },
 
   searchSemantic: async (query: string) => {
     await delay(500)
-    return { data: { data: mockPosts, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+    return { data: { data: mockPosts, success: true, message: 'Success' } } as { data: ApiResponse<Post[]> }
   },
 
   searchByImage: async (formData: FormData) => {
     await delay(500)
-    return { data: { data: mockPosts, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Post[]> }>
+    return { data: { data: mockPosts, success: true, message: 'Success' } } as { data: ApiResponse<Post[]> }
   },
 
   getPopularTags: async () => {
@@ -109,12 +109,12 @@ const postsApi = {
       { id: '4', name: 'JavaScript', count: 640 },
       { id: '5', name: 'TypeScript', count: 590 },
     ]
-    return { data: { data: mockTags, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<{id: string, name: string, count: number}[]> }>
+    return { data: { data: mockTags, success: true, message: 'Success' } } as { data: ApiResponse<{id: string, name: string, count: number}[]> }
   },
 
   getComments: async (postId: string) => {
     await delay(500)
-    return { data: { data: mockComments, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<any[]> }>
+    return { data: { data: mockComments, success: true, message: 'Success' } } as { data: ApiResponse<any[]> }
   },
 }
 

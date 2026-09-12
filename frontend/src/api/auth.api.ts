@@ -3,6 +3,7 @@
 // ==========================================
 import http from './client'
 import type { ApiResponse } from './client'
+import type { User } from '@/types'
 
 export interface LoginRequest {
   email: string
@@ -21,22 +22,11 @@ export interface AuthTokens {
   refreshToken: string
 }
 
-export interface UserProfile {
-  id: string
-  name: string
-  email: string
-  avatar: string
-  bio: string
-  role: 'user' | 'admin' | 'moderator'
-  joinedAt: string
-  followersCount: number
-  followingCount: number
-  postsCount: number
-}
+
 
 const authApi = {
   login: (data: LoginRequest) =>
-    http.post<ApiResponse<AuthTokens & { user: UserProfile }>>('/auth/login', data),
+    http.post<ApiResponse<AuthTokens & { user: User }>>('/auth/login', data),
 
   register: (data: RegisterRequest) =>
     http.post<ApiResponse<{ message: string }>>('/auth/register', data),
@@ -48,10 +38,10 @@ const authApi = {
     http.post<ApiResponse<AuthTokens>>('/auth/refresh', { refreshToken }),
 
   getProfile: () =>
-    http.get<ApiResponse<UserProfile>>('/auth/me'),
+    http.get<ApiResponse<User>>('/auth/me'),
 
-  updateProfile: (data: Partial<UserProfile>) =>
-    http.put<ApiResponse<UserProfile>>('/auth/me', data),
+  updateProfile: (data: Partial<User>) =>
+    http.put<ApiResponse<User>>('/auth/me', data),
 
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     http.put<ApiResponse>('/auth/me/password', data),

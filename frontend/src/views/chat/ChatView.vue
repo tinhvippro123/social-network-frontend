@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, watch } from 'vue'
+import { ref, computed, nextTick, onMounted, watch, watchEffect } from 'vue'
 import {
   Send as SendIcon, Smile as SmileIcon, Paperclip as PaperclipIcon,
   Image as ImageIcon, Phone as PhoneIcon, Video as VideoIcon,
@@ -13,257 +13,81 @@ import {
   MoreVertical as MoreVerticalIcon, Forward as ForwardIcon,
   CornerUpLeft as CornerUpLeftIcon
 } from '@lucide/vue'
-import { useChat } from '@/composables/useChat'
-import { useAuth } from '@/composables/useAuth'
-import UserAvatar from '@/components/UserAvatar.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import type { ChatMessage } from '@/types'
-import { useRouter } from 'vue-router'
+import { useChatView } from '@/composables/useChatView'
 
-const { user: currentUser } = useAuth()
-
-const router = useRouter()
 const {
-  conversations, messages, isLoading, isTyping, typingUser,
-  fetchConversations, fetchMessages, sendMessage: apiSendMessage,
-  markAsRead, pinConversation, muteConversation, deleteConversation,
-  blockUser, searchMessages, simulateTyping,
-  addReaction, deleteMessage, revokeMessage, pinMessage
-} = useChat()
+  router,
+  currentUser,
+  conversations,
+  messages,
+  isLoading,
+  isTyping,
+  typingUser,
+  selectedConversation,
+  newMessage,
+  isInitialLoading,
+  showMobileChat,
+  showInfoPanel,
+  showEmojiPicker,
+  showSearchInChat,
+  showMediaSection,
+  showFileSection,
+  rightSidebarView,
+  activeMediaTab,
+  showMembersSection,
+  searchQuery,
+  searchResults,
+  replyingTo,
+  activeActionMenu,
+  showCallDialog,
+  callType,
+  chatContainer,
+  showScrollBottom,
+  searchChat,
+  imagePreview,
+  sharedMedia,
+  sharedFiles,
+  groupedSharedMedia,
+  groupedSharedFiles,
+  pinnedMessage,
+  filteredConversations,
+  lastOwnMessage,
+  emojiList,
+  formatMessageTime,
+  openMediaView,
+  scrollToBottom,
+  selectConversation,
+  handleSendMessage,
+  handleSendImage,
+  handleSendFile,
+  handleScroll,
+  handlePerformSearch,
+  toggleActionMenu,
+  handleAddReaction,
+  handleDeleteMessage,
+  handleRevokeMessage,
+  handlePinMessage,
+  closeSearch,
+  backToConversations,
+  toggleInfoPanel,
+  startCall,
+  endCall,
+  viewImage,
+  closeImagePreview,
+  downloadFile,
+  pinConversation,
+  muteConversation,
+  deleteConversation,
+  blockUser
+} = useChatView()
 
-const selectedConversation = ref<any>(null)
-const newMessage = ref('')
-const isInitialLoading = ref(true)
-const showMobileChat = ref(false)
-
-// UI states
-const showInfoPanel = ref(false)
-const showEmojiPicker = ref(false)
-const showSearchInChat = ref(false)
-const showMediaSection = ref(true)
-const showFileSection = ref(true)
-const rightSidebarView = ref<'info' | 'media_files'>('info')
-const activeMediaTab = ref<'media' | 'files' | 'links'>('media')
-
-const openMediaView = (tab: 'media' | 'files' | 'links') => {
-  activeMediaTab.value = tab
-  rightSidebarView.value = 'media_files'
-}
-
-const showMembersSection = ref(true)
-const searchQuery = ref('')
-const searchResults = ref<ChatMessage[]>([])
-const replyingTo = ref<ChatMessage | null>(null)
-const activeActionMenu = ref<string | null>(null)
-const showCallDialog = ref(false)
-const callType = ref<'audio' | 'video'>('audio')
-const chatContainer = ref<HTMLElement | null>(null)
-const showScrollBottom = ref(false)
-const searchChat = ref('')
-const imagePreview = ref<string | null>(null)
-
-// Computed: shared media & files
-const sharedMedia = computed(() =>
-  messages.value.filter(m => m.type === 'image' && m.imageUrl)
-)
-const sharedFiles = computed(() =>
-  messages.value.filter(m => m.type === 'file' && m.fileName)
-)
-
-const groupItemsByDate = (items: ChatMessage[]) => {
-  const groups: Record<string, ChatMessage[]> = {}
-  items.forEach(item => {
-    let bucket = 'Mới nhất'
-    if (item.createdAt.includes('-')) {
-      const d = new Date(item.createdAt)
-      if (!isNaN(d.getTime())) {
-        const month = d.getMonth() + 1
-        const year = d.getFullYear()
-        bucket = `Tháng ${month}, ${year}`
-      }
-    }
-    if (!groups[bucket]) groups[bucket] = []
-    groups[bucket].push(item)
-  })
-  return Object.entries(groups).map(([date, items]) => ({ date, items }))
-}
-
-const formatMessageTime = (timeStr: string) => {
-  if (!timeStr.includes('-')) return timeStr // already formatted like '10:35'
-  const date = new Date(timeStr)
-  if (isNaN(date.getTime())) return timeStr
-  return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-}
-
-const groupedSharedMedia = computed(() => groupItemsByDate(sharedMedia.value))
-const groupedSharedFiles = computed(() => groupItemsByDate(sharedFiles.value))
-
-const pinnedMessage = computed(() =>
-  messages.value.find(m => m.isPinned)
-)
-
-// Emoji grid
-const emojiList = [
-  '😀', '😂', '🥰', '😍', '😊', '😎', '🤔', '😅',
-  '👍', '👎', '❤️', '🔥', '🎉', '💯', '🙏', '😢',
-  '😡', '🤣', '😏', '🥺', '😴', '🤗', '🤮', '💀',
-  '👀', '🫡', '✅', '⭐', '🚀', '💪', '🤝', '👏'
-]
-
-onMounted(async () => {
-  isInitialLoading.value = true
-  await fetchConversations()
-  if (conversations.value.length > 0) {
-    selectedConversation.value = conversations.value[0]
-    await fetchMessages(selectedConversation.value.id)
-  }
-  isInitialLoading.value = false
-  await nextTick()
-  scrollToBottom()
-})
-
-watch(isTyping, async (val) => {
-  if (val && !showScrollBottom.value) {
-    await nextTick()
-    scrollToBottom()
-  }
-})
-
-const filteredConversations = computed(() => {
-  let list = conversations.value
-  if (searchChat.value) {
-    list = list.filter(c =>
-      c.name.toLowerCase().includes(searchChat.value.toLowerCase())
-    )
-  }
-  // Ghim lên đầu
-  return [...list].sort((a, b) => {
-    if (a.isPinned && !b.isPinned) return -1
-    if (!a.isPinned && b.isPinned) return 1
-    return 0
-  })
-})
-
-// Tìm tin nhắn cuối cùng của mình có status (để hiển thị trạng thái)
-const lastOwnMessage = computed(() => {
-  const ownMessages = messages.value.filter(m => m.isOwn)
-  return ownMessages.length > 0 ? ownMessages[ownMessages.length - 1] : null
-})
-
-const selectConversation = async (conv: any) => {
-  selectedConversation.value = conv
-  showMobileChat.value = true
-  showInfoPanel.value = false
-  showEmojiPicker.value = false
-  showSearchInChat.value = false
-  replyingTo.value = null
-  messages.value = []
-  await fetchMessages(conv.id)
-  await markAsRead(conv.id)
-  await nextTick()
-  scrollToBottom()
-  // Giả lập typing sau 2s
-  setTimeout(() => simulateTyping(conv.name), 2000)
-}
-
-const handleSendMessage = async () => {
-  if (!newMessage.value.trim() || !selectedConversation.value) return
-  const content = newMessage.value
-  const replyId = replyingTo.value?.id
-
-  newMessage.value = ''
-  replyingTo.value = null
-  showEmojiPicker.value = false
-
-  await apiSendMessage(selectedConversation.value.id, content, 'text', {
-    replyToId: replyId
-  })
-  await nextTick()
-  scrollToBottom()
-}
-
-const handleSendImage = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file || !selectedConversation.value) return
-
-  const url = URL.createObjectURL(file)
-  await apiSendMessage(selectedConversation.value.id, '', 'image', {
-    imageUrl: url
-  })
-  await nextTick()
-  scrollToBottom()
-  target.value = ''
-}
-
-const handleSendFile = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file || !selectedConversation.value) return
-
-  const size = file.size < 1024 * 1024
-    ? `${(file.size / 1024).toFixed(1)} KB`
-    : `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-
-  await apiSendMessage(selectedConversation.value.id, '', 'file', {
-    fileName: file.name,
-    fileSize: size
-  })
-  await nextTick()
-  scrollToBottom()
-  target.value = ''
-}
-
-const insertEmoji = (emoji: string) => {
-  newMessage.value += emoji
-}
-
-const setReplyTo = (msg: ChatMessage) => {
-  replyingTo.value = msg
-}
-
-const handleSearchInChat = async () => {
-  if (!searchQuery.value.trim() || !selectedConversation.value) return
-  searchResults.value = await searchMessages(selectedConversation.value.id, searchQuery.value)
-}
-
-const openCall = (type: 'audio' | 'video') => {
-  callType.value = type
-  showCallDialog.value = true
-}
-
-const scrollToBottom = () => {
-  if (chatContainer.value) {
-    chatContainer.value.scrollTop = chatContainer.value.scrollHeight
-  }
-}
-
-const handleScroll = () => {
-  if (!chatContainer.value) return
-  const { scrollTop, scrollHeight, clientHeight } = chatContainer.value
-  showScrollBottom.value = scrollHeight - scrollTop - clientHeight > 200
-}
-
-// Ẩn menu khi click ngoài
-const closeMenus = () => {
-  showEmojiPicker.value = false
-  activeActionMenu.value = null
-}
-
-const getMessageStatusLabel = (msg: ChatMessage) => {
-  if (!msg.isOwn) return ''
-  switch (msg.status) {
-    case 'sending': return 'Đang gửi...'
-    case 'sent': return 'Đã gửi'
-    case 'delivered': return 'Đã nhận'
-    case 'read': return ''
-    default: return ''
-  }
-}
-
-const isLastOwnWithReadStatus = (msg: ChatMessage) => {
-  return msg.isOwn && msg.status === 'read' && msg.id === lastOwnMessage.value?.id
-}
+const {
+  insertEmoji,
+  setReplyTo,
+  closeMenus,
+  getMessageStatusLabel,
+  isLastOwnWithReadStatus
+} = useChatView()
 </script>
 
 <template>
@@ -416,10 +240,10 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
           </div>
         </div>
         <div class="flex items-center gap-1">
-          <button @click="openCall('audio')" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+              <button @click="handlePerformSearch" class="p-2 text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-colors">
             <PhoneIcon :size="18" />
           </button>
-          <button @click="openCall('video')" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+              <button @click="startCall('video')" class="p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-surface-700 rounded-xl transition-colors">
             <VideoIcon :size="18" />
           </button>
           <button @click="showInfoPanel = !showInfoPanel" :class="['p-2 rounded-xl transition-colors', showInfoPanel ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700']">
@@ -437,7 +261,7 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
             <p class="text-xs text-primary-600 dark:text-primary-400 truncate">{{ pinnedMessage.content || 'Tin nhắn hình ảnh/tệp' }}</p>
           </div>
         </div>
-        <button @click.stop="pinMessage(pinnedMessage.id)" class="p-1 rounded-md text-primary-600 hover:bg-primary-200 dark:text-primary-400 dark:hover:bg-primary-800/50">
+        <button @click.stop="handlePinMessage(pinnedMessage.id)" class="p-1 rounded-md text-primary-600 hover:bg-primary-200 dark:text-primary-400 dark:hover:bg-primary-800/50">
           <XIcon :size="14" />
         </button>
       </div>
@@ -447,7 +271,7 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
         <SearchIcon :size="16" class="text-gray-400 shrink-0" />
         <input
           v-model="searchQuery"
-          @input="handleSearchInChat"
+                @keyup.enter="handlePerformSearch"
           type="text"
           placeholder="Tìm kiếm tin nhắn..."
           class="bg-transparent border-none outline-none text-sm w-full text-gray-700 dark:text-gray-300 placeholder-gray-400"
@@ -585,7 +409,7 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
                     </button>
                     <!-- React Dropdown -->
                     <div v-if="activeActionMenu === msg.id + '-react'" :class="['absolute top-full mt-2 bg-white dark:bg-surface-800 rounded-full shadow-lg border border-gray-200 dark:border-surface-700 p-1.5 flex items-center gap-1 z-50 w-max', msg.isOwn ? 'left-0' : 'right-0']">
-                      <button v-for="emoji in ['👍', '❤️', '😂', '😮', '😢', '😡']" :key="emoji" @click.stop="addReaction(msg.id, emoji, {id: currentUser?.id || 'u1', name: currentUser?.name || 'User'}); activeActionMenu = null" class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-surface-700 rounded-full text-lg transition-transform hover:scale-125">
+                      <button v-for="emoji in ['👍', '❤️', '😂', '😮', '😢', '😡']" :key="emoji" @click.stop="handleAddReaction(msg.id, emoji, {id: currentUser?.id || 'u1', name: currentUser?.name || 'User'}); activeActionMenu = null" class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-surface-700 rounded-full text-lg transition-transform hover:scale-125">
                         {{ emoji }}
                       </button>
                       <div class="w-px h-6 bg-gray-200 dark:bg-surface-700 mx-1"></div>
@@ -611,16 +435,16 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
                         <ForwardIcon :size="16" class="text-gray-400" />
                         Chuyển tiếp
                       </button>
-                      <button @click.stop="pinMessage(msg.id); activeActionMenu = null" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 text-left">
+                      <button @click.stop="handlePinMessage(msg.id); activeActionMenu = null" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 text-left">
                         <PinIcon :size="16" class="text-gray-400" />
                         {{ msg.isPinned ? 'Bỏ ghim' : 'Ghim tin nhắn' }}
                       </button>
                       <div class="h-px bg-gray-100 dark:bg-surface-700 my-1"></div>
-                      <button v-if="msg.isOwn" @click.stop="revokeMessage(msg.id); activeActionMenu = null" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-left">
+                      <button v-if="msg.isOwn" @click.stop="handleRevokeMessage(msg.id); activeActionMenu = null" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-left">
                         <CornerUpLeftIcon :size="16" />
                         Thu hồi
                       </button>
-                      <button v-if="msg.isOwn" @click.stop="deleteMessage(msg.id); activeActionMenu = null" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-left">
+                      <button v-if="msg.isOwn" @click.stop="handleDeleteMessage(msg.id); activeActionMenu = null" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-left">
                         <TrashIcon :size="16" />
                         Xóa ở phía tôi
                       </button>
@@ -808,25 +632,25 @@ const isLastOwnWithReadStatus = (msg: ChatMessage) => {
               <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
                 <UserIcon :size="16" class="text-gray-600 dark:text-gray-400 group-hover:text-primary-500" />
               </div>
-              <span class="text-[10px] text-gray-500 text-center leading-tight break-words max-w-[60px]">Trang cá nhân</span>
+              <span class="text-[10px] text-gray-500 text-center leading-tight wrap-break-word max-w-15">Trang cá nhân</span>
             </button>
             <button @click="muteConversation(selectedConversation.id)" class="flex-1 flex flex-col items-center gap-1 group">
               <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
                 <component :is="selectedConversation.isMuted ? BellIcon : BellOffIcon" :size="16" class="text-gray-600 dark:text-gray-400 group-hover:text-primary-500" />
               </div>
-              <span class="text-[10px] text-gray-500 text-center leading-tight break-words max-w-[60px]">{{ selectedConversation.isMuted ? 'Bật thông báo' : 'Tắt thông báo' }}</span>
+              <span class="text-[10px] text-gray-500 text-center leading-tight wrap-break-word max-w-15">{{ selectedConversation.isMuted ? 'Bật thông báo' : 'Tắt thông báo' }}</span>
             </button>
             <button @click="showSearchInChat = true; showInfoPanel = false" class="flex-1 flex flex-col items-center gap-1 group">
               <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
                 <SearchIcon :size="16" class="text-gray-600 dark:text-gray-400 group-hover:text-primary-500" />
               </div>
-              <span class="text-[10px] text-gray-500 text-center leading-tight break-words max-w-[60px]">Tìm kiếm</span>
+              <span class="text-[10px] text-gray-500 text-center leading-tight wrap-break-word max-w-15">Tìm kiếm</span>
             </button>
             <button @click="pinConversation(selectedConversation.id)" class="flex-1 flex flex-col items-center gap-1 group">
               <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
                 <PinIcon :size="16" class="text-gray-600 dark:text-gray-400 group-hover:text-primary-500" />
               </div>
-              <span class="text-[10px] text-gray-500 text-center leading-tight break-words max-w-[60px]">{{ selectedConversation.isPinned ? 'Bỏ ghim' : 'Ghim' }}</span>
+              <span class="text-[10px] text-gray-500 text-center leading-tight wrap-break-word max-w-15">{{ selectedConversation.isPinned ? 'Bỏ ghim' : 'Ghim' }}</span>
             </button>
           </div>
         </div>

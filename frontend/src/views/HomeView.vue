@@ -6,51 +6,20 @@ import PostCard from '@/components/PostCard.vue'
 import TrendingSidebar from '@/components/TrendingSidebar.vue'
 import CategoryTabs from '@/components/CategoryTabs.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { usePosts } from '@/composables/usePosts'
-import { useCategories } from '@/composables/useCategories'
-import { onMounted } from 'vue'
+import { useHomePosts } from '@/composables/useHomePosts'
 
 const router = useRouter()
-const selectedCategory = ref('all')
-const visibleCount = ref(4)
-const loadingMore = ref(false)
-const { posts, isLoading, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
-const { categories, fetchCategories } = useCategories()
 
-onMounted(() => {
-  fetchPosts()
-  fetchCategories()
-})
-
-const filteredPosts = computed(() => {
-  const all = selectedCategory.value === 'all'
-    ? posts.value
-    : posts.value.filter(p => p.category.slug === selectedCategory.value)
-  return all.slice(0, visibleCount.value)
-})
-
-const totalFiltered = computed(() => {
-  if (selectedCategory.value === 'all') return posts.value.length
-  return posts.value.filter(p => p.category.slug === selectedCategory.value).length
-})
-
-const hasMore = computed(() => visibleCount.value < totalFiltered.value)
-
-const loadMore = async () => {
-  loadingMore.value = true
-  // Giả lập delay tải thêm từ API
-  await new Promise(r => setTimeout(r, 800))
-  visibleCount.value += 4
-  loadingMore.value = false
-}
-
-const toggleBookmark = (postId: string) => {
-  const post = posts.value.find(p => p.id === postId)
-  if (post) {
-    post.bookmarked = !post.bookmarked
-    apiToggleBookmark(postId, !post.bookmarked)
-  }
-}
+const {
+  categories,
+  isLoading,
+  selectedCategory,
+  loadingMore,
+  filteredPosts,
+  hasMore,
+  loadMore,
+  toggleBookmark
+} = useHomePosts()
 </script>
 
 <template>

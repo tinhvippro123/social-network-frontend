@@ -1,23 +1,21 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Search as SearchIcon, Eye, EyeOff, Trash2, ChevronLeft, ChevronRight, Clock } from '@lucide/vue'
-import { usePosts } from '@/composables/usePosts'
-import { onMounted } from 'vue'
+import { Search as SearchIcon, FileText, Eye, EyeOff, Trash2, ChevronLeft, ChevronRight, Clock } from '@lucide/vue'
+import { ADMIN_POST_FILTERS } from '@/constants/ui'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import AdminPagination from '@/components/admin/AdminPagination.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
+import { useAdminPosts } from '@/composables/useAdminPosts'
 
-const { posts, isLoading, fetchPosts } = usePosts()
-
-onMounted(() => {
-  fetchPosts()
-})
-
-const searchQuery = ref('')
-const filterStatus = ref('all')
-const currentPage = ref(1)
+const {
+  posts,
+  isLoading,
+  searchQuery,
+  filterStatus,
+  currentPage
+} = useAdminPosts()
 </script>
 
 <template>
@@ -29,7 +27,7 @@ const currentPage = ref(1)
       v-model="searchQuery"
     >
       <template #filters>
-        <button v-for="f in [{key:'all',label:'Tất cả'},{key:'published',label:'Đã đăng'},{key:'draft',label:'Nháp'},{key:'hidden',label:'Đã ẩn'}]" :key="f.key" @click="filterStatus = f.key"
+        <button v-for="f in ADMIN_POST_FILTERS" :key="f.key" @click="filterStatus = f.key as any"
           :class="['px-4 py-2.5 rounded-xl text-sm font-medium transition-all', filterStatus === f.key ? 'bg-red-500 text-white' : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700']">
           {{ f.label }}
         </button>

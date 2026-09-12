@@ -1,25 +1,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Settings, Globe, Bell, Shield, Database, Palette, Save } from '@lucide/vue'
-import { useAdmin } from '@/composables/useAdmin'
+import { useAdminSettings } from '@/composables/useAdminSettings'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { onMounted } from 'vue'
 
-const { isLoading, fetchStats } = useAdmin()
-
-onMounted(() => {
-  fetchStats() // Giả lập load settings
-})
-
-const siteName = ref('VietBlog')
-const siteDescription = ref('Nền tảng chia sẻ kiến thức cho cộng đồng')
-const allowRegistration = ref(true)
-const requireEmailVerification = ref(true)
-const autoHideReportThreshold = ref(10)
-const enableRealTimeChat = ref(true)
-const enableLocationPosts = ref(true)
-const enableSemanticSearch = ref(true)
-const maintenanceMode = ref(false)
+const {
+  isLoading,
+  siteName,
+  siteDescription,
+  allowRegistration,
+  requireEmailVerification,
+  autoHideReportThreshold,
+  enableRealTimeChat,
+  enableLocationPosts,
+  enableSemanticSearch,
+  maintenanceMode,
+  saveSettings
+} = useAdminSettings()
 </script>
 
 <template>

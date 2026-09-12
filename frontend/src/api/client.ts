@@ -65,11 +65,13 @@ http.interceptors.response.use(
     }
 
     if (status === 403) {
-      console.error('[API] Forbidden: Bạn không có quyền truy cập')
+      const { useToast } = await import('@/composables/useToast')
+      useToast().error('Bạn không có quyền thực hiện hành động này!')
     }
 
     if (status && status >= 500) {
-      console.error('[API] Server Error:', error.response?.data?.message)
+      const { useToast } = await import('@/composables/useToast')
+      useToast().error(error.response?.data?.message || 'Lỗi kết nối máy chủ!')
     }
 
     return Promise.reject(error)

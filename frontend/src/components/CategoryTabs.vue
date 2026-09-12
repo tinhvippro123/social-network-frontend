@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ChevronRight, ChevronLeft, Flame } from '@lucide/vue'
-import { useCategories } from '@/composables/useCategories'
-import { onMounted } from 'vue'
+import { useCategoryTabs } from '@/composables/useCategoryTabs'
 
-const { categories, fetchCategories } = useCategories()
-
-onMounted(async () => {
-  await fetchCategories()
-})
+const {
+  categories,
+  categoryContainer,
+  scrollCategories
+} = useCategoryTabs()
 
 const props = defineProps<{
   modelValue: string
@@ -17,17 +16,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
-
-// Category scroll
-const categoryContainer = ref<HTMLElement | null>(null)
-const scrollCategories = (direction: 'left' | 'right') => {
-  if (!categoryContainer.value) return
-  const scrollAmount = 200
-  categoryContainer.value.scrollBy({
-    left: direction === 'left' ? -scrollAmount : scrollAmount,
-    behavior: 'smooth'
-  })
-}
 </script>
 
 <template>

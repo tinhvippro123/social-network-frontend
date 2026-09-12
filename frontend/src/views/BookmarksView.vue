@@ -1,43 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Bookmark, FolderOpen, Hash, Sparkles, ArrowUp } from '@lucide/vue'
 import PostCard from '@/components/PostCard.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { usePosts } from '@/composables/usePosts'
+import { useBookmarks } from '@/composables/useBookmarks'
 import { formatNumber } from '@/utils/formatters'
 
 const router = useRouter()
-const { posts, isLoading, fetchPosts, tags, fetchPopularTags, toggleBookmark: apiToggleBookmark } = usePosts()
-const sidebarLoading = ref(true)
 
-onMounted(async () => {
-  fetchPosts()
-  sidebarLoading.value = true
-  await fetchPopularTags()
-  sidebarLoading.value = false
-})
-
-// Chỉ lấy bài đã bookmark
-const bookmarkedPosts = computed(() =>
-  posts.value.filter(p => p.bookmarked)
-)
-
-// Gợi ý: bài chưa bookmark, sắp theo votes cao
-const suggestedPosts = computed(() =>
-  posts.value
-    .filter(p => !p.bookmarked)
-    .sort((a, b) => b.upvotesCount - a.upvotesCount)
-    .slice(0, 5)
-)
-
-const toggleBookmark = (postId: string) => {
-  const post = posts.value.find(p => p.id === postId)
-  if (post) {
-    post.bookmarked = !post.bookmarked
-    apiToggleBookmark(postId, !post.bookmarked)
-  }
-}
+const {
+  tags,
+  isLoading,
+  sidebarLoading,
+  bookmarkedPosts,
+  suggestedPosts,
+  toggleBookmark
+} = useBookmarks()
 </script>
 
 <template>

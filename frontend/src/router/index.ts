@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,13 +12,13 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('@/views/auth/LoginView.vue'),
-      meta: { layout: 'auth', title: 'Đăng nhập' }
+      meta: { layout: 'auth', title: 'Đăng nhập', guestOnly: true }
     },
     {
       path: '/register',
       name: 'register',
       component: () => import('@/views/auth/RegisterView.vue'),
-      meta: { layout: 'auth', title: 'Đăng ký' }
+      meta: { layout: 'auth', title: 'Đăng ký', guestOnly: true }
     },
 
     // ==========================================
@@ -38,13 +40,13 @@ const router = createRouter({
       path: '/bookmarks',
       name: 'bookmarks',
       component: () => import('@/views/BookmarksView.vue'),
-      meta: { title: 'Đã lưu' }
+      meta: { title: 'Đã lưu', requiresAuth: true }
     },
     {
       path: '/posts/create',
       name: 'create-post',
       component: () => import('@/views/posts/CreatePostView.vue'),
-      meta: { title: 'Viết bài mới' }
+      meta: { title: 'Viết bài mới', requiresAuth: true }
     },
     {
       path: '/posts/:id',
@@ -62,7 +64,7 @@ const router = createRouter({
       path: '/chat',
       name: 'chat',
       component: () => import('@/views/chat/ChatView.vue'),
-      meta: { title: 'Tin nhắn' }
+      meta: { title: 'Tin nhắn', requiresAuth: true }
     },
     {
       path: '/groups',
@@ -77,16 +79,40 @@ const router = createRouter({
       meta: { title: 'Chi tiết nhóm' }
     },
     {
+      path: '/tags/:name',
+      name: 'tag',
+      component: () => import('@/views/tags/TagView.vue'),
+      meta: { title: 'Tag' }
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: () => import('@/views/search/SearchView.vue'),
+      meta: { title: 'Tìm kiếm' }
+    },
+    {
       path: '/map',
       name: 'map',
       component: () => import('@/views/map/MapView.vue'),
       meta: { title: 'Bản đồ' }
     },
     {
+      path: '/notifications',
+      name: 'notifications',
+      component: () => import('@/views/NotificationsView.vue'),
+      meta: { title: 'Thông báo', requiresAuth: true }
+    },
+    {
+      path: '/posts/:id/edit',
+      name: 'edit-post',
+      component: () => import('@/views/posts/EditPostView.vue'),
+      meta: { title: 'Chỉnh sửa bài viết', requiresAuth: true }
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/settings/SettingsView.vue'),
-      meta: { title: 'Cài đặt' }
+      meta: { title: 'Cài đặt', requiresAuth: true }
     },
 
     // ==========================================
@@ -147,7 +173,7 @@ const router = createRouter({
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      component: () => import('@/views/HomeView.vue'),
+      component: () => import('@/views/error/NotFoundView.vue'),
       meta: { title: '404 - Không tìm thấy' }
     }
   ],
@@ -156,7 +182,6 @@ const router = createRouter({
     return { top: 0 }
   }
 })
-import { useAuthStore } from '@/stores/auth.store'
 
 // Global Navigation Guards
 router.beforeEach((to, from, next) => {
@@ -168,17 +193,43 @@ router.beforeEach((to, from, next) => {
   // Check if route requires admin privileges
   if (to.meta.requiresAdmin) {
     if (!authStore.isLoggedIn) {
-      // Not logged in -> redirect to login
-      next({ name: 'login', query: { redirect: to.fullPath } })
-    } else if (!authStore.isAdmin) {
-      // Logged in but not admin -> redirect to home or forbidden
-      next({ name: 'home' }) // or you could have a 403 Forbidden page
-    } else {
-      next() // proceed
+      // Admin routes still redirect to login page (not modal)
+      return next({ name: 'login', query: { redirect: to.fullPath } })
     }
-  } else {
-    next() // Does not require admin
+    if (!authStore.isAdmin) {
+      return next({ name: 'home' })
+    }
+    return next()
   }
+
+  // Check if route requires auth (for regular users)
+  if (to.meta.requiresAuth) {
+    if (!authStore.isLoggedIn) {
+      // Show auth modal instead of redirecting away
+      const uiStore = useUiStore()
+      uiStore.openAuthModal('login')
+      // Stay on current page (or go home if no previous page)
+      if (from.name) {
+        return next(false)
+      }
+      return next({ name: 'home' })
+    }
+    return next()
+  }
+
+  // Check if route is for guests only (like login/register)
+  if (to.meta.guestOnly) {
+    if (authStore.isLoggedIn) {
+      if (authStore.isAdmin) {
+        return next({ name: 'admin-dashboard' })
+      }
+      return next({ name: 'home' })
+    }
+    return next()
+  }
+
+  // Default: proceed for public routes
+  next()
 })
 
 export default router

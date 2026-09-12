@@ -3,9 +3,9 @@
 // Login/Logout/Token management
 // ==========================================
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import authApi from '@/api/auth.api'
-import type { UserProfile, LoginRequest, RegisterRequest } from '@/api/auth.api'
+import type { LoginRequest, RegisterRequest } from '@/api/auth.api'
 import { STORAGE_KEYS } from '@/constants'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAsyncState } from './useAsyncState'
@@ -15,6 +15,7 @@ const { isLoading, error, execute } = useAsyncState()
 
 export function useAuth() {
   const router = useRouter()
+  const route = useRoute()
   const authStore = useAuthStore()
 
   const user = computed(() => authStore.user)
@@ -29,7 +30,15 @@ export function useAuth() {
       authStore.setToken(data.data.accessToken)
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.data.refreshToken)
       authStore.setUser(data.data.user)
-      router.push('/')
+
+      const redirectUrl = route.query.redirect as string
+      if (redirectUrl) {
+        router.push(redirectUrl)
+      } else if (data.data.user.role === 'admin') {
+        router.push('/admin')
+      } else {
+        router.push('/')
+      }
     }, 'Đăng nhập thất bại')
   }
 

@@ -30,7 +30,6 @@ export function useWebSocket(url?: string) {
         isConnected.value = true
         reconnectAttempts = 0
         error.value = null
-        console.log('[WS] Connected:', finalUrl)
       }
 
       ws.value.onmessage = (event) => {
@@ -47,7 +46,6 @@ export function useWebSocket(url?: string) {
 
       ws.value.onclose = () => {
         isConnected.value = false
-        console.log('[WS] Disconnected')
         attemptReconnect(finalUrl)
       }
     } catch (err) {
@@ -63,7 +61,6 @@ export function useWebSocket(url?: string) {
     }
     reconnectTimer = setTimeout(() => {
       reconnectAttempts++
-      console.log(`[WS] Reconnecting... (${reconnectAttempts}/${MAX_RECONNECT})`)
       connect(wsUrl)
     }, RECONNECT_DELAY)
   }
@@ -72,15 +69,17 @@ export function useWebSocket(url?: string) {
   function send(data: Record<string, unknown>) {
     if (ws.value?.readyState === WebSocket.OPEN) {
       ws.value.send(JSON.stringify(data))
-    } else {
-      console.warn('[WS] Cannot send: not connected')
     }
   }
 
   /** Ngắt kết nối */
   function disconnect() {
     if (reconnectTimer) clearTimeout(reconnectTimer)
-    ws.value?.close()
+    if (ws.value) {
+      // Gỡ sự kiện onclose trước khi đóng để tránh bị trigger reconnect (Memory Leak)
+      ws.value.onclose = null
+      ws.value.close()
+    }
     ws.value = null
     isConnected.value = false
   }

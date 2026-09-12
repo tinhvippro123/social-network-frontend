@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ShieldAlert, Check, X, Ban, Eye, AlertTriangle, Clock } from '@lucide/vue'
-import { useAdmin } from '@/composables/useAdmin'
-import { onMounted } from 'vue'
+import { useModeration } from '@/composables/useModeration'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatDateTime } from '@/utils/formatters'
 
-const { reports: extendedReports, isLoading, fetchReports } = useAdmin()
-
-onMounted(() => {
-  fetchReports()
-})
-
-const filterStatus = ref('pending')
+const {
+  extendedReports,
+  isLoading,
+  filterStatus,
+  reportFilters,
+  pendingCount
+} = useModeration()
 </script>
 
 <template>
@@ -29,11 +28,11 @@ const filterStatus = ref('pending')
       <template #actions>
         <div class="flex items-center gap-2 px-3 py-1.5 bg-red-100 dark:bg-red-900/20 rounded-xl">
           <AlertTriangle :size="14" class="text-red-500" />
-          <span class="text-sm font-medium text-red-600 dark:text-red-400">{{ extendedReports.filter(r => r.status === 'pending').length }} đang chờ</span>
+          <span class="text-sm font-medium text-red-600 dark:text-red-400">{{ pendingCount }} đang chờ</span>
         </div>
       </template>
       <template #filters>
-        <button v-for="f in [{key:'all',label:'Tất cả',count:extendedReports.length},{key:'pending',label:'Đang chờ',count:extendedReports.filter(r=>r.status==='pending').length},{key:'resolved',label:'Đã xử lý',count:extendedReports.filter(r=>r.status==='resolved').length},{key:'dismissed',label:'Bỏ qua',count:extendedReports.filter(r=>r.status==='dismissed').length}]" :key="f.key" @click="filterStatus = f.key"
+        <button v-for="f in reportFilters" :key="f.key" @click="filterStatus = f.key as any"
           :class="['px-4 py-2.5 rounded-xl text-sm font-medium transition-all', filterStatus === f.key ? 'bg-red-500 text-white' : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700']">
           {{ f.label }} <span class="ml-1 text-xs opacity-70">({{ f.count }})</span>
         </button>

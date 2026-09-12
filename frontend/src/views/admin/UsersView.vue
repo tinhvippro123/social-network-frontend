@@ -2,25 +2,23 @@
 import { ref } from 'vue'
 import {
   Search as SearchIcon, MoreVertical, Shield, Ban, Trash2, Filter,
-  UserCheck, UserX, ChevronLeft, ChevronRight, Mail, Calendar
+  UserCheck, UserX, ChevronLeft, ChevronRight, Mail, Calendar, Users
 } from '@lucide/vue'
-import { useAdmin } from '@/composables/useAdmin'
-import { onMounted, computed } from 'vue'
+import { ADMIN_USER_FILTERS } from '@/constants/ui'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import AdminPagination from '@/components/admin/AdminPagination.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatDate } from '@/utils/formatters'
+import { useAdminUsers } from '@/composables/useAdminUsers'
 
-const { users: allUsers, isLoading, fetchUsers } = useAdmin()
-
-onMounted(() => {
-  fetchUsers()
-})
-
-const searchQuery = ref('')
-const filterRole = ref('all')
-const currentPage = ref(1)
+const {
+  allUsers,
+  isLoading,
+  searchQuery,
+  filterRole,
+  currentPage
+} = useAdminUsers()
 </script>
 
 <template>
@@ -32,7 +30,7 @@ const currentPage = ref(1)
       v-model="searchQuery"
     >
       <template #filters>
-        <button v-for="f in [{key:'all',label:'Tất cả'},{key:'admin',label:'Admin'},{key:'moderator',label:'Mod'},{key:'user',label:'User'}]" :key="f.key" @click="filterRole = f.key"
+        <button v-for="f in ADMIN_USER_FILTERS" :key="f.key" @click="filterRole = f.key as any"
           :class="['px-4 py-2.5 rounded-xl text-sm font-medium transition-all', filterRole === f.key ? 'bg-red-500 text-white' : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700']">
           {{ f.label }}
         </button>

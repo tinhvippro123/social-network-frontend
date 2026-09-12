@@ -1,24 +1,30 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
-import { useAppStore } from '@/stores/app'
+
+import { useAdminLayout } from '@/composables/useAdminLayout'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { 
   Home, Users, FileText, Settings, Shield, Bell, Menu as MenuIcon, X, LogOut,
   ChevronRight, Database, Box, BarChart3, ShieldAlert, FolderTree, ChevronLeft,
-  Sun, Moon, MessageCircle, Flag, User
+  Sun, Moon, MessageCircle, Flag, User, ChevronDown
 } from '@lucide/vue'
 
 const router = useRouter()
 const route = useRoute()
-const appStore = useAppStore()
-const { logout } = useAuth()
+const { user } = useAuth()
 
-const isMobile = ref(false)
-const sidebarOpen = ref(true)
-const mobileSidebarOpen = ref(false)
-const showUserMenu = ref(false)
+const {
+  uiStore,
+  isMobile,
+  sidebarOpen,
+  mobileSidebarOpen,
+  showUserMenu,
+  navigateTo,
+  logout,
+  isActive
+} = useAdminLayout()
 
 const navItems = [
   { icon: Home, label: 'Dashboard', to: '/admin' },
@@ -30,39 +36,6 @@ const navItems = [
   { icon: BarChart3, label: 'Thống kê', to: '/admin/analytics' },
   { icon: Settings, label: 'Cài đặt', to: '/admin/settings' },
 ]
-
-const checkMobile = () => {
-  isMobile.value = window.innerWidth < 1024
-  if (isMobile.value) sidebarOpen.value = false
-}
-
-const handleClickOutside = (e: Event) => {
-  const target = e.target as HTMLElement
-  if (!target.closest('.user-menu') && !target.closest('.user-trigger')) {
-    showUserMenu.value = false
-  }
-}
-
-onMounted(() => {
-  checkMobile()
-  window.addEventListener('resize', checkMobile)
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkMobile)
-  document.removeEventListener('click', handleClickOutside)
-})
-
-const navigateTo = (path: string) => {
-  router.push(path)
-  if (isMobile.value) mobileSidebarOpen.value = false
-}
-
-const isActive = (path: string) => {
-  if (path === '/admin') return route.path === '/admin'
-  return route.path.startsWith(path)
-}
 </script>
 
 <template>
@@ -153,14 +126,14 @@ const isActive = (path: string) => {
       <!-- Sidebar Footer -->
       <div class="p-3 border-t border-white/5 shrink-0">
         <button
-          @click="appStore.toggleTheme"
+          @click="uiStore.toggleTheme"
           class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-white/5 hover:text-gray-300 transition-all duration-200"
         >
-          <Sun v-if="appStore.isDark" :size="20" class="shrink-0 text-amber-400" />
+          <Sun v-if="uiStore.isDark" :size="20" class="shrink-0 text-amber-400" />
           <Moon v-else :size="20" class="shrink-0 text-indigo-400" />
           <transition name="fade">
             <span v-if="sidebarOpen || isMobile" class="whitespace-nowrap">
-              {{ appStore.isDark ? 'Chế độ sáng' : 'Chế độ tối' }}
+              {{ uiStore.isDark ? 'Chế độ sáng' : 'Chế độ tối' }}
             </span>
           </transition>
         </button>
@@ -200,8 +173,8 @@ const isActive = (path: string) => {
           <!-- Notifications -->
           <button class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
             <Bell :size="20" />
-            <span v-if="appStore.unreadNotifications > 0" class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
-              {{ appStore.unreadNotifications }}
+            <span v-if="uiStore.unreadCount > 0" class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+              {{ uiStore.unreadCount }}
             </span>
           </button>
 
@@ -211,9 +184,9 @@ const isActive = (path: string) => {
               class="user-trigger flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
               @click.stop="showUserMenu = !showUserMenu"
             >
-              <UserAvatar v-if="appStore.user" :user="appStore.user" size="sm" class="ring-2 ring-red-500/30" />
+              <UserAvatar v-if="user" :user="user" size="sm" class="ring-2 ring-red-500/30" />
               <div class="hidden sm:block text-left">
-                <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ appStore.user?.name }}</p>
+                <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ user?.name }}</p>
                 <p class="text-[10px] text-red-500 font-medium uppercase">Administrator</p>
               </div>
               <ChevronDown :size="14" class="hidden sm:block text-gray-400" />
@@ -225,8 +198,8 @@ const isActive = (path: string) => {
                 class="user-menu absolute right-0 top-12 w-56 bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-surface-700 overflow-hidden z-50"
               >
                 <div class="px-4 py-3 border-b border-gray-200 dark:border-surface-700">
-                  <p class="font-semibold text-sm text-gray-900 dark:text-white">{{ appStore.user?.name }}</p>
-                  <p class="text-xs text-gray-400 mt-0.5">{{ appStore.user?.email }}</p>
+                  <p class="font-semibold text-sm text-gray-900 dark:text-white">{{ user?.name }}</p>
+                  <p class="text-xs text-gray-400 mt-0.5">{{ user?.email }}</p>
                 </div>
                 <div class="py-2">
                   <button

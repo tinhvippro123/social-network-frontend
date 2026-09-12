@@ -1,7 +1,9 @@
 export const MAP_CONFIG = {
   NOMINATIM_BASE_URL: 'https://nominatim.openstreetmap.org',
+  TILE_LAYER_URL: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   DEFAULT_LAT: 10.762622,
   DEFAULT_LNG: 106.660172,
+  DEFAULT_CENTER: [10.762622, 106.660172] as [number, number],
   DEFAULT_ZOOM: 13,
   MAX_ZOOM: 18,
 } as const

@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Users, Globe, Lock, Trash2, Eye, Ban } from '@lucide/vue'
-import { useGroups } from '@/composables/useGroups'
-import { onMounted } from 'vue'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber } from '@/utils/formatters'
+import { useAdminGroups } from '@/composables/useAdminGroups'
 
-const { groups, isLoading, fetchGroups } = useGroups()
-
-onMounted(() => {
-  fetchGroups()
-})
+const { groups, isLoading } = useAdminGroups()
 </script>
 
 <template>

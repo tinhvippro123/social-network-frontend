@@ -11,15 +11,9 @@ const props = withDefaults(defineProps<{
   showRing: false
 })
 
-const sizeClasses = computed(() => {
-  switch (props.size) {
-    case 'sm': return 'w-6 h-6 text-xs'
-    case 'md': return 'w-8 h-8 text-sm'
-    case 'lg': return 'w-12 h-12 text-base'
-    case 'xl': return 'w-24 h-24 sm:w-32 sm:h-32 text-2xl'
-    default: return 'w-8 h-8 text-sm'
-  }
-})
+import { useUserAvatar } from '@/composables/useUserAvatar'
+
+const { sizeClasses } = useUserAvatar(props)
 </script>
 
 <template>

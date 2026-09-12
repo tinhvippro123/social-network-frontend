@@ -1,31 +1,17 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import { ArrowUp, Hash, Star, TrendingUp } from '@lucide/vue'
-import { usePosts } from '@/composables/usePosts'
-import { useUsers } from '@/composables/useUsers'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { onMounted, ref } from 'vue'
 import { formatNumber } from '@/utils/formatters'
+import { useTrendingSidebar } from '@/composables/useTrendingSidebar'
 
-const { posts, fetchTrending, tags, fetchPopularTags } = usePosts()
-const isLoading = ref(true)
-
-const { users, fetchUsers } = useUsers()
-
-onMounted(async () => {
-  isLoading.value = true
-  // Tải dữ liệu song song
-  const [trendingPosts] = await Promise.all([
-    fetchTrending(5),
-    fetchUsers(),
-    fetchPopularTags()
-  ])
-  posts.value = trendingPosts
-  isLoading.value = false
-})
-
-const router = useRouter()
+const {
+  router,
+  posts,
+  tags,
+  users,
+  isLoading
+} = useTrendingSidebar()
 </script>
 
 <template>

@@ -1,42 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from '@lucide/vue'
-import { useForm, useField } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import * as z from 'zod'
+import { useLogin } from '@/composables/useLogin'
 
-const router = useRouter()
-const showPassword = ref(false)
-const isLoading = ref(false)
-const rememberMe = ref(false)
-
-// Validation Schema
-const schema = toTypedSchema(
-  z.object({
-    email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
-    password: z.string().min(1, 'Vui lòng nhập mật khẩu').min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
-  })
-)
-
-const { handleSubmit } = useForm({
-  validationSchema: schema,
-})
-
-const { value: email, errorMessage: emailError } = useField<string>('email')
-const { value: password, errorMessage: passwordError } = useField<string>('password')
-
-const { login } = useAuth()
-
-const handleLogin = handleSubmit(async (values) => {
-  isLoading.value = true
-  try {
-    await login({ email: values.email, password: values.password })
-  } finally {
-    isLoading.value = false
-  }
-})
+const {
+  email,
+  emailError,
+  password,
+  passwordError,
+  showPassword,
+  isLoading,
+  rememberMe,
+  handleLogin
+} = useLogin()
 </script>
 
 <template>

@@ -2,29 +2,22 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ChevronLeft, Users, FileText, Settings, Globe, Lock, Calendar, Shield, MessageCircle, Eye, ArrowUp } from '@lucide/vue'
-import { useGroups } from '@/composables/useGroups'
-import { usePosts } from '@/composables/usePosts'
-import { useUsers } from '@/composables/useUsers'
-import { onMounted } from 'vue'
+import { GROUP_DETAIL_TABS } from '@/constants/ui'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber, formatDate } from '@/utils/formatters'
+import { useGroupDetail } from '@/composables/useGroupDetail'
 
-const router = useRouter()
-const route = useRoute()
-const { currentGroup: group, isLoading: isGroupLoading, fetchGroup } = useGroups()
-const { posts, isLoading: isPostsLoading, fetchPosts } = usePosts()
-const { users, isLoading: isUsersLoading, fetchUsers } = useUsers()
-const activeTab = ref('posts')
-
-onMounted(async () => {
-  const groupId = route.params.id as string || '1'
-  await Promise.all([
-    fetchGroup(groupId),
-    fetchPosts(),
-    fetchUsers()
-  ])
-})
+const {
+  router,
+  group,
+  isGroupLoading,
+  posts,
+  isPostsLoading,
+  users,
+  isUsersLoading,
+  activeTab
+} = useGroupDetail()
 
 </script>
 
@@ -83,7 +76,7 @@ onMounted(async () => {
 
         <!-- Tabs -->
         <div class="flex gap-1 mb-6 bg-white dark:bg-surface-800 rounded-xl border border-gray-200 dark:border-surface-700 p-1">
-          <button v-for="tab in [{key:'posts',label:'Bài viết'},{key:'members',label:'Thành viên'},{key:'about',label:'Giới thiệu'}]" :key="tab.key" @click="activeTab = tab.key"
+          <button v-for="tab in GROUP_DETAIL_TABS" :key="tab.key" @click="activeTab = tab.key as any"
             :class="['flex-1 py-2 rounded-lg text-sm font-medium transition-all', activeTab === tab.key ? 'bg-primary-500 text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700']"
           >{{ tab.label }}</button>
         </div>

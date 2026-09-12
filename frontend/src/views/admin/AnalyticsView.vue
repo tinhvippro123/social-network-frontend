@@ -2,15 +2,10 @@
 import { ref } from 'vue'
 import { BarChart3, TrendingUp, Users, FileText, Eye, ArrowUp, MessageCircle } from '@lucide/vue'
 import { useAdmin } from '@/composables/useAdmin'
-import { onMounted } from 'vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useAdminAnalytics } from '@/composables/useAdminAnalytics'
 
-const { stats, isLoading, fetchStats } = useAdmin()
-
-onMounted(() => {
-  fetchStats()
-})
-const timeRange = ref('7d')
+const { stats, isLoading, timeRange } = useAdminAnalytics()
 
 </script>
 

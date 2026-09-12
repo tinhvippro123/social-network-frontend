@@ -1,20 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { Plus, Edit3, Trash2, GripVertical, FolderTree } from '@lucide/vue'
-import { useCategories } from '@/composables/useCategories'
-import { onMounted } from 'vue'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useAdminCategories } from '@/composables/useAdminCategories'
 
-const { categories, isLoading, fetchCategories } = useCategories()
-
-onMounted(() => {
-  fetchCategories()
-})
-
-const showAddModal = ref(false)
-const newCategoryName = ref('')
-const newCategoryIcon = ref('')
+const {
+  categories,
+  isLoading,
+  showAddModal,
+  newCategoryName,
+  newCategoryIcon,
+  handleAddCategory
+} = useAdminCategories()
 </script>
 
 <template>

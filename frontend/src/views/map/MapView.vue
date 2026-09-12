@@ -5,173 +5,31 @@ import {
   MapPin, Navigation, Minus, Plus, Search as SearchIcon,
   Clock, Eye, ArrowUp, X, CalendarDays, Filter
 } from '@lucide/vue'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-import { usePosts } from '@/composables/usePosts'
+import { useMapView } from '@/composables/useMapView'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import UserAvatar from '@/components/UserAvatar.vue'
 import type { Post } from '@/types'
 
-// Fix leaflet default icon issue in Vue/Vite
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
-import iconUrl from 'leaflet/dist/images/marker-icon.png'
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
-
-L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl })
-
 const router = useRouter()
-const searchRadius = ref(5)
-const searchLocation = ref('')
-const selectedPost = ref<Post | null>(null)
 const mapContainer = ref<HTMLElement | null>(null)
-let map: L.Map | null = null
-let markersLayer: L.LayerGroup | null = null
 
-const { posts, fetchPosts } = usePosts()
-
-// Category filter
-const categoryFilters = [
-  { slug: 'all', label: 'Tất cả', icon: '📍' },
-  { slug: 'tim-tro', label: 'Tìm trọ', icon: '🏠' },
-  { slug: 'pass-do', label: 'Pass đồ', icon: '🛒' },
-  { slug: 'review-dia-diem', label: 'Review', icon: '📍' },
-  { slug: 'su-kien', label: 'Sự kiện', icon: '🎉' },
-]
-const selectedFilter = ref('all')
-
-// Filtered posts
-const postsWithLocation = computed(() => {
-  let filtered = posts.value.filter(p => p.location)
-  
-  // Filter by category
-  if (selectedFilter.value !== 'all') {
-    filtered = filtered.filter(p => p.category.slug === selectedFilter.value)
-  }
-  
-  // Filter by search text
-  if (searchLocation.value.trim()) {
-    const q = searchLocation.value.toLowerCase()
-    filtered = filtered.filter(p =>
-      p.title.toLowerCase().includes(q) ||
-      p.location?.address?.toLowerCase().includes(q)
-    )
-  }
-  
-  return filtered
-})
-
-// Category icon mapping for markers
-const getCategoryEmoji = (slug: string) => {
-  const map: Record<string, string> = {
-    'tim-tro': '🏠',
-    'pass-do': '🛒',
-    'review-dia-diem': '📍',
-    'su-kien': '🎉',
-    'review': '⭐',
-  }
-  return map[slug] || '📌'
-}
-
-// Create custom div icon with emoji
-const createEmojiIcon = (emoji: string) => {
-  return L.divIcon({
-    html: `<div style="font-size: 24px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); cursor: pointer;">${emoji}</div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    className: 'emoji-marker'
-  })
-}
-
-// Format event time
-const formatEventTime = (start?: string, end?: string) => {
-  if (!start) return ''
-  const s = new Date(start)
-  const e = end ? new Date(end) : null
-  const dateStr = s.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-  const startTime = s.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-  const endTime = e ? e.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''
-  return `${dateStr} · ${startTime}${endTime ? ' - ' + endTime : ''}`
-}
-
-// Render markers on map
-const renderMarkers = () => {
-  if (!map) return
-  if (markersLayer) {
-    markersLayer.clearLayers()
-  } else {
-    markersLayer = L.layerGroup().addTo(map)
-  }
-
-  postsWithLocation.value.forEach(post => {
-    if (!post.location) return
-    const emoji = getCategoryEmoji(post.category.slug)
-    const icon = createEmojiIcon(emoji)
-    const marker = L.marker([post.location.lat, post.location.lng], { icon }).addTo(markersLayer!)
-    
-    // Create popup content
-    const popupContent = `
-      <div style="min-width: 200px; font-family: system-ui, sans-serif;">
-        <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px; line-height: 1.3;">${post.title}</div>
-        <div style="font-size: 11px; color: #888; display: flex; align-items: center; gap: 4px;">
-          <span>${emoji}</span> ${post.category.name}
-        </div>
-        ${post.eventStartTime ? `<div style="font-size: 11px; color: #7c3aed; margin-top: 4px;">🕐 ${formatEventTime(post.eventStartTime, post.eventEndTime)}</div>` : ''}
-      </div>
-    `
-    marker.bindPopup(popupContent, { className: 'custom-popup' })
-    
-    marker.on('click', () => {
-      selectedPost.value = post
-      map?.setView([post.location!.lat, post.location!.lng], 15, { animate: true })
-    })
-  })
-}
-
-// Watch filter changes
-watch([selectedFilter, searchLocation], () => {
-  renderMarkers()
-})
-
-const selectPostFromList = (post: Post) => {
-  selectedPost.value = post
-  if (post.location && map) {
-    map.setView([post.location.lat, post.location.lng], 15, { animate: true })
-  }
-}
-
-onMounted(async () => {
-  if (!mapContainer.value) return
-  await fetchPosts()
-
-  map = L.map(mapContainer.value, {
-    zoomControl: false
-  }).setView([10.775, 106.690], 13)
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map)
-
-  renderMarkers()
-})
-
-onUnmounted(() => {
-  if (map) {
-    map.remove()
-    map = null
-  }
-})
-
-const zoomIn = () => map?.zoomIn()
-const zoomOut = () => map?.zoomOut()
-
-const goToCurrentLocation = () => {
-  if (!navigator.geolocation) return
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      map?.setView([pos.coords.latitude, pos.coords.longitude], 15, { animate: true })
-    }
-  )
-}
+const {
+  searchRadius,
+  searchLocation,
+  selectedPost,
+  categoryFilters,
+  selectedFilter,
+  postsWithLocation,
+  selectPostFromList,
+  initMap,
+  destroyMap,
+  zoomIn,
+  zoomOut,
+  locateUser,
+  getCategoryEmoji,
+  formatEventTime,
+  goToCurrentLocation
+} = useMapView(mapContainer)
 </script>
 
 <template>
