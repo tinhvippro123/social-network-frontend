@@ -61,8 +61,6 @@ stores/
 │   ├── isSidebarOpen   → Sidebar collapse state
 │   ├── searchMode      → Keyword, Semantic, Image
 │   └── notifications   → System notifications
-│
-└── app.ts              → Legacy wrapper for backward compatibility
 ```
 
 ### 1.3 Service Layer & Composables

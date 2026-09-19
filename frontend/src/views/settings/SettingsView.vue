@@ -2,14 +2,15 @@
 import { ref } from 'vue'
 import {
   User, Mail, Lock, Bell, BellOff, Shield, Palette, Moon, Sun,
-  Camera, Save, ChevronRight, Eye, EyeOff, Globe, MessageCircle, Monitor
+  Camera, Save, ChevronRight, Eye, EyeOff, Globe, MessageCircle, Monitor,
+  AlertTriangle, Trash2, UserX, Ban
 } from '@lucide/vue'
 import { useSettings } from '@/composables/useSettings'
 import UserAvatar from '@/components/UserAvatar.vue'
 
 const {
   user,
-  appStore,
+  uiStore,
   activeTab,
   themeMode,
   tabs,
@@ -152,6 +153,33 @@ const {
               <Save :size="16" /> Cập nhật mật khẩu
             </button>
           </div>
+
+          <!-- Danger Zone -->
+          <div class="mt-10 pt-8 border-t border-red-200 dark:border-red-900/30">
+            <h3 class="text-sm font-semibold text-red-600 dark:text-red-400 mb-4 flex items-center gap-2">
+              <AlertTriangle :size="16" /> Vùng nguy hiểm
+            </h3>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between p-4 rounded-xl border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/5">
+                <div>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">Vô hiệu hóa tài khoản</p>
+                  <p class="text-xs text-gray-400 mt-0.5">Tài khoản sẽ bị ẩn và không thể đăng nhập. Bạn có thể kích hoạt lại sau.</p>
+                </div>
+                <button class="px-4 py-2 rounded-xl text-sm font-medium text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800/50 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-all shrink-0">
+                  Vô hiệu hóa
+                </button>
+              </div>
+              <div class="flex items-center justify-between p-4 rounded-xl border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/5">
+                <div>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">Xóa tài khoản vĩnh viễn</p>
+                  <p class="text-xs text-gray-400 mt-0.5">Tất cả dữ liệu sẽ bị xóa vĩnh viễn và không thể khôi phục.</p>
+                </div>
+                <button class="px-4 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800/50 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all shrink-0">
+                  <Trash2 :size="14" class="inline mr-1" /> Xóa tài khoản
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Appearance Tab -->
@@ -166,7 +194,7 @@ const {
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <!-- Light Mode -->
               <button
-                @click="themeMode = 'light'; appStore.isDark && appStore.toggleTheme()"
+                @click="themeMode = 'light'; uiStore.isDark && uiStore.toggleTheme()"
                 :class="[
                   'relative p-5 rounded-2xl border-2 transition-all text-left',
                   themeMode === 'light'
@@ -190,7 +218,7 @@ const {
 
               <!-- Dark Mode -->
               <button
-                @click="themeMode = 'dark'; !appStore.isDark && appStore.toggleTheme()"
+                @click="themeMode = 'dark'; !uiStore.isDark && uiStore.toggleTheme()"
                 :class="[
                   'relative p-5 rounded-2xl border-2 transition-all text-left',
                   themeMode === 'dark'
@@ -339,7 +367,7 @@ const {
           <div class="space-y-6">
             <!-- Profile Visibility -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                 <Globe :size="16" class="text-gray-400" /> Ai xem được trang cá nhân?
               </label>
               <select v-model="privacySettings.profileVisibility"
@@ -352,7 +380,7 @@ const {
 
             <!-- Allow Messages -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                 <MessageCircle :size="16" class="text-gray-400" /> Ai được gửi tin nhắn cho bạn?
               </label>
               <select v-model="privacySettings.allowMessages"
@@ -386,6 +414,18 @@ const {
                 <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-5"></div>
               </div>
             </label>
+          </div>
+
+          <!-- Blocked Users -->
+          <div class="mt-8 pt-8 border-t border-gray-200 dark:border-surface-700">
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Ban :size="16" class="text-red-400" /> Người dùng đã chặn
+            </h3>
+            <div class="p-6 rounded-xl border border-dashed border-gray-200 dark:border-surface-600 text-center">
+              <UserX :size="32" class="mx-auto text-gray-300 dark:text-surface-600 mb-2" />
+              <p class="text-sm text-gray-400">Bạn chưa chặn người dùng nào.</p>
+              <p class="text-xs text-gray-400 mt-1">Khi bạn chặn ai đó, họ sẽ không thể xem trang cá nhân, gửi tin nhắn hoặc bình luận bài viết của bạn.</p>
+            </div>
           </div>
         </div>
 

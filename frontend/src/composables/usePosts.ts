@@ -100,10 +100,12 @@ export function usePosts() {
 
   /** Lấy các tag phổ biến */
   async function fetchPopularTags() {
-    await execute(async () => {
+    try {
       const { data } = await postsApi.getPopularTags()
       tags.value = data.data
-    }, 'Lỗi tải tags')
+    } catch (err) {
+      console.error('Lỗi tải tags', err)
+    }
   }
 
   return {

@@ -108,7 +108,7 @@ async function handleLogin() {
 
   // Mock: accept any email with password >= 6 chars
   const mockUser = {
-    id: '1',
+    id: 'u1',
     name: 'Lê Thanh Tính',
     email: email.value,
     avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=LTT',

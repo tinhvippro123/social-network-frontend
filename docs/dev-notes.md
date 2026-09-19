@@ -6,6 +6,13 @@
 
 ## 📅 Session Logs
 
+
+### Session 8: Final Polish & Anti-pattern Eradication (2026-09-08)
+- **Tách UI & Logic triệt để (Clean Architecture):** Di chuyển toàn bộ logic vòng đời (onMounted, onUnmounted) và khai báo state từ các file .vue sang composables/. Đảm bảo các View và Layout component chỉ làm nhiệm vụ render giao diện.
+- **Loại bỏ hoàn toàn God Store:** Xóa sổ pp.ts (Proxy wrapper) sau khi đã refactor xong toàn bộ component. Chuyển đổi toàn bộ truy xuất qua ui.store và uth.store để đạt hiệu suất và cấu trúc chuẩn.
+- **Chuẩn hóa API Mock Layer:** Fix toàn bộ mock API (posts, groups, users,...) trả về cấu trúc { success: true, data: ... } chuẩn theo ApiResponse (thay vì dùng status: 200 sai lệch). Tiêu diệt toàn bộ các đoạn typecast s unknown as Promise... gây ức chế trong mã nguồn.
+- **Sửa linter & cú pháp:** Xóa các import thừa thãi, sửa vị trí khai báo import chuẩn ES Modules, và fix các lỗi chuỗi nháy \'vue\' trong Composables. Dự án đạt 100% type-safe.
+
 ### Session 7: GIS/Map Enhancement & Real-world Use Cases (2026-09-06)
 - **Nâng cấp Mock Data:** Bổ sung trường `eventStartTime` và `eventEndTime` vào model `Post`. Cập nhật `mockData.ts` với 4 danh mục cộng đồng mới (Tìm trọ, Pass đồ, Review địa điểm, Sự kiện) kèm theo toạ độ (lat, lng) thực tế để phục vụ chức năng bản đồ.
 - **Nâng cấp Giao diện Bản đồ (`MapView.vue`):** Bổ sung bộ lọc danh mục (Chip Filters) hỗ trợ cuộn ngang linh hoạt. Thay thế marker mặc định bằng Emoji Markers (🏠, 🛒, 📍, 🎉) tương ứng với từng loại bài viết để cải thiện UX/UI trực quan. 
@@ -92,6 +99,51 @@
 ### DD-006: Tránh Fetch Tuần tự (Sequential) nếu không cần thiết
 - **Quyết định**: Sử dụng `Promise.all()` để tải đồng thời các luồng dữ liệu độc lập nhau trên cùng một trang (ví dụ: Chi tiết bài viết, Bình luận, Bài viết liên quan).
 - **Lý do**: Giảm thiểu thời gian tải trang theo cấp số nhân. Thay vì chờ tổng thời gian của các request cộng lại, trang web chỉ mất thời gian bằng request chậm nhất.
+
+### DD-010: Áp dụng triệt để Clean Architecture (Tách Logic khỏi UI)
+- **Quyết định**: Bắt buộc mọi logic xử lý vòng đời (`onMounted`, `onUnmounted`) và thao tác DOM phải nằm trong `composables/`. Các file Component (`.vue`) chỉ đóng vai trò "Dumb Component" (nhận dữ liệu và hiển thị).
+- **Lý do**: Khi dự án lớn lên, nếu nhét toàn bộ logic vào `.vue` sẽ gây ra tình trạng "Spaghetti Code", cực kỳ khó tái sử dụng và bảo trì. Chuyển logic sang composables giúp Component nhẹ nhàng và dễ đọc hơn 10 lần.
+> ```ts
+> // ❌ CŨ: Component ôm đồm quá nhiều logic vòng đời
+> // File: Component.vue
+> import { onMounted, onUnmounted } from 'vue'
+> onMounted(() => { window.addEventListener('resize', handleResize) })
+> onUnmounted(() => { window.removeEventListener('resize', handleResize) })
+> 
+> // ✅ MỚI: Logic được bọc kín gọn gàng trong Composable
+> // File: useLayout.ts -> chứa onMounted, onUnmounted
+> // File: Component.vue
+> import { useLayout } from '@/composables/useLayout'
+> const { ... } = useLayout() // 1 dòng duy nhất, component không cần quan tâm logic bên trong
+> ```
+
+### DD-011: Khai tử "God Store" (Xóa app.ts)
+- **Quyết định**: Gỡ bỏ hoàn toàn file `src/stores/app.ts` (một Proxy Wrapper ôm đồm tất cả mọi thứ) và ép các components gọi trực tiếp đến các store chuyên biệt (`ui.store.ts` và `auth.store.ts`).
+- **Lý do**: "God Store" vi phạm nguyên tắc Single Responsibility (Đơn trách nhiệm). Bằng cách xóa `app.ts`, hệ thống giờ đây đạt chuẩn Decoupling hoàn toàn: Giao diện gọi `uiStore`, xác thực gọi `authStore`. Mọi linter errors và bugs template cũng được xử lý dứt điểm.
+> ```ts
+> // ❌ CŨ: Phụ thuộc vào một God Store duy nhất
+> import { useAppStore } from '@/stores/app'
+> const appStore = useAppStore()
+> const user = appStore.user // Truy cập chéo logic Auth
+> appStore.toggleTheme()     // Truy cập chéo logic UI
+> 
+> // ✅ MỚI: Phân tách Domain rạch ròi
+> import { useAuthStore } from '@/stores/auth.store'
+> import { useUiStore } from '@/stores/ui.store'
+> const { user } = useAuthStore()
+> const { toggleTheme } = useUiStore()
+> ```
+
+### DD-012: Chuẩn hóa Schema Trả về API (Loại bỏ Ép Kiểu)
+- **Quyết định**: Chuẩn hóa toàn bộ Mock API trả về đúng schema `{ success: boolean, data: T, message: string }` của Axios Interceptors, từ chối việc trả về sai schema rồi dùng `as unknown as Promise` để qua mặt TypeScript.
+- **Lý do**: Ép kiểu vô tội vạ làm mất đi giá trị của TypeScript và che giấu bug tiềm ẩn.
+> ```ts
+> // ❌ CŨ: Mock data sai cấu trúc Backend quy định, phải ép kiểu để lấp liếm
+> return { data: { data: group, status: 200 } } as unknown as Promise<{ data: ApiResponse<Group> }>
+> 
+> // ✅ MỚI: Trả về chuẩn cấu trúc ApiResponse, type-safe 100% không cần ép kiểu
+> return { data: { data: group, success: true } } as { data: ApiResponse<Group> }
+> ```
 
 ### DD-007: Đồng bộ hóa Skeleton & Empty States
 - **Quyết định**: Bắt buộc thiết kế Trạng thái trống (Empty State) cho tất cả các danh sách có thể rỗng (Thông báo, Tin nhắn, Nhóm). Các Skeleton Loading của những component gần nhau (như 2 cột trong Chat) phải được đồng bộ xuất hiện và biến mất cùng lúc.
@@ -291,3 +343,39 @@ View (UI) → Composable (Logic) → API Service (Endpoint) → HTTP Client (Axi
 - [ ] Viết REST API CRUD Bài viết & Danh mục.
 - [ ] Thay thế mock data trên frontend bằng `axios` / `fetch` gọi API thật.
 - [ ] Bổ sung Vue Router navigation guards.
+
+### Session 9: UI/UX Polish and Performance Optimization (2026-09-17)
+
+#### 1. Nested Comments UI (PostDetailView)
+- **Vấn đề:** Khung nhập Reply (Inline Reply) bị render lặp lại nhiều lần do nằm bên trong vòng lặp đệ quy của danh sách bình luận (lồng vào nhau quá sâu), gây lỗi hiển thị chồng chéo Skeleton và form.
+- **Design Decision:** Flatten (làm phẳng) logic hiển thị khung Reply. Thay vì nhúng form đệ quy theo từng bình luận con, ta đặt form duy nhất ở cuối của luồng thảo luận (thread). 
+- **Giải pháp Code:** Dịch chuyển khối code `<div v-if="inlineReplyId === ...">` ra khỏi vòng lặp đệ quy (chuyển nó thành thẻ anh em - sibling thay vì thẻ con - child). Đảm bảo mỗi nhánh bình luận chỉ tồn tại 1 box reply ở dưới đáy.
+
+#### 2. Bookmarks Loading Fix (useBookmarks & usePosts)
+- **Vấn đề:** Khi mở trang Đã lưu, khung loading Skeleton của trang chính bị chớp tắt 2 lần. Nguyên nhân là do `fetchPosts()` và `fetchPopularTags()` được gọi tuần tự (`await`) và cả 2 đều kích hoạt chung một biến trạng thái toàn cục `isLoading`.
+- **Design Decision:** Phải tách rời Loading State của nội dung chính (Main Feed) và nội dung phụ (Sidebar). Đồng thời, tối ưu hoá thời gian tải bằng cách gọi API song song (Concurrent fetching).
+- **Giải pháp Code:** 
+  - *Code cũ:* Gọi tuần tự `await fetchPosts(); await fetchPopularTags();` gây block lẫn nhau.
+  - *Code mới:* 
+    1. Gom API lại bằng `await Promise.all([fetchPosts(), fetchPopularTags()])`.
+    2. Ở file `usePosts.ts`, gỡ bỏ wrapper `execute()` ra khỏi hàm `fetchPopularTags()`, thay bằng `try-catch` thông thường để nó trở thành tiến trình chạy ngầm thuần túy, không kích hoạt chớp nháy biến `isLoading` của giao diện chính nữa.
+
+#### 3. Chat UX Scroll Fix (useChatView)
+- **Vấn đề:** Khi vừa bấm mở 1 đoạn Chat, người dùng thấy giao diện bị khựng lại, sau đó tin nhắn trượt dài từ trên xuống đáy (visual jump/jerk). Nguyên nhân do `setTimeout(150ms)` thừa thãi, API `markAsRead` block tiến trình render, và hiệu ứng cuộn mượt (`behavior: 'smooth'`) mặc định bị lạm dụng.
+- **Design Decision:** (1) Trải nghiệm mở Chat chuẩn mực phải là màn hình luôn xuất hiện LẬP TỨC ở vị trí tin nhắn mới nhất (dưới đáy) không có hiệu ứng trượt. Hiệu ứng trượt chỉ dùng khi người dùng tự thao tác tay hoặc có tin nhắn mới tới. (2) Chuyển các tác vụ đồng bộ không liên quan UI thành tác vụ chạy ngầm (Fire & Forget).
+- **Giải pháp Code:**
+  - *Code cũ:* 
+    ```typescript
+    await markAsRead(conv.id) // Đợi API 100ms
+    await nextTick()
+    setTimeout(scrollToBottom, 100) // Đợi thêm 100ms, hàm này fix cứng behavior: 'smooth'
+    ```
+  - *Code mới:* 
+    1. Cập nhật hàm `scrollToBottom(smooth: boolean = true)` để cho phép vô hiệu hóa cuộn mượt.
+    2. Bỏ `await` và `setTimeout`:
+    ```typescript
+    await fetchMessages(conv.id)
+    await nextTick()
+    scrollToBottom(false) // Tắt hiệu ứng mượt, nhảy bụp lập tức xuống cuối ngay sau khi render
+    markAsRead(conv.id)   // Fire and forget (Bắn và quên, không block UI)
+    ```

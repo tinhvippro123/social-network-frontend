@@ -55,6 +55,7 @@ export const mockCategories: Category[] = [
   { id: 'c10', name: 'Pass đồ', slug: 'pass-do', icon: '🛒', postsCount: 48 },
   { id: 'c11', name: 'Review địa điểm', slug: 'review-dia-diem', icon: '📍', postsCount: 27 },
   { id: 'c12', name: 'Sự kiện', slug: 'su-kien', icon: '🎉', postsCount: 19 },
+  { id: 'c13', name: 'Khác', slug: 'khac', icon: '📌', postsCount: 15 },
 ]
 
 // ---- Posts ----
@@ -129,10 +130,9 @@ public class Post {
     createdAt: '2025-08-25T10:30:00',
     updatedAt: '2025-08-25T10:30:00',
     viewsCount: 3420,
-    upvotesCount: 245,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 38,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.8231, lng: 106.6297, address: 'TP. Hồ Chí Minh' }
   },
@@ -148,10 +148,9 @@ public class Post {
     createdAt: '2025-08-24T14:00:00',
     updatedAt: '2025-08-24T14:00:00',
     viewsCount: 2180,
-    upvotesCount: 189,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '👍', count: 5, reacted: true }],
     commentsCount: 24,
     bookmarked: true,
-    upvoted: true,
     status: 'published'
   },
   {
@@ -166,10 +165,9 @@ public class Post {
     createdAt: '2025-08-23T09:15:00',
     updatedAt: '2025-08-23T09:15:00',
     viewsCount: 5670,
-    upvotesCount: 412,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 56,
     bookmarked: false,
-    upvoted: false,
     status: 'published'
   },
   {
@@ -184,10 +182,9 @@ public class Post {
     createdAt: '2025-08-22T16:45:00',
     updatedAt: '2025-08-22T16:45:00',
     viewsCount: 1890,
-    upvotesCount: 156,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 19,
     bookmarked: true,
-    upvoted: false,
     status: 'published'
   },
   {
@@ -202,10 +199,9 @@ public class Post {
     createdAt: '2025-08-21T11:00:00',
     updatedAt: '2025-08-21T11:00:00',
     viewsCount: 4230,
-    upvotesCount: 298,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '👍', count: 5, reacted: true }],
     commentsCount: 42,
     bookmarked: false,
-    upvoted: true,
     status: 'published',
     location: { lat: 10.7769, lng: 106.7009, address: 'Quận 1, TP.HCM' }
   },
@@ -221,10 +217,9 @@ public class Post {
     createdAt: '2025-08-20T08:30:00',
     updatedAt: '2025-08-20T08:30:00',
     viewsCount: 6780,
-    upvotesCount: 534,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '👍', count: 5, reacted: true }],
     commentsCount: 67,
     bookmarked: false,
-    upvoted: false,
     status: 'published'
   },
   {
@@ -239,10 +234,9 @@ public class Post {
     createdAt: '2025-08-19T15:20:00',
     updatedAt: '2025-08-19T15:20:00',
     viewsCount: 1250,
-    upvotesCount: 89,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 15,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7726, lng: 106.6991, address: 'Quận 3, TP.HCM' }
   },
@@ -258,10 +252,9 @@ public class Post {
     createdAt: '2025-08-18T12:00:00',
     updatedAt: '2025-08-18T12:00:00',
     viewsCount: 3100,
-    upvotesCount: 201,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '👍', count: 5, reacted: true }],
     commentsCount: 31,
     bookmarked: false,
-    upvoted: false,
     status: 'published'
   },
   // ---- Bài viết có vị trí (Cộng đồng / GIS) ----
@@ -277,10 +270,9 @@ public class Post {
     createdAt: '2025-09-01T08:00:00',
     updatedAt: '2025-09-01T08:00:00',
     viewsCount: 850,
-    upvotesCount: 34,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 12,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7724, lng: 106.6581, address: 'Hẻm 233 Lý Thường Kiệt, Phường 15, Quận 10, TP.HCM' }
   },
@@ -296,10 +288,9 @@ public class Post {
     createdAt: '2025-09-02T10:30:00',
     updatedAt: '2025-09-02T10:30:00',
     viewsCount: 620,
-    upvotesCount: 22,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 8,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7590, lng: 106.6823, address: 'Đường An Dương Vương, Phường 3, Quận 5, TP.HCM' }
   },
@@ -315,10 +306,9 @@ public class Post {
     createdAt: '2025-09-03T14:00:00',
     updatedAt: '2025-09-03T14:00:00',
     viewsCount: 1200,
-    upvotesCount: 45,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 18,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7867, lng: 106.6600, address: 'KTX Khu B ĐHQG, Phường Linh Trung, TP. Thủ Đức' }
   },
@@ -334,10 +324,9 @@ public class Post {
     createdAt: '2025-09-02T19:30:00',
     updatedAt: '2025-09-02T19:30:00',
     viewsCount: 2300,
-    upvotesCount: 178,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '👍', count: 5, reacted: true }],
     commentsCount: 42,
     bookmarked: true,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7843, lng: 106.6946, address: '260C Pasteur, Phường 8, Quận 3, TP.HCM' }
   },
@@ -353,10 +342,9 @@ public class Post {
     createdAt: '2025-09-01T11:00:00',
     updatedAt: '2025-09-01T11:00:00',
     viewsCount: 980,
-    upvotesCount: 67,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 14,
     bookmarked: false,
-    upvoted: true,
     status: 'published',
     location: { lat: 10.7735, lng: 106.7019, address: '86-88 Nguyễn Huệ, Bến Nghé, Quận 1, TP.HCM' }
   },
@@ -372,10 +360,9 @@ public class Post {
     createdAt: '2025-09-04T09:00:00',
     updatedAt: '2025-09-04T09:00:00',
     viewsCount: 1560,
-    upvotesCount: 89,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 25,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7628, lng: 106.6824, address: 'Nhà Văn hóa Sinh viên, 01 Phạm Ngọc Thạch, Quận 3, TP.HCM' },
     eventStartTime: '2025-09-10T09:00:00',
@@ -393,10 +380,9 @@ public class Post {
     createdAt: '2025-09-03T16:00:00',
     updatedAt: '2025-09-03T16:00:00',
     viewsCount: 3400,
-    upvotesCount: 256,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 58,
     bookmarked: true,
-    upvoted: true,
     status: 'published',
     location: { lat: 10.8800, lng: 106.8056, address: 'Sân Vận động KTX ĐHQG, Khu phố 6, TP. Thủ Đức' },
     eventStartTime: '2025-09-07T08:00:00',
@@ -408,8 +394,7 @@ public class Post {
 export const mockComments: Comment[] = [
   {
     id: 'cm1', content: 'Bài viết rất chi tiết và dễ hiểu! Cảm ơn tác giả 🔥',
-    author: mockUsers[1], createdAt: '2025-08-25T12:00:00', upvotesCount: 12,
-    reactions: [
+    author: mockUsers[1], createdAt: '2025-08-25T12:00:00', reactions: [
       { emoji: '👍', count: 8, reacted: false },
       { emoji: '❤️', count: 3, reacted: true },
       { emoji: '🔥', count: 5, reacted: false }
@@ -417,19 +402,16 @@ export const mockComments: Comment[] = [
     replies: [
       {
         id: 'cm1-1', content: 'Cảm ơn bạn! Mình sẽ viết thêm phần 2 về testing nhé 😊',
-        author: mockUsers[0], createdAt: '2025-08-25T13:00:00', upvotesCount: 5,
-        reactions: [{ emoji: '❤️', count: 2, reacted: false }],
+        author: mockUsers[0], createdAt: '2025-08-25T13:00:00', reactions: [{ emoji: '❤️', count: 2, reacted: false }],
         replies: [
           {
             id: 'cm1-1-1', content: 'Mong chờ phần 2 quá!',
-            author: mockUsers[3], createdAt: '2025-08-25T13:30:00', upvotesCount: 2,
-            reactions: [{ emoji: '👍', count: 1, reacted: false }],
+            author: mockUsers[3], createdAt: '2025-08-25T13:30:00', reactions: [{ emoji: '👍', count: 1, reacted: false }],
             replies: []
           },
           {
             id: 'cm1-1-2', content: 'Mình cũng đang chờ luôn. Phần testing mà kết hợp với Testcontainers thì hay lắm đó!',
-            author: mockUsers[4], createdAt: '2025-08-25T14:00:00', upvotesCount: 3,
-            reactions: [],
+            author: mockUsers[4], createdAt: '2025-08-25T14:00:00', reactions: [],
             replyTo: 'Phạm Tuấn',
             replies: []
           }
@@ -439,8 +421,7 @@ export const mockComments: Comment[] = [
   },
   {
     id: 'cm2', content: 'Phần Clean Architecture mình thấy giải thích rõ ràng hơn nhiều tài liệu tiếng Anh. Mong tác giả viết thêm!',
-    author: mockUsers[2], createdAt: '2025-08-25T14:30:00', upvotesCount: 8,
-    reactions: [
+    author: mockUsers[2], createdAt: '2025-08-25T14:30:00', reactions: [
       { emoji: '👍', count: 5, reacted: true },
       { emoji: '😂', count: 1, reacted: false }
     ],
@@ -448,30 +429,26 @@ export const mockComments: Comment[] = [
   },
   {
     id: 'cm3', content: 'Mình có một câu hỏi: Khi nào nên dùng Clean Architecture và khi nào thì CRUD đơn giản là đủ?',
-    author: mockUsers[3], createdAt: '2025-08-25T16:00:00', upvotesCount: 15,
-    reactions: [
+    author: mockUsers[3], createdAt: '2025-08-25T16:00:00', reactions: [
       { emoji: '🤔', count: 4, reacted: false },
       { emoji: '👍', count: 6, reacted: false }
     ],
     replies: [
       {
         id: 'cm3-1', content: 'Theo kinh nghiệm mình, nếu project có hơn 5 modules và cần maintain lâu dài thì nên dùng Clean Architecture. Còn CRUD đơn giản thì 3-layer là đủ rồi.',
-        author: mockUsers[0], createdAt: '2025-08-25T17:00:00', upvotesCount: 20,
-        reactions: [
+        author: mockUsers[0], createdAt: '2025-08-25T17:00:00', reactions: [
           { emoji: '👍', count: 12, reacted: true },
           { emoji: '❤️', count: 3, reacted: false }
         ],
         replies: [
           {
             id: 'cm3-1-1', content: 'Cảm ơn anh nhiều! Vậy project đồ án của em khoảng 3 modules thôi thì dùng 3-layer cho đỡ phức tạp nhỉ?',
-            author: mockUsers[3], createdAt: '2025-08-25T17:30:00', upvotesCount: 3,
-            reactions: [],
+            author: mockUsers[3], createdAt: '2025-08-25T17:30:00', reactions: [],
             replies: []
           },
           {
             id: 'cm3-1-2', content: 'Đúng rồi, 3 modules thì 3-layer là hợp lý nhất. Clean Architecture sẽ overkill trong trường hợp này.',
-            author: mockUsers[0], createdAt: '2025-08-25T17:45:00', upvotesCount: 7,
-            reactions: [{ emoji: '👍', count: 4, reacted: false }],
+            author: mockUsers[0], createdAt: '2025-08-25T17:45:00', reactions: [{ emoji: '👍', count: 4, reacted: false }],
             replyTo: 'Phạm Tuấn',
             replies: []
           }

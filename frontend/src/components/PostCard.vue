@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  Eye, MessageCircle, ArrowUp, Bookmark,
+  Eye, MessageCircle, SmilePlus, Bookmark,
   BookmarkCheck, Clock
 } from '@lucide/vue'
 import type { Post } from '@/types'
@@ -21,7 +21,7 @@ import { formatRelativeTime, formatNumber } from '@/utils/formatters'
 <template>
   <article
     @click="emit('click', post.id)"
-    class="group bg-white dark:bg-surface-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 dark:hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer"
+    class="group h-full flex flex-col bg-white dark:bg-surface-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 dark:hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer"
   >
     <!-- Cover Image -->
     <div class="relative overflow-hidden h-48">
@@ -46,7 +46,7 @@ import { formatRelativeTime, formatNumber } from '@/utils/formatters'
     </div>
 
     <!-- Content -->
-    <div class="p-5">
+    <div class="p-5 flex-1 flex flex-col">
       <!-- Author -->
       <div class="flex items-center gap-2 mb-3">
         <UserAvatar :user="post.author" size="sm" />
@@ -64,7 +64,7 @@ import { formatRelativeTime, formatNumber } from '@/utils/formatters'
       </h2>
 
       <!-- Excerpt -->
-      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4">
+      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1">
         {{ post.excerpt }}
       </p>
 
@@ -82,8 +82,8 @@ import { formatRelativeTime, formatNumber } from '@/utils/formatters'
       <!-- Stats -->
       <div class="flex items-center gap-4 text-gray-400 text-sm">
         <span class="flex items-center gap-1">
-          <ArrowUp :size="14" :class="post.upvoted ? 'text-primary-500' : ''" />
-          {{ formatNumber(post.upvotesCount) }}
+          <SmilePlus :size="14" :class="post.reactions?.some(r => r.reacted) ? 'text-primary-500' : ''" />
+          {{ formatNumber(post.reactions?.reduce((acc, curr) => acc + curr.count, 0) || 0) }}
         </span>
         <span class="flex items-center gap-1">
           <MessageCircle :size="14" />

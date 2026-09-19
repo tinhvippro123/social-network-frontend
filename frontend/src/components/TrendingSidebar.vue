@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUp, Hash, Star, TrendingUp } from '@lucide/vue'
+import { Hash, SmilePlus, Star, TrendingUp } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber } from '@/utils/formatters'
@@ -49,7 +49,7 @@ const {
               <span>{{ post.author.name }}</span>
               <span>·</span>
               <span class="flex items-center gap-0.5">
-                <ArrowUp :size="10" /> {{ formatNumber(post.upvotesCount) }}
+                <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc, curr) => acc + curr.count, 0) || 0) }}
               </span>
             </div>
           </div>

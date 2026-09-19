@@ -9,12 +9,13 @@ export function useBookmarks() {
     posts.value.filter(p => p.bookmarked)
   )
 
-  const suggestedPosts = computed(() =>
-    posts.value
+  const suggestedPosts = computed(() => {
+    const getReactionTotal = (p: any) => p.reactions?.reduce((acc: number, r: any) => acc + r.count, 0) || 0
+    return posts.value
       .filter(p => !p.bookmarked)
-      .sort((a, b) => b.upvotesCount - a.upvotesCount)
+      .sort((a, b) => getReactionTotal(b) - getReactionTotal(a))
       .slice(0, 5)
-  )
+  })
 
   const toggleBookmark = (postId: string) => {
     const post = posts.value.find(p => p.id === postId)
@@ -25,9 +26,11 @@ export function useBookmarks() {
   }
 
   const initData = async () => {
-    await fetchPosts()
     sidebarLoading.value = true
-    await fetchPopularTags()
+    await Promise.all([
+      fetchPosts(),
+      fetchPopularTags()
+    ])
     sidebarLoading.value = false
   }
 

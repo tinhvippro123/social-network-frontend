@@ -65,11 +65,12 @@ export function useChatView() {
     searchChatLogic.value = searchChat.value
   })
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (smooth: boolean | Event = true) => {
     if (chatContainer.value) {
+      const isSmooth = typeof smooth === 'boolean' ? smooth : true
       chatContainer.value.scrollTo({
         top: chatContainer.value.scrollHeight,
-        behavior: 'smooth'
+        behavior: isSmooth ? 'smooth' : 'auto'
       })
       showScrollBottom.value = false
     }
@@ -84,7 +85,7 @@ export function useChatView() {
     }
     isInitialLoading.value = false
     await nextTick()
-    scrollToBottom()
+    scrollToBottom(false)
   })
 
   watch(isTyping, async (val) => {
@@ -103,9 +104,11 @@ export function useChatView() {
     replyingTo.value = null
     messages.value = []
     await fetchMessages(conv.id)
-    await markAsRead(conv.id)
     await nextTick()
-    scrollToBottom()
+    scrollToBottom(false)
+    
+    // Fire and forget, don't await so UI doesn't pause
+    markAsRead(conv.id)
     setTimeout(() => simulateTyping(conv.name), 2000)
   }
 

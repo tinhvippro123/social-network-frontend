@@ -14,6 +14,8 @@ import {
   CornerUpLeft as CornerUpLeftIcon
 } from '@lucide/vue'
 import { useChatView } from '@/composables/useChatView'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 
 const {
   router,

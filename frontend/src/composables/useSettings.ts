@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useAuth } from './useAuth'
 import authApi from '@/api/auth.api'
 import { useAuthStore } from '@/stores/auth.store'
@@ -14,7 +14,13 @@ export function useSettings() {
   const isSaving = ref(false)
 
   const activeTab = ref('profile')
-  const themeMode = ref<'light' | 'dark' | 'system'>('dark')
+  const themeMode = ref<'light' | 'dark' | 'system'>(uiStore.isDark ? 'dark' : 'light')
+  
+  watch(() => uiStore.isDark, (isDark) => {
+    if (themeMode.value !== 'system') {
+      themeMode.value = isDark ? 'dark' : 'light'
+    }
+  })
   const tabs = SETTINGS_TABS
 
   const profileForm = ref({

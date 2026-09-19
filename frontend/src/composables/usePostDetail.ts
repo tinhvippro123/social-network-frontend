@@ -12,7 +12,6 @@ export function usePostDetail() {
   
   const newComment = ref('')
   const isBookmarked = ref(false)
-  const isUpvoted = ref(false)
   const replyingTo = ref<{ commentId: string; authorName: string } | null>(null)
   const activeEmojiPicker = ref<string | null>(null)
   const emojiList = COMMENT_EMOJIS
@@ -29,10 +28,6 @@ export function usePostDetail() {
   onMounted(async () => {
     await initData()
   })
-
-  const toggleUpvote = () => {
-    isUpvoted.value = !isUpvoted.value
-  }
 
   const toggleBookmark = () => {
     isBookmarked.value = !isBookmarked.value
@@ -63,12 +58,10 @@ export function usePostDetail() {
     isLoading,
     newComment,
     isBookmarked,
-    isUpvoted,
     replyingTo,
     activeEmojiPicker,
     emojiList,
     initData,
-    toggleUpvote,
     toggleBookmark,
     toggleEmojiPicker,
     setReplyingTo,

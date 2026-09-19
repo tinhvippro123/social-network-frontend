@@ -3,9 +3,10 @@ import { ref, computed } from 'vue'
 import {
   ArrowUp, ArrowDown, Bookmark, BookmarkCheck, Share2, MessageCircle,
   Eye, Clock, MapPin, Flag, Heart, MoreHorizontal, Send, ChevronLeft,
-  SmilePlus, X, Edit3
+  SmilePlus, X, Edit3, Image as ImageIcon, Smile
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import CommentComposer from '@/components/comments/CommentComposer.vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { usePostDetail } from '@/composables/usePostDetail'
@@ -21,11 +22,9 @@ const {
   isLoading,
   newComment,
   isBookmarked,
-  isUpvoted,
   replyingTo,
   activeEmojiPicker,
   emojiList,
-  toggleUpvote,
   toggleBookmark,
   toggleEmojiPicker,
   setReplyingTo,
@@ -41,11 +40,54 @@ function toggleFollow() {
 const postContent = computed(() => post.value?.content || null)
 useCodeHighlight(postContent)
 
+const commentInputRef = ref<HTMLTextAreaElement | null>(null)
+
+const inlineReplyId = ref<string | null>(null)
+const inlineReplyContent = ref('')
+
+const handleReplyClick = (targetId: string, rootCommentId: string, authorName: string) => {
+  if (window.innerWidth < 640) {
+    // Mobile: Focus the fixed bottom bar
+    setReplyingTo(targetId, authorName)
+    inlineReplyId.value = null
+    setTimeout(() => {
+      commentInputRef.value?.focus()
+    }, 50)
+  } else {
+    // Desktop: Show inline reply box
+    clearReplyingTo()
+    inlineReplyId.value = targetId
+    inlineReplyContent.value = ''
+  }
+}
+
+const cancelReply = () => {
+  clearReplyingTo()
+}
+
+const mainComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
+
+const handleMainSubmit = (content: string, image: File | null) => {
+  console.log('Submit main comment:', { content, image })
+  // After success:
+  mainComposerRef.value?.clear()
+  clearReplyingTo()
+}
+
+const handleInlineSubmit = (content: string, image: File | null) => {
+  console.log('Submit inline reply to', inlineReplyId.value, ':', { content, image })
+  // After success:
+  inlineReplyId.value = null
+}
+
+const cancelInlineReply = () => {
+  inlineReplyId.value = null
+}
 
 </script>
 
 <template>
-  <div class="mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 sm:pb-6">
     <!-- Back button -->
     <button
       @click="router.back()"
@@ -56,7 +98,7 @@ useCodeHighlight(postContent)
     </button>
 
     <!-- Loading Skeleton -->
-    <div v-if="isLoading" class="flex flex-col lg:flex-row gap-8 items-start">
+    <div v-if="isLoading" class="flex flex-col lg:flex-row gap-8 lg:items-start">
       <div class="flex-1 min-w-0 space-y-6">
         <Skeleton type="image" class="w-full h-64 sm:h-96 rounded-2xl" />
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6 sm:p-8 space-y-4">
@@ -70,7 +112,7 @@ useCodeHighlight(postContent)
       </aside>
     </div>
 
-    <div v-else-if="post" class="flex flex-col lg:flex-row gap-8 items-start">
+    <div v-else-if="post" class="flex flex-col lg:flex-row gap-8 lg:items-start">
       <!-- Article -->
       <article class="flex-1 min-w-0">
         <!-- Cover Image -->
@@ -81,7 +123,7 @@ useCodeHighlight(postContent)
             <span class="inline-block px-3 py-1 rounded-lg text-xs font-semibold bg-white/90 text-gray-700 mb-3">
               {{ post.category.icon }} {{ post.category.name }}
             </span>
-            <h1 class="text-2xl sm:text-3xl font-bold text-white">{{ post.title }}</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-white break-words">{{ post.title }}</h1>
           </div>
         </div>
 
@@ -91,7 +133,7 @@ useCodeHighlight(postContent)
             <UserAvatar :user="post.author" size="lg" class="ring-2 ring-primary-500/30 cursor-pointer" @click="router.push(`/profile/${post.author.id}`)" />
             <div>
               <p class="font-semibold text-gray-900 dark:text-white cursor-pointer hover:text-primary-500 transition-colors" @click="router.push(`/profile/${post.author.id}`)">{{ post.author.name }}</p>
-              <div class="flex items-center gap-3 text-xs text-gray-400">
+              <div class="flex flex-wrap items-center gap-3 text-xs text-gray-400 mt-1">
                 <span class="flex items-center gap-1"><Clock :size="12" /> {{ formatDate(post.createdAt) }}</span>
                 <span class="flex items-center gap-1"><Eye :size="12" /> {{ formatNumber(post.viewsCount) }} lượt xem</span>
                 <span v-if="post.location" class="flex items-center gap-1"><MapPin :size="12" /> {{ post.location.address }}</span>
@@ -110,14 +152,14 @@ useCodeHighlight(postContent)
         </div>
 
         <!-- Content -->
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6 sm:p-8 mb-6">
+        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-8 mb-6 overflow-hidden">
           <div
-            class="prose prose-lg dark:prose-invert max-w-none
+            class="prose prose-lg dark:prose-invert max-w-none wrap-break-word
               prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold
               prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-p:leading-relaxed
               prose-a:text-primary-500 prose-a:no-underline hover:prose-a:underline
-              prose-code:bg-gray-100 dark:prose-code:bg-surface-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
-              prose-pre:bg-gray-900 dark:prose-pre:bg-surface-900 prose-pre:rounded-xl prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-surface-700
+              prose-code:bg-gray-100 dark:prose-code:bg-surface-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:wrap-break-word
+              prose-pre:bg-gray-900 dark:prose-pre:bg-surface-900 prose-pre:rounded-xl prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-surface-700 prose-pre:overflow-x-auto prose-pre:max-w-full
               prose-blockquote:border-primary-500 prose-blockquote:bg-primary-50 dark:prose-blockquote:bg-primary-900/10 prose-blockquote:rounded-r-xl prose-blockquote:py-1 prose-blockquote:not-italic
               prose-li:text-gray-600 dark:prose-li:text-gray-300
               prose-strong:text-gray-900 dark:prose-strong:text-white"
@@ -138,32 +180,50 @@ useCodeHighlight(postContent)
         </div>
 
         <!-- Interaction Bar -->
-        <div class="flex items-center justify-between bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 mb-6 sticky bottom-4 shadow-lg">
-          <div class="flex items-center gap-1">
+        <div class="flex items-center justify-between bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-3 sm:p-4 mb-6 sm:sticky sm:bottom-4 sm:shadow-lg sm:z-40 overflow-hidden">
+          <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-hide min-w-0 mr-2 pb-1">
             <button
-              @click="toggleUpvote"
+              v-for="reaction in post.reactions"
+              :key="reaction.emoji"
               :class="[
-                'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200',
-                isUpvoted ? 'bg-primary-500/10 text-primary-500' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700'
+                'flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border shrink-0 whitespace-nowrap',
+                reaction.reacted
+                  ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400'
+                  : 'bg-gray-50 dark:bg-surface-600 border-gray-200 dark:border-surface-500 text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-500'
               ]"
             >
-              <ArrowUp :size="18" />
-              <span>{{ formatNumber(post.upvotesCount + (isUpvoted ? 1 : 0)) }}</span>
+              <span>{{ reaction.emoji }}</span>
+              <span>{{ reaction.count }}</span>
             </button>
-            <button class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
-              <ArrowDown :size="18" />
-            </button>
+            <div class="relative">
+              <button
+                @click="toggleEmojiPicker(post.id)"
+                class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all border border-gray-200 dark:border-surface-500 bg-gray-50 dark:bg-surface-600 hover:text-primary-500 shrink-0"
+              >
+                <SmilePlus :size="18" />
+              </button>
+              <div v-if="activeEmojiPicker === post.id" class="absolute left-0 bottom-12 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 flex gap-1">
+                <button
+                  v-for="emoji in emojiList"
+                  :key="emoji"
+                  @click="toggleEmojiPicker(post.id)"
+                  class="w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-xl transition-colors"
+                >
+                  {{ emoji }}
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div class="flex items-center gap-1">
-            <button class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
+          <div class="flex items-center gap-1 shrink-0">
+            <button class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
               <MessageCircle :size="18" />
               <span class="hidden sm:inline">{{ post.commentsCount }}</span>
             </button>
             <button
               @click="toggleBookmark"
               :class="[
-                'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200',
+                'flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium transition-all duration-200',
                 isBookmarked ? 'bg-amber-500/10 text-amber-500' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700'
               ]"
             >
@@ -171,11 +231,11 @@ useCodeHighlight(postContent)
               <Bookmark v-else :size="18" />
               <span class="hidden sm:inline">Lưu</span>
             </button>
-            <button class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
+            <button class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
               <Share2 :size="18" />
               <span class="hidden sm:inline">Chia sẻ</span>
             </button>
-            <button class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
+            <button class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
               <Flag :size="18" />
             </button>
           </div>
@@ -188,33 +248,28 @@ useCodeHighlight(postContent)
             Bình luận ({{ comments.length }})
           </h3>
 
-          <!-- Comment Input -->
-          <div class="mb-6">
-            <!-- Replying To Banner -->
-            <div v-if="replyingTo" class="flex items-center justify-between px-4 py-2 mb-2 bg-primary-50 dark:bg-primary-900/20 rounded-xl border border-primary-200 dark:border-primary-800">
-              <p class="text-sm text-primary-600 dark:text-primary-400">
-                Đang trả lời <span class="font-semibold">@{{ replyingTo.authorName }}</span>
-              </p>
-              <button @click="clearReplyingTo" class="text-primary-400 hover:text-primary-600 transition-colors">
-                <X :size="16" />
-              </button>
+            <textarea
+              ref="commentInputRef"
+              class="hidden"
+            ></textarea>
+            <div class="flex items-start gap-3 w-full mb-6">
+              <UserAvatar v-if="user" :user="user" size="md" class="shrink-0 hidden sm:block" />
+              <CommentComposer
+                ref="mainComposerRef"
+                :placeholder="replyingTo ? 'Viết phản hồi...' : 'Viết bình luận...'"
+                :rows="2"
+                @submit="handleMainSubmit"
+              >
+                <template #header>
+                  <div v-if="replyingTo" class="px-3 pt-3 flex items-center text-xs font-medium text-primary-600 dark:text-primary-400">
+                    <span>Đang trả lời <strong>{{ replyingTo.authorName }}</strong></span>
+                    <button @click="cancelReply" class="ml-1.5 p-0.5 rounded-full hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-colors">
+                      <X :size="14" />
+                    </button>
+                  </div>
+                </template>
+              </CommentComposer>
             </div>
-            <div class="flex items-start gap-3">
-              <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0" />
-              <div v-else class="w-9 h-9 rounded-full bg-gray-200 dark:bg-surface-700 shrink-0"></div>
-              <div class="flex-1 relative">
-                <textarea
-                  v-model="newComment"
-                  :placeholder="replyingTo ? `Trả lời @${replyingTo.authorName}...` : 'Viết bình luận...'"
-                  rows="3"
-                  class="w-full p-3 pr-12 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 resize-none transition-all"
-                />
-                <button class="absolute bottom-3 right-3 p-2 rounded-lg gradient-primary text-white hover:opacity-90 transition-all">
-                  <Send :size="14" />
-                </button>
-              </div>
-            </div>
-          </div>
 
           <!-- Comments List -->
           <div class="space-y-5">
@@ -228,7 +283,7 @@ useCodeHighlight(postContent)
                       <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ comment.author.name }}</span>
                       <span class="text-xs text-gray-400">{{ formatDate(comment.createdAt) }}</span>
                     </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-300">{{ comment.content }}</p>
+                    <div class="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap wrap-break-word">{{ comment.content }}</div>
                   </div>
                   <!-- Actions: Reactions + Reply -->
                   <div class="flex items-center gap-3 mt-2 ml-2">
@@ -267,13 +322,28 @@ useCodeHighlight(postContent)
                         </button>
                       </div>
                     </div>
-                    <button @click="setReplyingTo(comment.id, comment.author.name)" class="text-xs font-semibold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+                    <button @click="handleReplyClick(comment.id, comment.id, comment.author.name)" class="text-xs font-semibold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
                       Phản hồi
                     </button>
                   </div>
 
+                  <!-- Inline Reply Box for Level 0 -->
+                  <div v-if="inlineReplyId === comment.id" class="flex items-start gap-3 mt-3 animate-slide-down">
+                    <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0 w-8! h-8!" />
+                    <div v-else class="w-8 h-8 rounded-full bg-gray-200 dark:bg-surface-700 shrink-0"></div>
+                    <CommentComposer
+                      v-model="inlineReplyContent"
+                      :placeholder="`Trả lời @${comment.author.name}...`"
+                      :auto-focus="true"
+                      :compact="true"
+                      :show-cancel="true"
+                      @submit="handleInlineSubmit"
+                      @cancel="cancelInlineReply"
+                    />
+                  </div>
+
                   <!-- Replies (Level 1 + Level 2 flatten) -->
-                  <div v-if="comment.replies.length > 0" class="ml-6 mt-3 space-y-3 border-l-2 border-gray-100 dark:border-surface-600 pl-4">
+                  <div v-if="comment.replies.length > 0 || inlineReplyId === comment.id" class="ml-3 sm:ml-6 mt-3 space-y-3 border-l-2 border-gray-100 dark:border-surface-600 pl-2 sm:pl-4">
                     <div v-for="reply in comment.replies" :key="reply.id" class="flex items-start gap-3">
                       <UserAvatar :user="reply.author" size="sm" class="shrink-0" />
                       <div class="flex-1">
@@ -282,10 +352,10 @@ useCodeHighlight(postContent)
                             <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ reply.author.name }}</span>
                             <span class="text-xs text-gray-400">{{ formatDate(reply.createdAt) }}</span>
                           </div>
-                          <p class="text-sm text-gray-600 dark:text-gray-300">
-                            <span v-if="reply.replyTo" class="text-primary-500 font-medium cursor-pointer hover:underline">@{{ reply.replyTo }} </span>
+                          <div class="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap wrap-break-word">
+                            <span v-if="reply.replyTo" class="text-primary-500 font-medium cursor-pointer hover:underline mr-1">@{{ reply.replyTo }}</span>
                             {{ reply.content }}
-                          </p>
+                          </div>
                         </div>
                         <!-- Reply Actions -->
                         <div class="flex items-center gap-3 mt-1.5 ml-2">
@@ -322,55 +392,106 @@ useCodeHighlight(postContent)
                             </div>
                           </div>
                           <button
-                            @click="replyingTo = { commentId: comment.id, authorName: reply.author.name }"
+                            @click="handleReplyClick(reply.id, comment.id, reply.author.name)"
                             class="text-xs text-gray-400 hover:text-primary-500 transition-colors font-medium"
                           >
                             Phản hồi
                           </button>
                         </div>
 
+                        <!-- Inline Reply Box for Level 1 -->
+                        <div v-if="inlineReplyId === reply.id" class="flex items-start gap-2 mt-2 animate-slide-down">
+                          <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0 w-6! h-6!" />
+                          <div v-else class="w-6 h-6 rounded-full bg-gray-200 dark:bg-surface-700 shrink-0"></div>
+                          <CommentComposer
+                            v-model="inlineReplyContent"
+                            :placeholder="`Trả lời @${reply.author.name}...`"
+                            :auto-focus="true"
+                            :compact="true"
+                            :show-cancel="true"
+                            @submit="handleInlineSubmit"
+                            @cancel="cancelInlineReply"
+                          />
+                        </div>
+
                         <!-- Sub-replies (Level 3) -->
-                        <div v-if="reply.replies && reply.replies.length > 0" class="ml-5 mt-3 space-y-3 border-l-2 border-gray-100 dark:border-surface-600 pl-3">
-                          <div v-for="subReply in reply.replies" :key="subReply.id" class="flex items-start gap-2">
-                            <UserAvatar :user="subReply.author" size="sm" class="shrink-0 w-6! h-6!" />
-                            <div class="flex-1">
-                              <div class="bg-gray-50 dark:bg-surface-700/30 rounded-lg p-2.5">
-                                <div class="flex items-center justify-between mb-0.5">
-                                  <span class="text-xs font-semibold text-gray-900 dark:text-white">{{ subReply.author.name }}</span>
-                                  <span class="text-xs text-gray-400">{{ formatDate(subReply.createdAt) }}</span>
+                        <div v-if="(reply.replies && reply.replies.length > 0) || inlineReplyId === reply.id" class="ml-2 sm:ml-5 mt-3 space-y-3 border-l-2 border-gray-100 dark:border-surface-600 pl-2 sm:pl-3">
+                          <template v-for="subReply in reply.replies" :key="subReply.id">
+                            <div class="flex items-start gap-2">
+                              <UserAvatar :user="subReply.author" size="sm" class="shrink-0 w-6! h-6!" />
+                              <div class="flex-1">
+                                <div class="bg-gray-50 dark:bg-surface-700/30 rounded-lg p-2.5">
+                                  <div class="flex items-center justify-between mb-0.5">
+                                    <span class="text-xs font-semibold text-gray-900 dark:text-white">{{ subReply.author.name }}</span>
+                                    <span class="text-xs text-gray-400">{{ formatDate(subReply.createdAt) }}</span>
+                                  </div>
+                                  <p class="text-xs text-gray-600 dark:text-gray-300">
+                                    <span v-if="subReply.replyTo" class="text-primary-500 font-medium cursor-pointer hover:underline">@{{ subReply.replyTo }} </span>
+                                    {{ subReply.content }}
+                                  </p>
                                 </div>
-                                <p class="text-xs text-gray-600 dark:text-gray-300">
-                                  <span v-if="subReply.replyTo" class="text-primary-500 font-medium cursor-pointer hover:underline">@{{ subReply.replyTo }} </span>
-                                  {{ subReply.content }}
-                                </p>
-                              </div>
-                              <div class="flex items-center gap-3 mt-1 ml-1">
-                                <div class="flex items-center gap-1">
+                                <div class="flex items-center gap-3 mt-1 ml-1">
+                                  <div class="flex items-center gap-1">
+                                    <button
+                                      v-for="reaction in subReply.reactions"
+                                      :key="reaction.emoji"
+                                      :class="[
+                                        'flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium transition-all border',
+                                        reaction.reacted
+                                          ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400'
+                                          : 'bg-gray-50 dark:bg-surface-600 border-gray-200 dark:border-surface-500 text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-500'
+                                      ]"
+                                    >
+                                      {{ reaction.emoji }} {{ reaction.count }}
+                                    </button>
+                                  </div>
+                                  <div class="relative">
+                                    <button
+                                      @click="activeEmojiPicker = activeEmojiPicker === subReply.id ? null : subReply.id"
+                                      class="flex items-center gap-1 text-xs text-gray-400 hover:text-primary-500 transition-colors"
+                                    >
+                                      <SmilePlus :size="14" />
+                                    </button>
+                                    <div v-if="activeEmojiPicker === subReply.id" class="absolute left-0 bottom-7 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 flex gap-1">
+                                      <button
+                                        v-for="emoji in emojiList"
+                                        :key="emoji"
+                                        @click="activeEmojiPicker = null"
+                                        class="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-base transition-colors"
+                                      >
+                                        {{ emoji }}
+                                      </button>
+                                    </div>
+                                  </div>
                                   <button
-                                    v-for="reaction in subReply.reactions"
-                                    :key="reaction.emoji"
-                                    :class="[
-                                      'flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium transition-all border',
-                                      reaction.reacted
-                                        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400'
-                                        : 'bg-gray-50 dark:bg-surface-600 border-gray-200 dark:border-surface-500 text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-500'
-                                    ]"
+                                    @click="handleReplyClick(subReply.id, comment.id, subReply.author.name)"
+                                    class="text-xs text-gray-400 hover:text-primary-500 transition-colors font-medium"
                                   >
-                                    {{ reaction.emoji }} {{ reaction.count }}
+                                    Phản hồi
                                   </button>
                                 </div>
-                                <button
-                                  @click="replyingTo = { commentId: comment.id, authorName: subReply.author.name }"
-                                  class="text-xs text-gray-400 hover:text-primary-500 transition-colors font-medium"
-                                >
-                                  Phản hồi
-                                </button>
                               </div>
                             </div>
-                          </div>
+
+                            <!-- Inline Reply Box for Level 2 (Sibling) -->
+                            <div v-if="inlineReplyId === subReply.id" class="flex items-start gap-2 mt-2 animate-slide-down">
+                              <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0 w-6! h-6!" />
+                              <div v-else class="w-6 h-6 rounded-full bg-gray-200 dark:bg-surface-700 shrink-0"></div>
+                              <CommentComposer
+                                v-model="inlineReplyContent"
+                                :placeholder="`Trả lời @${subReply.author.name}...`"
+                                :auto-focus="true"
+                                :compact="true"
+                                :show-cancel="true"
+                                @submit="handleInlineSubmit"
+                                @cancel="cancelInlineReply"
+                              />
+                            </div>
+                          </template>
                         </div>
                       </div>
                     </div>
+
                   </div>
                 </div>
               </div>

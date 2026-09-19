@@ -50,7 +50,7 @@ const getNotificationColor = (type: Notification['type']) => {
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8 py-6">
+  <div class="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8 py-6">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-3">
