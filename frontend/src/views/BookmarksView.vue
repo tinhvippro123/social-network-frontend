@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { Bookmark, FolderOpen, Hash, Sparkles, SmilePlus, Ghost } from '@lucide/vue'
 import PostCard from '@/components/PostCard.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { useBookmarks } from '@/composables/useBookmarks'
+import { useBookmarks } from '@/composables/core/useBookmarks'
 import { formatNumber } from '@/utils/formatters'
 
 const router = useRouter()

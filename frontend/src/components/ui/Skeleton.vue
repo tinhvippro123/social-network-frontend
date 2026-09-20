@@ -8,7 +8,7 @@ const props = defineProps<{
   rounded?: string
 }>()
 
-import { useSkeleton } from '@/composables/useSkeleton'
+import { useSkeleton } from '@/composables/ui/useSkeleton'
 
 const { skeletonClass } = useSkeleton(props)
 </script>

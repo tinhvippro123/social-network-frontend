@@ -7,7 +7,7 @@ import AdminPagination from '@/components/admin/AdminPagination.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
-import { useAdminPosts } from '@/composables/useAdminPosts'
+import { useAdminPosts } from '@/composables/admin/useAdminPosts'
 
 const {
   posts,

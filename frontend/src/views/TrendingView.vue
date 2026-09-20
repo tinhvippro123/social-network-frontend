@@ -6,7 +6,7 @@ import PostCard from '@/components/PostCard.vue'
 import CategoryTabs from '@/components/CategoryTabs.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
-import { useTrendingPosts } from '@/composables/useTrendingPosts'
+import { useTrendingPosts } from '@/composables/posts/useTrendingPosts'
 import { formatNumber } from '@/utils/formatters'
 
 const router = useRouter()

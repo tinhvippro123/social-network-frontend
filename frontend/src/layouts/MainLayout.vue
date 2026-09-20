@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { useAuth } from '@/composables/useAuth'
+import { useAuth } from '@/composables/auth/useAuth'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatRelativeTime } from '@/utils/formatters'
 import {
@@ -11,7 +11,7 @@ import {
   Settings, User, ChevronDown, Shield, ChevronLeft, ChevronRight
 } from '@lucide/vue'
 import { NAV_ITEMS } from '@/constants/ui'
-import { useMainLayout } from '@/composables/useMainLayout'
+import { useMainLayout } from '@/composables/ui/useMainLayout'
 import ScrollToTop from '@/components/ScrollToTop.vue'
 
 const { user } = useAuth()

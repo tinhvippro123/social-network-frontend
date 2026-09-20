@@ -6,7 +6,7 @@ import PostCard from '@/components/PostCard.vue'
 import TrendingSidebar from '@/components/TrendingSidebar.vue'
 import CategoryTabs from '@/components/CategoryTabs.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { useHomePosts } from '@/composables/useHomePosts'
+import { useHomePosts } from '@/composables/posts/useHomePosts'
 
 const router = useRouter()
 

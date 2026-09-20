@@ -3,7 +3,7 @@ import { Hash, SmilePlus, Star, TrendingUp } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber } from '@/utils/formatters'
-import { useTrendingSidebar } from '@/composables/useTrendingSidebar'
+import { useTrendingSidebar } from '@/composables/ui/useTrendingSidebar'
 
 const {
   router,

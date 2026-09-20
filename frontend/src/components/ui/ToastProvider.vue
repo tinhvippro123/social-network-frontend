@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue'
-import { useToastProvider } from '@/composables/useToastProvider'
+import { useToastProvider } from '@/composables/ui/useToastProvider'
 
 const { toasts, removeToast, getIcon, getToastClass } = useToastProvider()
 </script>

@@ -7,10 +7,11 @@ import {
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import CommentComposer from '@/components/comments/CommentComposer.vue'
+import CommentItem from '@/components/comments/CommentItem.vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { usePostDetail } from '@/composables/usePostDetail'
-import { useCodeHighlight } from '@/composables/useCodeHighlight'
+import { usePostDetail } from '@/composables/posts/usePostDetail'
+import { useCodeHighlight } from '@/composables/core/useCodeHighlight'
 import 'highlight.js/styles/github-dark.css'
 
 const {
@@ -273,229 +274,19 @@ const cancelInlineReply = () => {
 
           <!-- Comments List -->
           <div class="space-y-5">
-            <div v-for="comment in comments" :key="comment.id" class="animate-slide-up">
-              <!-- Main Comment (Level 0) -->
-              <div class="flex items-start gap-3">
-                <UserAvatar :user="comment.author" size="md" class="shrink-0" />
-                <div class="flex-1">
-                  <div class="bg-gray-50 dark:bg-surface-700 rounded-2xl p-4">
-                    <div class="flex items-center justify-between mb-1">
-                      <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ comment.author.name }}</span>
-                      <span class="text-xs text-gray-400">{{ formatDate(comment.createdAt) }}</span>
-                    </div>
-                    <div class="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap wrap-break-word">{{ comment.content }}</div>
-                  </div>
-                  <!-- Actions: Reactions + Reply -->
-                  <div class="flex items-center gap-3 mt-2 ml-2">
-                    <!-- Emoji Reactions -->
-                    <div class="flex items-center gap-1">
-                      <button
-                        v-for="reaction in comment.reactions"
-                        :key="reaction.emoji"
-                        :class="[
-                          'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-all border',
-                          reaction.reacted
-                            ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400'
-                            : 'bg-gray-50 dark:bg-surface-600 border-gray-200 dark:border-surface-500 text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-500'
-                        ]"
-                      >
-                        {{ reaction.emoji }} {{ reaction.count }}
-                      </button>
-                    </div>
-                    <!-- Add Reaction Button -->
-                    <div class="relative">
-                      <button
-                        @click="toggleEmojiPicker(comment.id)"
-                        class="flex items-center gap-1 text-xs text-gray-400 hover:text-primary-500 transition-colors"
-                      >
-                        <SmilePlus :size="14" />
-                      </button>
-                      <!-- Emoji Picker Popup -->
-                      <div v-if="activeEmojiPicker === comment.id" class="absolute left-0 bottom-7 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 flex gap-1">
-                        <button
-                          v-for="emoji in emojiList"
-                          :key="emoji"
-                          @click="activeEmojiPicker = null"
-                          class="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-base transition-colors"
-                        >
-                          {{ emoji }}
-                        </button>
-                      </div>
-                    </div>
-                    <button @click="handleReplyClick(comment.id, comment.id, comment.author.name)" class="text-xs font-semibold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
-                      Phản hồi
-                    </button>
-                  </div>
-
-                  <!-- Inline Reply Box for Level 0 -->
-                  <div v-if="inlineReplyId === comment.id" class="flex items-start gap-3 mt-3 animate-slide-down">
-                    <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0 w-8! h-8!" />
-                    <div v-else class="w-8 h-8 rounded-full bg-gray-200 dark:bg-surface-700 shrink-0"></div>
-                    <CommentComposer
-                      v-model="inlineReplyContent"
-                      :placeholder="`Trả lời @${comment.author.name}...`"
-                      :auto-focus="true"
-                      :compact="true"
-                      :show-cancel="true"
-                      @submit="handleInlineSubmit"
-                      @cancel="cancelInlineReply"
-                    />
-                  </div>
-
-                  <!-- Replies (Level 1 + Level 2 flatten) -->
-                  <div v-if="comment.replies.length > 0 || inlineReplyId === comment.id" class="ml-3 sm:ml-6 mt-3 space-y-3 border-l-2 border-gray-100 dark:border-surface-600 pl-2 sm:pl-4">
-                    <div v-for="reply in comment.replies" :key="reply.id" class="flex items-start gap-3">
-                      <UserAvatar :user="reply.author" size="sm" class="shrink-0" />
-                      <div class="flex-1">
-                        <div class="bg-gray-50 dark:bg-surface-700/50 rounded-xl p-3">
-                          <div class="flex items-center justify-between mb-1">
-                            <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ reply.author.name }}</span>
-                            <span class="text-xs text-gray-400">{{ formatDate(reply.createdAt) }}</span>
-                          </div>
-                          <div class="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap wrap-break-word">
-                            <span v-if="reply.replyTo" class="text-primary-500 font-medium cursor-pointer hover:underline mr-1">@{{ reply.replyTo }}</span>
-                            {{ reply.content }}
-                          </div>
-                        </div>
-                        <!-- Reply Actions -->
-                        <div class="flex items-center gap-3 mt-1.5 ml-2">
-                          <div class="flex items-center gap-1">
-                            <button
-                              v-for="reaction in reply.reactions"
-                              :key="reaction.emoji"
-                              :class="[
-                                'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-all border',
-                                reaction.reacted
-                                  ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400'
-                                  : 'bg-gray-50 dark:bg-surface-600 border-gray-200 dark:border-surface-500 text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-500'
-                              ]"
-                            >
-                              {{ reaction.emoji }} {{ reaction.count }}
-                            </button>
-                          </div>
-                          <div class="relative">
-                            <button
-                              @click="activeEmojiPicker = activeEmojiPicker === reply.id ? null : reply.id"
-                              class="flex items-center gap-1 text-xs text-gray-400 hover:text-primary-500 transition-colors"
-                            >
-                              <SmilePlus :size="14" />
-                            </button>
-                            <div v-if="activeEmojiPicker === reply.id" class="absolute left-0 bottom-7 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 flex gap-1">
-                              <button
-                                v-for="emoji in emojiList"
-                                :key="emoji"
-                                @click="activeEmojiPicker = null"
-                                class="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-base transition-colors"
-                              >
-                                {{ emoji }}
-                              </button>
-                            </div>
-                          </div>
-                          <button
-                            @click="handleReplyClick(reply.id, comment.id, reply.author.name)"
-                            class="text-xs text-gray-400 hover:text-primary-500 transition-colors font-medium"
-                          >
-                            Phản hồi
-                          </button>
-                        </div>
-
-                        <!-- Inline Reply Box for Level 1 -->
-                        <div v-if="inlineReplyId === reply.id" class="flex items-start gap-2 mt-2 animate-slide-down">
-                          <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0 w-6! h-6!" />
-                          <div v-else class="w-6 h-6 rounded-full bg-gray-200 dark:bg-surface-700 shrink-0"></div>
-                          <CommentComposer
-                            v-model="inlineReplyContent"
-                            :placeholder="`Trả lời @${reply.author.name}...`"
-                            :auto-focus="true"
-                            :compact="true"
-                            :show-cancel="true"
-                            @submit="handleInlineSubmit"
-                            @cancel="cancelInlineReply"
-                          />
-                        </div>
-
-                        <!-- Sub-replies (Level 3) -->
-                        <div v-if="(reply.replies && reply.replies.length > 0) || inlineReplyId === reply.id" class="ml-2 sm:ml-5 mt-3 space-y-3 border-l-2 border-gray-100 dark:border-surface-600 pl-2 sm:pl-3">
-                          <template v-for="subReply in reply.replies" :key="subReply.id">
-                            <div class="flex items-start gap-2">
-                              <UserAvatar :user="subReply.author" size="sm" class="shrink-0 w-6! h-6!" />
-                              <div class="flex-1">
-                                <div class="bg-gray-50 dark:bg-surface-700/30 rounded-lg p-2.5">
-                                  <div class="flex items-center justify-between mb-0.5">
-                                    <span class="text-xs font-semibold text-gray-900 dark:text-white">{{ subReply.author.name }}</span>
-                                    <span class="text-xs text-gray-400">{{ formatDate(subReply.createdAt) }}</span>
-                                  </div>
-                                  <p class="text-xs text-gray-600 dark:text-gray-300">
-                                    <span v-if="subReply.replyTo" class="text-primary-500 font-medium cursor-pointer hover:underline">@{{ subReply.replyTo }} </span>
-                                    {{ subReply.content }}
-                                  </p>
-                                </div>
-                                <div class="flex items-center gap-3 mt-1 ml-1">
-                                  <div class="flex items-center gap-1">
-                                    <button
-                                      v-for="reaction in subReply.reactions"
-                                      :key="reaction.emoji"
-                                      :class="[
-                                        'flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium transition-all border',
-                                        reaction.reacted
-                                          ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400'
-                                          : 'bg-gray-50 dark:bg-surface-600 border-gray-200 dark:border-surface-500 text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-500'
-                                      ]"
-                                    >
-                                      {{ reaction.emoji }} {{ reaction.count }}
-                                    </button>
-                                  </div>
-                                  <div class="relative">
-                                    <button
-                                      @click="activeEmojiPicker = activeEmojiPicker === subReply.id ? null : subReply.id"
-                                      class="flex items-center gap-1 text-xs text-gray-400 hover:text-primary-500 transition-colors"
-                                    >
-                                      <SmilePlus :size="14" />
-                                    </button>
-                                    <div v-if="activeEmojiPicker === subReply.id" class="absolute left-0 bottom-7 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 flex gap-1">
-                                      <button
-                                        v-for="emoji in emojiList"
-                                        :key="emoji"
-                                        @click="activeEmojiPicker = null"
-                                        class="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-base transition-colors"
-                                      >
-                                        {{ emoji }}
-                                      </button>
-                                    </div>
-                                  </div>
-                                  <button
-                                    @click="handleReplyClick(subReply.id, comment.id, subReply.author.name)"
-                                    class="text-xs text-gray-400 hover:text-primary-500 transition-colors font-medium"
-                                  >
-                                    Phản hồi
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
-                            <!-- Inline Reply Box for Level 2 (Sibling) -->
-                            <div v-if="inlineReplyId === subReply.id" class="flex items-start gap-2 mt-2 animate-slide-down">
-                              <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0 w-6! h-6!" />
-                              <div v-else class="w-6 h-6 rounded-full bg-gray-200 dark:bg-surface-700 shrink-0"></div>
-                              <CommentComposer
-                                v-model="inlineReplyContent"
-                                :placeholder="`Trả lời @${subReply.author.name}...`"
-                                :auto-focus="true"
-                                :compact="true"
-                                :show-cancel="true"
-                                @submit="handleInlineSubmit"
-                                @cancel="cancelInlineReply"
-                              />
-                            </div>
-                          </template>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            </div>
+            <CommentItem
+              v-for="comment in comments"
+              :key="comment.id"
+              :comment="comment"
+              :level="0"
+              :inline-reply-id="inlineReplyId"
+              :active-emoji-picker="activeEmojiPicker"
+              :user="user"
+              @reply="handleReplyClick"
+              @submit-reply="handleInlineSubmit"
+              @cancel-reply="cancelInlineReply"
+              @toggle-emoji="toggleEmojiPicker"
+            />
           </div>
         </div>
       </article>

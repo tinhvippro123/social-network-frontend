@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { SearchIcon, FileText, Users, Tag, ArrowLeft, X } from '@lucide/vue'
-import { usePosts } from '@/composables/usePosts'
+import { usePosts } from '@/composables/posts/usePosts'
 import PostCard from '@/components/PostCard.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'

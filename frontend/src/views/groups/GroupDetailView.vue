@@ -6,7 +6,7 @@ import { GROUP_DETAIL_TABS } from '@/constants/ui'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber, formatDate } from '@/utils/formatters'
-import { useGroupDetail } from '@/composables/useGroupDetail'
+import { useGroupDetail } from '@/composables/groups/useGroupDetail'
 
 const {
   router,

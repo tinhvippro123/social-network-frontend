@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ChevronRight, ChevronLeft, Flame } from '@lucide/vue'
-import { useCategoryTabs } from '@/composables/useCategoryTabs'
+import { useCategoryTabs } from '@/composables/ui/useCategoryTabs'
 
 const {
   categories,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ShieldAlert, Check, X, Ban, Eye, AlertTriangle, Clock } from '@lucide/vue'
-import { useModeration } from '@/composables/useModeration'
+import { useModeration } from '@/composables/core/useModeration'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'

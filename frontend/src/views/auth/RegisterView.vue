@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Check } from '@lucide/vue'
-import { useRegister } from '@/composables/useRegister'
+import { useRegister } from '@/composables/auth/useRegister'
 
 const {
   name,

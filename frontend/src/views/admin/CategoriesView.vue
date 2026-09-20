@@ -2,7 +2,7 @@
 import { Plus, Edit3, Trash2, GripVertical, FolderTree } from '@lucide/vue'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { useAdminCategories } from '@/composables/useAdminCategories'
+import { useAdminCategories } from '@/composables/admin/useAdminCategories'
 
 const {
   categories,

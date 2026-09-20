@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { BarChart3, TrendingUp, Users, FileText, Eye, ArrowUp, MessageCircle } from '@lucide/vue'
-import { useAdmin } from '@/composables/useAdmin'
+import { useAdmin } from '@/composables/admin/useAdmin'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { useAdminAnalytics } from '@/composables/useAdminAnalytics'
+import { useAdminAnalytics } from '@/composables/admin/useAdminAnalytics'
 
 const { stats, isLoading, timeRange } = useAdminAnalytics()
 

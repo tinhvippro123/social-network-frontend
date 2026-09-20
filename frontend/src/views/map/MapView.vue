@@ -5,7 +5,7 @@ import {
   MapPin, Navigation, Minus, Plus, Search as SearchIcon,
   Clock, Eye, ArrowUp, X, CalendarDays, Filter
 } from '@lucide/vue'
-import { useMapView } from '@/composables/useMapView'
+import { useMapView } from '@/composables/core/useMapView'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import UserAvatar from '@/components/UserAvatar.vue'
 import type { Post } from '@/types'

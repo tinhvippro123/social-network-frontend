@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { X, MapPin, Search as SearchIcon, Navigation, Check, Loader2 } from '@lucide/vue'
-import { useLocationPickerModal } from '@/composables/useLocationPickerModal'
+import { useLocationPickerModal } from '@/composables/ui/useLocationPickerModal'
 
 interface LocationData {
   lat: number

@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<{
   showRing: false
 })
 
-import { useUserAvatar } from '@/composables/useUserAvatar'
+import { useUserAvatar } from '@/composables/ui/useUserAvatar'
 
 const { sizeClasses } = useUserAvatar(props)
 </script>

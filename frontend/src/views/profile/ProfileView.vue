@@ -5,13 +5,13 @@ import {
   Calendar, MapPin, Link as LinkIcon, Edit3, Settings,
   FileText, Bookmark, Users, Eye, ArrowUp, MessageCircle, Clock
 } from '@lucide/vue'
-import { usePosts } from '@/composables/usePosts'
-import { useAuth } from '@/composables/useAuth'
+import { usePosts } from '@/composables/posts/usePosts'
+import { useAuth } from '@/composables/auth/useAuth'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { onMounted } from 'vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { useProfileTabs } from '@/composables/useProfileTabs'
+import { useProfileTabs } from '@/composables/ui/useProfileTabs'
 
 const router = useRouter()
 const { currentUser, activeTab, tabs, posts, isLoading, fetchPosts } = useProfileTabs()

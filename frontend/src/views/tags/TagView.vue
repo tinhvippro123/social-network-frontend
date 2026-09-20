@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Tag, ArrowLeft, TrendingUp, Clock, Filter } from '@lucide/vue'
-import { usePosts } from '@/composables/usePosts'
+import { usePosts } from '@/composables/posts/usePosts'
 import PostCard from '@/components/PostCard.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 

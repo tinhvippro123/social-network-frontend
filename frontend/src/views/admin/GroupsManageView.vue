@@ -5,7 +5,7 @@ import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber } from '@/utils/formatters'
-import { useAdminGroups } from '@/composables/useAdminGroups'
+import { useAdminGroups } from '@/composables/admin/useAdminGroups'
 
 const { groups, isLoading } = useAdminGroups()
 </script>

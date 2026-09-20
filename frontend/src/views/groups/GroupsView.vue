@@ -5,7 +5,7 @@ import { Search as SearchIcon, Plus, Users, Globe, Lock, ArrowRight } from '@luc
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { GROUP_FILTERS } from '@/constants/ui'
 import { formatNumber } from '@/utils/formatters'
-import { useGroupsView } from '@/composables/useGroupsView'
+import { useGroupsView } from '@/composables/groups/useGroupsView'
 
 const {
   router,

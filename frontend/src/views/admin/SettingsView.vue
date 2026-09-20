@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Settings, Globe, Bell, Shield, Database, Palette, Save } from '@lucide/vue'
-import { useAdminSettings } from '@/composables/useAdminSettings'
+import { useAdminSettings } from '@/composables/admin/useAdminSettings'
 import Skeleton from '@/components/ui/Skeleton.vue'
 
 const {

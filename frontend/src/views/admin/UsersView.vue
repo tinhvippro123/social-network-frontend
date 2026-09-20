@@ -10,7 +10,7 @@ import AdminPagination from '@/components/admin/AdminPagination.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatDate } from '@/utils/formatters'
-import { useAdminUsers } from '@/composables/useAdminUsers'
+import { useAdminUsers } from '@/composables/admin/useAdminUsers'
 
 const {
   allUsers,

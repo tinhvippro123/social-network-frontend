@@ -13,7 +13,7 @@ const emit = defineEmits<{
   (e: 'update:currentPage', value: number): void
 }>()
 
-import { useAdminPagination } from '@/composables/useAdminPagination'
+import { useAdminPagination } from '@/composables/admin/useAdminPagination'
 
 const {
   totalPages,

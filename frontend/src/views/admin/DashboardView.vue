@@ -5,7 +5,7 @@ import {
   Eye, ShieldAlert, Ban, Check, X, MoreVertical, Search as SearchIcon,
   ArrowUp, ArrowDown, UserPlus, AlertTriangle
 } from '@lucide/vue'
-import { useAdminDashboard } from '@/composables/useAdminDashboard'
+import { useAdminDashboard } from '@/composables/admin/useAdminDashboard'
 import { formatNumber } from '@/utils/formatters'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'

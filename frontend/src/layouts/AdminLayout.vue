@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
+import { useAuth } from '@/composables/auth/useAuth'
 
-import { useAdminLayout } from '@/composables/useAdminLayout'
+import { useAdminLayout } from '@/composables/admin/useAdminLayout'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { 
   Home, Users, FileText, Settings, Shield, Bell, Menu as MenuIcon, X, LogOut,

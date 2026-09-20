@@ -65,12 +65,12 @@ http.interceptors.response.use(
     }
 
     if (status === 403) {
-      const { useToast } = await import('@/composables/useToast')
+      const { useToast } = await import('@/composables/ui/useToast')
       useToast().error('Bạn không có quyền thực hiện hành động này!')
     }
 
     if (status && status >= 500) {
-      const { useToast } = await import('@/composables/useToast')
+      const { useToast } = await import('@/composables/ui/useToast')
       useToast().error(error.response?.data?.message || 'Lỗi kết nối máy chủ!')
     }
 

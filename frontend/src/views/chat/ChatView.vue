@@ -13,7 +13,7 @@ import {
   MoreVertical as MoreVerticalIcon, Forward as ForwardIcon,
   CornerUpLeft as CornerUpLeftIcon
 } from '@lucide/vue'
-import { useChatView } from '@/composables/useChatView'
+import { useChatView } from '@/composables/chat/useChatView'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 

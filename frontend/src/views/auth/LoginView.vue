@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from '@lucide/vue'
-import { useLogin } from '@/composables/useLogin'
+import { useLogin } from '@/composables/auth/useLogin'
 
 const {
   email,
