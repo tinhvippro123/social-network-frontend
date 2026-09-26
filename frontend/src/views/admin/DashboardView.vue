@@ -9,6 +9,8 @@ import { useAdminDashboard } from '@/composables/admin/useAdminDashboard'
 import { formatNumber } from '@/utils/formatters'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import ModerationQueueWidget from './components/ModerationQueueWidget.vue'
+import UsersTableWidget from './components/UsersTableWidget.vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -124,135 +126,10 @@ ChartJS.register(
       </div>
 
       <!-- Moderation Queue -->
-      <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
-        <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
-          <ShieldAlert :size="18" class="text-red-500" />
-          Hàng đợi kiểm duyệt
-        </h3>
-        <div v-if="isLoading" class="space-y-3">
-          <Skeleton v-for="i in 4" :key="i" class="h-24 w-full rounded-xl" />
-        </div>
-        <div v-else-if="reports.length" class="space-y-3">
-          <div
-            v-for="report in reports"
-            :key="report.id"
-            :class="[
-              'p-3 rounded-xl border transition-all',
-              report.status === 'pending'
-                ? 'border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/5'
-                : 'border-gray-200 dark:border-surface-700'
-            ]"
-          >
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <span :class="[
-                    'text-xs font-medium px-2 py-0.5 rounded-md',
-                    report.type === 'post' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600' :
-                    report.type === 'comment' ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-600' :
-                    'bg-purple-100 dark:bg-purple-900/20 text-purple-600'
-                  ]">
-                    {{ report.type === 'post' ? 'Bài viết' : report.type === 'comment' ? 'Bình luận' : 'Người dùng' }}
-                  </span>
-                  <span :class="[
-                    'text-xs font-medium px-2 py-0.5 rounded-md',
-                    report.status === 'pending' ? 'bg-red-100 dark:bg-red-900/20 text-red-600' : 'bg-green-100 dark:bg-green-900/20 text-green-600'
-                  ]">
-                    {{ report.status === 'pending' ? 'Đang chờ' : 'Đã xử lý' }}
-                  </span>
-                </div>
-                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-1">{{ report.targetTitle }}</p>
-                <p class="text-xs text-gray-400 mt-1">{{ report.reason }}</p>
-              </div>
-            </div>
-            <div v-if="report.status === 'pending'" class="flex gap-2 mt-3">
-              <button class="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all">
-                <Check :size="12" /> Giữ lại
-              </button>
-              <button class="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all">
-                <X :size="12" /> Xóa
-              </button>
-              <button class="flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all">
-                <Ban :size="12" />
-              </button>
-            </div>
-          </div>
-        </div>
-        <div v-else class="text-sm text-gray-500 text-center py-8">
-          Không có báo cáo nào đang chờ xử lý
-        </div>
-      </div>
+      <ModerationQueueWidget :reports="reports" :isLoading="isLoading" />
     </div>
 
     <!-- Users Table -->
-    <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 mt-6 overflow-hidden">
-      <div class="flex items-center justify-between p-5 border-b border-gray-200 dark:border-surface-700">
-        <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Users :size="18" class="text-primary-500" />
-          Quản lý người dùng
-        </h3>
-        <div class="flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-3 py-1.5">
-          <SearchIcon :size="14" class="text-gray-400" />
-          <input type="text" placeholder="Tìm kiếm..." class="bg-transparent border-none outline-none text-xs text-gray-600 dark:text-gray-400 placeholder-gray-400 w-32" />
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="border-b border-gray-200 dark:border-surface-700">
-              <th class="text-left text-xs font-semibold text-gray-400 uppercase px-5 py-3">Người dùng</th>
-              <th class="text-left text-xs font-semibold text-gray-400 uppercase px-5 py-3 hidden sm:table-cell">Email</th>
-              <th class="text-left text-xs font-semibold text-gray-400 uppercase px-5 py-3">Vai trò</th>
-              <th class="text-left text-xs font-semibold text-gray-400 uppercase px-5 py-3 hidden md:table-cell">Bài viết</th>
-              <th class="text-left text-xs font-semibold text-gray-400 uppercase px-5 py-3">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="isLoading">
-              <td colspan="5" class="px-5 py-4">
-                <div class="space-y-3">
-                  <Skeleton v-for="i in 5" :key="i" class="h-12 w-full rounded-xl" />
-                </div>
-              </td>
-            </tr>
-            <template v-else-if="users.length">
-              <tr v-for="user in users" :key="user.id" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
-              <td class="px-5 py-3">
-                <div class="flex items-center gap-3">
-                  <UserAvatar :user="user" size="sm" />
-                  <div>
-                    <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ user.name }}</p>
-                    <p class="text-xs text-gray-400">Tham gia {{ new Date(user.joinedAt).toLocaleDateString('vi-VN') }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="px-5 py-3 text-sm text-gray-500 hidden sm:table-cell">{{ user.email }}</td>
-              <td class="px-5 py-3">
-                <span :class="[
-                  'px-2.5 py-1 rounded-lg text-xs font-medium',
-                  user.role === 'admin' ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' :
-                  user.role === 'moderator' ? 'bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400' :
-                  'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400'
-                ]">
-                  {{ user.role === 'admin' ? 'Admin' : user.role === 'moderator' ? 'Mod' : 'User' }}
-                </span>
-              </td>
-              <td class="px-5 py-3 text-sm text-gray-500 hidden md:table-cell">{{ user.postsCount }}</td>
-              <td class="px-5 py-3">
-                <button class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
-                  <MoreVertical :size="16" />
-                </button>
-              </td>
-            </tr>
-            </template>
-            <tr v-else>
-              <td colspan="5" class="px-5 py-8 text-center text-gray-500 text-sm">
-                Không có dữ liệu người dùng
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <UsersTableWidget :users="users" :isLoading="isLoading" />
   </div>
 </template>

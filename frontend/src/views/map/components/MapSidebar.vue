@@ -1,0 +1,135 @@
+<script setup lang="ts">
+import { MapPin, Search as SearchIcon, Navigation, Clock, Eye, ArrowUp } from '@lucide/vue'
+import { formatNumber } from '@/utils/formatters'
+import type { Post } from '@/types'
+
+const searchLocation = defineModel<string>('searchLocation')
+const searchRadius = defineModel<number>('searchRadius')
+const selectedFilter = defineModel<string>('selectedFilter')
+
+defineProps<{
+  selectedPost: Post | null
+  categoryFilters: any[]
+  postsWithLocation: Post[]
+  getCategoryEmoji: (slug: string) => string
+  formatEventTime: (start: string, end?: string) => string
+}>()
+
+const emit = defineEmits<{
+  (e: 'goToCurrentLocation'): void
+  (e: 'selectPostFromList', post: Post): void
+}>()
+</script>
+
+<template>
+  <div class="w-full sm:w-80 lg:w-96 shrink-0 flex flex-col bg-white dark:bg-surface-800 border-r border-gray-200 dark:border-surface-700 z-10"
+    :class="selectedPost ? 'hidden sm:flex' : 'flex'">
+    <!-- Header -->
+    <div class="p-4 border-b border-gray-200 dark:border-surface-700">
+      <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-3">
+        <MapPin :size="18" class="text-primary-500" />
+        Bản đồ cộng đồng
+      </h2>
+
+      <!-- Category Filter Chips -->
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <button
+          v-for="cat in categoryFilters"
+          :key="cat.slug"
+          @click="selectedFilter = cat.slug"
+          :class="[
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all',
+            selectedFilter === cat.slug
+              ? 'bg-primary-500 text-white shadow-md shadow-primary-500/25'
+              : 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-surface-600'
+          ]"
+        >
+          <span>{{ cat.icon }}</span>
+          {{ cat.label }}
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-3 py-2 mb-3">
+        <SearchIcon :size="16" class="text-gray-400" />
+        <input
+          v-model="searchLocation"
+          type="text"
+          placeholder="Tìm kiếm bài viết, địa điểm..."
+          class="bg-transparent border-none outline-none text-sm w-full text-gray-700 dark:text-gray-300 placeholder-gray-400"
+        />
+      </div>
+
+      <!-- Radius Slider -->
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Bán kính tìm kiếm</span>
+        <span class="text-xs font-bold text-primary-500">{{ searchRadius }} km</span>
+      </div>
+      <input
+        v-model="searchRadius"
+        type="range"
+        min="1"
+        max="50"
+        class="w-full h-1.5 bg-gray-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer accent-primary-500"
+      />
+
+      <button
+        @click="emit('goToCurrentLocation')"
+        class="w-full mt-3 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all"
+      >
+        <Navigation :size="14" />
+        Tìm quanh vị trí hiện tại
+      </button>
+    </div>
+
+    <!-- Posts with Location -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="px-4 py-2 flex items-center justify-between">
+        <p class="text-xs font-medium text-gray-400">{{ postsWithLocation.length }} bài viết có vị trí</p>
+        <p v-if="selectedFilter !== 'all'" class="text-xs text-primary-500 font-medium">
+          {{ categoryFilters.find(c => c.slug === selectedFilter)?.icon }} {{ categoryFilters.find(c => c.slug === selectedFilter)?.label }}
+        </p>
+      </div>
+
+      <div v-if="postsWithLocation.length === 0" class="px-4 py-12 text-center">
+        <MapPin :size="32" class="mx-auto text-gray-300 dark:text-surface-600 mb-3" />
+        <p class="text-sm text-gray-400">Không tìm thấy bài viết nào</p>
+      </div>
+
+      <div
+        v-for="post in postsWithLocation"
+        :key="post.id"
+        @click="emit('selectPostFromList', post)"
+        :class="[
+          'flex items-start gap-3 px-4 py-3 cursor-pointer transition-all border-b border-gray-100 dark:border-surface-700/50',
+          selectedPost?.id === post.id
+            ? 'bg-primary-50 dark:bg-primary-900/10 border-l-2 border-l-primary-500'
+            : 'hover:bg-gray-50 dark:hover:bg-surface-700/50'
+        ]"
+      >
+        <img :src="post.coverImage" class="w-16 h-12 rounded-lg object-cover shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <span class="text-xs">{{ getCategoryEmoji(post.category.slug) }}</span>
+            <span class="text-xs text-gray-400">{{ post.category.name }}</span>
+          </div>
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
+            {{ post.title }}
+          </h4>
+          <div class="flex items-center gap-2 mt-1 text-xs text-gray-400">
+            <MapPin :size="10" class="text-primary-500" />
+            <span class="truncate">{{ post.location?.address }}</span>
+          </div>
+          <div v-if="post.eventStartTime" class="flex items-center gap-1 mt-1 text-xs text-purple-500">
+            <Clock :size="10" />
+            <span>{{ formatEventTime(post.eventStartTime, post.eventEndTime) }}</span>
+          </div>
+          <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
+            <span class="flex items-center gap-0.5"><Eye :size="10" /> {{ formatNumber(post.viewsCount) }}</span>
+            <span class="flex items-center gap-0.5"><ArrowUp :size="10" /> {{ post.upvotesCount }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

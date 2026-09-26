@@ -37,8 +37,8 @@ onMounted(async () => {
       </div>
       <Skeleton type="card" class="h-16" />
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <Skeleton type="card" class="h-[600px]" />
-        <Skeleton type="card" class="h-[600px] hidden xl:block" />
+        <Skeleton type="card" class="h-150" />
+        <Skeleton type="card" class="h-150 hidden xl:block" />
       </div>
     </div>
 

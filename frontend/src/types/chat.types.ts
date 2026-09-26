@@ -27,7 +27,9 @@ export interface ChatMessage {
   content: string
   sender: User
   createdAt: string
+  timestamp?: string // alias for createdAt sometimes used in UI
   isOwn: boolean
+  isRevoked?: boolean
   type: 'text' | 'image' | 'file'
   status: MessageStatus
   readBy?: { user: User; readAt: string }[]
@@ -39,6 +41,7 @@ export interface ChatMessage {
   reactions?: ChatMessageReaction[]
   fileName?: string
   fileSize?: string
+  fileUrl?: string
   imageUrl?: string
   isPinned?: boolean
 }

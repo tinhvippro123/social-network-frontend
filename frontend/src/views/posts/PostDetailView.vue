@@ -6,10 +6,13 @@ import {
   SmilePlus, X, Edit3, Image as ImageIcon, Smile
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
-import CommentComposer from '@/components/comments/CommentComposer.vue'
-import CommentItem from '@/components/comments/CommentItem.vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import PostDetailHeader from './components/PostDetailHeader.vue'
+import PostAuthorCard from './components/PostAuthorCard.vue'
+import PostInteractionBar from './components/PostInteractionBar.vue'
+import PostComments from './components/PostComments.vue'
+import RelatedPostsSidebar from './components/RelatedPostsSidebar.vue'
 import { usePostDetail } from '@/composables/posts/usePostDetail'
 import { useCodeHighlight } from '@/composables/core/useCodeHighlight'
 import 'highlight.js/styles/github-dark.css'
@@ -33,57 +36,11 @@ const {
 } = usePostDetail()
 
 const isFollowing = ref(false)
-function toggleFollow() {
-  isFollowing.value = !isFollowing.value
-}
-
 // Code syntax highlighting for post content
 const postContent = computed(() => post.value?.content || null)
 useCodeHighlight(postContent)
 
-const commentInputRef = ref<HTMLTextAreaElement | null>(null)
 
-const inlineReplyId = ref<string | null>(null)
-const inlineReplyContent = ref('')
-
-const handleReplyClick = (targetId: string, rootCommentId: string, authorName: string) => {
-  if (window.innerWidth < 640) {
-    // Mobile: Focus the fixed bottom bar
-    setReplyingTo(targetId, authorName)
-    inlineReplyId.value = null
-    setTimeout(() => {
-      commentInputRef.value?.focus()
-    }, 50)
-  } else {
-    // Desktop: Show inline reply box
-    clearReplyingTo()
-    inlineReplyId.value = targetId
-    inlineReplyContent.value = ''
-  }
-}
-
-const cancelReply = () => {
-  clearReplyingTo()
-}
-
-const mainComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
-
-const handleMainSubmit = (content: string, image: File | null) => {
-  console.log('Submit main comment:', { content, image })
-  // After success:
-  mainComposerRef.value?.clear()
-  clearReplyingTo()
-}
-
-const handleInlineSubmit = (content: string, image: File | null) => {
-  console.log('Submit inline reply to', inlineReplyId.value, ':', { content, image })
-  // After success:
-  inlineReplyId.value = null
-}
-
-const cancelInlineReply = () => {
-  inlineReplyId.value = null
-}
 
 </script>
 
@@ -116,41 +73,8 @@ const cancelInlineReply = () => {
     <div v-else-if="post" class="flex flex-col lg:flex-row gap-8 lg:items-start">
       <!-- Article -->
       <article class="flex-1 min-w-0">
-        <!-- Cover Image -->
-        <div class="relative rounded-2xl overflow-hidden mb-6 h-64 sm:h-80">
-          <img :src="post.coverImage" :alt="post.title" class="w-full h-full object-cover" />
-          <div class="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-          <div class="absolute bottom-6 left-6 right-6">
-            <span class="inline-block px-3 py-1 rounded-lg text-xs font-semibold bg-white/90 text-gray-700 mb-3">
-              {{ post.category.icon }} {{ post.category.name }}
-            </span>
-            <h1 class="text-2xl sm:text-3xl font-bold text-white break-words">{{ post.title }}</h1>
-          </div>
-        </div>
-
-        <!-- Author Info -->
-        <div class="flex items-center justify-between mb-6 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4">
-          <div class="flex items-center gap-3">
-            <UserAvatar :user="post.author" size="lg" class="ring-2 ring-primary-500/30 cursor-pointer" @click="router.push(`/profile/${post.author.id}`)" />
-            <div>
-              <p class="font-semibold text-gray-900 dark:text-white cursor-pointer hover:text-primary-500 transition-colors" @click="router.push(`/profile/${post.author.id}`)">{{ post.author.name }}</p>
-              <div class="flex flex-wrap items-center gap-3 text-xs text-gray-400 mt-1">
-                <span class="flex items-center gap-1"><Clock :size="12" /> {{ formatDate(post.createdAt) }}</span>
-                <span class="flex items-center gap-1"><Eye :size="12" /> {{ formatNumber(post.viewsCount) }} lượt xem</span>
-                <span v-if="post.location" class="flex items-center gap-1"><MapPin :size="12" /> {{ post.location.address }}</span>
-              </div>
-            </div>
-          </div>
-          <!-- Edit button (only for own posts) -->
-          <button
-            v-if="user && user.id === post.author.id"
-            @click="router.push(`/posts/${post.id}/edit`)"
-            class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 border border-gray-200 dark:border-surface-700 transition-all"
-          >
-            <Edit3 :size="14" />
-            <span class="hidden sm:inline">Chỉnh sửa</span>
-          </button>
-        </div>
+        <!-- Cover Image & Author Info -->
+        <PostDetailHeader :post="post" :user="user" />
 
         <!-- Content -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-8 mb-6 overflow-hidden">
@@ -181,166 +105,35 @@ const cancelInlineReply = () => {
         </div>
 
         <!-- Interaction Bar -->
-        <div class="flex items-center justify-between bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-3 sm:p-4 mb-6 sm:sticky sm:bottom-4 sm:shadow-lg sm:z-40 overflow-hidden">
-          <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-hide min-w-0 mr-2 pb-1">
-            <button
-              v-for="reaction in post.reactions"
-              :key="reaction.emoji"
-              :class="[
-                'flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border shrink-0 whitespace-nowrap',
-                reaction.reacted
-                  ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400'
-                  : 'bg-gray-50 dark:bg-surface-600 border-gray-200 dark:border-surface-500 text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-500'
-              ]"
-            >
-              <span>{{ reaction.emoji }}</span>
-              <span>{{ reaction.count }}</span>
-            </button>
-            <div class="relative">
-              <button
-                @click="toggleEmojiPicker(post.id)"
-                class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all border border-gray-200 dark:border-surface-500 bg-gray-50 dark:bg-surface-600 hover:text-primary-500 shrink-0"
-              >
-                <SmilePlus :size="18" />
-              </button>
-              <div v-if="activeEmojiPicker === post.id" class="absolute left-0 bottom-12 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 flex gap-1">
-                <button
-                  v-for="emoji in emojiList"
-                  :key="emoji"
-                  @click="toggleEmojiPicker(post.id)"
-                  class="w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-xl transition-colors"
-                >
-                  {{ emoji }}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-1 shrink-0">
-            <button class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
-              <MessageCircle :size="18" />
-              <span class="hidden sm:inline">{{ post.commentsCount }}</span>
-            </button>
-            <button
-              @click="toggleBookmark"
-              :class="[
-                'flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium transition-all duration-200',
-                isBookmarked ? 'bg-amber-500/10 text-amber-500' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700'
-              ]"
-            >
-              <BookmarkCheck v-if="isBookmarked" :size="18" />
-              <Bookmark v-else :size="18" />
-              <span class="hidden sm:inline">Lưu</span>
-            </button>
-            <button class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
-              <Share2 :size="18" />
-              <span class="hidden sm:inline">Chia sẻ</span>
-            </button>
-            <button class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
-              <Flag :size="18" />
-            </button>
-          </div>
-        </div>
+        <PostInteractionBar
+          :post="post"
+          :isBookmarked="isBookmarked"
+          :activeEmojiPicker="activeEmojiPicker"
+          :emojiList="emojiList"
+          @toggleBookmark="toggleBookmark"
+          @toggleEmojiPicker="toggleEmojiPicker"
+        />
 
         <!-- Comments Section -->
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-            <MessageCircle :size="20" class="text-primary-500" />
-            Bình luận ({{ comments.length }})
-          </h3>
-
-            <textarea
-              ref="commentInputRef"
-              class="hidden"
-            ></textarea>
-            <div class="flex items-start gap-3 w-full mb-6">
-              <UserAvatar v-if="user" :user="user" size="md" class="shrink-0 hidden sm:block" />
-              <CommentComposer
-                ref="mainComposerRef"
-                :placeholder="replyingTo ? 'Viết phản hồi...' : 'Viết bình luận...'"
-                :rows="2"
-                @submit="handleMainSubmit"
-              >
-                <template #header>
-                  <div v-if="replyingTo" class="px-3 pt-3 flex items-center text-xs font-medium text-primary-600 dark:text-primary-400">
-                    <span>Đang trả lời <strong>{{ replyingTo.authorName }}</strong></span>
-                    <button @click="cancelReply" class="ml-1.5 p-0.5 rounded-full hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-colors">
-                      <X :size="14" />
-                    </button>
-                  </div>
-                </template>
-              </CommentComposer>
-            </div>
-
-          <!-- Comments List -->
-          <div class="space-y-5">
-            <CommentItem
-              v-for="comment in comments"
-              :key="comment.id"
-              :comment="comment"
-              :level="0"
-              :inline-reply-id="inlineReplyId"
-              :active-emoji-picker="activeEmojiPicker"
-              :user="user"
-              @reply="handleReplyClick"
-              @submit-reply="handleInlineSubmit"
-              @cancel-reply="cancelInlineReply"
-              @toggle-emoji="toggleEmojiPicker"
-            />
-          </div>
-        </div>
+        <!-- Comments Section -->
+        <PostComments
+          :comments="comments"
+          :user="user"
+          :replyingTo="replyingTo"
+          :activeEmojiPicker="activeEmojiPicker"
+          @setReplyingTo="setReplyingTo"
+          @clearReplyingTo="clearReplyingTo"
+          @toggleEmojiPicker="toggleEmojiPicker"
+        />
       </article>
 
       <!-- Sidebar -->
       <aside class="w-full lg:w-72 shrink-0 space-y-5 lg:sticky lg:top-6 lg:self-start">
         <!-- Author Card -->
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5 text-center">
-          <UserAvatar :user="post.author" size="lg" class="mx-auto ring-3 ring-primary-500/20 mb-3" />
-          <h4 class="font-bold text-gray-900 dark:text-white">{{ post.author.name }}</h4>
-          <p class="text-xs text-gray-400 mt-1 mb-3">{{ post.author.bio }}</p>
-          <div class="flex justify-center gap-4 text-center mb-4">
-            <div>
-              <p class="text-lg font-bold text-gray-900 dark:text-white">{{ post.author.postsCount }}</p>
-              <p class="text-xs text-gray-400">Bài viết</p>
-            </div>
-            <div>
-              <p class="text-lg font-bold text-gray-900 dark:text-white">{{ formatNumber(post.author.followersCount) }}</p>
-              <p class="text-xs text-gray-400">Followers</p>
-            </div>
-          </div>
-          <button
-            @click="toggleFollow"
-            :class="[
-              'w-full py-2 rounded-xl text-sm font-medium transition-all',
-              isFollowing
-                ? 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-600 hover:border-red-300 hover:text-red-500 dark:hover:text-red-400'
-                : 'text-white gradient-primary hover:opacity-90 shadow-lg shadow-primary-500/25'
-            ]"
-          >
-            {{ isFollowing ? '✓ Đang theo dõi' : 'Theo dõi' }}
-          </button>
-        </div>
+        <PostAuthorCard :author="post.author" />
 
         <!-- Related Posts -->
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
-          <h4 class="font-bold text-gray-900 dark:text-white mb-4">Bài viết liên quan</h4>
-          <div class="space-y-3">
-            <div
-              v-for="p in posts.slice(0, 3)"
-              :key="p.id"
-              @click="router.push(`/posts/${p.id}`)"
-              class="flex items-start gap-3 cursor-pointer group"
-            >
-              <img :src="p.coverImage" class="w-16 h-12 rounded-lg object-cover shrink-0" />
-              <div>
-                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-2 group-hover:text-primary-500 transition-colors">
-                  {{ p.title }}
-                </p>
-                <p class="text-xs text-gray-400 mt-1">{{ formatDate(p.createdAt) }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <RelatedPostsSidebar :posts="posts" />
       </aside>
     </div>
     

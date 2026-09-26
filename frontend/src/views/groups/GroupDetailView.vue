@@ -5,6 +5,9 @@ import { ChevronLeft, Users, FileText, Settings, Globe, Lock, Calendar, Shield, 
 import { GROUP_DETAIL_TABS } from '@/constants/ui'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import GroupHeader from './components/GroupHeader.vue'
+import GroupCompactPost from './components/GroupCompactPost.vue'
+import GroupSidebar from './components/GroupSidebar.vue'
 import { formatNumber, formatDate } from '@/utils/formatters'
 import { useGroupDetail } from '@/composables/groups/useGroupDetail'
 
@@ -44,35 +47,7 @@ const {
       <!-- Main Content -->
       <div class="flex-1 min-w-0">
         <!-- Group Header -->
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 mb-6">
-          <div class="h-48 relative overflow-hidden rounded-t-2xl">
-            <img :src="group.coverImage" class="w-full h-full object-cover" />
-            <div class="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-          </div>
-          <div class="px-6 pb-6">
-            <div class="flex items-start gap-4 -mt-10 relative z-10">
-              <img :src="group.avatar" class="w-20 h-20 rounded-2xl ring-4 ring-white dark:ring-surface-800 bg-gray-100 dark:bg-surface-700 shrink-0" />
-              <div class="flex-1 pt-12">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ group.name }}</h1>
-                  <span :class="['flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium', group.isPublic ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400']">
-                    <Globe v-if="group.isPublic" :size="10" /> <Lock v-else :size="10" />
-                    {{ group.isPublic ? 'Công khai' : 'Riêng tư' }}
-                  </span>
-                </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ group.description }}</p>
-              </div>
-              <button class="shrink-0 mt-12 px-4 py-2 rounded-xl text-sm font-medium bg-primary-500/10 text-primary-500 hover:bg-primary-500 hover:text-white transition-all">
-                {{ group.isJoined ? 'Đã tham gia' : 'Tham gia' }}
-              </button>
-            </div>
-
-            <div class="flex items-center gap-6 mt-6 pt-4 border-t border-gray-200 dark:border-surface-700 text-sm text-gray-400">
-              <span class="flex items-center gap-1"><Users :size="14" /> {{ group.membersCount.toLocaleString() }} thành viên</span>
-              <span class="flex items-center gap-1"><FileText :size="14" /> {{ group.postsCount }} bài viết</span>
-            </div>
-          </div>
-        </div>
+        <GroupHeader :group="group" />
 
         <!-- Tabs -->
         <div class="flex gap-1 mb-6 bg-white dark:bg-surface-800 rounded-xl border border-gray-200 dark:border-surface-700 p-1">
@@ -87,21 +62,7 @@ const {
             <Skeleton v-for="i in 3" :key="i" class="h-32 w-full rounded-2xl" />
           </div>
           <div v-else-if="posts.length" class="space-y-4">
-            <article v-for="post in posts.slice(0, 5)" :key="post.id" @click="router.push(`/posts/${post.id}`)"
-              class="flex gap-4 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 hover:border-primary-500/30 transition-all cursor-pointer group">
-              <img :src="post.coverImage" class="hidden sm:block w-28 h-20 rounded-xl object-cover shrink-0" />
-              <div class="flex-1">
-                <h3 class="font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors line-clamp-2 mb-1">{{ post.title }}</h3>
-                <p class="text-sm text-gray-400 line-clamp-1">{{ post.excerpt }}</p>
-                <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                  <UserAvatar :user="post.author" size="sm" />
-                  <span>{{ post.author.name }}</span>
-                  <span class="flex items-center gap-1"><Eye :size="12" /> {{ post.viewsCount }}</span>
-                  <span class="flex items-center gap-1"><ArrowUp :size="12" /> {{ post.upvotesCount }}</span>
-                  <span class="flex items-center gap-1"><MessageCircle :size="12" /> {{ post.commentsCount }}</span>
-                </div>
-              </div>
-            </article>
+            <GroupCompactPost v-for="post in posts.slice(0, 5)" :key="post.id" :post="post" />
           </div>
           <div v-else class="text-center py-12 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700">
             <FileText :size="48" class="mx-auto text-gray-300 mb-4" />
@@ -155,67 +116,7 @@ const {
       </div>
 
       <!-- Sidebar -->
-      <aside class="w-full lg:w-80 shrink-0 space-y-5">
-        <!-- Thông tin nhóm -->
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
-          <h3 class="font-bold text-gray-900 dark:text-white mb-3">📊 Thống kê</h3>
-          <div class="space-y-3 text-sm">
-            <div class="flex justify-between">
-              <span class="text-gray-500">Thành viên</span>
-              <span class="font-semibold text-gray-900 dark:text-white">{{ group.membersCount.toLocaleString() }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Bài viết</span>
-              <span class="font-semibold text-gray-900 dark:text-white">{{ group.postsCount }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Ngày tạo</span>
-              <span class="font-semibold text-gray-900 dark:text-white">{{ formatDate(group.createdAt) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quản trị viên -->
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
-          <h3 class="font-bold text-gray-900 dark:text-white mb-3">👑 Quản trị viên</h3>
-          <div class="flex items-center gap-3">
-            <UserAvatar :user="group.owner" size="md" class="ring-2 ring-primary-500/30" />
-            <div>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ group.owner.name }}</p>
-              <p class="text-xs text-gray-400">{{ group.owner.postsCount }} bài viết</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Thành viên nổi bật -->
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
-          <h3 class="font-bold text-gray-900 dark:text-white mb-3">⭐ Thành viên nổi bật</h3>
-          <div v-if="isUsersLoading" class="space-y-3">
-            <Skeleton v-for="i in 4" :key="i" class="h-10 w-full rounded-lg" />
-          </div>
-          <div v-else-if="users.length" class="space-y-3">
-            <div v-for="user in users.slice(0, 4)" :key="user.id" class="flex items-center gap-3">
-              <UserAvatar :user="user" size="sm" />
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ user.name }}</p>
-                <p class="text-xs text-gray-400">{{ user.postsCount }} bài viết</p>
-              </div>
-            </div>
-          </div>
-          <div v-else class="text-sm text-gray-500 text-center py-4">Chưa có thành viên</div>
-        </div>
-
-        <!-- Quy tắc nhóm -->
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
-          <h3 class="font-bold text-gray-900 dark:text-white mb-3">📜 Quy tắc nhóm</h3>
-          <ol class="space-y-2 text-sm text-gray-500">
-            <li class="flex gap-2"><span class="text-primary-500 font-bold">1.</span> Tôn trọng lẫn nhau</li>
-            <li class="flex gap-2"><span class="text-primary-500 font-bold">2.</span> Không spam, quảng cáo</li>
-            <li class="flex gap-2"><span class="text-primary-500 font-bold">3.</span> Bài viết phải có nội dung chất lượng</li>
-            <li class="flex gap-2"><span class="text-primary-500 font-bold">4.</span> Gắn tag phù hợp với nội dung</li>
-          </ol>
-        </div>
-      </aside>
+      <GroupSidebar :group="group" :users="users" :is-users-loading="isUsersLoading" />
     </div>
   </div>
 </template>

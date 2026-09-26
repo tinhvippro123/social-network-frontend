@@ -12,11 +12,13 @@ export function useTrendingPosts() {
   const sidebarLoading = ref(true)
 
   const allTrendingPosts = computed(() => {
-    let sorted = [...posts.value].sort((a, b) => {
-      const scoreA = a.upvotesCount * 3 + a.viewsCount + a.commentsCount * 2
-      const scoreB = b.upvotesCount * 3 + b.viewsCount + b.commentsCount * 2
-      return scoreB - scoreA
-    })
+    let sorted = posts.value
+      .map(p => ({
+        ...p,
+        score: (p.upvotesCount ?? 0) * 3 + p.viewsCount + p.commentsCount * 2
+      }))
+      .sort((a, b) => b.score - a.score)
+
     if (selectedCategory.value !== 'all') {
       sorted = sorted.filter(p => p.category.slug === selectedCategory.value)
     }
@@ -30,7 +32,7 @@ export function useTrendingPosts() {
     posts.value.reduce((sum, p) => sum + p.viewsCount, 0)
   )
   const totalUpvotes = computed(() =>
-    posts.value.reduce((sum, p) => sum + p.upvotesCount, 0)
+    posts.value.reduce((sum, p) => sum + (p.upvotesCount ?? 0), 0)
   )
 
   const loadMore = async () => {
