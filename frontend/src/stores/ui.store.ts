@@ -10,7 +10,7 @@ import notificationsApi from '@/api/notifications.api'
 
 export const useUiStore = defineStore('ui', () => {
   // ── Theme ──────────────────────────────────
-  const isDark = ref(true)
+  const isDark = ref(false)
 
   function toggleTheme() {
     isDark.value = !isDark.value
@@ -20,7 +20,7 @@ export const useUiStore = defineStore('ui', () => {
 
   function initTheme() {
     const saved = localStorage.getItem(STORAGE_KEYS.THEME)
-    isDark.value = saved ? saved === 'dark' : true
+    isDark.value = saved ? saved === 'dark' : false
     document.documentElement.classList.toggle('dark', isDark.value)
   }
 

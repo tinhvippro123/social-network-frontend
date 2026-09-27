@@ -274,7 +274,20 @@ export function useChatView() {
   }
 
   const isLastOwnWithReadStatus = (msg: ChatMessage) => {
-    return msg.isOwn && msg.status === 'read' && msg.id === lastOwnMessage.value?.id
+    if (!msg.isOwn || msg.status !== 'read') return false
+    
+    // Find the last own message that was read
+    const ownReadMessages = messages.value.filter(m => m.isOwn && m.status === 'read')
+    if (ownReadMessages.length === 0) return false
+    const lastOwnReadMsg = ownReadMessages[ownReadMessages.length - 1]
+    
+    if (msg.id !== lastOwnReadMsg.id) return false
+    
+    // Do not show read receipt if the other person has already replied after this message
+    const msgIndex = messages.value.findIndex(m => m.id === msg.id)
+    const hasOtherMessageAfter = messages.value.slice(msgIndex + 1).some(m => !m.isOwn)
+    
+    return !hasOtherMessageAfter
   }
 
   return {

@@ -24,17 +24,9 @@ const inlineReplyContent = ref('')
 const mainComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
 
 const handleReplyClick = (targetId: string, rootCommentId: string, authorName: string) => {
-  if (window.innerWidth < 640) {
-    emit('setReplyingTo', targetId, authorName)
-    inlineReplyId.value = null
-    setTimeout(() => {
-      commentInputRef.value?.focus()
-    }, 50)
-  } else {
-    emit('clearReplyingTo')
-    inlineReplyId.value = targetId
-    inlineReplyContent.value = ''
-  }
+  emit('clearReplyingTo')
+  inlineReplyId.value = targetId
+  inlineReplyContent.value = ''
 }
 
 const cancelReply = () => {
@@ -64,10 +56,7 @@ const cancelInlineReply = () => {
       Bình luận ({{ comments.length }})
     </h3>
 
-    <textarea
-      ref="commentInputRef"
-      class="hidden"
-    ></textarea>
+
     <div class="flex items-start gap-3 w-full mb-6">
       <UserAvatar v-if="user" :user="user" size="md" class="shrink-0 hidden sm:block" />
       <CommentComposer

@@ -8,11 +8,13 @@ if (!chatState) {
 }
 
 const {
+  rightSidebarView,
   activeMediaTab,
   groupedSharedMedia,
   groupedSharedFiles,
   formatMessageTime,
-  downloadFile
+  downloadFile,
+  imagePreview
 } = chatState
 </script>
 
@@ -22,7 +24,7 @@ const {
     <div class="sticky top-0 z-10 bg-white dark:bg-surface-800">
       <!-- Header -->
       <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-surface-700">
-        <button @click="chatState.rightSidebarView = 'info'" class="p-1.5 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+        <button @click="rightSidebarView = 'info'" class="p-1.5 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
           <ArrowLeftIcon :size="20" />
         </button>
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">File phương tiện và file</h3>
@@ -31,20 +33,20 @@ const {
       <!-- Tabs -->
       <div class="flex px-2 pt-2 border-b border-gray-100 dark:border-surface-700">
         <button 
-          @click="chatState.activeMediaTab = 'media'" 
-          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', chatState.activeMediaTab === 'media' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
+          @click="activeMediaTab = 'media'" 
+          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', activeMediaTab === 'media' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
         >
           File phương tiện
         </button>
         <button 
-          @click="chatState.activeMediaTab = 'files'" 
-          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', chatState.activeMediaTab === 'files' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
+          @click="activeMediaTab = 'files'" 
+          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', activeMediaTab === 'files' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
         >
           File
         </button>
         <button 
-          @click="chatState.activeMediaTab = 'links'" 
-          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', chatState.activeMediaTab === 'links' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
+          @click="activeMediaTab = 'links'" 
+          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', activeMediaTab === 'links' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
         >
           Liên kết
         </button>
@@ -54,7 +56,7 @@ const {
     <!-- Body -->
     <div class="flex-1 p-4 space-y-6 overflow-y-auto">
       <!-- TAB: MEDIA -->
-      <div v-if="chatState.activeMediaTab === 'media'">
+      <div v-if="activeMediaTab === 'media'">
         <div v-if="groupedSharedMedia.length === 0" class="text-center text-xs text-gray-400 py-10">Chưa có ảnh/video nào</div>
         <div v-for="group in groupedSharedMedia" :key="group.date" class="mb-4">
           <p class="text-xs font-semibold text-gray-900 dark:text-white mb-2">{{ group.date }}</p>
@@ -65,14 +67,14 @@ const {
               :src="media.imageUrl"
               alt=""
               class="w-full aspect-square object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity border border-gray-100 dark:border-surface-700"
-              @click="chatState.imagePreview = media.imageUrl || null"
+              @click="imagePreview = media.imageUrl || null"
             />
           </div>
         </div>
       </div>
 
       <!-- TAB: FILES -->
-      <div v-else-if="chatState.activeMediaTab === 'files'">
+      <div v-else-if="activeMediaTab === 'files'">
         <div v-if="groupedSharedFiles.length === 0" class="text-center text-xs text-gray-400 py-10">Chưa có file nào</div>
         <div v-for="group in groupedSharedFiles" :key="group.date" class="mb-4">
           <p class="text-xs font-semibold text-gray-900 dark:text-white mb-2">{{ group.date }}</p>
@@ -98,7 +100,7 @@ const {
       </div>
 
       <!-- TAB: LINKS -->
-      <div v-else-if="chatState.activeMediaTab === 'links'">
+      <div v-else-if="activeMediaTab === 'links'">
         <div class="text-center text-xs text-gray-400 py-10">Chưa có liên kết nào được chia sẻ</div>
       </div>
     </div>

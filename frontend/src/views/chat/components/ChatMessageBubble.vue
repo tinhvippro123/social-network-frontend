@@ -56,11 +56,13 @@ const groupedReactions = computed(() => {
   <div class="flex items-end gap-2 max-w-[85%] sm:max-w-[70%] relative">
     <UserAvatar v-if="!msg.isOwn" :user="msg.sender" size="sm" class="shrink-0 mb-1" />
 
-    <div class="relative group/bubble flex items-center gap-2">
-      <div :class="[
-        'relative px-4 py-2.5 rounded-2xl shadow-sm border text-[15px] leading-relaxed',
-        msg.isRevoked ? 'bg-gray-100 dark:bg-surface-800 text-gray-500 italic border-gray-200 dark:border-surface-700' :
-        msg.isOwn ? 'bg-primary-500 text-white border-primary-600 rounded-br-sm' : 'bg-white dark:bg-surface-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-surface-700 rounded-bl-sm',
+    <div class="flex flex-col" :class="msg.isOwn ? 'items-end' : 'items-start'">
+      <div class="relative group/bubble flex items-center gap-2">
+        <div :class="[
+        'relative rounded-2xl text-[15px] leading-relaxed',
+        (msg.type === 'image' && !msg.content) ? '' : 'px-4 py-2.5 shadow-sm border',
+        (msg.type === 'image' && !msg.content) ? '' : (msg.isRevoked ? 'bg-gray-100 dark:bg-surface-800 text-gray-500 italic border-gray-200 dark:border-surface-700' :
+        msg.isOwn ? 'bg-primary-500 text-white border-primary-600 rounded-br-sm' : 'bg-white dark:bg-surface-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-surface-700 rounded-bl-sm'),
         searchResults.find((r: any) => r.id === msg.id) ? 'ring-2 ring-yellow-400 ring-offset-2 dark:ring-offset-surface-900' : ''
       ]">
         <!-- Revoked message -->
@@ -74,9 +76,9 @@ const groupedReactions = computed(() => {
           <p v-if="msg.type === 'text'" class="wrap-break-word whitespace-pre-wrap">{{ msg.content }}</p>
 
           <!-- Image message -->
-          <div v-else-if="msg.type === 'image'" class="space-y-2">
-            <img :src="msg.imageUrl" alt="Attachment" class="max-w-60 sm:max-w-xs rounded-xl cursor-pointer hover:opacity-95 transition-opacity border border-black/5" @click="viewImage(msg.imageUrl!)" />
-            <p v-if="msg.content" class="text-sm">{{ msg.content }}</p>
+          <div v-else-if="msg.type === 'image'" class="space-y-1">
+            <img :src="msg.imageUrl" alt="Attachment" class="max-w-full sm:max-w-xs cursor-pointer hover:opacity-95 transition-opacity object-cover border border-black/5" :class="[msg.isOwn ? (msg.content ? 'rounded-xl' : 'rounded-2xl rounded-br-sm') : (msg.content ? 'rounded-xl' : 'rounded-2xl rounded-bl-sm')]" @click="viewImage(msg.imageUrl!)" />
+            <p v-if="msg.content" class="text-sm px-1.5 pb-1 pt-1">{{ msg.content }}</p>
           </div>
 
           <!-- File message -->
@@ -95,8 +97,8 @@ const groupedReactions = computed(() => {
         </template>
 
         <!-- Time + Status -->
-        <div class="flex items-center justify-end gap-1.5 mt-1 opacity-70">
-          <span class="text-[10px] whitespace-nowrap">{{ formatMessageTime(msg.timestamp).split(' ')[1] }}</span>
+        <div class="flex items-center justify-end gap-1.5 mt-1" :class="[msg.type === 'image' && !msg.content ? 'px-1 opacity-60 text-gray-500 dark:text-gray-400' : 'opacity-70']">
+          <span class="text-[10px] whitespace-nowrap">{{ formatMessageTime(msg.timestamp || msg.createdAt).split(' ')[1] }}</span>
           <!-- Message status for own messages -->
           <template v-if="msg.isOwn">
             <CheckIcon v-if="msg.status === 'sent' || msg.status === 'delivered'" :size="12" />
@@ -126,29 +128,30 @@ const groupedReactions = computed(() => {
       />
     </div>
 
-    <!-- Read receipt avatar (only on last own read message) -->
-    <div v-if="isLastOwnWithReadStatus(msg)" class="flex justify-end mt-1">
-      <div class="flex items-center -space-x-1">
-        <template v-if="msg.readBy && msg.readBy.length > 0">
+      <!-- Read receipt avatar (only on last own read message) -->
+      <div v-if="isLastOwnWithReadStatus(msg)" class="mt-1">
+        <div class="flex items-center -space-x-1">
+          <template v-if="msg.readBy && msg.readBy.length > 0">
+            <UserAvatar
+              v-for="reader in msg.readBy.slice(0, 3)"
+              :key="reader.user.id"
+              :user="reader.user"
+              class="w-5 h-5 ring-[1.5px] ring-white dark:ring-surface-800 relative z-10 cursor-default"
+              size="sm"
+              :title="reader.user.name"
+            />
+            <div v-if="msg.readBy.length > 3" :title="msg.readBy.slice(3).map(r => r.user.name).join(', ')" class="w-5 h-5 rounded-full bg-gray-200 dark:bg-surface-700 flex items-center justify-center text-[9px] font-semibold text-gray-600 dark:text-gray-300 ring-[1.5px] ring-white dark:ring-surface-800 relative z-0 cursor-default">
+              +{{ msg.readBy.length - 3 }}
+            </div>
+          </template>
           <UserAvatar
-            v-for="reader in msg.readBy.slice(0, 3)"
-            :key="reader.user.id"
-            :user="reader.user"
-            class="w-5 h-5 ring-[1.5px] ring-white dark:ring-surface-800 relative z-10 cursor-default"
+            v-else-if="selectedConversation"
+            :user="selectedConversation.participants[1]"
+            class="w-5 h-5 cursor-default ring-[1.5px] ring-white dark:ring-surface-800"
             size="sm"
-            :title="reader.user.name"
+            :title="selectedConversation.participants[1].name"
           />
-          <div v-if="msg.readBy.length > 3" :title="msg.readBy.slice(3).map(r => r.user.name).join(', ')" class="w-5 h-5 rounded-full bg-gray-200 dark:bg-surface-700 flex items-center justify-center text-[9px] font-semibold text-gray-600 dark:text-gray-300 ring-[1.5px] ring-white dark:ring-surface-800 relative z-0 cursor-default">
-            +{{ msg.readBy.length - 3 }}
-          </div>
-        </template>
-        <UserAvatar
-          v-else-if="selectedConversation"
-          :user="selectedConversation.participants[1]"
-          class="w-5 h-5 cursor-default ring-[1.5px] ring-white dark:ring-surface-800"
-          size="sm"
-          :title="selectedConversation.participants[1].name"
-        />
+        </div>
       </div>
     </div>
   </div>

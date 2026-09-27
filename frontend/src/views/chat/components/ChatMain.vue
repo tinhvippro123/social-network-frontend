@@ -120,22 +120,29 @@ const getFileIcon = (fileName: string) => {
       <!-- Messages -->
       <div
         ref="chatContainer"
-        class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 dark:bg-surface-900/50 relative scroll-smooth"
+        class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 dark:bg-surface-900/50 relative"
         @scroll="handleScroll"
       >
-        <div v-if="isLoading" class="flex justify-center py-4">
-          <div class="flex gap-1">
-            <span class="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style="animation-delay: 0ms" />
-            <span class="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style="animation-delay: 150ms" />
-            <span class="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style="animation-delay: 300ms" />
+        <div v-if="isLoading" class="space-y-4 py-4">
+          <!-- Fake skeleton messages -->
+          <div class="flex items-end gap-2 max-w-[70%]">
+            <Skeleton type="avatar" class="w-8 h-8 shrink-0" rounded="rounded-full" />
+            <Skeleton type="text" class="h-12 w-48 rounded-2xl rounded-bl-sm" />
+          </div>
+          <div class="flex items-end gap-2 max-w-[70%] ml-auto justify-end">
+            <Skeleton type="text" class="h-10 w-32 rounded-2xl rounded-br-sm bg-primary-100 dark:bg-primary-900/20" />
+          </div>
+          <div class="flex items-end gap-2 max-w-[70%]">
+            <Skeleton type="avatar" class="w-8 h-8 shrink-0" rounded="rounded-full" />
+            <Skeleton type="text" class="h-16 w-64 rounded-2xl rounded-bl-sm" />
           </div>
         </div>
 
         <template v-else>
           <div v-for="(msg, index) in messages" :key="msg.id">
-            <div v-if="Number(index) === 0 || formatMessageTime(msg.timestamp).split(' ')[0] !== formatMessageTime(messages[Number(index) - 1].timestamp).split(' ')[0]" class="flex justify-center my-6">
+            <div v-if="Number(index) === 0 || formatMessageTime(msg.timestamp || msg.createdAt).split(' ')[0] !== formatMessageTime(messages[Number(index) - 1].timestamp || messages[Number(index) - 1].createdAt).split(' ')[0]" class="flex justify-center my-6">
               <span class="px-3 py-1 bg-gray-200/50 dark:bg-surface-700/50 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400">
-                {{ formatMessageTime(msg.timestamp).split(' ')[0] }}
+                {{ formatMessageTime(msg.timestamp || msg.createdAt).split(' ')[0] }}
               </span>
             </div>
 
@@ -150,16 +157,16 @@ const getFileIcon = (fileName: string) => {
               <!-- Message bubble -->
               <ChatMessageBubble :msg="msg" />
             </div>
+          </div>
 
-            <!-- Typing indicator -->
-            <div v-if="isTyping" class="flex items-end gap-2 mt-2">
-              <UserAvatar :user="selectedConversation?.participants.find((p: any) => p.name === typingUser) || selectedConversation?.participants[1]" size="sm" class="w-7 h-7 shrink-0" />
-              <div class="bg-white dark:bg-surface-800 rounded-2xl rounded-bl-md px-4 py-3 border border-gray-200 dark:border-surface-700">
-                <div class="flex gap-1">
-                  <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms" />
-                  <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms" />
-                  <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms" />
-                </div>
+          <!-- Typing indicator -->
+          <div v-if="isTyping" class="flex items-end gap-2 mt-2">
+            <UserAvatar :user="selectedConversation?.participants.find((p: any) => p.name === typingUser) || selectedConversation?.participants[1]" size="sm" class="w-7 h-7 shrink-0" />
+            <div class="bg-white dark:bg-surface-800 rounded-2xl rounded-bl-md px-4 py-3 border border-gray-200 dark:border-surface-700">
+              <div class="flex gap-1">
+                <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms" />
+                <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms" />
+                <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms" />
               </div>
             </div>
           </div>

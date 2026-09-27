@@ -88,21 +88,22 @@
           </button>
         </div>
 
-        <!-- Inline Reply Box -->
-        <div v-if="inlineReplyId === comment.id" class="flex items-start gap-2 sm:gap-3 mt-2 sm:mt-3 animate-slide-down">
-          <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0" :class="level === 0 ? 'w-8! h-8!' : 'w-6! h-6!'" />
-          <div v-else class="rounded-full bg-gray-200 dark:bg-surface-700 shrink-0" :class="level === 0 ? 'w-8 h-8' : 'w-6 h-6'"></div>
-          <CommentComposer
-            ref="inlineComposerRef"
-            :placeholder="`Trả lời @${comment.author.name}...`"
-            :auto-focus="true"
-            :compact="true"
-            :show-cancel="true"
-            @submit="handleSubmitReply"
-            @cancel="$emit('cancel-reply')"
-          />
-        </div>
       </div>
+    </div>
+
+    <!-- Inline Reply Box -->
+    <div v-if="inlineReplyId === comment.id" class="flex items-start gap-2 sm:gap-3 mt-3 animate-slide-down">
+      <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0" :class="level === 0 ? 'w-8! h-8!' : 'w-6! h-6!'" />
+      <div v-else class="rounded-full bg-gray-200 dark:bg-surface-700 shrink-0" :class="level === 0 ? 'w-8 h-8' : 'w-6 h-6'"></div>
+      <CommentComposer
+        ref="inlineComposerRef"
+        :placeholder="`Trả lời @${comment.author.name}...`"
+        :auto-focus="true"
+        :compact="true"
+        :show-cancel="true"
+        @submit="handleSubmitReply"
+        @cancel="$emit('cancel-reply')"
+      />
     </div>
     
     <!-- Recursive Sub-replies -->

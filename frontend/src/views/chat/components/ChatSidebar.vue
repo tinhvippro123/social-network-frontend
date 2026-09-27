@@ -115,17 +115,16 @@ const {
                 <BellOffIcon v-if="conv.isMuted" :size="12" class="text-gray-400 shrink-0" />
               </div>
               <span class="text-xs text-gray-500 shrink-0 ml-2">
-                {{ formatMessageTime(conv.lastMessage.timestamp) }}
+                {{ formatMessageTime(conv.lastMessageTime) }}
               </span>
             </div>
             <div class="flex items-center justify-between mt-0.5">
               <div class="flex items-center gap-1 min-w-0">
-                <span v-if="conv.lastMessage.isOwn" class="text-xs text-gray-500 shrink-0">Bạn:</span>
                 <p :class="[
                   'text-sm truncate',
                   conv.unreadCount > 0 ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
                 ]">
-                  {{ conv.lastMessage.content }}
+                  {{ conv.lastMessage }}
                 </p>
               </div>
               <span

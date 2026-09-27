@@ -40,12 +40,12 @@ const {
   <Transition
     enter-active-class="transition-all duration-300 ease-out"
     enter-from-class="opacity-0 translate-x-full lg:translate-x-0 lg:w-0"
-    enter-to-class="opacity-100 translate-x-0 lg:w-80"
+    enter-to-class="opacity-100 translate-x-0 lg:w-92"
     leave-active-class="transition-all duration-300 ease-in"
-    leave-from-class="opacity-100 translate-x-0 lg:w-80"
+    leave-from-class="opacity-100 translate-x-0 lg:w-92"
     leave-to-class="opacity-0 translate-x-full lg:translate-x-0 lg:w-0"
   >
-    <aside v-if="showInfoPanel && selectedConversation" class="absolute inset-y-0 right-0 z-40 w-full sm:w-80 lg:relative lg:block shrink-0 bg-white dark:bg-surface-800 border-l border-gray-200 dark:border-surface-700 overflow-hidden shadow-2xl lg:shadow-none">
+    <aside v-if="showInfoPanel && selectedConversation" class="absolute inset-y-0 right-0 z-40 w-full sm:w-92 lg:relative lg:block shrink-0 bg-white dark:bg-surface-800 border-l border-gray-200 dark:border-surface-700 overflow-hidden shadow-2xl lg:shadow-none">
       
       <!-- View: Info Default -->
       <div v-if="rightSidebarView === 'info'" class="h-full overflow-y-auto">
