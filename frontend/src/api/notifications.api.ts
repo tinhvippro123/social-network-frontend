@@ -8,7 +8,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const notificationsApi = {
   getAll: async () => {
     await delay(500)
-    return { data: { data: mockNotifications, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<Notification[]> }>
+    return { data: { data: mockNotifications, success: true, message: 'Success' } } as { data: ApiResponse<Notification[]> }
   },
 }
 

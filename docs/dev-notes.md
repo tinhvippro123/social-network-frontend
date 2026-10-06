@@ -6,6 +6,13 @@
 
 ## 📅 Session Logs
 
+
+### Session 8: Final Polish & Anti-pattern Eradication (2026-09-08)
+- **Tách UI & Logic triệt để (Clean Architecture):** Di chuyển toàn bộ logic vòng đời (onMounted, onUnmounted) và khai báo state từ các file .vue sang composables/. Đảm bảo các View và Layout component chỉ làm nhiệm vụ render giao diện.
+- **Loại bỏ hoàn toàn God Store:** Xóa sổ pp.ts (Proxy wrapper) sau khi đã refactor xong toàn bộ component. Chuyển đổi toàn bộ truy xuất qua ui.store và uth.store để đạt hiệu suất và cấu trúc chuẩn.
+- **Chuẩn hóa API Mock Layer:** Fix toàn bộ mock API (posts, groups, users,...) trả về cấu trúc { success: true, data: ... } chuẩn theo ApiResponse (thay vì dùng status: 200 sai lệch). Tiêu diệt toàn bộ các đoạn typecast s unknown as Promise... gây ức chế trong mã nguồn.
+- **Sửa linter & cú pháp:** Xóa các import thừa thãi, sửa vị trí khai báo import chuẩn ES Modules, và fix các lỗi chuỗi nháy \'vue\' trong Composables. Dự án đạt 100% type-safe.
+
 ### Session 7: GIS/Map Enhancement & Real-world Use Cases (2026-09-06)
 - **Nâng cấp Mock Data:** Bổ sung trường `eventStartTime` và `eventEndTime` vào model `Post`. Cập nhật `mockData.ts` với 4 danh mục cộng đồng mới (Tìm trọ, Pass đồ, Review địa điểm, Sự kiện) kèm theo toạ độ (lat, lng) thực tế để phục vụ chức năng bản đồ.
 - **Nâng cấp Giao diện Bản đồ (`MapView.vue`):** Bổ sung bộ lọc danh mục (Chip Filters) hỗ trợ cuộn ngang linh hoạt. Thay thế marker mặc định bằng Emoji Markers (🏠, 🛒, 📍, 🎉) tương ứng với từng loại bài viết để cải thiện UX/UI trực quan. 
@@ -92,6 +99,51 @@
 ### DD-006: Tránh Fetch Tuần tự (Sequential) nếu không cần thiết
 - **Quyết định**: Sử dụng `Promise.all()` để tải đồng thời các luồng dữ liệu độc lập nhau trên cùng một trang (ví dụ: Chi tiết bài viết, Bình luận, Bài viết liên quan).
 - **Lý do**: Giảm thiểu thời gian tải trang theo cấp số nhân. Thay vì chờ tổng thời gian của các request cộng lại, trang web chỉ mất thời gian bằng request chậm nhất.
+
+### DD-010: Áp dụng triệt để Clean Architecture (Tách Logic khỏi UI)
+- **Quyết định**: Bắt buộc mọi logic xử lý vòng đời (`onMounted`, `onUnmounted`) và thao tác DOM phải nằm trong `composables/`. Các file Component (`.vue`) chỉ đóng vai trò "Dumb Component" (nhận dữ liệu và hiển thị).
+- **Lý do**: Khi dự án lớn lên, nếu nhét toàn bộ logic vào `.vue` sẽ gây ra tình trạng "Spaghetti Code", cực kỳ khó tái sử dụng và bảo trì. Chuyển logic sang composables giúp Component nhẹ nhàng và dễ đọc hơn 10 lần.
+> ```ts
+> // ❌ CŨ: Component ôm đồm quá nhiều logic vòng đời
+> // File: Component.vue
+> import { onMounted, onUnmounted } from 'vue'
+> onMounted(() => { window.addEventListener('resize', handleResize) })
+> onUnmounted(() => { window.removeEventListener('resize', handleResize) })
+> 
+> // ✅ MỚI: Logic được bọc kín gọn gàng trong Composable
+> // File: useLayout.ts -> chứa onMounted, onUnmounted
+> // File: Component.vue
+> import { useLayout } from '@/composables/useLayout'
+> const { ... } = useLayout() // 1 dòng duy nhất, component không cần quan tâm logic bên trong
+> ```
+
+### DD-011: Khai tử "God Store" (Xóa app.ts)
+- **Quyết định**: Gỡ bỏ hoàn toàn file `src/stores/app.ts` (một Proxy Wrapper ôm đồm tất cả mọi thứ) và ép các components gọi trực tiếp đến các store chuyên biệt (`ui.store.ts` và `auth.store.ts`).
+- **Lý do**: "God Store" vi phạm nguyên tắc Single Responsibility (Đơn trách nhiệm). Bằng cách xóa `app.ts`, hệ thống giờ đây đạt chuẩn Decoupling hoàn toàn: Giao diện gọi `uiStore`, xác thực gọi `authStore`. Mọi linter errors và bugs template cũng được xử lý dứt điểm.
+> ```ts
+> // ❌ CŨ: Phụ thuộc vào một God Store duy nhất
+> import { useAppStore } from '@/stores/app'
+> const appStore = useAppStore()
+> const user = appStore.user // Truy cập chéo logic Auth
+> appStore.toggleTheme()     // Truy cập chéo logic UI
+> 
+> // ✅ MỚI: Phân tách Domain rạch ròi
+> import { useAuthStore } from '@/stores/auth.store'
+> import { useUiStore } from '@/stores/ui.store'
+> const { user } = useAuthStore()
+> const { toggleTheme } = useUiStore()
+> ```
+
+### DD-012: Chuẩn hóa Schema Trả về API (Loại bỏ Ép Kiểu)
+- **Quyết định**: Chuẩn hóa toàn bộ Mock API trả về đúng schema `{ success: boolean, data: T, message: string }` của Axios Interceptors, từ chối việc trả về sai schema rồi dùng `as unknown as Promise` để qua mặt TypeScript.
+- **Lý do**: Ép kiểu vô tội vạ làm mất đi giá trị của TypeScript và che giấu bug tiềm ẩn.
+> ```ts
+> // ❌ CŨ: Mock data sai cấu trúc Backend quy định, phải ép kiểu để lấp liếm
+> return { data: { data: group, status: 200 } } as unknown as Promise<{ data: ApiResponse<Group> }>
+> 
+> // ✅ MỚI: Trả về chuẩn cấu trúc ApiResponse, type-safe 100% không cần ép kiểu
+> return { data: { data: group, success: true } } as { data: ApiResponse<Group> }
+> ```
 
 ### DD-007: Đồng bộ hóa Skeleton & Empty States
 - **Quyết định**: Bắt buộc thiết kế Trạng thái trống (Empty State) cho tất cả các danh sách có thể rỗng (Thông báo, Tin nhắn, Nhóm). Các Skeleton Loading của những component gần nhau (như 2 cột trong Chat) phải được đồng bộ xuất hiện và biến mất cùng lúc.
@@ -291,3 +343,60 @@ View (UI) → Composable (Logic) → API Service (Endpoint) → HTTP Client (Axi
 - [ ] Viết REST API CRUD Bài viết & Danh mục.
 - [ ] Thay thế mock data trên frontend bằng `axios` / `fetch` gọi API thật.
 - [ ] Bổ sung Vue Router navigation guards.
+
+### Session 9: UI/UX Polish and Performance Optimization (2026-09-17)
+
+#### 1. Nested Comments UI (PostDetailView)
+- **Vấn đề:** Khung nhập Reply (Inline Reply) bị render lặp lại nhiều lần do nằm bên trong vòng lặp đệ quy của danh sách bình luận (lồng vào nhau quá sâu), gây lỗi hiển thị chồng chéo Skeleton và form.
+- **Design Decision:** Flatten (làm phẳng) logic hiển thị khung Reply. Thay vì nhúng form đệ quy theo từng bình luận con, ta đặt form duy nhất ở cuối của luồng thảo luận (thread). 
+- **Giải pháp Code:** Dịch chuyển khối code `<div v-if="inlineReplyId === ...">` ra khỏi vòng lặp đệ quy (chuyển nó thành thẻ anh em - sibling thay vì thẻ con - child). Đảm bảo mỗi nhánh bình luận chỉ tồn tại 1 box reply ở dưới đáy.
+
+#### 2. Bookmarks Loading Fix (useBookmarks & usePosts)
+- **Vấn đề:** Khi mở trang Đã lưu, khung loading Skeleton của trang chính bị chớp tắt 2 lần. Nguyên nhân là do `fetchPosts()` và `fetchPopularTags()` được gọi tuần tự (`await`) và cả 2 đều kích hoạt chung một biến trạng thái toàn cục `isLoading`.
+- **Design Decision:** Phải tách rời Loading State của nội dung chính (Main Feed) và nội dung phụ (Sidebar). Đồng thời, tối ưu hoá thời gian tải bằng cách gọi API song song (Concurrent fetching).
+- **Giải pháp Code:** 
+  - *Code cũ:* Gọi tuần tự `await fetchPosts(); await fetchPopularTags();` gây block lẫn nhau.
+  - *Code mới:* 
+    1. Gom API lại bằng `await Promise.all([fetchPosts(), fetchPopularTags()])`.
+    2. Ở file `usePosts.ts`, gỡ bỏ wrapper `execute()` ra khỏi hàm `fetchPopularTags()`, thay bằng `try-catch` thông thường để nó trở thành tiến trình chạy ngầm thuần túy, không kích hoạt chớp nháy biến `isLoading` của giao diện chính nữa.
+
+#### 3. Chat UX Scroll Fix (useChatView)
+- **Vấn đề:** Khi vừa bấm mở 1 đoạn Chat, người dùng thấy giao diện bị khựng lại, sau đó tin nhắn trượt dài từ trên xuống đáy (visual jump/jerk). Nguyên nhân do `setTimeout(150ms)` thừa thãi, API `markAsRead` block tiến trình render, và hiệu ứng cuộn mượt (`behavior: 'smooth'`) mặc định bị lạm dụng.
+- **Design Decision:** (1) Trải nghiệm mở Chat chuẩn mực phải là màn hình luôn xuất hiện LẬP TỨC ở vị trí tin nhắn mới nhất (dưới đáy) không có hiệu ứng trượt. Hiệu ứng trượt chỉ dùng khi người dùng tự thao tác tay hoặc có tin nhắn mới tới. (2) Chuyển các tác vụ đồng bộ không liên quan UI thành tác vụ chạy ngầm (Fire & Forget).
+- **Giải pháp Code:**
+  - *Code cũ:* 
+    ```typescript
+    await markAsRead(conv.id) // Đợi API 100ms
+    await nextTick()
+    setTimeout(scrollToBottom, 100) // Đợi thêm 100ms, hàm này fix cứng behavior: 'smooth'
+    ```
+  - *Code mới:* 
+    1. Cập nhật hàm `scrollToBottom(smooth: boolean = true)` để cho phép vô hiệu hóa cuộn mượt.
+    2. Bỏ `await` và `setTimeout`:
+    ```typescript
+    await fetchMessages(conv.id)
+    await nextTick()
+    scrollToBottom(false) // Tắt hiệu ứng mượt, nhảy bụp lập tức xuống cuối ngay sau khi render
+    markAsRead(conv.id)   // Fire and forget (Bắn và quên, không block UI)
+    ```
+ 
+ # # #   S e s s i o n :   C o m m e n t   C o m p o n e n t   R e f a c t o r i n g   ( 2 0 2 6 - 0 9 - 1 9 )  
+ -   * * T � c h   C o m p o n e n t   ( s r c / c o m p o n e n t s / c o m m e n t s / ) * * :   �   r e f a c t o r   l o g i c   h i �n   t h �  b � n h   l u �n   l �n g   n h a u   t r o n g   P o s t D e t a i l V i e w . v u e   t h � n h   C o m m e n t I t e m . v u e   ( �  q u y )   v �   C o m m e n t C o m p o s e r . v u e .   V i �c   n � y   g i � p   g i �m   h �n   4 0 0   d � n g   m �   l �p   l �i ,   t �i   �u   c �u   t r � c   D O M   v �   d �  d � n g   t � i   s �  d �n g   b �  n h �p   l i �u   ( c o m p o s e r )   v �i   �n h / e m o j i   �  n h i �u   n �i .  
+  
+ # # #   S e s s i o n :   S e t t i n g s   C o m p o n e n t   E x t r a c t i o n   ( 2 0 2 6 - 0 9 - 1 9 )  
+ -   * * T � c h   C o m p o n e n t   ( s r c / v i e w s / s e t t i n g s / t a b s / ) * * :   T � c h   S e t t i n g s V i e w . v u e   ( t r ��c   � y   ~ 4 5 0   d � n g )   t h � n h   5   t a b   r i � n g   b i �t :   P r o f i l e T a b ,   A c c o u n t T a b ,   A p p e a r a n c e T a b ,   N o t i f i c a t i o n s T a b ,   P r i v a c y T a b .   S e t t i n g s V i e w   g i �  � y   s �  d �n g   D y n a m i c   C o m p o n e n t   ( < c o m p o n e n t   : i s > )   �  r e n d e r   c � c   t a b ,   g i � p   c o d e   n g �n   n g �n ,   d �  b �o   t r �   v �   m �  r �n g   t h � m   t a b   m �i   d �  d � n g .  
+  
+ # # #   S e s s i o n :   N o t i f i c a t i o n s   C o m p o n e n t   E x t r a c t i o n   ( 2 0 2 6 - 0 9 - 1 9 )  
+ -   * * T � c h   C o m p o n e n t   ( s r c / c o m p o n e n t s / n o t i f i c a t i o n s / ) * * :   D i   c h u y �n   t o � n   b �  g i a o   d i �n   c �a   1   d � n g   t h � n g   b � o   ( k � m   t h e o   c � c   h � m   t � n h   t o � n   i c o n ,   m � u   s �c   p h �c   t �p )   t �  N o t i f i c a t i o n s V i e w . v u e   s a n g   N o t i f i c a t i o n I t e m . v u e .   V i �c   n � y   g i � p   C o m p o n e n t   c h a   ( N o t i f i c a t i o n s V i e w )   s �c h   s �  v �   c h �  t �p   t r u n g   v � o   v i �c   q u �n   l �   d a n h   s � c h / t r �n g   t h � i .  
+  
+ # # #   S e s s i o n :   P o s t   E d i t o r   E x t r a c t i o n   ( 2 0 2 6 - 0 9 - 1 9 )  
+ -   * * T � c h   C o m p o n e n t   ( s r c / c o m p o n e n t s / p o s t s / P o s t E d i t o r . v u e ) * * :   N h � m   t o � n   b �  g i a o   d i �n   v �   l o g i c   s o �n   t h �o   b � i   v i �t   t �  C r e a t e P o s t V i e w   v �   E d i t P o s t V i e w   v � o   c h u n g   m �t   c o m p o n e n t   P o s t E d i t o r .   S �  d �n g   p r o p   m o d e   ( ' c r e a t e '   |   ' e d i t ' )   v �   i n i t i a l D a t a   �  i �u   k h i �n   h � n h   v i .   C h �m   d �t   t r i �t   �  t � n h   t r �n g   l �p   c o d e   g i �a   2   m � n   h � n h   n � y ,   g i �m   k � c h   t h ��c   v i e w   t �  ~ 1 5 K B   x u �n g   c � n   ~ 1 K B .  
+  
+ # # #   S e s s i o n :   C o m p o s a b l e s   R e o r g a n i z a t i o n   ( 2 0 2 6 - 0 9 - 2 0 )  
+ -   * * Q u y   h o �c h   s r c / c o m p o s a b l e s / * * :   S �p   x �p   l �i   h �n   4 0   f i l e   c o m p o s a b l e s   b �  p h � n   m �n h   t h � n h   7   n h � m   l o g i c   c h � n h :    d m i n ,    u t h ,   c h a t ,   c o r e ,   g r o u p s ,   p o s t s ,   u i .   S �  d �n g   a u t o m a t i o n   s c r i p t   �  t �  �n g   c �p   n h �t   t o � n   b �  p a t h   i m p o r t s   t r o n g   c � c   f i l e   . v u e   v �   . t s   t o � n   d �  � n .   G i � p   t h �  m �c   c o d e   s �c h   s �  v �   c h u �n   E n t e r p r i s e   h �n .  
+  
+ # # #   S e s s i o n :   C h a t V i e w   R e f a c t o r i n g   ( 2 0 2 6 - 0 9 - 2 0 )  
+ -   * * T � c h   C o m p o n e n t   ( C h a t V i e w ) * * :   T r �  d �t   i �m   ' Q u � i   v �t   n g h � n   d � n g '   \ C h a t V i e w . v u e \ .   T � c h   t h � n h   3   t h � n h   p h �n   �c   l �p :   \ C h a t S i d e b a r . v u e \ ,   \ C h a t M a i n . v u e \ ,   v �   \ C h a t I n f o P a n e l . v u e \ .   � p   d �n g   p a t t e r n   \ p r o v i d e / i n j e c t \   �  c h i a   s �  g l o b a l   s t a t e   \ u s e C h a t V i e w \   x u �n g   c � c   c o m p o n e n t s   c o n   m �   k h � n g   c �n   p r o p s   d r i l l i n g .   K �t   q u �:   \ C h a t V i e w . v u e \   g i �m   t �  9 0 9   d � n g   ( 5 0 K B )   x u �n g   c h �  c � n   ~ 6 0   d � n g   ( 2 K B ) ,   s i � u   d �  b �o   t r � .  
+ 
+### Session: Post, Group & Chat Component Extraction (2026-09-20)
+- **Tách Component (ChatMessageBubble, GroupCard, CreateGroupModal, PostAuthorCard)**: Tách các UI components lớn thành các thành phần tái sử dụng. Giảm đáng kể lượng code lặp tại ChatMain.vue, GroupsView.vue và PostDetailView.vue, tăng tính maintainability.

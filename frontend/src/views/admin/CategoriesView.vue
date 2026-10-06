@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { Plus, Edit3, Trash2, GripVertical, FolderTree } from '@lucide/vue'
-import { useCategories } from '@/composables/useCategories'
-import { onMounted } from 'vue'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
+import CategoriesManageSkeletonRow from './components/CategoriesManageSkeletonRow.vue'
+import CategoriesManageRow from './components/CategoriesManageRow.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useAdminCategories } from '@/composables/admin/useAdminCategories'
 
-const { categories, isLoading, fetchCategories } = useCategories()
-
-onMounted(() => {
-  fetchCategories()
-})
-
-const showAddModal = ref(false)
-const newCategoryName = ref('')
-const newCategoryIcon = ref('')
+const {
+  categories,
+  isLoading,
+  showAddModal,
+  newCategoryName,
+  newCategoryIcon,
+  handleAddCategory
+} = useAdminCategories()
 </script>
 
 <template>
@@ -48,54 +47,10 @@ const newCategoryIcon = ref('')
           </thead>
           <tbody>
             <template v-if="isLoading">
-              <tr v-for="i in 5" :key="i" class="border-b border-gray-100 dark:border-surface-700">
-                <td class="px-3 py-4 text-center">
-                  <Skeleton class="w-4 h-4 mx-auto rounded" />
-                </td>
-                <td class="px-5 py-4">
-                  <Skeleton class="w-8 h-8 rounded-lg" />
-                </td>
-                <td class="px-5 py-4">
-                  <Skeleton class="h-4 w-32 rounded" />
-                </td>
-                <td class="px-5 py-4">
-                  <Skeleton class="h-6 w-20 rounded" />
-                </td>
-                <td class="px-5 py-4">
-                  <Skeleton class="h-4 w-16 rounded" />
-                </td>
-                <td class="px-5 py-4 text-right">
-                  <div class="flex items-center justify-end gap-1">
-                    <Skeleton class="w-7 h-7 rounded-lg shrink-0" />
-                    <Skeleton class="w-7 h-7 rounded-lg shrink-0" />
-                  </div>
-                </td>
-              </tr>
+              <CategoriesManageSkeletonRow v-for="i in 5" :key="i" />
             </template>
             <template v-else-if="categories.length">
-              <tr v-for="cat in categories" :key="cat.slug" class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors group">
-              <td class="px-3 py-4 text-center">
-                <GripVertical :size="16" class="text-gray-300 dark:text-surface-600 cursor-grab mx-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-              </td>
-              <td class="px-5 py-4">
-                <span class="text-2xl">{{ cat.icon }}</span>
-              </td>
-              <td class="px-5 py-4">
-                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ cat.name }}</p>
-              </td>
-              <td class="px-5 py-4">
-                <code class="text-xs bg-gray-100 dark:bg-surface-700 px-2 py-1 rounded text-gray-500">{{ cat.slug }}</code>
-              </td>
-              <td class="px-5 py-4">
-                <span class="text-sm text-gray-600 dark:text-gray-400">{{ cat.postsCount }} bài</span>
-              </td>
-              <td class="px-5 py-4 text-right">
-                <div class="flex items-center justify-end gap-1">
-                  <button class="p-1.5 rounded-lg text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:text-blue-500 transition-colors"><Edit3 :size="14" /></button>
-                  <button class="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-500 transition-colors"><Trash2 :size="14" /></button>
-                </div>
-              </td>
-            </tr>
+              <CategoriesManageRow v-for="cat in categories" :key="cat.slug" :category="cat" />
             </template>
             <tr v-else>
               <td colspan="6" class="px-5 py-12 text-center">

@@ -3,16 +3,11 @@
 
 <template>
   <div class="min-h-screen flex items-center justify-center relative overflow-hidden">
-    <!-- Animated Background -->
-    <div class="absolute inset-0 bg-linear-to-br from-surface-900 via-primary-900/50 to-surface-900">
-      <!-- Floating orbs -->
-      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl animate-float" />
-      <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-float" style="animation-delay: 1s;" />
-      <div class="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-500/15 rounded-full blur-3xl animate-float" style="animation-delay: 2s;" />
-
-      <!-- Grid pattern -->
-      <div class="absolute inset-0 opacity-5"
-        style="background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 40px 40px;"
+    <!-- Background -->
+    <div class="absolute inset-0 bg-surface-50 dark:bg-surface-900">
+      <!-- Subtle Grid pattern -->
+      <div class="absolute inset-0 opacity-10 dark:opacity-5"
+        style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 40px 40px;"
       />
     </div>
 

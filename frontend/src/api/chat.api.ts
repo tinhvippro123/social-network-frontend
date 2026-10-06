@@ -21,12 +21,12 @@ export interface SendMessageRequest {
 const chatApi = {
   getConversations: async () => {
     await delay(500)
-    return { data: { data: [...mockConversations], status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<ChatConversation[]> }>
+    return { data: { data: [...mockConversations], success: true, message: 'Success' } } as { data: ApiResponse<ChatConversation[]> }
   },
 
   getMessages: async (conversationId: string, params?: { page?: number; limit?: number }) => {
     await delay(500)
-    return { data: { data: [...mockMessages], status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<ChatMessage[]> }>
+    return { data: { data: [...mockMessages], success: true, message: 'Success' } } as { data: ApiResponse<ChatMessage[]> }
   },
 
   sendMessage: async (data: SendMessageRequest) => {
@@ -52,37 +52,37 @@ const chatApi = {
       fileSize: data.fileSize,
       imageUrl: data.imageUrl,
     }
-    return { data: { data: newMessage, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<ChatMessage> }>
+    return { data: { data: newMessage, success: true, message: 'Success' } } as { data: ApiResponse<ChatMessage> }
   },
 
   createConversation: async (data: { participantIds: string[]; name?: string; isGroup?: boolean }) => {
     await delay(500)
-    return { data: { data: mockConversations[0], status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<ChatConversation> }>
+    return { data: { data: mockConversations[0], success: true, message: 'Success' } } as { data: ApiResponse<ChatConversation> }
   },
 
   markAsRead: async (conversationId: string) => {
     await delay(200)
-    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
   pinConversation: async (conversationId: string, isPinned: boolean) => {
     await delay(300)
-    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
   muteConversation: async (conversationId: string, isMuted: boolean) => {
     await delay(300)
-    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
   blockUser: async (userId: string) => {
     await delay(300)
-    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
   deleteConversation: async (conversationId: string) => {
     await delay(300)
-    return { data: { status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse }>
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
   searchMessages: async (conversationId: string, query: string) => {
@@ -90,7 +90,7 @@ const chatApi = {
     const filtered = mockMessages.filter(m =>
       m.content.toLowerCase().includes(query.toLowerCase())
     )
-    return { data: { data: filtered, status: 200, message: 'Success' } } as unknown as Promise<{ data: ApiResponse<ChatMessage[]> }>
+    return { data: { data: filtered, success: true, message: 'Success' } } as { data: ApiResponse<ChatMessage[]> }
   },
 }
 

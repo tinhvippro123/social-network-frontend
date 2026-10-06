@@ -1,57 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Check } from '@lucide/vue'
-import { useForm, useField } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import * as z from 'zod'
+import AuthSocialLogin from './components/AuthSocialLogin.vue'
+import { useRegister } from '@/composables/auth/useRegister'
 
-const router = useRouter()
-const showPassword = ref(false)
-const isLoading = ref(false)
-const agreeTerms = ref(false)
-
-const schema = toTypedSchema(
-  z.object({
-    name: z.string().min(1, 'Vui lòng nhập họ tên'),
-    email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
-    password: z.string().min(1, 'Vui lòng nhập mật khẩu').min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
-    confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu')
-  }).refine((data) => data.password === data.confirmPassword, {
-    message: "Mật khẩu không khớp",
-    path: ["confirmPassword"],
-  })
-)
-
-const { handleSubmit } = useForm({
-  validationSchema: schema,
-})
-
-const { value: name, errorMessage: nameError } = useField<string>('name')
-const { value: email, errorMessage: emailError } = useField<string>('email')
-const { value: password, errorMessage: passwordError } = useField<string>('password')
-const { value: confirmPassword, errorMessage: confirmPasswordError } = useField<string>('confirmPassword')
-
-const passwordStrength = ref(0)
-const watchPassword = (val: string) => {
-  let strength = 0
-  if (val.length >= 8) strength++
-  if (/[A-Z]/.test(val)) strength++
-  if (/[0-9]/.test(val)) strength++
-  if (/[^A-Za-z0-9]/.test(val)) strength++
-  passwordStrength.value = strength
-}
-
-const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500']
-const strengthLabels = ['Yếu', 'Trung bình', 'Khá', 'Mạnh']
-
-const handleRegister = handleSubmit(async (values) => {
-  isLoading.value = true
-  setTimeout(() => {
-    isLoading.value = false
-    router.push('/')
-  }, 1500)
-})
+const {
+  name,
+  nameError,
+  email,
+  emailError,
+  password,
+  passwordError,
+  confirmPassword,
+  confirmPasswordError,
+  showPassword,
+  isLoading,
+  agreeTerms,
+  passwordStrength,
+  strengthColors,
+  strengthLabels,
+  handleRegister
+} = useRegister()
 </script>
 
 <template>
@@ -105,7 +73,7 @@ const handleRegister = handleSubmit(async (values) => {
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="Tối thiểu 8 ký tự"
-            @input="watchPassword(($event.target as HTMLInputElement).value)"
+
             :class="[
               'w-full pl-11 pr-12 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
               passwordError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
@@ -190,6 +158,9 @@ const handleRegister = handleSubmit(async (values) => {
         </template>
       </button>
     </form>
+
+    <!-- Social Login -->
+    <AuthSocialLogin />
 
     <!-- Login link -->
     <p class="text-center text-sm text-gray-400 mt-6">

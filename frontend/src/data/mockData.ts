@@ -55,6 +55,7 @@ export const mockCategories: Category[] = [
   { id: 'c10', name: 'Pass đồ', slug: 'pass-do', icon: '🛒', postsCount: 48 },
   { id: 'c11', name: 'Review địa điểm', slug: 'review-dia-diem', icon: '📍', postsCount: 27 },
   { id: 'c12', name: 'Sự kiện', slug: 'su-kien', icon: '🎉', postsCount: 19 },
+  { id: 'c13', name: 'Khác', slug: 'khac', icon: '📌', postsCount: 15 },
 ]
 
 // ---- Posts ----
@@ -63,7 +64,65 @@ export const mockPosts: Post[] = [
     id: 'p1',
     title: 'Hướng dẫn xây dựng REST API với Spring Boot 3 và Clean Architecture',
     excerpt: 'Trong bài viết này, mình sẽ chia sẻ cách xây dựng một REST API hoàn chỉnh sử dụng Spring Boot 3, áp dụng Clean Architecture để code dễ bảo trì và mở rộng...',
-    content: '',
+    content: `
+<h2>1. Clean Architecture là gì?</h2>
+<p>Clean Architecture là một kiến trúc phần mềm được đề xuất bởi Robert C. Martin (Uncle Bob). Mục tiêu chính là tạo ra một hệ thống phần mềm mà:</p>
+<ul>
+  <li><strong>Independent of Frameworks:</strong> Kiến trúc không phụ thuộc vào bất kỳ framework nào.</li>
+  <li><strong>Testable:</strong> Business logic có thể test mà không cần UI, Database, hay bất kỳ external element nào.</li>
+  <li><strong>Independent of UI:</strong> UI có thể thay đổi mà không ảnh hưởng đến phần còn lại.</li>
+  <li><strong>Independent of Database:</strong> Có thể swap database mà business rules không bị ảnh hưởng.</li>
+</ul>
+
+<h2>2. Cấu trúc thư mục trong Spring Boot</h2>
+<p>Chúng ta sẽ chia project thành 4 layer chính:</p>
+
+<pre><code>src/main/java/com/example/
+├── domain/          # Enterprise Business Rules
+│   ├── entity/
+│   └── repository/  # Interface only
+├── usecase/         # Application Business Rules
+├── adapter/         # Interface Adapters
+│   ├── controller/
+│   ├── presenter/
+│   └── gateway/
+└── infrastructure/  # Frameworks & Drivers
+    ├── config/
+    ├── persistence/
+    └── security/</code></pre>
+
+<h2>3. Implement Domain Layer</h2>
+<p>Domain layer chứa các entity và business rules cốt lõi. Đây là layer quan trọng nhất và không phụ thuộc vào bất kỳ layer nào khác.</p>
+
+<pre><code class="language-java">@Entity
+@Table(name = "posts")
+public class Post {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+    private String title;
+    private String content;
+    private PostStatus status;
+    private LocalDateTime createdAt;
+
+    // Business logic methods
+    public void publish() {
+        if (this.content == null || this.content.isEmpty()) {
+            throw new DomainException("Cannot publish empty post");
+        }
+        this.status = PostStatus.PUBLISHED;
+    }
+}</code></pre>
+
+<h2>4. Use Case Layer</h2>
+<p>Use Case layer chứa application-specific business rules. Mỗi use case đại diện cho một hành động cụ thể mà người dùng có thể thực hiện.</p>
+
+<blockquote>
+  <p>💡 <strong>Tip:</strong> Mỗi use case nên có một và chỉ một responsibility. Nếu use case quá phức tạp, hãy chia nhỏ nó ra.</p>
+</blockquote>
+
+<p>Đó là tổng quan về cách xây dựng REST API với Spring Boot 3 và Clean Architecture. Trong phần tiếp theo, chúng ta sẽ đi sâu vào việc viết test và deploy ứng dụng.</p>
+`,
     coverImage: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80',
     author: mockUsers[0],
     category: mockCategories[1],
@@ -71,10 +130,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-08-25T10:30:00',
     updatedAt: '2025-08-25T10:30:00',
     viewsCount: 3420,
-    upvotesCount: 245,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 38,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.8231, lng: 106.6297, address: 'TP. Hồ Chí Minh' }
   },
@@ -90,10 +148,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-08-24T14:00:00',
     updatedAt: '2025-08-24T14:00:00',
     viewsCount: 2180,
-    upvotesCount: 189,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '👍', count: 5, reacted: true }],
     commentsCount: 24,
     bookmarked: true,
-    upvoted: true,
     status: 'published'
   },
   {
@@ -108,10 +165,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-08-23T09:15:00',
     updatedAt: '2025-08-23T09:15:00',
     viewsCount: 5670,
-    upvotesCount: 412,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 56,
     bookmarked: false,
-    upvoted: false,
     status: 'published'
   },
   {
@@ -126,10 +182,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-08-22T16:45:00',
     updatedAt: '2025-08-22T16:45:00',
     viewsCount: 1890,
-    upvotesCount: 156,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 19,
     bookmarked: true,
-    upvoted: false,
     status: 'published'
   },
   {
@@ -144,10 +199,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-08-21T11:00:00',
     updatedAt: '2025-08-21T11:00:00',
     viewsCount: 4230,
-    upvotesCount: 298,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '👍', count: 5, reacted: true }],
     commentsCount: 42,
     bookmarked: false,
-    upvoted: true,
     status: 'published',
     location: { lat: 10.7769, lng: 106.7009, address: 'Quận 1, TP.HCM' }
   },
@@ -163,10 +217,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-08-20T08:30:00',
     updatedAt: '2025-08-20T08:30:00',
     viewsCount: 6780,
-    upvotesCount: 534,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '👍', count: 5, reacted: true }],
     commentsCount: 67,
     bookmarked: false,
-    upvoted: false,
     status: 'published'
   },
   {
@@ -181,10 +234,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-08-19T15:20:00',
     updatedAt: '2025-08-19T15:20:00',
     viewsCount: 1250,
-    upvotesCount: 89,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 15,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7726, lng: 106.6991, address: 'Quận 3, TP.HCM' }
   },
@@ -200,10 +252,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-08-18T12:00:00',
     updatedAt: '2025-08-18T12:00:00',
     viewsCount: 3100,
-    upvotesCount: 201,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '👍', count: 5, reacted: true }],
     commentsCount: 31,
     bookmarked: false,
-    upvoted: false,
     status: 'published'
   },
   // ---- Bài viết có vị trí (Cộng đồng / GIS) ----
@@ -219,10 +270,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-09-01T08:00:00',
     updatedAt: '2025-09-01T08:00:00',
     viewsCount: 850,
-    upvotesCount: 34,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 12,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7724, lng: 106.6581, address: 'Hẻm 233 Lý Thường Kiệt, Phường 15, Quận 10, TP.HCM' }
   },
@@ -238,10 +288,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-09-02T10:30:00',
     updatedAt: '2025-09-02T10:30:00',
     viewsCount: 620,
-    upvotesCount: 22,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 8,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7590, lng: 106.6823, address: 'Đường An Dương Vương, Phường 3, Quận 5, TP.HCM' }
   },
@@ -257,10 +306,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-09-03T14:00:00',
     updatedAt: '2025-09-03T14:00:00',
     viewsCount: 1200,
-    upvotesCount: 45,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 18,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7867, lng: 106.6600, address: 'KTX Khu B ĐHQG, Phường Linh Trung, TP. Thủ Đức' }
   },
@@ -276,10 +324,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-09-02T19:30:00',
     updatedAt: '2025-09-02T19:30:00',
     viewsCount: 2300,
-    upvotesCount: 178,
+    reactions: [{ emoji: '❤️', count: 12, reacted: false }, { emoji: '👍', count: 5, reacted: true }],
     commentsCount: 42,
     bookmarked: true,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7843, lng: 106.6946, address: '260C Pasteur, Phường 8, Quận 3, TP.HCM' }
   },
@@ -295,10 +342,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-09-01T11:00:00',
     updatedAt: '2025-09-01T11:00:00',
     viewsCount: 980,
-    upvotesCount: 67,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 14,
     bookmarked: false,
-    upvoted: true,
     status: 'published',
     location: { lat: 10.7735, lng: 106.7019, address: '86-88 Nguyễn Huệ, Bến Nghé, Quận 1, TP.HCM' }
   },
@@ -314,10 +360,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-09-04T09:00:00',
     updatedAt: '2025-09-04T09:00:00',
     viewsCount: 1560,
-    upvotesCount: 89,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 25,
     bookmarked: false,
-    upvoted: false,
     status: 'published',
     location: { lat: 10.7628, lng: 106.6824, address: 'Nhà Văn hóa Sinh viên, 01 Phạm Ngọc Thạch, Quận 3, TP.HCM' },
     eventStartTime: '2025-09-10T09:00:00',
@@ -335,10 +380,9 @@ export const mockPosts: Post[] = [
     createdAt: '2025-09-03T16:00:00',
     updatedAt: '2025-09-03T16:00:00',
     viewsCount: 3400,
-    upvotesCount: 256,
+    reactions: [{ emoji: '👍', count: 12, reacted: false }, { emoji: '❤️', count: 5, reacted: true }],
     commentsCount: 58,
     bookmarked: true,
-    upvoted: true,
     status: 'published',
     location: { lat: 10.8800, lng: 106.8056, address: 'Sân Vận động KTX ĐHQG, Khu phố 6, TP. Thủ Đức' },
     eventStartTime: '2025-09-07T08:00:00',
@@ -350,8 +394,7 @@ export const mockPosts: Post[] = [
 export const mockComments: Comment[] = [
   {
     id: 'cm1', content: 'Bài viết rất chi tiết và dễ hiểu! Cảm ơn tác giả 🔥',
-    author: mockUsers[1], createdAt: '2025-08-25T12:00:00', upvotesCount: 12,
-    reactions: [
+    author: mockUsers[1], createdAt: '2025-08-25T12:00:00', reactions: [
       { emoji: '👍', count: 8, reacted: false },
       { emoji: '❤️', count: 3, reacted: true },
       { emoji: '🔥', count: 5, reacted: false }
@@ -359,19 +402,16 @@ export const mockComments: Comment[] = [
     replies: [
       {
         id: 'cm1-1', content: 'Cảm ơn bạn! Mình sẽ viết thêm phần 2 về testing nhé 😊',
-        author: mockUsers[0], createdAt: '2025-08-25T13:00:00', upvotesCount: 5,
-        reactions: [{ emoji: '❤️', count: 2, reacted: false }],
+        author: mockUsers[0], createdAt: '2025-08-25T13:00:00', reactions: [{ emoji: '❤️', count: 2, reacted: false }],
         replies: [
           {
             id: 'cm1-1-1', content: 'Mong chờ phần 2 quá!',
-            author: mockUsers[3], createdAt: '2025-08-25T13:30:00', upvotesCount: 2,
-            reactions: [{ emoji: '👍', count: 1, reacted: false }],
+            author: mockUsers[3], createdAt: '2025-08-25T13:30:00', reactions: [{ emoji: '👍', count: 1, reacted: false }],
             replies: []
           },
           {
             id: 'cm1-1-2', content: 'Mình cũng đang chờ luôn. Phần testing mà kết hợp với Testcontainers thì hay lắm đó!',
-            author: mockUsers[4], createdAt: '2025-08-25T14:00:00', upvotesCount: 3,
-            reactions: [],
+            author: mockUsers[4], createdAt: '2025-08-25T14:00:00', reactions: [],
             replyTo: 'Phạm Tuấn',
             replies: []
           }
@@ -381,8 +421,7 @@ export const mockComments: Comment[] = [
   },
   {
     id: 'cm2', content: 'Phần Clean Architecture mình thấy giải thích rõ ràng hơn nhiều tài liệu tiếng Anh. Mong tác giả viết thêm!',
-    author: mockUsers[2], createdAt: '2025-08-25T14:30:00', upvotesCount: 8,
-    reactions: [
+    author: mockUsers[2], createdAt: '2025-08-25T14:30:00', reactions: [
       { emoji: '👍', count: 5, reacted: true },
       { emoji: '😂', count: 1, reacted: false }
     ],
@@ -390,30 +429,26 @@ export const mockComments: Comment[] = [
   },
   {
     id: 'cm3', content: 'Mình có một câu hỏi: Khi nào nên dùng Clean Architecture và khi nào thì CRUD đơn giản là đủ?',
-    author: mockUsers[3], createdAt: '2025-08-25T16:00:00', upvotesCount: 15,
-    reactions: [
+    author: mockUsers[3], createdAt: '2025-08-25T16:00:00', reactions: [
       { emoji: '🤔', count: 4, reacted: false },
       { emoji: '👍', count: 6, reacted: false }
     ],
     replies: [
       {
         id: 'cm3-1', content: 'Theo kinh nghiệm mình, nếu project có hơn 5 modules và cần maintain lâu dài thì nên dùng Clean Architecture. Còn CRUD đơn giản thì 3-layer là đủ rồi.',
-        author: mockUsers[0], createdAt: '2025-08-25T17:00:00', upvotesCount: 20,
-        reactions: [
+        author: mockUsers[0], createdAt: '2025-08-25T17:00:00', reactions: [
           { emoji: '👍', count: 12, reacted: true },
           { emoji: '❤️', count: 3, reacted: false }
         ],
         replies: [
           {
             id: 'cm3-1-1', content: 'Cảm ơn anh nhiều! Vậy project đồ án của em khoảng 3 modules thôi thì dùng 3-layer cho đỡ phức tạp nhỉ?',
-            author: mockUsers[3], createdAt: '2025-08-25T17:30:00', upvotesCount: 3,
-            reactions: [],
+            author: mockUsers[3], createdAt: '2025-08-25T17:30:00', reactions: [],
             replies: []
           },
           {
             id: 'cm3-1-2', content: 'Đúng rồi, 3 modules thì 3-layer là hợp lý nhất. Clean Architecture sẽ overkill trong trường hợp này.',
-            author: mockUsers[0], createdAt: '2025-08-25T17:45:00', upvotesCount: 7,
-            reactions: [{ emoji: '👍', count: 4, reacted: false }],
+            author: mockUsers[0], createdAt: '2025-08-25T17:45:00', reactions: [{ emoji: '👍', count: 4, reacted: false }],
             replyTo: 'Phạm Tuấn',
             replies: []
           }
@@ -567,15 +602,33 @@ export const mockReports: Report[] = [
 
 // ---- Admin Stats ----
 export const mockAdminStats: AdminStats = {
-  totalUsers: 12450,
-  newUsersToday: 34,
-  totalPosts: 8920,
-  newPostsToday: 67,
-  totalGroups: 156,
-  totalReports: 15,
-  pendingReports: 8,
-  userGrowth: [120, 145, 180, 210, 195, 230, 280],
-  postGrowth: [45, 62, 58, 75, 82, 91, 67]
+  totalUsers: 12500,
+  newUsersToday: 145,
+  totalPosts: 45200,
+  newPostsToday: 320,
+  totalGroups: 128,
+  totalReports: 450,
+  pendingReports: 12,
+  userGrowth: [120, 150, 140, 180, 250, 310, 420],
+  postGrowth: [80, 110, 95, 150, 200, 240, 320],
+  viewsToday: {
+    total: 24500,
+    growthPct: 12
+  },
+  topCategories: [
+    { name: 'Lập trình', count: 256, pct: 35 },
+    { name: 'AI & ML', count: 145, pct: 20 },
+    { name: 'Công nghệ', count: 128, pct: 17 },
+    { name: 'Mobile', count: 93, pct: 13 },
+    { name: 'Thiết kế', count: 89, pct: 12 }
+  ],
+  recentActivities: [
+    { text: 'Nguyễn Văn An đăng bài mới', time: '5 phút trước', color: 'text-green-500' },
+    { text: '3 báo cáo mới cần xử lý', time: '15 phút trước', color: 'text-red-500' },
+    { text: 'Nhóm Vue.js Vietnam đạt 5000 thành viên', time: '1 giờ trước', color: 'text-blue-500' },
+    { text: 'Trần Thị Mai được nâng lên Moderator', time: '2 giờ trước', color: 'text-purple-500' },
+    { text: 'Bài viết Docker đạt 5000 lượt xem', time: '3 giờ trước', color: 'text-orange-500' }
+  ]
 }
 
 export const popularTags = [
