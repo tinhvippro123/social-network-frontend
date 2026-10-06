@@ -1,19 +1,28 @@
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject, ref } from 'vue'
 import {
   X as XIcon, Image as ImageIcon, FileText as FileTextIcon,
   Users as UsersIcon, ChevronDown as ChevronDownIcon,
-  Ban as BanIcon, Flag as FlagIcon, Trash2 as TrashIcon
+  Ban as BanIcon, Flag as FlagIcon, Trash2 as TrashIcon,
+  Search as SearchIcon, BellOff as BellOffIcon, User as UserIcon, Lock as LockIcon,
+  Pin as PinIcon, Palette as PaletteIcon, Smile as SmileIcon, Type as TypeIcon,
+  Shield as ShieldIcon, Clock as ClockIcon, Eye as EyeIcon, MinusCircle as MinusCircleIcon
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import AccordionSection from '@/components/ui/AccordionSection.vue'
+import ChatInfoHeader from './ChatInfoHeader.vue'
 import ChatMediaFilesView from './ChatMediaFilesView.vue'
 import ChatInfoSharedMedia from './ChatInfoSharedMedia.vue'
 import ChatInfoSharedFiles from './ChatInfoSharedFiles.vue'
+
+import { useToast } from '@/composables/ui/useToast'
 
 const chatState = inject<any>('chatState')
 if (!chatState) {
   throw new Error('ChatState is not provided')
 }
+
+const { addToast } = useToast()
 
 const {
   router,
@@ -48,7 +57,7 @@ const {
     <aside v-if="showInfoPanel && selectedConversation" class="absolute inset-y-0 right-0 z-40 w-full sm:w-92 lg:relative lg:block shrink-0 bg-white dark:bg-surface-800 border-l border-gray-200 dark:border-surface-700 overflow-hidden shadow-2xl lg:shadow-none">
       
       <!-- View: Info Default -->
-      <div v-if="rightSidebarView === 'info'" class="h-full overflow-y-auto">
+      <div v-if="rightSidebarView === 'info'" class="h-full overflow-y-auto custom-scrollbar">
         <!-- Close button -->
         <div class="sticky top-0 z-10 flex justify-end p-2 bg-white/80 dark:bg-surface-800/80 backdrop-blur-sm lg:hidden">
           <button @click="showInfoPanel = false" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
@@ -57,67 +66,117 @@ const {
         </div>
 
         <!-- Profile Header -->
-        <div class="flex flex-col items-center p-6 text-center border-b border-gray-100 dark:border-surface-700">
-          <UserAvatar :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="xl" class="mb-4" />
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ selectedConversation.name }}</h2>
-          <p v-if="selectedConversation.isOnline" class="text-sm text-green-500 font-medium">Đang hoạt động</p>
-          <p v-else class="text-sm text-gray-500">Hoạt động 15 phút trước</p>
+        <ChatInfoHeader
+          :conversation="selectedConversation"
+          @view-profile="router.push(`/profile/${selectedConversation.id}`)"
+        />
 
-          <!-- Quick Actions -->
-          <div class="flex gap-6 mt-6">
-            <button @click="router.push(`/profile/${selectedConversation.id}`)" class="flex flex-col items-center gap-1 text-gray-500 hover:text-primary-500 transition-colors">
-              <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center mb-1">
-                <UserAvatar :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="sm" class="opacity-50 grayscale" />
+        <div class="border-t border-gray-100 dark:border-surface-700"></div>
+
+        <!-- Accordion 1: Thông tin về đoạn chat -->
+        <AccordionSection title="Thông tin về đoạn chat">
+          <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
+            <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
+              <PinIcon :size="16" />
+            </div>
+            <div class="flex-1 text-left min-w-0">
+              <p class="truncate">Xem tin nhắn đã ghim</p>
+            </div>
+          </button>
+        </AccordionSection>
+
+        <!-- Accordion 2: Tùy chỉnh đoạn chat -->
+        <AccordionSection title="Tùy chỉnh đoạn chat">
+          <div class="space-y-0.5">
+            <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
+              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
+                <TypeIcon :size="16" />
               </div>
-              <span class="text-[11px] font-medium">Trang cá nhân</span>
+              <div class="flex-1 text-left min-w-0">
+                <p class="truncate">Chỉnh sửa biệt danh</p>
+              </div>
             </button>
           </div>
-        </div>
+        </AccordionSection>
 
-        <!-- Shared Media -->
-        <ChatInfoSharedMedia />
+        <!-- Accordion 3: File phương tiện và file -->
+        <AccordionSection title="File phương tiện và file" :default-open="true">
+          <ChatInfoSharedMedia />
+          <div class="h-0 border-t border-gray-100 dark:border-surface-700 hidden"></div>
+          <ChatInfoSharedFiles />
+        </AccordionSection>
 
-        <!-- Shared Files -->
-        <div class="h-0 border-t border-gray-100 dark:border-surface-700 hidden"></div>
-        <ChatInfoSharedFiles />
+        <!-- Accordion 4: Quyền riêng tư và hỗ trợ -->
+        <AccordionSection title="Quyền riêng tư và hỗ trợ">
+          <div class="space-y-0.5">
+            <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
+              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
+                <BellOffIcon :size="16" />
+              </div>
+              <div class="flex-1 text-left min-w-0">
+                <p class="truncate">Tắt thông báo</p>
+              </div>
+            </button>
+
+            <button
+              v-if="!selectedConversation.isGroup"
+              @click="blockUser(selectedConversation.participants[1]?.id)"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50"
+            >
+              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
+                <BanIcon :size="16" />
+              </div>
+              <div class="flex-1 text-left min-w-0">
+                <p class="truncate">Chặn</p>
+              </div>
+            </button>
+
+            <button @click="addToast({ message: 'Tính năng báo cáo đang được phát triển', type: 'info' })" class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10">
+              <div class="flex items-center gap-3 w-full">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-500 dark:bg-red-900/30">
+                  <FlagIcon :size="16" />
+                </div>
+                <div class="flex-1 text-left min-w-0">
+                  <p class="truncate">Báo cáo</p>
+                  <p class="text-xs opacity-80 mt-0.5 leading-snug wrap-break-word whitespace-normal line-clamp-2">Đóng góp ý kiến và báo cáo cuộc trò chuyện</p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              v-if="selectedConversation"
+              @click="deleteConversation(selectedConversation.id); selectedConversation = null; showInfoPanel = false"
+              class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10"
+            >
+              <div class="flex items-center gap-3 w-full">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-500 dark:bg-red-900/30">
+                  <TrashIcon :size="16" />
+                </div>
+                <div class="flex-1 text-left min-w-0">
+                  <p class="truncate">Xóa cuộc trò chuyện</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </AccordionSection>
 
         <!-- Group Members -->
-        <div v-if="selectedConversation.isGroup" class="border-b border-gray-100 dark:border-surface-700">
-          <button @click="showMembersSection = !showMembersSection" class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors">
-            <span class="flex items-center gap-2">
-              <UsersIcon :size="16" />
-              Thành viên ({{ selectedConversation.participants.length }})
-            </span>
-            <ChevronDownIcon :size="16" :class="['transition-transform', showMembersSection ? 'rotate-180' : '']" />
-          </button>
-          <div v-if="showMembersSection" class="px-4 pb-3 space-y-2">
+        <AccordionSection v-if="selectedConversation.isGroup" :title="`Thành viên (${selectedConversation.participants.length})`">
+          <div class="space-y-2">
             <div
               v-for="member in selectedConversation.participants"
               :key="member.id"
               @click="router.push(`/profile/${member.id}`)"
               class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors cursor-pointer"
             >
-              <UserAvatar :user="member" size="sm" />
+              <UserAvatar :user="member as any" size="sm" />
               <div class="flex-1 min-w-0">
-                <p class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{{ member.name }}</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ member.name }}</p>
               </div>
             </div>
           </div>
-        </div>
+        </AccordionSection>
 
-        <!-- Privacy & Support -->
-        <div class="py-2">
-          <p class="px-4 py-2 text-xs font-medium text-gray-400 uppercase tracking-wider">Quyền riêng tư</p>
-          <button v-if="!selectedConversation.isGroup" @click="blockUser(selectedConversation.participants[1]?.id)" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors">
-            <BanIcon :size="16" class="text-gray-400" /> Chặn
-          </button>
-          <button class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
-            <FlagIcon :size="16" /> Báo cáo
-          </button>
-          <button v-if="selectedConversation" @click="deleteConversation(selectedConversation.id); selectedConversation = null; showInfoPanel = false" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
-            <TrashIcon :size="16" /> Xóa cuộc trò chuyện
-          </button>
-        </div>
       </div>
         
       <!-- View: Media & Files Drill-down -->

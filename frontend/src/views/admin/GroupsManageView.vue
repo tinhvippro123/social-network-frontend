@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Users, Globe, Lock, Trash2, Eye, Ban } from '@lucide/vue'
+import { Users } from '@lucide/vue'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
-import UserAvatar from '@/components/UserAvatar.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import { formatNumber } from '@/utils/formatters'
+import GroupsManageRow from './components/GroupsManageRow.vue'
+import GroupsManageSkeletonRow from './components/GroupsManageSkeletonRow.vue'
 import { useAdminGroups } from '@/composables/admin/useAdminGroups'
 
 const { groups, isLoading } = useAdminGroups()
@@ -32,74 +31,14 @@ const { groups, isLoading } = useAdminGroups()
           </thead>
           <tbody>
             <template v-if="isLoading">
-              <tr v-for="i in 5" :key="i" class="border-b border-gray-100 dark:border-surface-700">
-                <td class="px-5 py-4">
-                  <div class="flex items-center gap-3">
-                    <Skeleton class="w-10 h-10 rounded-xl shrink-0" />
-                    <div class="space-y-2 w-48">
-                      <Skeleton class="h-4 w-32 rounded" />
-                      <Skeleton class="h-3 w-48 rounded max-w-full" />
-                    </div>
-                  </div>
-                </td>
-                <td class="px-5 py-4 hidden sm:table-cell">
-                  <Skeleton class="h-6 w-20 rounded-lg" />
-                </td>
-                <td class="px-5 py-4">
-                  <Skeleton class="h-4 w-16 rounded" />
-                </td>
-                <td class="px-5 py-4 hidden md:table-cell">
-                  <Skeleton class="h-4 w-10 rounded" />
-                </td>
-                <td class="px-5 py-4 hidden lg:table-cell">
-                  <div class="flex items-center gap-2">
-                    <Skeleton class="w-8 h-8 rounded-full shrink-0" />
-                    <Skeleton class="h-3 w-20 rounded" />
-                  </div>
-                </td>
-                <td class="px-5 py-4 text-right">
-                  <div class="flex items-center justify-end gap-1">
-                    <Skeleton class="w-7 h-7 rounded-lg shrink-0" />
-                    <Skeleton class="w-7 h-7 rounded-lg shrink-0" />
-                  </div>
-                </td>
-              </tr>
+              <GroupsManageSkeletonRow v-for="i in 5" :key="i" />
             </template>
             <template v-else-if="groups.length">
-              <tr v-for="group in groups" :key="group.id" class="border-b border-gray-100 dark:border-surface-700 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
-              <td class="px-5 py-4">
-                <div class="flex items-center gap-3">
-                  <img :src="group.avatar" class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-surface-700" />
-                  <div>
-                    <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ group.name }}</p>
-                    <p class="text-xs text-gray-400 line-clamp-1 max-w-xs">{{ group.description }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="px-5 py-4 hidden sm:table-cell">
-                <span :class="['flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium w-fit',
-                  group.isPublic ? 'bg-green-100 dark:bg-green-900/20 text-green-600' : 'bg-amber-100 dark:bg-amber-900/20 text-amber-600']">
-                  <Globe v-if="group.isPublic" :size="10" /> <Lock v-else :size="10" />
-                  {{ group.isPublic ? 'Công khai' : 'Riêng tư' }}
-                </span>
-              </td>
-              <td class="px-5 py-4">
-                <span class="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400"><Users :size="12" /> {{ formatNumber(group.membersCount) }}</span>
-              </td>
-              <td class="px-5 py-4 text-sm text-gray-500 hidden md:table-cell">{{ group.postsCount }}</td>
-              <td class="px-5 py-4 hidden lg:table-cell">
-                <div class="flex items-center gap-2">
-                  <UserAvatar :user="group.owner" size="sm" />
-                  <span class="text-xs text-gray-500">{{ group.owner.name }}</span>
-                </div>
-              </td>
-              <td class="px-5 py-4 text-right">
-                <div class="flex items-center justify-end gap-1">
-                  <button class="p-1.5 rounded-lg text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:text-blue-500 transition-colors"><Eye :size="14" /></button>
-                  <button class="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-500 transition-colors" title="Giải tán"><Trash2 :size="14" /></button>
-                </div>
-              </td>
-            </tr>
+              <GroupsManageRow
+                v-for="group in groups"
+                :key="group.id"
+                :group="group"
+              />
             </template>
             <tr v-else>
               <td colspan="6" class="px-5 py-12 text-center">

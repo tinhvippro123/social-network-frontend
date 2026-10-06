@@ -35,7 +35,7 @@ export function useChat() {
       imageUrl?: string
     }
   ) {
-    return await execute(async () => {
+    try {
       const { data } = await chatApi.sendMessage({
         conversationId,
         content,
@@ -62,7 +62,10 @@ export function useChat() {
       }, 4000)
 
       return msg
-    }, 'Gửi tin nhắn thất bại')
+    } catch (err) {
+      error.value = 'Gửi tin nhắn thất bại'
+      throw err
+    }
   }
 
   function updateMessageStatus(messageId: string, status: MessageStatus) {

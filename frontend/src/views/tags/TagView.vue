@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Tag, ArrowLeft, TrendingUp, Clock, Filter } from '@lucide/vue'
 import { usePosts } from '@/composables/posts/usePosts'
 import PostCard from '@/components/PostCard.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import PostSkeletonCard from '@/components/posts/PostSkeletonCard.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -54,7 +54,7 @@ const displayPosts = computed(() =>
 
     <!-- Posts Grid -->
     <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Skeleton v-for="i in 4" :key="i" type="image" class="w-full h-64 rounded-2xl" />
+      <PostSkeletonCard v-for="i in 4" :key="i" />
     </div>
 
     <div v-else-if="displayPosts.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">

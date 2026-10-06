@@ -11,6 +11,8 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import ModerationQueueWidget from './components/ModerationQueueWidget.vue'
 import UsersTableWidget from './components/UsersTableWidget.vue'
+import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+import AdminStatCardSkeleton from './components/AdminStatCardSkeleton.vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -65,32 +67,20 @@ ChartJS.register(
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
       <template v-if="isLoading">
-        <div v-for="i in 4" :key="i" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
-          <Skeleton class="h-4 w-24 mb-2 rounded" />
-          <Skeleton class="h-8 w-16 mb-2 rounded" />
-          <Skeleton class="h-4 w-32 rounded" />
-        </div>
+        <AdminStatCardSkeleton v-for="i in 4" :key="i" />
       </template>
       <template v-else-if="statCards.length">
-        <div
+        <AdminStatCard
           v-for="stat in statCards"
           :key="stat.label"
-          class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5 hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300"
-        >
-          <div class="flex items-start justify-between">
-            <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
-              <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stat.value }}</p>
-              <p class="text-xs mt-2 flex items-center gap-1" :class="stat.color">
-                <TrendingUp :size="12" />
-                {{ stat.change }}
-              </p>
-            </div>
-            <div :class="['p-3 rounded-xl', stat.bg]">
-              <component :is="stat.icon" :size="22" :class="stat.color" />
-            </div>
-          </div>
-        </div>
+          :label="stat.label"
+          :value="stat.value"
+          :change="stat.change"
+          :trend="stat.color.includes('green') ? 'up' : stat.color.includes('red') ? 'down' : 'neutral'"
+          :icon="stat.icon"
+          :icon-color="stat.color"
+          :icon-bg="stat.bg"
+        />
       </template>
     </div>
 

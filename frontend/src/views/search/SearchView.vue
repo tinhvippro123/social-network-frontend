@@ -4,9 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { SearchIcon, FileText, Users, Tag, ArrowLeft, X } from '@lucide/vue'
 import { usePosts } from '@/composables/posts/usePosts'
 import PostCard from '@/components/PostCard.vue'
-import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import SearchHeader from './components/SearchHeader.vue'
+import SearchUserItem from './components/SearchUserItem.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -113,25 +113,12 @@ const tabs = [
     <!-- Users Tab -->
     <div v-else-if="activeTab === 'users'">
       <div v-if="filteredUsers.length > 0" class="space-y-3">
-        <div
+        <SearchUserItem
           v-for="u in filteredUsers"
           :key="u.id"
+          :user="u"
           @click="router.push(`/profile/${u.id}`)"
-          class="flex items-center gap-4 p-4 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 cursor-pointer transition-all"
-        >
-          <UserAvatar :user="u" size="lg" />
-          <div class="flex-1">
-            <p class="font-semibold text-gray-900 dark:text-white">{{ u.name }}</p>
-            <p class="text-sm text-gray-500">{{ u.bio }}</p>
-            <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
-              <span>{{ u.postsCount }} bài viết</span>
-              <span>{{ u.followersCount }} followers</span>
-            </div>
-          </div>
-          <button class="px-4 py-1.5 rounded-xl text-sm font-medium text-primary-500 border border-primary-500/30 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-all">
-            Theo dõi
-          </button>
-        </div>
+        />
       </div>
       <div v-else class="text-center py-16 text-gray-500">
         <Users :size="48" class="mx-auto mb-4 opacity-30" />

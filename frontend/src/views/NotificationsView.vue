@@ -2,6 +2,7 @@
 import { Bell, BellOff, CheckCheck } from '@lucide/vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import NotificationItem from '@/components/notifications/NotificationItem.vue'
+import NotificationSkeletonItem from '@/components/notifications/NotificationSkeletonItem.vue'
 import { useNotifications } from '@/composables/core/useNotifications'
 
 const {
@@ -74,15 +75,7 @@ const {
 
     <!-- Loading Skeleton -->
     <div v-if="isLoading" class="space-y-3">
-      <div v-for="i in 6" :key="i" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4">
-        <div class="flex items-start gap-4">
-          <Skeleton type="avatar" class="w-12 h-12 shrink-0" />
-          <div class="flex-1 space-y-2">
-            <Skeleton type="text" class="w-3/4" />
-            <Skeleton type="text" class="w-1/2" />
-          </div>
-        </div>
-      </div>
+      <NotificationSkeletonItem v-for="i in 6" :key="i" />
     </div>
 
     <!-- Notification List -->

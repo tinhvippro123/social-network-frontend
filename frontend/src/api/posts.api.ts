@@ -69,6 +69,16 @@ const postsApi = {
     return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
   },
 
+  toggleReaction: async (postId: string, emoji: string) => {
+    await delay(300)
+    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
+  },
+
+  reportPost: async (postId: string, data: { reason: string; description?: string }) => {
+    await delay(500)
+    return { data: { success: true, message: 'Báo cáo đã được gửi' } } as { data: ApiResponse }
+  },
+
   bookmark: async (id: string) => {
     await delay(500)
     return { data: { success: true, message: 'Success' } } as { data: ApiResponse }

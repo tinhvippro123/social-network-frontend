@@ -9,6 +9,8 @@ import { useMainLayout } from '@/composables/ui/useMainLayout'
 import ScrollToTop from '@/components/ScrollToTop.vue'
 import MainSidebar from './components/MainSidebar.vue'
 import MainNavbar from './components/MainNavbar.vue'
+import ChatPopup from '@/components/ChatPopup.vue'
+import type { ChatConversation } from '@/types'
 
 const { user } = useAuth()
 
@@ -22,6 +24,14 @@ const {
   navigateTo,
   logout
 } = useMainLayout()
+
+// Chat state
+const showChat = ref(false)
+const chatPopupRef = ref<InstanceType<typeof ChatPopup> | null>(null)
+
+function handleOpenChatWindow(conv: ChatConversation) {
+  chatPopupRef.value?.openChatWindow(conv)
+}
 </script>
 
 <template>
@@ -54,8 +64,10 @@ const {
         :ui-store="uiStore"
         v-model:show-notifications="showNotifications"
         v-model:show-user-menu="showUserMenu"
+        v-model:show-chat="showChat"
         @navigate="navigateTo"
         @logout="logout"
+        @open-chat-window="handleOpenChatWindow"
       />
 
       <!-- Page Content -->
@@ -64,6 +76,9 @@ const {
       </main>
       <ScrollToTop />
     </div>
+
+    <!-- Docked Chat Windows (Facebook Messenger-style) -->
+    <ChatPopup v-if="user" ref="chatPopupRef" />
   </div>
 </template>
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Shield, Globe, MessageCircle, Ban, UserX } from '@lucide/vue'
+import SettingToggle from '@/components/ui/SettingToggle.vue'
 import { useSettings } from '@/composables/ui/useSettings'
 
 const { privacySettings } = useSettings()
@@ -40,28 +41,16 @@ const { privacySettings } = useSettings()
       </div>
 
       <!-- Toggle Options -->
-      <label class="flex items-center justify-between cursor-pointer">
-        <div>
-          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Hiển thị trạng thái online</p>
-          <p class="text-xs text-gray-400">Người khác có thể thấy bạn đang trực tuyến</p>
-        </div>
-        <div class="relative">
-          <input type="checkbox" v-model="privacySettings.showOnlineStatus" class="sr-only peer" />
-          <div class="w-11 h-6 bg-gray-200 dark:bg-surface-600 peer-checked:bg-primary-500 rounded-full transition-colors"></div>
-          <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-5"></div>
-        </div>
-      </label>
-      <label class="flex items-center justify-between cursor-pointer">
-        <div>
-          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Xác nhận đã đọc</p>
-          <p class="text-xs text-gray-400">Người gửi biết bạn đã đọc tin nhắn</p>
-        </div>
-        <div class="relative">
-          <input type="checkbox" v-model="privacySettings.showReadReceipts" class="sr-only peer" />
-          <div class="w-11 h-6 bg-gray-200 dark:bg-surface-600 peer-checked:bg-primary-500 rounded-full transition-colors"></div>
-          <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-5"></div>
-        </div>
-      </label>
+      <SettingToggle
+        v-model="privacySettings.showOnlineStatus"
+        title="Hiển thị trạng thái online"
+        description="Người khác có thể thấy bạn đang trực tuyến"
+      />
+      <SettingToggle
+        v-model="privacySettings.showReadReceipts"
+        title="Xác nhận đã đọc"
+        description="Người gửi biết bạn đã đọc tin nhắn"
+      />
     </div>
 
     <!-- Blocked Users -->

@@ -4,6 +4,7 @@ import { useAuth } from '../auth/useAuth'
 import { useChat } from './useChat'
 import { useChatLogic } from './useChatLogic'
 import type { ChatMessage } from '@/types'
+import chatApi from '@/api/chat.api'
 
 export function useChatView() {
   const { user: currentUser } = useAuth()
@@ -68,9 +69,10 @@ export function useChatView() {
   const scrollToBottom = (smooth: boolean | Event = true) => {
     if (chatContainer.value) {
       const isSmooth = typeof smooth === 'boolean' ? smooth : true
+      const distance = chatContainer.value.scrollHeight - chatContainer.value.scrollTop
       chatContainer.value.scrollTo({
         top: chatContainer.value.scrollHeight,
-        behavior: isSmooth ? 'smooth' : 'auto'
+        behavior: (isSmooth && distance < 1000) ? 'smooth' : 'auto'
       })
       showScrollBottom.value = false
     }
@@ -290,6 +292,25 @@ export function useChatView() {
     return !hasOtherMessageAfter
   }
 
+  // New conversation modal
+  const showNewChatModal = ref(false)
+
+  const createNewConversation = async (participantIds: string[], name?: string, isGroup?: boolean) => {
+    try {
+      const { data } = await chatApi.createConversation({ participantIds, name, isGroup })
+      const newConv = data.data
+      // Add to conversations list if not already there
+      if (!conversations.value.find(c => c.id === newConv.id)) {
+        conversations.value.unshift(newConv)
+      }
+      // Select the new conversation
+      await selectConversation(newConv)
+      showNewChatModal.value = false
+    } catch (err) {
+      console.error('Lỗi tạo cuộc trò chuyện', err)
+    }
+  }
+
   return {
     currentUser,
     conversations,
@@ -357,6 +378,8 @@ export function useChatView() {
     setReplyTo,
     closeMenus,
     getMessageStatusLabel,
-    isLastOwnWithReadStatus
+    isLastOwnWithReadStatus,
+    showNewChatModal,
+    createNewConversation
   }
 }

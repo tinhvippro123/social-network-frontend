@@ -20,17 +20,33 @@
       </div>
     </div>
     
-    <textarea
-      ref="inputRef"
-      v-model="content"
-      :placeholder="placeholder"
-      :rows="rows"
-      :class="[
-        'w-full bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 placeholder-gray-400 resize-none outline-none',
-        compact ? 'p-2.5 text-xs' : 'p-3 text-sm'
-      ]"
-      @keydown.enter.prevent="handleSubmit"
-    ></textarea>
+    <div class="overflow-y-auto custom-scrollbar" :class="compact ? 'max-h-32' : 'max-h-48'">
+      <div :class="['relative', compact ? 'p-2.5 pb-0' : 'p-3 pb-0']">
+        <div 
+          v-if="replyToName" 
+          ref="tagRef"
+          class="absolute z-10 bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400 px-1.5 py-0.5 rounded text-[13px] font-medium flex items-center gap-1"
+          :class="compact ? 'left-2.5 top-2.5' : 'left-3 top-3'"
+        >
+          {{ replyToName }}
+          <button @click="$emit('cancel')" class="hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-full p-0.5 transition-colors">
+            <X :size="12" />
+          </button>
+        </div>
+        <textarea
+          ref="inputRef"
+          v-model="content"
+          :placeholder="replyToName ? 'Viết phản hồi...' : placeholder"
+          :rows="rows"
+          class="w-full bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 placeholder-gray-400 resize-none outline-none p-0 relative z-20 break-words break-all overflow-hidden"
+          :class="compact ? 'text-xs leading-relaxed' : 'text-sm leading-relaxed'"
+          :style="{ textIndent: replyToName ? `${tagWidth}px` : '0px' }"
+          @input="adjustHeight"
+          @keydown.enter.prevent="handleSubmit"
+          @keydown.delete="handleBackspace"
+        ></textarea>
+      </div>
+    </div>
     
     <!-- Toolbar -->
     <div class="flex items-center justify-between px-2 pb-1.5 pt-0.5" :class="{ 'border-t border-gray-100 dark:border-surface-600/50': !compact }">
@@ -67,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { Image as ImageIcon, Smile, X, Send } from '@lucide/vue'
 
 const props = defineProps({
@@ -90,6 +106,10 @@ const props = defineProps({
   rows: {
     type: Number,
     default: 2
+  },
+  replyToName: {
+    type: String,
+    default: null
   }
 })
 
@@ -106,6 +126,20 @@ const attachedImagePreview = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const showEmojiPicker = ref(false)
 const inputRef = ref<HTMLTextAreaElement | null>(null)
+const tagRef = ref<HTMLElement | null>(null)
+const tagWidth = ref(0)
+
+watch(
+  [() => props.replyToName, tagRef], 
+  ([newName, el]) => {
+    if (newName && el) {
+      tagWidth.value = (el as HTMLElement).offsetWidth + 8 // 8px margin
+    } else {
+      tagWidth.value = 0
+    }
+  }, 
+  { immediate: true, flush: 'post' }
+)
 
 const handleImageSelected = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -138,10 +172,29 @@ const handleSubmit = () => {
   emit('submit', content.value, attachedImage.value)
 }
 
+const handleBackspace = () => {
+  if (content.value === '' && props.replyToName) {
+    emit('cancel')
+  }
+}
+
+const adjustHeight = () => {
+  if (!inputRef.value) return
+  // Reset height to allow shrinking
+  inputRef.value.style.height = 'auto'
+  // Set height to match content
+  inputRef.value.style.height = `${inputRef.value.scrollHeight}px`
+}
+
+watch(content, () => {
+  nextTick(adjustHeight)
+})
+
 const clear = () => {
   content.value = ''
   removeAttachedImage()
   showEmojiPicker.value = false
+  nextTick(adjustHeight)
 }
 
 const focus = () => {
@@ -160,5 +213,6 @@ onMounted(() => {
       inputRef.value?.focus()
     }, 50)
   }
+  nextTick(adjustHeight)
 })
 </script>

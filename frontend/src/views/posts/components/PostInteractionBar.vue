@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { SmilePlus, MessageCircle, BookmarkCheck, Bookmark, Share2, Flag } from '@lucide/vue'
 
-defineProps<{
+const props = defineProps<{
   post: any
   isBookmarked: boolean
   activeEmojiPicker: string | null
@@ -11,7 +11,38 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'toggleBookmark'): void
   (e: 'toggleEmojiPicker', postId: string): void
+  (e: 'toggleReaction', emoji: string): void
+  (e: 'report'): void
+  (e: 'scrollToComments'): void
 }>()
+
+const handleReactionClick = (emoji: string) => {
+  emit('toggleReaction', emoji)
+}
+
+const handleAddReactionFromPicker = (emoji: string) => {
+  emit('toggleReaction', emoji)
+  emit('toggleEmojiPicker', props.post.id)
+}
+
+const scrollToComments = () => {
+  emit('scrollToComments')
+}
+
+const sharePost = async () => {
+  const url = window.location.href
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: props.post.title, url })
+    } else {
+      await navigator.clipboard.writeText(url)
+      // Show a brief toast-like feedback
+      alert('Đã sao chép liên kết!')
+    }
+  } catch {
+    // User cancelled share dialog, do nothing
+  }
+}
 </script>
 
 <template>
@@ -20,10 +51,11 @@ const emit = defineEmits<{
       <button
         v-for="reaction in post.reactions"
         :key="reaction.emoji"
+        @click="handleReactionClick(reaction.emoji)"
         :class="[
-          'flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border shrink-0 whitespace-nowrap',
+          'flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border shrink-0 whitespace-nowrap active:scale-95',
           reaction.reacted
-            ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400'
+            ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400 shadow-sm'
             : 'bg-gray-50 dark:bg-surface-600 border-gray-200 dark:border-surface-500 text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-500'
         ]"
       >
@@ -41,8 +73,8 @@ const emit = defineEmits<{
           <button
             v-for="emoji in emojiList"
             :key="emoji"
-            @click="emit('toggleEmojiPicker', post.id)"
-            class="w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-xl transition-colors"
+            @click="handleAddReactionFromPicker(emoji)"
+            class="w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-xl transition-colors active:scale-110"
           >
             {{ emoji }}
           </button>
@@ -51,7 +83,10 @@ const emit = defineEmits<{
     </div>
 
     <div class="flex items-center gap-1 shrink-0">
-      <button class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
+      <button 
+        @click="scrollToComments"
+        class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all"
+      >
         <MessageCircle :size="18" />
         <span class="hidden sm:inline">{{ post.commentsCount }}</span>
       </button>
@@ -66,11 +101,17 @@ const emit = defineEmits<{
         <Bookmark v-else :size="18" />
         <span class="hidden sm:inline">Lưu</span>
       </button>
-      <button class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
+      <button 
+        @click="sharePost"
+        class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all"
+      >
         <Share2 :size="18" />
         <span class="hidden sm:inline">Chia sẻ</span>
       </button>
-      <button class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
+      <button 
+        @click="emit('report')"
+        class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-red-500 transition-all"
+      >
         <Flag :size="18" />
       </button>
     </div>

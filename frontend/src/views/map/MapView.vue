@@ -9,6 +9,7 @@ import { useMapView } from '@/composables/core/useMapView'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import MapSidebar from './components/MapSidebar.vue'
 import MapSelectedPostCard from './components/MapSelectedPostCard.vue'
+import MapControlButton from './components/MapControlButton.vue'
 import type { Post } from '@/types'
 
 const router = useRouter()
@@ -56,15 +57,9 @@ const {
 
       <!-- Map Controls -->
       <div class="absolute top-4 right-4 flex flex-col gap-2 z-1000">
-        <button @click="zoomIn" class="p-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
-          <Plus :size="18" />
-        </button>
-        <button @click="zoomOut" class="p-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
-          <Minus :size="18" />
-        </button>
-        <button @click="goToCurrentLocation" class="p-2.5 bg-white dark:bg-surface-800 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
-          <Navigation :size="18" />
-        </button>
+        <MapControlButton :icon="Plus" @click="zoomIn" />
+        <MapControlButton :icon="Minus" @click="zoomOut" />
+        <MapControlButton :icon="Navigation" @click="goToCurrentLocation" />
       </div>
 
       <!-- Selected Post Card -->

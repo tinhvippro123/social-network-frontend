@@ -9,6 +9,7 @@ import {
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ChatMessageActions from './ChatMessageActions.vue'
+import ChatMessageReadReceipt from './ChatMessageReadReceipt.vue'
 import type { ChatMessage } from '@/types'
 import { computed } from 'vue'
 
@@ -53,13 +54,13 @@ const groupedReactions = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-end gap-2 max-w-[85%] sm:max-w-[70%] relative">
+  <div class="flex items-end gap-2 max-w-[70%] sm:max-w-[65%] relative">
     <UserAvatar v-if="!msg.isOwn" :user="msg.sender" size="sm" class="shrink-0 mb-1" />
 
-    <div class="flex flex-col" :class="msg.isOwn ? 'items-end' : 'items-start'">
-      <div class="relative group/bubble flex items-center gap-2">
+    <div class="flex flex-col min-w-0" :class="msg.isOwn ? 'items-end' : 'items-start'">
+      <div class="relative group/bubble flex items-center gap-2 min-w-0">
         <div :class="[
-        'relative rounded-2xl text-[15px] leading-relaxed',
+        'relative rounded-2xl text-[15px] leading-relaxed min-w-0',
         (msg.type === 'image' && !msg.content) ? '' : 'px-4 py-2.5 shadow-sm border',
         (msg.type === 'image' && !msg.content) ? '' : (msg.isRevoked ? 'bg-gray-100 dark:bg-surface-800 text-gray-500 italic border-gray-200 dark:border-surface-700' :
         msg.isOwn ? 'bg-primary-500 text-white border-primary-600 rounded-br-sm' : 'bg-white dark:bg-surface-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-surface-700 rounded-bl-sm'),
@@ -73,7 +74,7 @@ const groupedReactions = computed(() => {
         </template>
         <template v-else>
           <!-- Text message -->
-          <p v-if="msg.type === 'text'" class="wrap-break-word whitespace-pre-wrap">{{ msg.content }}</p>
+          <p v-if="msg.type === 'text'" class="wrap-break-word break-all whitespace-pre-wrap min-w-0">{{ msg.content }}</p>
 
           <!-- Image message -->
           <div v-else-if="msg.type === 'image'" class="space-y-1">
@@ -82,15 +83,15 @@ const groupedReactions = computed(() => {
           </div>
 
           <!-- File message -->
-          <div v-else-if="msg.type === 'file'" class="flex items-center gap-3 p-1">
-            <div class="w-10 h-10 rounded-xl bg-white/20 dark:bg-surface-700 flex items-center justify-center shrink-0">
-              <component :is="getFileIcon(msg.fileName!)" :size="20" />
+          <div v-else-if="msg.type === 'file'" class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-white/20 dark:bg-surface-700 flex items-center justify-center shrink-0">
+              <component :is="getFileIcon(msg.fileName!)" :size="16" />
             </div>
-            <div class="flex-1 min-w-0 pr-4">
+            <div class="flex-1 min-w-0 pr-2">
               <p class="text-sm font-medium truncate" :class="msg.isOwn ? 'text-white' : 'text-gray-900 dark:text-white'">{{ msg.fileName }}</p>
               <p class="text-xs opacity-80">{{ msg.fileSize }}</p>
             </div>
-            <button @click="downloadFile(msg.fileUrl, msg.fileName)" class="p-2 rounded-lg bg-white/20 hover:bg-white/30 dark:bg-surface-700 dark:hover:bg-surface-600 transition-colors">
+            <button @click="downloadFile(msg.fileUrl, msg.fileName)" class="p-2 rounded-lg bg-white/20 hover:bg-white/30 dark:bg-surface-700 dark:hover:bg-surface-600 transition-colors shrink-0">
               <DownloadIcon :size="16" />
             </button>
           </div>
@@ -129,30 +130,11 @@ const groupedReactions = computed(() => {
     </div>
 
       <!-- Read receipt avatar (only on last own read message) -->
-      <div v-if="isLastOwnWithReadStatus(msg)" class="mt-1">
-        <div class="flex items-center -space-x-1">
-          <template v-if="msg.readBy && msg.readBy.length > 0">
-            <UserAvatar
-              v-for="reader in msg.readBy.slice(0, 3)"
-              :key="reader.user.id"
-              :user="reader.user"
-              class="w-5 h-5 ring-[1.5px] ring-white dark:ring-surface-800 relative z-10 cursor-default"
-              size="sm"
-              :title="reader.user.name"
-            />
-            <div v-if="msg.readBy.length > 3" :title="msg.readBy.slice(3).map(r => r.user.name).join(', ')" class="w-5 h-5 rounded-full bg-gray-200 dark:bg-surface-700 flex items-center justify-center text-[9px] font-semibold text-gray-600 dark:text-gray-300 ring-[1.5px] ring-white dark:ring-surface-800 relative z-0 cursor-default">
-              +{{ msg.readBy.length - 3 }}
-            </div>
-          </template>
-          <UserAvatar
-            v-else-if="selectedConversation"
-            :user="selectedConversation.participants[1]"
-            class="w-5 h-5 cursor-default ring-[1.5px] ring-white dark:ring-surface-800"
-            size="sm"
-            :title="selectedConversation.participants[1].name"
-          />
-        </div>
-      </div>
+      <ChatMessageReadReceipt 
+        v-if="isLastOwnWithReadStatus(msg)" 
+        :msg="msg" 
+        :conversation="selectedConversation" 
+      />
     </div>
   </div>
 </template>

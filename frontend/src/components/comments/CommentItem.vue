@@ -92,25 +92,33 @@
     </div>
 
     <!-- Inline Reply Box -->
-    <div v-if="inlineReplyId === comment.id" class="flex items-start gap-2 sm:gap-3 mt-3 animate-slide-down">
-      <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0" :class="level === 0 ? 'w-8! h-8!' : 'w-6! h-6!'" />
-      <div v-else class="rounded-full bg-gray-200 dark:bg-surface-700 shrink-0" :class="level === 0 ? 'w-8 h-8' : 'w-6 h-6'"></div>
-      <CommentComposer
-        ref="inlineComposerRef"
-        :placeholder="`Trả lời @${comment.author.name}...`"
-        :auto-focus="true"
-        :compact="true"
-        :show-cancel="true"
-        @submit="handleSubmitReply"
-        @cancel="$emit('cancel-reply')"
-      />
+    <div v-if="inlineReplyId === comment.id" 
+         :class="level === 0 ? 'mt-3 border-l-2 border-transparent ml-3 sm:ml-6 pl-2 sm:pl-4' : 
+                 level === 1 ? 'mt-3 border-l-2 border-transparent ml-2 sm:ml-5 pl-2 sm:pl-3' : 
+                 'mt-3'">
+      <div class="flex items-start gap-2 sm:gap-3 animate-slide-down">
+        <UserAvatar v-if="user" :user="user" size="sm" class="shrink-0 w-6! h-6! sm:w-8! sm:h-8!" />
+        <div v-else class="rounded-full bg-gray-200 dark:bg-surface-700 shrink-0 w-6 h-6 sm:w-8 sm:h-8"></div>
+        <CommentComposer
+          ref="inlineComposerRef"
+          :reply-to-name="comment.author.name"
+          :auto-focus="true"
+          :compact="true"
+          :show-cancel="true"
+          :rows="1"
+          @submit="handleSubmitReply"
+          @cancel="$emit('cancel-reply')"
+        />
+      </div>
     </div>
     
     <!-- Recursive Sub-replies -->
     <div 
       v-if="comment.replies && comment.replies.length > 0" 
-      class="mt-3 space-y-3 border-l-2 border-gray-100 dark:border-surface-600"
-      :class="level === 0 ? 'ml-3 sm:ml-6 pl-2 sm:pl-4' : 'ml-2 sm:ml-5 pl-2 sm:pl-3'"
+      class="mt-3 space-y-3"
+      :class="level === 0 ? 'border-l-2 border-gray-100 dark:border-surface-600 ml-3 sm:ml-6 pl-2 sm:pl-4' : 
+              level === 1 ? 'border-l-2 border-gray-100 dark:border-surface-600 ml-2 sm:ml-5 pl-2 sm:pl-3' : 
+              ''"
     >
       <CommentItem
         v-for="reply in comment.replies"

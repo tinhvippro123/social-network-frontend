@@ -3,8 +3,9 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Bookmark, FolderOpen } from '@lucide/vue'
 import PostCard from '@/components/PostCard.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import PostSkeletonCard from '@/components/posts/PostSkeletonCard.vue'
 import BookmarksSidebar from './components/BookmarksSidebar.vue'
+import BookmarksHeroBanner from './components/BookmarksHeroBanner.vue'
 import { useBookmarks } from '@/composables/core/useBookmarks'
 import { formatNumber } from '@/utils/formatters'
 
@@ -26,41 +27,12 @@ const {
       <!-- Main Content -->
       <div class="flex-1 min-w-0">
         <!-- Bookmarks Banner -->
-        <div class="relative overflow-hidden rounded-2xl bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500 p-6 sm:p-8 mb-6 shadow-xl">
-          <div class="relative z-10">
-            <div class="flex items-center gap-2 mb-3">
-              <Bookmark :size="20" class="text-emerald-200" />
-              <span class="text-emerald-100 text-sm font-medium">Bộ sưu tập cá nhân</span>
-            </div>
-            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">
-              Đã lưu 📚
-            </h1>
-            <p class="text-emerald-100 text-sm sm:text-base max-w-lg">
-              Những bài viết bạn đã lưu lại để đọc sau. Hiện có {{ bookmarkedPosts.length }} bài viết.
-            </p>
-          </div>
-          <!-- Decorative shapes -->
-          <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div class="absolute bottom-0 right-20 w-24 h-24 bg-white/5 rounded-full translate-y-1/2" />
-        </div>
+        <BookmarksHeroBanner :item-count="bookmarkedPosts.length" />
 
         <!-- Feed -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger-children">
           <template v-if="isLoading">
-            <div v-for="i in 4" :key="i" class="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-surface-700">
-              <Skeleton type="image" class="w-full h-48 shrink-0" rounded="rounded-none" />
-              <div class="p-5 space-y-4">
-                <div class="flex items-center gap-3">
-                  <Skeleton type="avatar" width="w-8" height="h-8" />
-                  <Skeleton type="text" width="w-24" />
-                </div>
-                <div class="space-y-2">
-                  <Skeleton type="title" width="w-full" height="h-7" />
-                  <Skeleton type="text" width="w-full" />
-                  <Skeleton type="text" width="w-2/3" />
-                </div>
-              </div>
-            </div>
+            <PostSkeletonCard v-for="i in 4" :key="i" />
           </template>
           
           <template v-else-if="bookmarkedPosts.length === 0">

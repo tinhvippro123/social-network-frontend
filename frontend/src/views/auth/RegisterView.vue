@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Check } from '@lucide/vue'
+import AuthSocialLogin from './components/AuthSocialLogin.vue'
 import { useRegister } from '@/composables/auth/useRegister'
 
 const {
@@ -157,6 +158,9 @@ const {
         </template>
       </button>
     </form>
+
+    <!-- Social Login -->
+    <AuthSocialLogin />
 
     <!-- Login link -->
     <p class="text-center text-sm text-gray-400 mt-6">

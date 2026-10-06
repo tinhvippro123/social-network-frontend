@@ -5,19 +5,24 @@ import {
 } from '@lucide/vue'
 import MainNavbarNotifications from './MainNavbarNotifications.vue'
 import MainNavbarUserMenu from './MainNavbarUserMenu.vue'
+import MainNavbarChat from './MainNavbarChat.vue'
+import type { ChatConversation } from '@/types'
 
 defineProps<{
   user: any
   uiStore: any
   showNotifications: boolean
   showUserMenu: boolean
+  showChat: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'update:showNotifications', value: boolean): void
   (e: 'update:showUserMenu', value: boolean): void
+  (e: 'update:showChat', value: boolean): void
   (e: 'navigate', path: string): void
   (e: 'logout'): void
+  (e: 'openChatWindow', conv: ChatConversation): void
 }>()
 </script>
 
@@ -77,20 +82,27 @@ const emit = defineEmits<{
         <span>Viết bài</span>
       </button>
 
-      <!-- Notifications & User Menu (Logged In) -->
+      <!-- Notifications & Chat & User Menu (Logged In) -->
       <template v-if="user">
+        <!-- Chat (Messenger icon) -->
+        <MainNavbarChat
+          :show-chat="showChat"
+          @update:show-chat="val => { emit('update:showChat', val); if (val) { emit('update:showNotifications', false); emit('update:showUserMenu', false) } }"
+          @open-chat-window="conv => emit('openChatWindow', conv)"
+        />
+
         <!-- Notifications -->
         <MainNavbarNotifications
           :ui-store="uiStore"
           :show-notifications="showNotifications"
-          @update:show-notifications="val => emit('update:showNotifications', val)"
+          @update:show-notifications="val => { emit('update:showNotifications', val); if (val) { emit('update:showChat', false); emit('update:showUserMenu', false) } }"
         />
 
         <!-- User Avatar / Menu -->
         <MainNavbarUserMenu
           :user="user"
           :show-user-menu="showUserMenu"
-          @update:show-user-menu="val => emit('update:showUserMenu', val)"
+          @update:show-user-menu="val => { emit('update:showUserMenu', val); if (val) { emit('update:showChat', false); emit('update:showNotifications', false) } }"
           @navigate="path => emit('navigate', path)"
           @logout="emit('logout')"
         />

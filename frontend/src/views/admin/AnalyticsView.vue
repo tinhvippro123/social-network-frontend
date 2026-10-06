@@ -4,6 +4,9 @@ import { BarChart3, TrendingUp, Users, FileText, Eye, ArrowUp, MessageCircle } f
 import { useAdmin } from '@/composables/admin/useAdmin'
 import { useAdminAnalytics } from '@/composables/admin/useAdminAnalytics'
 import AnalyticsCharts from './components/AnalyticsCharts.vue'
+import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+import AdminStatCardSkeleton from './components/AdminStatCardSkeleton.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 
 const { stats, isLoading, timeRange } = useAdminAnalytics()
 
@@ -30,48 +33,33 @@ const { stats, isLoading, timeRange } = useAdminAnalytics()
     <!-- Quick Stats -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <template v-if="isLoading">
-        <div v-for="i in 4" :key="i" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
-          <Skeleton class="h-4 w-24 mb-2 rounded" />
-          <Skeleton class="h-8 w-16 mb-2 rounded" />
-        </div>
+        <AdminStatCardSkeleton v-for="i in 4" :key="i" />
       </template>
       <template v-else-if="stats">
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
-          <h3 class="text-sm font-medium text-gray-500 mb-2">Tổng người dùng</h3>
-          <div class="flex items-end gap-3">
-            <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.totalUsers.toLocaleString() }}</span>
-            <span class="text-sm font-medium text-green-500 bg-green-500/10 px-2 py-0.5 rounded-lg">
-              +{{ stats.newUsersToday }}
-            </span>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
-          <h3 class="text-sm font-medium text-gray-500 mb-2">Tổng bài viết</h3>
-          <div class="flex items-end gap-3">
-            <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.totalPosts.toLocaleString() }}</span>
-            <span class="text-sm font-medium text-green-500 bg-green-500/10 px-2 py-0.5 rounded-lg">
-              +{{ stats.newPostsToday }}
-            </span>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
-          <h3 class="text-sm font-medium text-gray-500 mb-2">Lượt xem hôm nay</h3>
-          <div class="flex items-end gap-3">
-            <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.viewsToday.total.toLocaleString() }}</span>
-            <span class="text-sm font-medium text-green-500 bg-green-500/10 px-2 py-0.5 rounded-lg">
-              +{{ stats.viewsToday.growthPct }}%
-            </span>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
-          <h3 class="text-sm font-medium text-gray-500 mb-2">Báo cáo chờ xử lý</h3>
-          <div class="flex items-end gap-3">
-            <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.pendingReports }}</span>
-            <span class="text-sm font-medium text-red-500 bg-red-500/10 px-2 py-0.5 rounded-lg">
-              Cần xử lý
-            </span>
-          </div>
-        </div>
+        <AdminStatCard
+          label="Tổng người dùng"
+          :value="stats.totalUsers.toLocaleString()"
+          :change="'+' + stats.newUsersToday"
+          trend="up"
+        />
+        <AdminStatCard
+          label="Tổng bài viết"
+          :value="stats.totalPosts.toLocaleString()"
+          :change="'+' + stats.newPostsToday"
+          trend="up"
+        />
+        <AdminStatCard
+          label="Lượt xem hôm nay"
+          :value="stats.viewsToday.total.toLocaleString()"
+          :change="'+' + stats.viewsToday.growthPct + '%'"
+          trend="up"
+        />
+        <AdminStatCard
+          label="Báo cáo chờ xử lý"
+          :value="stats.pendingReports"
+          change="Cần xử lý"
+          trend="down"
+        />
       </template>
     </div>
 

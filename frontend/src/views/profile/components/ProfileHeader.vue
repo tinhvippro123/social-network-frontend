@@ -1,14 +1,51 @@
 <script setup lang="ts">
-import { Calendar, MapPin, Link as LinkIcon, Edit3 } from '@lucide/vue'
+import { ref, computed } from 'vue'
+import { Calendar, MapPin, Link as LinkIcon, Edit3, UserPlus, UserCheck, MessageCircle, MoreHorizontal, Shield, Flag } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import UserAvatar from '@/components/UserAvatar.vue'
+import FollowersModal from './FollowersModal.vue'
+import { useToast } from '@/composables/ui/useToast'
 
-defineProps<{
+const props = defineProps<{
   currentUser: any
+  isOwnProfile?: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'message', userId: string): void
 }>()
 
 const router = useRouter()
+const { addToast } = useToast()
+
+// Follow state
+const isFollowing = ref(false)
+const isFollowLoading = ref(false)
+
+// Followers/Following modal
+const showFollowersModal = ref(false)
+const followersModalType = ref<'followers' | 'following'>('followers')
+
+// More menu
+const showMoreMenu = ref(false)
+
+function openFollowersModal(type: 'followers' | 'following') {
+  followersModalType.value = type
+  showFollowersModal.value = true
+}
+
+async function toggleFollow() {
+  isFollowLoading.value = true
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 500))
+  isFollowing.value = !isFollowing.value
+  isFollowLoading.value = false
+}
+
+function handleMessage() {
+  emit('message', props.currentUser.id)
+}
 </script>
 
 <template>
@@ -42,26 +79,97 @@ const router = useRouter()
             <span class="flex items-center gap-1"><LinkIcon :size="12" /> github.com/tinh</span>
           </div>
         </div>
-        <button @click="router.push('/settings')" class="shrink-0 mt-4 sm:mt-20 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
-          <Edit3 :size="14" /> Chỉnh sửa
-        </button>
+
+        <!-- Action Buttons -->
+        <div class="shrink-0 mt-4 sm:mt-20 flex items-center gap-2">
+          <!-- Own Profile: Edit button -->
+          <template v-if="isOwnProfile">
+            <button @click="router.push('/settings')" class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">
+              <Edit3 :size="14" /> Chỉnh sửa
+            </button>
+          </template>
+
+          <!-- Other's Profile: Follow + Message buttons -->
+          <template v-else>
+            <button
+              @click="toggleFollow"
+              :disabled="isFollowLoading"
+              :class="[
+                'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
+                isFollowing
+                  ? 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-600 hover:bg-red-50 hover:text-red-500 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400'
+                  : 'bg-primary-500 text-white hover:bg-primary-600 shadow-lg shadow-primary-500/25'
+              ]"
+            >
+              <component :is="isFollowing ? UserCheck : UserPlus" :size="14" :class="{ 'animate-spin': isFollowLoading }" />
+              {{ isFollowing ? 'Đang theo dõi' : 'Theo dõi' }}
+            </button>
+
+            <button
+              @click="handleMessage"
+              class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all"
+            >
+              <MessageCircle :size="14" /> Nhắn tin
+            </button>
+
+            <!-- More Menu -->
+            <div class="relative">
+              <button
+                @click="showMoreMenu = !showMoreMenu"
+                class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+              >
+                <MoreHorizontal :size="16" />
+              </button>
+              <Transition name="dropdown">
+                <div v-if="showMoreMenu" class="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 py-1.5 z-50">
+                  <button @click="addToast({ message: 'Tính năng đang được phát triển', type: 'info' })" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-surface-700 transition-colors">
+                    <Shield :size="14" /> Chặn người dùng
+                  </button>
+                  <button @click="addToast({ message: 'Tính năng đang được phát triển', type: 'info' })" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                    <Flag :size="14" /> Báo cáo
+                  </button>
+                </div>
+              </Transition>
+            </div>
+          </template>
+        </div>
       </div>
 
-      <!-- Stats -->
+      <!-- Stats (clickable) -->
       <div class="flex items-center gap-6 mt-6 pt-6 border-t border-gray-200 dark:border-surface-700">
         <div class="text-center">
           <p class="text-xl font-bold text-gray-900 dark:text-white">{{ currentUser.postsCount }}</p>
           <p class="text-xs text-gray-400">Bài viết</p>
         </div>
-        <div class="text-center">
-          <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatNumber(currentUser.followersCount) }}</p>
-          <p class="text-xs text-gray-400">Followers</p>
-        </div>
-        <div class="text-center">
-          <p class="text-xl font-bold text-gray-900 dark:text-white">{{ currentUser.followingCount }}</p>
-          <p class="text-xs text-gray-400">Following</p>
-        </div>
+        <button @click="openFollowersModal('followers')" class="text-center group cursor-pointer hover:scale-105 transition-transform">
+          <p class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors">{{ formatNumber(currentUser.followersCount) }}</p>
+          <p class="text-xs text-gray-400 group-hover:text-primary-400 transition-colors">Followers</p>
+        </button>
+        <button @click="openFollowersModal('following')" class="text-center group cursor-pointer hover:scale-105 transition-transform">
+          <p class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors">{{ currentUser.followingCount }}</p>
+          <p class="text-xs text-gray-400 group-hover:text-primary-400 transition-colors">Following</p>
+        </button>
       </div>
     </div>
   </div>
+
+  <!-- Followers/Following Modal -->
+  <FollowersModal
+    :show="showFollowersModal"
+    :type="followersModalType"
+    :user="currentUser"
+    @close="showFollowersModal = false"
+  />
 </template>
+
+<style scoped>
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.15s ease;
+}
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.95);
+}
+</style>

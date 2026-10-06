@@ -13,6 +13,7 @@ import PostAuthorCard from './components/PostAuthorCard.vue'
 import PostInteractionBar from './components/PostInteractionBar.vue'
 import PostComments from './components/PostComments.vue'
 import RelatedPostsSidebar from './components/RelatedPostsSidebar.vue'
+import ReportPostModal from './components/ReportPostModal.vue'
 import { usePostDetail } from '@/composables/posts/usePostDetail'
 import { useCodeHighlight } from '@/composables/core/useCodeHighlight'
 import 'highlight.js/styles/github-dark.css'
@@ -29,10 +30,16 @@ const {
   replyingTo,
   activeEmojiPicker,
   emojiList,
+  showReportModal,
   toggleBookmark,
   toggleEmojiPicker,
+  toggleReaction,
+  reportPost,
+  scrollToComments,
   setReplyingTo,
-  clearReplyingTo
+  clearReplyingTo,
+  addComment,
+  replyComment
 } = usePostDetail()
 
 const isFollowing = ref(false)
@@ -112,19 +119,25 @@ useCodeHighlight(postContent)
           :emojiList="emojiList"
           @toggleBookmark="toggleBookmark"
           @toggleEmojiPicker="toggleEmojiPicker"
+          @toggleReaction="toggleReaction"
+          @report="showReportModal = true"
+          @scrollToComments="scrollToComments"
         />
 
         <!-- Comments Section -->
-        <!-- Comments Section -->
-        <PostComments
-          :comments="comments"
-          :user="user"
-          :replyingTo="replyingTo"
-          :activeEmojiPicker="activeEmojiPicker"
-          @setReplyingTo="setReplyingTo"
-          @clearReplyingTo="clearReplyingTo"
-          @toggleEmojiPicker="toggleEmojiPicker"
-        />
+        <div id="comments-section">
+          <PostComments
+            :comments="comments"
+            :user="user"
+            :replyingTo="replyingTo"
+            :activeEmojiPicker="activeEmojiPicker"
+            @setReplyingTo="setReplyingTo"
+            @clearReplyingTo="clearReplyingTo"
+            @toggleEmojiPicker="toggleEmojiPicker"
+            @addComment="addComment"
+            @replyComment="replyComment"
+          />
+        </div>
       </article>
 
       <!-- Sidebar -->
@@ -140,5 +153,12 @@ useCodeHighlight(postContent)
     <div v-else class="text-center py-20 text-gray-500">
       Đang tải bài viết...
     </div>
+
+    <!-- Report Modal -->
+    <ReportPostModal
+      :show="showReportModal"
+      @close="showReportModal = false"
+      @submit="(reason, desc) => { reportPost(reason, desc); showReportModal = false }"
+    />
   </div>
 </template>

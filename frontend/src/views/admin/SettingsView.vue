@@ -4,6 +4,7 @@ import { Settings, Globe, Bell, Shield, Database, Palette, Save } from '@lucide/
 import { useAdminSettings } from '@/composables/admin/useAdminSettings'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import SettingsSecurity from './components/SettingsSecurity.vue'
+import AdminSettingCheckbox from './components/AdminSettingCheckbox.vue'
 
 const {
   isLoading,
@@ -71,27 +72,21 @@ const {
           <Database :size="18" class="text-purple-500" /> Tính năng
         </h3>
         <div class="space-y-4">
-          <label class="flex items-center justify-between p-3 bg-gray-50 dark:bg-surface-700 rounded-xl cursor-pointer">
-            <div>
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Chat real-time (Redis + WebSocket)</p>
-              <p class="text-xs text-gray-400 mt-0.5">Nhắn tin 1-1 và nhóm theo thời gian thực</p>
-            </div>
-            <input v-model="enableRealTimeChat" type="checkbox" class="w-5 h-5 text-red-500 rounded focus:ring-red-500" />
-          </label>
-          <label class="flex items-center justify-between p-3 bg-gray-50 dark:bg-surface-700 rounded-xl cursor-pointer">
-            <div>
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Bài viết theo vị trí (PostGIS)</p>
-              <p class="text-xs text-gray-400 mt-0.5">Cho phép đính kèm tọa độ và tìm kiếm theo bản đồ</p>
-            </div>
-            <input v-model="enableLocationPosts" type="checkbox" class="w-5 h-5 text-red-500 rounded focus:ring-red-500" />
-          </label>
-          <label class="flex items-center justify-between p-3 bg-gray-50 dark:bg-surface-700 rounded-xl cursor-pointer">
-            <div>
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Tìm kiếm ngữ nghĩa (pgvector)</p>
-              <p class="text-xs text-gray-400 mt-0.5">Tìm kiếm bài viết theo ý nghĩa với Cosine Similarity</p>
-            </div>
-            <input v-model="enableSemanticSearch" type="checkbox" class="w-5 h-5 text-red-500 rounded focus:ring-red-500" />
-          </label>
+          <AdminSettingCheckbox
+            v-model="enableRealTimeChat"
+            title="Chat real-time (Redis + WebSocket)"
+            description="Nhắn tin 1-1 và nhóm theo thời gian thực"
+          />
+          <AdminSettingCheckbox
+            v-model="enableLocationPosts"
+            title="Bài viết theo vị trí (PostGIS)"
+            description="Cho phép đính kèm tọa độ và tìm kiếm theo bản đồ"
+          />
+          <AdminSettingCheckbox
+            v-model="enableSemanticSearch"
+            title="Tìm kiếm ngữ nghĩa (pgvector)"
+            description="Tìm kiếm bài viết theo ý nghĩa với Cosine Similarity"
+          />
         </div>
       </div>
 
@@ -100,13 +95,12 @@ const {
         <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-5">
           <Settings :size="18" class="text-red-500" /> Chế độ bảo trì
         </h3>
-        <label class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl cursor-pointer">
-          <div>
-            <p class="text-sm font-medium text-red-600 dark:text-red-400">Bật chế độ bảo trì</p>
-            <p class="text-xs text-gray-400 mt-0.5">Chỉ admin mới có thể truy cập khi bật</p>
-          </div>
-          <input v-model="maintenanceMode" type="checkbox" class="w-5 h-5 text-red-500 rounded focus:ring-red-500" />
-        </label>
+        <AdminSettingCheckbox
+          v-model="maintenanceMode"
+          title="Bật chế độ bảo trì"
+          description="Chỉ admin mới có thể truy cập khi bật"
+          is-danger
+        />
       </div>
 
       <!-- Save -->

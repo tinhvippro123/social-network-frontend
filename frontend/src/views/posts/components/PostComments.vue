@@ -16,6 +16,8 @@ const emit = defineEmits<{
   (e: 'setReplyingTo', targetId: string, authorName: string): void
   (e: 'clearReplyingTo'): void
   (e: 'toggleEmojiPicker', targetId: string | null): void
+  (e: 'addComment', content: string, image: File | null): void
+  (e: 'replyComment', parentId: string, content: string, image: File | null): void
 }>()
 
 const commentInputRef = ref<HTMLTextAreaElement | null>(null)
@@ -24,9 +26,17 @@ const inlineReplyContent = ref('')
 const mainComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
 
 const handleReplyClick = (targetId: string, rootCommentId: string, authorName: string) => {
-  emit('clearReplyingTo')
-  inlineReplyId.value = targetId
-  inlineReplyContent.value = ''
+  if (window.innerWidth < 640) {
+    emit('setReplyingTo', targetId, authorName)
+    inlineReplyId.value = null
+    setTimeout(() => {
+      mainComposerRef.value?.focus()
+    }, 50)
+  } else {
+    emit('clearReplyingTo')
+    inlineReplyId.value = targetId
+    inlineReplyContent.value = ''
+  }
 }
 
 const cancelReply = () => {
@@ -34,13 +44,15 @@ const cancelReply = () => {
 }
 
 const handleMainSubmit = (content: string, image: File | null) => {
-  console.log('Submit main comment:', { content, image })
+  emit('addComment', content, image)
   mainComposerRef.value?.clear()
   emit('clearReplyingTo')
 }
 
 const handleInlineSubmit = (content: string, image: File | null) => {
-  console.log('Submit inline reply to', inlineReplyId.value, ':', { content, image })
+  if (inlineReplyId.value) {
+    emit('replyComment', inlineReplyId.value, content, image)
+  }
   inlineReplyId.value = null
 }
 
@@ -57,23 +69,17 @@ const cancelInlineReply = () => {
     </h3>
 
 
-    <div class="flex items-start gap-3 w-full mb-6">
+    <div class="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-surface-800 p-3 sm:p-0 border-t border-gray-200 dark:border-surface-700 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] sm:shadow-none sm:border-0 sm:static sm:bg-transparent sm:z-auto flex items-start gap-3 w-full sm:mb-6">
       <UserAvatar v-if="user" :user="user" size="md" class="shrink-0 hidden sm:block" />
       <CommentComposer
         ref="mainComposerRef"
-        :placeholder="replyingTo ? 'Viết phản hồi...' : 'Viết bình luận...'"
+        :placeholder="'Viết bình luận...'"
+        :reply-to-name="replyingTo?.authorName"
         :rows="2"
+        class="w-full"
         @submit="handleMainSubmit"
-      >
-        <template #header>
-          <div v-if="replyingTo" class="px-3 pt-3 flex items-center text-xs font-medium text-primary-600 dark:text-primary-400">
-            <span>Đang trả lời <strong>{{ replyingTo.authorName }}</strong></span>
-            <button @click="cancelReply" class="ml-1.5 p-0.5 rounded-full hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-colors">
-              <X :size="14" />
-            </button>
-          </div>
-        </template>
-      </CommentComposer>
+        @cancel="cancelReply"
+      />
     </div>
 
     <!-- Comments List -->

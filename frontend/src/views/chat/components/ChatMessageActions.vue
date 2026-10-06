@@ -29,8 +29,9 @@ const emit = defineEmits<{
   <div
     v-if="!msg.isRevoked"
     :class="[
-      'absolute top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/bubble:opacity-100 transition-opacity',
-      msg.isOwn ? 'right-full mr-2' : 'left-full ml-2'
+      'absolute top-1/2 -translate-y-1/2 flex items-center gap-1 transition-opacity',
+      msg.isOwn ? 'right-full mr-2' : 'left-full ml-2',
+      activeActionMenu === msg.id || activeActionMenu === msg.id + '-react' ? 'opacity-100' : 'opacity-0 group-hover/bubble:opacity-100'
     ]"
   >
     <!-- React Dropdown -->
@@ -56,26 +57,17 @@ const emit = defineEmits<{
         <MoreVerticalIcon :size="16" />
       </button>
       <!-- More Dropdown -->
-      <div v-if="activeActionMenu === msg.id" class="absolute bottom-full mb-2 w-48 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 py-1 z-50" :class="msg.isOwn ? 'right-0' : 'left-0'">
-        <button @click.stop="emit('setReplyTo', msg)" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-surface-700 text-left">
-          <ReplyIcon :size="16" />
-          Trả lời
+      <div v-if="activeActionMenu === msg.id" class="absolute bottom-full mb-2 w-48 bg-[#242526] text-white rounded-xl shadow-xl border border-gray-700 py-2 z-50" :class="msg.isOwn ? 'right-0' : 'left-0'">
+        <button v-if="msg.isOwn" @click.stop="emit('revokeMessage', msg.id)" class="w-full flex items-center px-4 py-2 text-[15px] font-medium hover:bg-[#3A3B3C] text-left transition-colors">
+          Gỡ
         </button>
-        <button @click.stop="emit('pinMessage', msg.id)" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-surface-700 text-left">
-          <PinIcon :size="16" />
-          Ghim tin nhắn
+        <button @click.stop="emit('toggleActionMenu', 'null')" class="w-full flex items-center px-4 py-2 text-[15px] font-medium hover:bg-[#3A3B3C] text-left transition-colors">
+          Chuyển tiếp
         </button>
-        <button v-if="msg.isOwn" @click.stop="emit('revokeMessage', msg.id)" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-surface-700 text-left">
-          <CornerUpLeftIcon :size="16" />
-          Thu hồi
+        <button @click.stop="emit('pinMessage', msg.id)" class="w-full flex items-center px-4 py-2 text-[15px] font-medium hover:bg-[#3A3B3C] text-left transition-colors">
+          Ghim
         </button>
-        <div class="h-px bg-gray-200 dark:bg-surface-700 my-1"></div>
-        <button v-if="msg.isOwn" @click.stop="emit('deleteMessage', msg.id)" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-left">
-          <TrashIcon :size="16" />
-          Xóa ở phía tôi
-        </button>
-        <button v-if="!msg.isOwn" @click.stop="$emit('toggleActionMenu', 'null')" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-left">
-          <FlagIcon :size="16" />
+        <button v-if="!msg.isOwn" @click.stop="emit('toggleActionMenu', 'null')" class="w-full flex items-center px-4 py-2 text-[15px] font-medium hover:bg-[#3A3B3C] text-left transition-colors">
           Báo cáo
         </button>
       </div>
