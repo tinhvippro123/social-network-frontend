@@ -28,13 +28,36 @@ const handleClick = () => {
       isDraft ? 'hover:border-yellow-500/30 hover:shadow-lg' : 'hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/5'
     ]"
   >
-    <img
-      :src="post.coverImage"
+    <!-- Cover Image with Fallback -->
+    <div
+      v-if="post.coverImage"
       :class="[
-        'hidden sm:block w-32 h-24 rounded-xl object-cover shrink-0',
+        'hidden sm:block w-32 h-24 rounded-xl overflow-hidden shrink-0',
+        isDraft ? 'opacity-60' : ''
+      ]"
+    >
+      <img
+        :src="post.coverImage"
+        :class="[
+          'w-full h-full object-cover',
+          isDraft ? '' : 'transition-transform duration-300 group-hover:scale-105'
+        ]"
+      />
+    </div>
+    <div
+      v-else
+      :class="[
+        'hidden sm:flex w-32 h-24 rounded-xl shrink-0 items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40',
         isDraft ? 'opacity-60' : 'transition-transform duration-300 group-hover:scale-105'
       ]"
-    />
+    >
+      <span class="text-primary-300 dark:text-primary-700/50 opacity-50">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </span>
+    </div>
+
     <div class="flex-1 min-w-0">
       <div v-if="isDraft" class="flex items-center gap-2 mb-2">
         <span class="px-2 py-0.5 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full">Nháp</span>
@@ -42,12 +65,12 @@ const handleClick = () => {
       </div>
 
       <h3 :class="[
-        'font-bold text-gray-900 dark:text-white line-clamp-2 mb-2',
+        'font-bold text-gray-900 dark:text-white line-clamp-2 mb-2 break-words',
         !isDraft && 'group-hover:text-primary-500 transition-colors'
       ]">
         {{ post.title }}
       </h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mb-3">
+      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mb-3 break-words">
         {{ post.excerpt }}
       </p>
 

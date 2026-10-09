@@ -16,8 +16,15 @@ const router = useRouter()
   <div>
     <!-- Cover Image -->
     <div class="relative rounded-2xl overflow-hidden mb-6 h-64 sm:h-80">
-      <img :src="post.coverImage" :alt="post.title" class="w-full h-full object-cover" />
-      <div class="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
+      <img v-if="post.coverImage" :src="post.coverImage" :alt="post.title" class="w-full h-full object-cover" />
+      <div v-else class="w-full h-full bg-gradient-to-br from-primary-100 to-primary-300 dark:from-primary-900/50 dark:to-primary-800/50 flex items-center justify-center">
+        <span class="text-primary-300 dark:text-primary-700/50 opacity-40">
+          <svg class="w-24 h-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </span>
+      </div>
+      <div class="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
       <div class="absolute bottom-6 left-6 right-6">
         <span class="inline-block px-3 py-1 rounded-lg text-xs font-semibold bg-white/90 text-gray-700 mb-3">
           {{ post.category.icon }} {{ post.category.name }}

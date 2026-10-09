@@ -20,7 +20,12 @@ const router = useRouter()
         @click="router.push(`/posts/${p.id}`)"
         class="flex items-start gap-3 cursor-pointer group"
       >
-        <img :src="p.coverImage" class="w-16 h-12 rounded-lg object-cover shrink-0" />
+        <img v-if="p.coverImage" :src="p.coverImage" class="w-16 h-12 rounded-lg object-cover shrink-0" />
+        <div v-else class="w-16 h-12 rounded-lg shrink-0 flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40">
+          <svg class="w-5 h-5 text-primary-300 dark:text-primary-700/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
         <div>
           <p class="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-2 group-hover:text-primary-500 transition-colors">
             {{ p.title }}

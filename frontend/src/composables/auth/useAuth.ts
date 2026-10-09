@@ -28,7 +28,6 @@ export function useAuth() {
     await execute(async () => {
       const { data } = await authApi.login(credentials)
       authStore.setToken(data.data.accessToken)
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.data.refreshToken)
       authStore.setUser(data.data.user)
 
       const redirectUrl = route.query.redirect as string
@@ -53,7 +52,8 @@ export function useAuth() {
   /** Đăng xuất */
   async function logout() {
     try {
-      await authApi.logout()
+      // Backend JWT hiện tại là stateless, chỉ cần xóa token ở frontend
+      // await authApi.logout()
     } catch (e) {
       console.warn('Lỗi khi gọi API đăng xuất:', e)
     } finally {

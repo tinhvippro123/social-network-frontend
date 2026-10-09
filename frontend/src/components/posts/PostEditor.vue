@@ -133,8 +133,8 @@ const router = useRouter()
           <span class="font-semibold text-sm text-gray-700 dark:text-gray-300">Xem trước văn bản</span>
         </div>
         
-        <div class="flex-1 overflow-y-auto p-8">
-          <div class="prose dark:prose-invert max-w-none prose-img:rounded-xl">
+        <div class="flex-1 overflow-y-auto bg-white dark:bg-surface-800 overflow-x-hidden">
+          <div class="prose dark:prose-invert max-w-none prose-img:rounded-xl break-words p-6 text-base leading-relaxed text-gray-700 dark:text-gray-300">
             <p v-if="!content || content === '<p></p>'" class="text-gray-400 italic">Chưa có nội dung. Hãy nhập nội dung ở ô bên trái để xem trước...</p>
             <div v-else v-html="content" class="tiptap-preview"></div>
           </div>

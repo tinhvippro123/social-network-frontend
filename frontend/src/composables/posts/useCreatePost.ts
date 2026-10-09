@@ -2,6 +2,8 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '../ui/useToast'
 import { useCategories } from '../core/useCategories'
+import { useAsyncState } from '../core/useAsyncState'
+import postsApi from '@/api/posts.api'
 import { LOCATION_SUPPORTED_CATEGORIES } from '@/constants'
 import { useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -123,19 +125,51 @@ export function useCreatePost() {
     }
   }
 
-  const handlePublish = () => {
+  const { execute, isLoading } = useAsyncState()
+
+  const handlePublish = async () => {
     if (!title.value.trim()) {
       error('Vui lòng nhập tiêu đề bài viết')
+      return
+    }
+    if (!selectedCategory.value) {
+      error('Vui lòng chọn danh mục bài viết')
       return
     }
     if (!content.value.trim() || content.value === '<p></p>') {
       error('Nội dung bài viết không được để trống')
       return
     }
-    success('Xuất bản bài viết thành công!')
-    setTimeout(() => {
-      router.push('/')
-    }, 1000)
+    
+    // Bỏ HTML tags để đếm số ký tự thực sự
+    const plainTextContent = content.value.replace(/<[^>]*>?/gm, '').trim()
+    if (plainTextContent.length < 50) {
+      error('Nội dung bài viết quá ngắn (yêu cầu ít nhất 50 ký tự)')
+      return
+    }
+    
+    await execute(async () => {
+      // Create slug from title as excerpt (temporary)
+      const excerpt = content.value.replace(/<[^>]*>?/gm, '').substring(0, 150)
+      
+      const payload = {
+        title: title.value.trim(),
+        content: content.value,
+        excerpt: excerpt,
+        categoryId: selectedCategory.value,
+        tags: tags.value,
+        status: (isDraft.value ? 'draft' : 'published') as 'draft' | 'published',
+        latitude: postLocation.value?.lat,
+        longitude: postLocation.value?.lng,
+      }
+      
+      await postsApi.create(payload)
+      
+      success(isDraft.value ? 'Đã lưu bản nháp thành công!' : 'Xuất bản bài viết thành công!')
+      setTimeout(() => {
+        router.push('/')
+      }, 1000)
+    }, 'Đăng bài viết thất bại')
   }
 
   return {

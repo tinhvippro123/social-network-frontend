@@ -36,6 +36,7 @@ export function useSettings() {
   })
   const showCurrentPassword = ref(false)
   const showNewPassword = ref(false)
+  const showConfirmPassword = ref(false)
 
   const notificationSettings = ref({
     emailNewFollower: true,
@@ -128,6 +129,7 @@ export function useSettings() {
     accountForm,
     showCurrentPassword,
     showNewPassword,
+    showConfirmPassword,
     isSaving,
     notificationSettings,
     privacySettings,

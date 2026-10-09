@@ -86,11 +86,11 @@ useCodeHighlight(postContent)
         <!-- Content -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-8 mb-6 overflow-hidden">
           <div
-            class="prose prose-lg dark:prose-invert max-w-none wrap-break-word
+            class="prose prose-lg dark:prose-invert max-w-none break-words break-all
               prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold
               prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-p:leading-relaxed
               prose-a:text-primary-500 prose-a:no-underline hover:prose-a:underline
-              prose-code:bg-gray-100 dark:prose-code:bg-surface-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:wrap-break-word
+              prose-code:bg-gray-100 dark:prose-code:bg-surface-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:break-words
               prose-pre:bg-gray-900 dark:prose-pre:bg-surface-900 prose-pre:rounded-xl prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-surface-700 prose-pre:overflow-x-auto prose-pre:max-w-full
               prose-blockquote:border-primary-500 prose-blockquote:bg-primary-50 dark:prose-blockquote:bg-primary-900/10 prose-blockquote:rounded-r-xl prose-blockquote:py-1 prose-blockquote:not-italic
               prose-li:text-gray-600 dark:prose-li:text-gray-300

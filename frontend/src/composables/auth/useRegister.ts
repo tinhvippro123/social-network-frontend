@@ -15,10 +15,10 @@ export function useRegister() {
 
   const schema = toTypedSchema(
     z.object({
-      name: z.string().min(1, 'Vui lòng nhập họ tên'),
-      email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
-      password: z.string().min(1, 'Vui lòng nhập mật khẩu').min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
-      confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu')
+      name: z.string().min(1, 'Vui lòng nhập họ tên').default(''),
+      email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ').default(''),
+      password: z.string().min(1, 'Vui lòng nhập mật khẩu').min(8, 'Mật khẩu phải có ít nhất 8 ký tự').default(''),
+      confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu').default('')
     }).refine((data) => data.password === data.confirmPassword, {
       message: "Mật khẩu không khớp",
       path: ["confirmPassword"],

@@ -17,13 +17,13 @@ const {
 
 <template>
   <div>
-    <h2 class="text-2xl font-bold text-white mb-1">Chào mừng trở lại</h2>
-    <p class="text-gray-400 text-sm mb-8">Đăng nhập để tiếp tục hành trình của bạn</p>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Chào mừng trở lại</h2>
+    <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Đăng nhập để tiếp tục hành trình của bạn</p>
 
-    <form @submit.prevent="handleLogin" class="space-y-5">
+    <form @submit.prevent="handleLogin" class="space-y-4">
       <!-- Email -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
         <div class="relative">
           <Mail :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -31,8 +31,8 @@ const {
             type="email"
             placeholder="name@example.com"
             :class="[
-              'w-full pl-11 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
-              emailError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+              'w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-white/5 border rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              emailError ? 'border-red-500 focus:ring-red-500/50' : 'border-gray-200 dark:border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
             ]"
           />
         </div>
@@ -41,7 +41,7 @@ const {
 
       <!-- Password -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">Mật khẩu</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mật khẩu</label>
         <div class="relative">
           <Lock :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -49,8 +49,8 @@ const {
             :type="showPassword ? 'text' : 'password'"
             placeholder="••••••••"
             :class="[
-              'w-full pl-11 pr-12 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
-              passwordError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+              'w-full pl-11 pr-12 py-3 bg-gray-50 dark:bg-white/5 border rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              passwordError ? 'border-red-500 focus:ring-red-500/50' : 'border-gray-200 dark:border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
             ]"
           />
           <button
@@ -71,11 +71,11 @@ const {
           <input
             v-model="rememberMe"
             type="checkbox"
-            class="w-4 h-4 rounded border-white/20 bg-white/5 text-primary-500 focus:ring-primary-500/30"
+            class="w-4 h-4 rounded border-gray-300 dark:border-white/20 bg-gray-50 dark:bg-white/5 text-primary-500 focus:ring-primary-500/30"
           />
-          <span class="text-sm text-gray-400">Ghi nhớ đăng nhập</span>
+          <span class="text-sm text-gray-600 dark:text-gray-400">Ghi nhớ đăng nhập</span>
         </label>
-        <a href="#" class="text-sm text-primary-400 hover:text-primary-300 transition-colors font-medium">
+        <a href="#" class="text-sm text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors font-medium">
           Quên mật khẩu?
         </a>
       </div>
@@ -98,9 +98,9 @@ const {
     <AuthSocialLogin />
 
     <!-- Register link -->
-    <p class="text-center text-sm text-gray-400 mt-6">
+    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
       Chưa có tài khoản?
-      <router-link to="/register" class="text-primary-400 hover:text-primary-300 font-semibold transition-colors">
+      <router-link to="/register" class="text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 font-semibold transition-colors">
         Đăng ký ngay
       </router-link>
     </p>
