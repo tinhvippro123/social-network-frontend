@@ -4,6 +4,7 @@ import { useToast } from '../ui/useToast'
 import { useCategories } from '../core/useCategories'
 import { useAsyncState } from '../core/useAsyncState'
 import postsApi from '@/api/posts.api'
+import filesApi from '@/api/files.api'
 import { LOCATION_SUPPORTED_CATEGORIES } from '@/constants'
 import { useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -172,6 +173,18 @@ export function useCreatePost() {
     }
     
     await execute(async () => {
+      let coverImageUrl = ''
+      
+      // Upload cover image first if it exists
+      if (coverImageFile.value) {
+        try {
+          const uploadRes = await filesApi.uploadFile(coverImageFile.value)
+          coverImageUrl = uploadRes.data.data.fileUrl
+        } catch (err) {
+          throw new Error('Không thể tải ảnh bìa lên. Vui lòng thử lại sau.')
+        }
+      }
+
       // Create slug from title as excerpt (temporary)
       const excerpt = content.value.replace(/<[^>]*>?/gm, '').substring(0, 150)
       
@@ -184,8 +197,7 @@ export function useCreatePost() {
         status: (isDraft.value ? 'draft' : 'published') as 'draft' | 'published',
         latitude: postLocation.value?.lat,
         longitude: postLocation.value?.lng,
-        // TODO: upload coverImageFile to server and pass URL here
-        // coverImage: coverImageUrl
+        coverImage: coverImageUrl || undefined
       }
       
       await postsApi.create(payload)
