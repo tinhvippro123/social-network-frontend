@@ -1,20 +1,20 @@
 # 📐 Contributing Guide — VietBlog
 
-> Commit rules, pull request guidelines, branch naming conventions, and Git workflow for the VietBlog project.
+> Quy tắc commit, pull request, đặt tên nhánh và quy trình làm việc với Git cho dự án VietBlog.
 
 ---
 
-## 🔀 Branch Naming Convention
+## 🔀 Quy tắc nhánh Git (Branch Naming)
 
-| Pattern | Purpose | Example |
+| Pattern | Mục đích | Ví dụ |
 |---------|----------|-------|
-| `feature/<name>` | New feature | `feature/chat-enhancement` |
-| `fix/<name>` | Bug fix | `fix/dark-mode-toggle` |
-| `refactor/<name>` | Code refactoring | `refactor/api-layer` |
-| `docs/<name>` | Documentation update | `docs/update-readme` |
-| `hotfix/<name>` | Critical fix on production | `hotfix/login-crash` |
+| `feature/<tên>` | Tính năng mới | `feature/chat-enhancement` |
+| `fix/<tên>` | Sửa lỗi | `fix/dark-mode-toggle` |
+| `refactor/<tên>` | Tái cấu trúc code | `refactor/api-layer` |
+| `docs/<tên>` | Cập nhật tài liệu | `docs/update-readme` |
+| `hotfix/<tên>` | Sửa lỗi khẩn cấp trên production | `hotfix/login-crash` |
 
-### Git Flow
+### Luồng nhánh (Git Flow)
 
 ```
 main (production)
@@ -25,52 +25,52 @@ main (production)
       └── ...
 ```
 
-- **`main`**: Stable code, ready to deploy.
-- **`dev`**: Active development code, integrating features.
-- **`feature/*`, `fix/*`**: Working branches, created from `dev`, merged back to `dev` via Pull Request.
+- **`main`**: Code ổn định, sẵn sàng deploy.
+- **`dev`**: Code đang phát triển, tích hợp các feature.
+- **`feature/*`, `fix/*`**: Nhánh làm việc, tạo từ `dev`, merge ngược về `dev` qua Pull Request.
 
 ---
 
-## 📝 Commit Convention
+## 📝 Quy tắc Commit (Conventional Commits)
 
-The project uses the **[Conventional Commits](https://www.conventionalcommits.org/)** standard.
+Dự án sử dụng chuẩn **[Conventional Commits](https://www.conventionalcommits.org/)**.
 
 ### Format
 
 ```
 <type>(<scope>): <description>
 
-[body — optional]
+[body — tùy chọn]
 ```
 
 ### Types
 
-| Type | Description | Example |
+| Type | Mô tả | Ví dụ |
 |------|--------|-------|
-| `feat` | A new feature | `feat(chat): add emoji picker` |
-| `fix` | A bug fix | `fix(ui): resolve dark mode toggle` |
-| `refactor` | A code change that neither fixes a bug nor adds a feature | `refactor: extract API layer from views` |
-| `style` | Changes that do not affect the meaning of the code (white-space, formatting, etc.) | `style(admin): polish table alignment` |
-| `docs` | Documentation only changes | `docs: update dev-notes for session 7` |
-| `perf` | A code change that improves performance | `perf(posts): parallel fetch with Promise.all` |
-| `chore` | Changes to the build process or auxiliary tools and libraries | `chore: update vite to v8.2` |
-| `test` | Adding missing tests or correcting existing tests | `test(auth): add login unit tests` |
+| `feat` | Tính năng mới | `feat(chat): add emoji picker` |
+| `fix` | Sửa lỗi | `fix(ui): resolve dark mode toggle` |
+| `refactor` | Tái cấu trúc code (không thêm/sửa tính năng) | `refactor: extract API layer from views` |
+| `style` | Thay đổi UI/CSS (không ảnh hưởng logic) | `style(admin): polish table alignment` |
+| `docs` | Cập nhật tài liệu | `docs: update dev-notes for session 7` |
+| `perf` | Cải thiện hiệu suất | `perf(posts): parallel fetch with Promise.all` |
+| `chore` | Công việc phụ trợ (config, deps) | `chore: update vite to v8.2` |
+| `test` | Thêm/sửa test | `test(auth): add login unit tests` |
 
-### Common Scopes
+### Scopes phổ biến
 
-| Scope | Area |
+| Scope | Khu vực |
 |-------|---------|
-| `ui` | General UI (layout, theme, components) |
-| `admin` | Admin dashboard |
-| `chat` | Messaging |
-| `posts` | Posts/Articles |
-| `auth` | Authentication / Registration |
-| `views` | View pages |
-| `frontend` | Global frontend |
-| `backend` | Global backend |
+| `ui` | Giao diện chung (layout, theme, components) |
+| `admin` | Trang quản trị |
+| `chat` | Tin nhắn |
+| `posts` | Bài viết |
+| `auth` | Đăng nhập / Đăng ký |
+| `views` | Các trang view |
+| `frontend` | Frontend tổng thể |
+| `backend` | Backend tổng thể |
 | `api` | API layer |
 
-### Complex Commit Example (with body)
+### Ví dụ commit phức tạp (có body)
 
 ```
 feat(chat): add message read receipts
@@ -81,34 +81,37 @@ feat(chat): add message read receipts
 - Auto-mark as read when conversation is opened
 ```
 
-### ⚠️ Important Notes
+### ⚠️ Lưu ý quan trọng
 
-- Description MUST be written **in English**, starting with a **base verb**: `add`, `fix`, `remove`, `update` (DO NOT write `added`, `fixes`, `removing`).
-- Do not capitalize the first letter of the description: `fix dark mode` ✅ | `Fix dark mode` ❌
-- Do not end the description with a period: `add emoji picker` ✅ | `add emoji picker.` ❌
+- Description viết **bằng tiếng Anh**, bắt đầu bằng **động từ** dạng nguyên thể: `add`, `fix`, `remove`, `update` (KHÔNG viết `added`, `fixes`, `removing`).
+- Không viết hoa chữ cái đầu description: `fix dark mode` ✅ | `Fix dark mode` ❌
+- Không kết thúc bằng dấu chấm: `add emoji picker` ✅ | `add emoji picker.` ❌
 
 ---
 
-## 🔃 Pull Request Guidelines
+## 🔃 Quy tắc Pull Request
+
+### ⚠️ Lưu ý quan trọng
+- **BẮT BUỘC**: Pull Request (Title và Description) phải được viết **100% bằng Tiếng Anh**.
 
 ### Title format
 
 ```
-<type>(<scope>): <Short description>
+<type>(<scope>): <Short description in English>
 ```
 
-**Example:**
-- `feat(frontend): Refactor DRY UI — Skeleton loaders, separated views, dark mode fix`
-- `feat(chat): Enhance messaging — read receipts, emoji, file sharing`
-- `fix(admin): Resolve table layout shifts`
+**Ví dụ:**
+- `feat(frontend): refactor DRY UI — skeleton loaders, separated views`
+- `feat(chat): enhance messaging — read receipts, emoji, file sharing`
+- `fix(admin): resolve table layout shifts`
 
 ### Description template
 
-Every PR should follow this structure:
+Mỗi PR nên copy y nguyên cấu trúc này (bằng Tiếng Anh):
 
 ```markdown
 ### Description
-A 1-2 sentence summary of the PR's purpose.
+Tóm tắt 1-2 câu mục đích của PR bằng Tiếng Anh.
 
 ### Key Changes
 - ✨ **New Features**: ...
@@ -117,7 +120,7 @@ A 1-2 sentence summary of the PR's purpose.
 - 📊 **Performance**: ...
 
 ### Screenshots
-*(Paste screenshots here if there are UI changes)*
+_(Paste ảnh chụp màn hình nếu thay đổi UI)_
 
 ### Checklist
 - [ ] Code builds successfully
@@ -126,22 +129,22 @@ A 1-2 sentence summary of the PR's purpose.
 - [ ] Documentation has been updated
 ```
 
-### Review Process
+### Quy trình review
 
-1. **Create PR** from your `feature/*` or `fix/*` branch → `dev`
-2. **Self-review**: Review your own diff before submitting
-3. **Merge**: Once approved, merge into `dev` using **Squash and merge** (combine all commits into 1 clean commit)
-4. **Delete branch**: After merging, delete the completed feature branch
+1. **Tạo PR** từ nhánh `feature/*` hoặc `fix/*` → `dev`
+2. **Self-review**: Đọc lại diff trước khi submit
+3. **Merge**: Sau khi review xong, merge vào `dev` bằng **Squash and merge** (gộp tất cả commits thành 1 commit gọn gàng)
+4. **Xóa nhánh**: Sau khi merge, xóa nhánh feature đã hoàn thành
 
 ---
 
-## 📁 Documentation Structure
+## 📁 Cấu trúc thư mục tài liệu
 
 ```
 docs/
-├── architecture.md     # System architecture, diagrams, tech stack
-├── algorithms.md       # Algorithms, business logic
-├── flows.md            # Activity flows (user flows, API flows)
-├── dev-notes.md        # Development logs by session
-└── contributing.md     # Commit, PR, and branch rules (THIS FILE)
+├── architecture.md     # Kiến trúc hệ thống, sơ đồ, tech stack
+├── algorithms.md       # Thuật toán, logic nghiệp vụ
+├── flows.md            # Luồng hoạt động (user flows, API flows)
+├── dev-notes.md        # Nhật ký phát triển theo session
+└── contributing.md     # Quy tắc commit, PR, nhánh (FILE NÀY)
 ```
