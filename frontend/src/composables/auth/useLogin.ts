@@ -14,8 +14,8 @@ export function useLogin() {
 
   const schema = toTypedSchema(
     z.object({
-      email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
-      password: z.string().min(1, 'Vui lòng nhập mật khẩu').min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
+      email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ').default(''),
+      password: z.string().min(1, 'Vui lòng nhập mật khẩu').min(8, 'Mật khẩu phải có ít nhất 8 ký tự').default(''),
     })
   )
 

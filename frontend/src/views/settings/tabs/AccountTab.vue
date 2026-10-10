@@ -2,7 +2,7 @@
 import { Lock, Eye, EyeOff, Save, AlertTriangle, Trash2 } from '@lucide/vue'
 import { useSettings } from '@/composables/ui/useSettings'
 
-const { accountForm, showCurrentPassword, showNewPassword } = useSettings()
+const { accountForm, showCurrentPassword, showNewPassword, showConfirmPassword, changePassword, isSaving } = useSettings()
 </script>
 
 <template>
@@ -37,14 +37,25 @@ const { accountForm, showCurrentPassword, showNewPassword } = useSettings()
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Xác nhận mật khẩu mới</label>
-        <input v-model="accountForm.confirmPassword" type="password"
-          class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all" />
+        <div class="relative">
+          <input v-model="accountForm.confirmPassword" :type="showConfirmPassword ? 'text' : 'password'"
+            class="w-full px-4 py-2.5 pr-10 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all" />
+          <button @click="showConfirmPassword = !showConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <EyeOff v-if="showConfirmPassword" :size="16" />
+            <Eye v-else :size="16" />
+          </button>
+        </div>
       </div>
     </div>
 
     <div class="mt-8 flex justify-end">
-      <button class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25">
-        <Save :size="16" /> Cập nhật mật khẩu
+      <button 
+        @click="changePassword"
+        :disabled="isSaving"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+        <Save :size="16" v-if="!isSaving" />
+        <span v-else class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+        {{ isSaving ? 'Đang cập nhật...' : 'Cập nhật mật khẩu' }}
       </button>
     </div>
 

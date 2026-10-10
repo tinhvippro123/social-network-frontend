@@ -1,0 +1,397 @@
+﻿TRƯỜNG ĐẠI HỌC TÀI NGUYÊN VÀ MÔI TRƯỜNG TP.HCM
+KHOA CÔNG NGHỆ THÔNG TIN
+LÊ THANH TÍNH
+ĐỀ CƯƠNG ĐỒ ÁN CHUYÊN NGÀNH
+CÔNG NGHỆ 
+PHẦN MỀM
+          
+TP. Hồ Chí Minh, tháng 
+0
+9
+ năm 
+2026
+TRƯỜNG ĐẠI HỌC TÀI NGUYÊN VÀ MÔI TRƯỜNG TP.HCM
+KHOA CÔNG NGHỆ THÔNG TIN
+ 
+XÂY DỰNG WEB APP QUẢN LÝ BÀI VIẾT TÍCH HỢP AI
+          
+Giảng viên hướng dẫn : 
+Ths
+. 
+Nguyễn Duy Tuấn
+ 
+Sinh viên thực hiện:
+  
+Lê Thanh Tính
+Mã số sinh viên
+: 
+1250080199
+Lớp
+: 
+12_ĐH_CNPM3
+Khoá
+: 
+2023-2027
+TP. Hồ Chí Minh, tháng 
+09
+ năm 
+2026
+Mở đầu
+Cơ sở khoa học và tính thực tiễn của đề tài
+Cơ sở khoa học
+Đề tài được viết theo hướng nghiên cứu khoa học (NCKH), tập trung vào việc tự nghiên cứu, phân tích và cài đặt các giải thuật từ đầu, không sử dụng thư viện AI/ML có sẵn. Các cơ sở khoa học nền tảng bao gồm:
+Kiến trúc phần mềm Clean Architecture (Robert C. Martin, 2017): Phân tách rõ ràng các tầng Domain, Use Case, Adapter và Infrastructure, đảm bảo hệ thống dễ bảo trì, mở rộng và kiểm thử. 
+</w:r><w:r w:rsidR="00C343AB"><w:br/></w:r><w:r w:rsidRPr="00063F17"><w:t>→ Ứng dụng vào: Cấu trúc Backend (Spring Boot 3), giúp tổ chức mã nguồn rõ ràng, dễ kiểm thử và mở rộng.
+Kiến trúc phân tầng (Layered Architecture) kết hợp Composition API Pattern: Chia Frontend thành 4 tầng rõ ràng: Presentation Layer (views, components, layouts), Business Logic Layer (composables), Data Access Layer (api), và State Layer (stores — Pinia). Các tầng phụ thuộc theo một chiều (View → Composable → API), đảm bảo nguyên tắc Separation of Concerns. 
+</w:r><w:r w:rsidR="00C343AB"><w:br/></w:r><w:r w:rsidRPr="00063F17"><w:t>→ Ứng dụng vào: Cấu trúc Frontend (Vue.js 3), giúp tách biệt logic nghiệp vụ khỏi giao diện, dễ tái sử dụng và bảo trì.
+Xử lý ngôn ngữ tự nhiên (NLP) — TF-IDF (Term Frequency – Inverse Document Frequency) tự cài đặt: Chuyển đổi văn bản thành vector số học, kết hợp Cosine Similarity để tính toán độ tương đồng giữa các cặp văn bản. 
+</w:r><w:r w:rsidR="004F4335"><w:br/></w:r><w:r w:rsidRPr="00063F17"><w:t>→ Kết hợp tạo thành chức năng: Tìm kiếm ngữ nghĩa (Semantic Search) — người dùng nhập câu query → hệ thống vector hóa bằng TF-IDF → so sánh Cosine Similarity với vector bài viết trong pgvector → trả về kết quả xếp hạng theo độ liên quan. Ngoài ra còn ứng dụng cho Tìm kiếm tài liệu (Document Search): trích xuất text từ file PDF/DOCX → vector hóa TF-IDF → lưu vào pgvector → tìm kiếm tương tự.
+Tóm tắt văn bản tự động — TextRank kết hợp TF-IDF: TextRank (dựa trên PageRank của Google) dùng để đánh giá trọng số câu, xây dựng đồ thị liên kết câu và chọn ra N câu quan trọng nhất.
+</w:r><w:r w:rsidRPr="00063F17"><w:t xml:space="preserve"> 
+→ Kết hợp tạo thành chức năng: Tóm tắt bài viết tự động (Automated Text Summarization) — khi người dùng đăng bài viết dài, hệ thống tự trích xuất 3-5 câu quan trọng nhất làm bản tóm tắt.
+Phân tích cảm xúc bình luận — Lexicon-based Sentiment Analysis: Sử dụng từ điển cảm xúc (Sentiment Lexicon) tiếng Việt tự xây dựng, kết hợp kỹ thuật Word Embeddings đơn giản để phân loại bình luận. 
+</w:r><w:r w:rsidR="004F4335"><w:br/></w:r><w:r w:rsidRPr="00063F17"><w:t>→ Kết hợp tạo thành chức năng: Phân tích cảm xúc bình luận (Sentiment Analysis) — tự động phân loại bình luận thành Tích cực / Tiêu cực / Trung lập, hiển thị biểu đồ tỉ lệ cảm xúc trên mỗi bài viết, hỗ trợ Admin kiểm duyệt nội dung.
+Thị giác máy tính (Computer Vision) — Trích xuất đặc trưng hình ảnh tự cài đặt: Kết hợp 3 kỹ thuật: Color Histogram (HSV) để phân tích phân bố màu sắc, Sobel Edge Detection để phát hiện cạnh và hình dạng, GLCM (Gray-Level Co-occurrence Matrix) để phân tích kết cấu bề mặt (Haralick et al., 1973).
+</w:r><w:r w:rsidRPr="00063F17"><w:t xml:space="preserve"> 
+→ Kết hợp tạo thành chức năng: Tìm kiếm bằng hình ảnh (Image Search) — người dùng tải ảnh lên → hệ thống trích xuất vector đặc trưng → so khớp Cosine Similarity với vector ảnh trong database → trả về bài viết có ảnh tương tự.
+Giải thuật xếp hạng xu hướng — Trending Ranking: Tự phát triển công thức kết hợp từ Reddit Hot Ranking (thời gian + upvote) và Hacker News Gravity Decay (giảm dần theo thời gian), bổ sung Wilson Score Interval để xử lý bài viết ít tương tác. 
+</w:r><w:r w:rsidR="004F4335"><w:br/></w:r><w:r w:rsidRPr="00063F17"><w:t>→ Kết hợp tạo thành chức năng: Bài viết thịnh hành (Trending Posts) — tự động xếp hạng bài viết dựa trên lượt xem, upvote, bình luận và thời gian đăng.
+Hệ thống thông tin địa lý (GIS) — Haversine + PostGIS: Công thức Haversine tự cài đặt để tính khoảng cách giữa 2 tọa độ GPS trên mặt cầu, kết hợp PostGIS (ST_DWithin, ST_Distance) trên PostgreSQL để truy vấn dữ liệu không gian.
+</w:r><w:r w:rsidRPr="00063F17"><w:t xml:space="preserve"> 
+→ Kết hợp tạo thành chức năng: Bản đồ bài viết (Location-based Posts) — hiển 
+thị bài viết trên bản đồ tương tác Leaflet, tìm bài viết trong bán kính N km quanh vị trí người dùng.
+Giao thức WebSocket (RFC 6455): Thiết lập kênh giao tiếp hai chiều (full-duplex) giữa Client và Server, kết hợp Redis Pub/Sub để phân phối tin nhắn giữa nhiều server. 
+</w:r><w:r w:rsidR="004F4335"><w:br/></w:r><w:r w:rsidRPr="00063F17"><w:t>→ Kết hợp tạo thành chức năng: Chat thời gian thực (Real-time Chat) với độ trễ thấp, hỗ trợ chat 1-1 và chat nhóm.
+Tính thực tiễn
+T
+rong bối cảnh chuyển đổi số mạnh mẽ tại Việt Nam, nhu cầu về một nền tảng chia sẻ kiến thức trực tuyến dành riêng cho cộng đồng Việt ngày càng tăng cao. Các nền tảng quốc tế như Medium, Reddit hay Stack Overflow mặc dù rất phổ biến nhưng vẫn tồn tại nhiều hạn chế đối với người dùng Việt Nam:
+Rào cản ngôn ngữ: Giao diện và nội dung chủ yếu bằng tiếng Anh, gây khó khăn cho người dùng phổ thông.
+Thiếu tính năng bản địa hóa: Không hỗ trợ tìm kiếm nội dung theo vị trí địa lý — một nhu cầu thiết yếu khi người dùng muốn tìm bài viết, sự kiện, hoặc thông tin liên quan đến khu vực xung quanh mình.
+Tìm kiếm truyền thống kém hiệu quả: Phần lớn các hệ thống tìm kiếm hiện tại sử dụng phương pháp khớp từ khóa (keyword matching), không hiểu được 
+ý nghĩa ngữ cảnh
+ (semantic) của truy vấn. Ví dụ: tìm kiếm "cách nấu phở ngon" sẽ không trả về bài viết có tiêu đề "Bí quyết nấu phở Bắc truyền thống" dù nội dung liên quan chặt chẽ.
+Thiếu tương tác thời gian thực: Nhiều nền tảng blog truyền thống không tích hợp chat real-time, khiến việc trao đổi giữa người viết và người đọc bị gián đoạn.
+Vì vậy, việc xây dựng một nền tảng bài viết và tương tác nội dung thuần Việt, tích hợp các giải thuật tự nghiên cứu như tìm kiếm ngữ nghĩa (Semantic Search), tìm kiếm theo hình ảnh/tài liệu (Image &amp; Document Search), bản đồ hóa vị trí (Location-based Posts), xếp hạng xu hướng (Trending Ranking) và chat thời gian thực (Real-time Chat) là hoàn toàn 
+cần thiết và mang tính thực tiễn cao.
+ 
+Bên cạnh đó, đề tài còn mang tính thực tiễn cao ở các khía cạnh sau:
+Ứng dụng trong môi trường giáo dục: Sinh viên cùng trường có thể sử dụng VietBlog để chia sẻ tài liệu học tập, review địa điểm xung quanh trường (nhà trọ, quán ăn, phòng lab), trao đổi bài tập và dự án — tận dụng tính năng bản đồ tương tác để tìm thông tin theo khu vực.
+Hỗ trợ kiểm duyệt nội dung bằng AI: Tự động phân tích cảm xúc bình luận (Sentiment Analysis) giúp moderator nhanh chóng phát hiện bình luận tiêu cực. Tự động tóm tắt bài viết dài giúp người đọc nắm bắt nội dung nhanh mà không cần đọc toàn bộ.
+Tìm kiếm thông minh vượt xa phương pháp truyền thống: Hệ thống tích hợp 5 chế độ tìm kiếm (từ khóa, ngữ nghĩa, hình ảnh, tài liệu, vị trí địa lý), giúp người dùng tìm thông tin chính xác và nhanh chóng hơn so với các nền tảng blog truyền thống chỉ hỗ trợ tìm kiếm từ khóa.
+Nghiên cứu và tự phát triển giải thuật: Toàn bộ các giải thuật AI/NLP trong đề tài đều được tự nghiên cứu và cài đặt từ đầu (TF-IDF, Cosine Similarity, TextRank, Color Histogram, GLCM, Sobel, Haversine), không dựa vào thư viện AI có sẵn. Điều này giúp sinh viên hiểu sâu bản chất giải thuật thay vì chỉ gọi API, đồng thời thể hiện năng lực nghiên cứu khoa học và giải quyết vấn đề.
+Mục đích 
+nghiên
+ cứu
+Mục đích của đề tài là nghiên cứu, phân tích và ứng dụng các giải thuật xử lý ngôn ngữ tự nhiên (TF-IDF, Cosine Similarity, TextRank), thị giác máy tính (Color Histogram, Sobel, GLCM), phân tích cảm xúc (Lexicon-based Sentiment Analysis) và hệ thống thông tin địa lý (Haversine, PostGIS) vào xây dựng một nền tảng web quản lý bài viết tích hợp AI phục vụ cộng đồng công nghệ Việt Nam.
+ 
+Đề tài hướng đến các mục đích cụ thể sau:
+Nghiên cứu sâu bản chất các giải thuật AI/NLP và tự cài đặt từ đầu, thay vì sử dụng thư viện có sẵn, nhằm nâng cao năng lực nghiên cứu khoa học.
+Ứng dụng kiến trúc phần mềm Clean Architecture (Backend) và kiến trúc phân tầng Layered Architecture (Frontend) vào thực tế để xây dựng hệ thống dễ bảo trì, mở rộng và kiểm thử.
+Xây dựng một sản phẩm phần mềm hoàn chỉnh có tính ứng dụng thực tiễn, phục vụ nhu cầu chia sẻ kiến thức của cộng đồng.
+Để đạt được các mục đích trên, đề tài đặt ra các mục tiêu cụ thể sau:
+Xây dựng thành công ứng dụng web VietBlog với đầy đủ nghiệp vụ: quản lý bài viết, hệ thống bình luận, nhóm cộng đồng, chat thời gian thực, và trang quản trị hệ thống.
+Tự nghiên cứu và cài đặt thành công 6 nhóm giải thuật: Trending Ranking, Semantic Search, Image &amp; Document Search, Geospatial Search, Text Summarization và Sentiment Analysis.
+Áp dụng thành công kiến trúc Clean Architecture vào Backend (Spring Boot 3) và kiến trúc phân tầng (Layered Architecture) kết hợp Composition API Pattern vào Frontend (Vue.js 3).
+Viết được báo cáo đồ án theo yêu cầu của Khoa CNTT.
+Đối tượng và phạm vi nghiên cứu:
+Đối tượng nghiên cứu
+Các giải thuật và mô hình AI (tự nghiên cứu và cài đặt):
+TF-IDF (Term Frequency – Inverse Document Frequency)
+Cosine Similarity (Độ tương đồng Cosine)
+TextRank (Giải thuật xếp hạng văn bản)
+Color Histogram, Sobel Edge Detection, GLCM (Trích xuất đặc trưng hình ảnh)
+Haversine (Công thức tính khoảng cách địa lý)
+Lexicon-based Sentiment Analysis (Phân tích cảm xúc dựa trên từ điển)
+Trending Ranking (Xếp hạng xu hướng dựa trên Reddit Hot và Hacker News)
+Các nghiệp vụ chính của hệ thống:
+Quản lý bài viết (CRUD, danh mục, thẻ tag)
+Hệ thống bình luận lồng nhau (Threaded Comments)
+Tìm kiếm đa chế độ (từ khóa, ngữ nghĩa, hình ảnh, tài liệu, vị trí)
+Chat thời gian thực (1-1, nhóm) qua WebSocket
+Quản lý nhóm cộng đồng
+Tóm tắt bài viết tự động và phân tích cảm xúc bình luận
+Quản trị hệ thống (Dashboard, kiểm duyệt nội dung)
+Loại phần mềm phát triển: Ứng dụng web (Web Application) dạng Single Page Application (SPA), giao tiếp với Backend qua REST API và WebSocket.
+Ngôn ngữ lập trình và framework:
+<w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="0" w:type="auto"/><w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/></w:tblPr><w:tblGrid><w:gridCol w:w="2348"/><w:gridCol w:w="2349"/><w:gridCol w:w="2349"/><w:gridCol w:w="2349"/></w:tblGrid><w:tr w:rsidR="00A26AD7" w14:paraId="06F7CF74" w14:textId="77777777" w:rsidTr="00A26AD7"><w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="7EC59412" w14:textId="3B3D1BDB" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/></w:rPr><w:t>Tầng
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="7CCE8367" w14:textId="326283D7" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/></w:rPr><w:t>Công nghệ
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="1993F2D8" w14:textId="08689C6F" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/></w:rPr><w:t>Phiên bản
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="5BD7F5A6" w14:textId="3046132F" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/></w:rPr><w:t>Vai trò
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="6BDE4910" w14:textId="0B5AC925" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Frontend
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="49A5E64B" w14:textId="34E34677" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>TypeScript, Vue.js 3
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="7C80B245" w14:textId="0E131BA6" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Vue 3.5, TS 6.0
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="7043F7E6" w14:textId="0E186FAC" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Xây dựng giao diện SPA
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="23488889" w14:textId="5A80CE15" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Styling
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="30AAB455" w14:textId="1A6EE91A" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Tailwind CSS
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="1FD4DC13" w14:textId="2BF14C62" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>4.3
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="440B8B69" w14:textId="630C1F72" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Hệ thống Design System
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="59F1BE43" w14:textId="631F3C11" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>State
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="2A1CF100" w14:textId="40504858" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Pinia
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="33564C9D" w14:textId="62F42E96" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>4
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="10C6050B" w14:textId="4CAC096E" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Quản lý trạng thái ứng dụng
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="2C148ED5" w14:textId="7EF2B219" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Validation
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="2BB85214" w14:textId="3FA773ED" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>VeeValidate + Zod
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="593194CB" w14:textId="161714E8" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>4.15 / 4.5
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="5E260D2E" w14:textId="0E89B88A" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Xác thực form
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="18E3AC67" w14:textId="547938B5" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Rich Editor
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="7159A556" w14:textId="498168E5" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>TipTap
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="1728BDBE" w14:textId="04A1FDAD" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>3.3
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="1103F246" w14:textId="558D7936" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Soạn thảo bài viết
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="3A958464" w14:textId="2F7002A1" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Chart
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="1504B4F7" w14:textId="7721B78C" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Chart.js + vue-chartjs
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="709F29E4" w14:textId="638B66A0" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>4.5 / 5.3
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="2516F894" w14:textId="75ECF033" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Biểu đồ thống kê Admin
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="45AC531E" w14:textId="1DC7B9D5" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Map
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="7EFD9038" w14:textId="1230EA09" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Leaflet
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="6092AAE1" w14:textId="798F23F2" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>1.9
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="75B2615C" w14:textId="03630277" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Hiển thị bản đồ
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="68948C1B" w14:textId="086232FA" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:lastRenderedPageBreak/><w:t>Backend
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="25CFE28B" w14:textId="3A4A4696" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Java, Spring Boot 3
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="3332B634" w14:textId="4E82B0F3" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Java 21, SB 3.x
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="3B84BC36" w14:textId="06CB268F" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>REST API + WebSocket
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="0B6C8437" w14:textId="3A92EBFB" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Database
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="5D18DFC3" w14:textId="3173C038" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>PostgreSQL
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="1E4D1502" w14:textId="40A1FB7C" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>16+
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="0E2BA70D" w14:textId="2139A767" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Lưu trữ dữ liệu chính
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="0F59C62D" w14:textId="3BD7EEB6" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Extension
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="02147170" w14:textId="65EDA337" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>PostGIS, pgvector
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="655074EE" w14:textId="689B72C8" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>—
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="5AA2C4D9" w14:textId="2E8F61E3" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>GIS + Vector Search
+<w:tc><w:tcPr><w:tcW w:w="2348" w:type="dxa"/></w:tcPr><w:p w14:paraId="4A7C9AF8" w14:textId="4DAB0546" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Cache
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="295206CB" w14:textId="34F63708" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Redis
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="4ADB6666" w14:textId="64A9F742" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>7+
+<w:tcPr><w:tcW w:w="2349" w:type="dxa"/></w:tcPr><w:p w14:paraId="5DF429ED" w14:textId="677F9882" w:rsidR="00A26AD7" w:rsidRPr="00A26AD7" w:rsidRDefault="00A26AD7" w:rsidP="00A26AD7"><w:pPr><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr></w:pPr><w:r w:rsidRPr="00A26AD7"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/></w:rPr><w:t>Cache + Pub/Sub Chat
+Công cụ phát triển:
+IDE: Visual Studio Code, IntelliJ IDEA
+Build Tool: Vite (Frontend), Maven/Gradle (Backend)
+Version Control: Git, GitHub
+API Testing: Postman
+Database Client: pgAdmin, DBeaver
+Phạm vi 
+nghiên
+ cứu
+Phạm vi giải thuật: Đề tài giới hạn nghiên cứu và cài đặt 6 nhóm giải thuật sau (tất cả đều tự viết, không sử dụng thư viện AI/ML có sẵn):
+Xếp hạng xu hướng (Trending Ranking): Reddit Hot + Hacker News Gravity Decay + Wilson Score
+Tìm kiếm ngữ nghĩa (Semantic Search): TF-IDF + Cosine Similarity
+Tìm kiếm hình ảnh (Image Search): Color Histogram + Sobel + GLCM
+Tìm kiếm tài liệu (Document Search): Text Extraction + TF-IDF
+Tìm kiếm địa lý (Geospatial Search): Haversine + PostGIS
+Tóm tắt văn bản tự động (Text Summarization): TF-IDF + TextRank
+Phân tích cảm xúc (Sentiment Analysis): Lexicon-based + Word Embeddings
+Phạm vi chức năng phần mềm:
+Phía Người dùng: Đọc/viết bài viết, bình luận, upvote/downvote, bookmark, tìm kiếm đa chế độ, chat thời gian thực, tham gia nhóm cộng đồng, xem bản đồ bài viết.
+Phía Admin: Dashboard thống kê, kiểm duyệt nội dung, quản lý người dùng, quản lý danh mục.
+Phía Moderator: Duyệt bài viết, quản lý nhóm cộng đồng.
+Phạm vi không gian: 
+Ứng dụng web triển khai trên nền tảng Internet, phục vụ cộng đồng công nghệ Việt Nam trên toàn quốc. Tính năng bản đồ bài viết hỗ trợ tìm kiếm theo vị trí địa lý không giới hạn khu vực.
+Phạm vi dữ liệu:
+Giai đoạn phát triển: Sử dụng dữ liệu mẫu (mock data) để kiểm thử giao diện và luồng nghiệp vụ.
+Dữ liệu phục vụ giải thuật: Từ điển cảm xúc tiếng Việt tự xây dựng dựa trên bộ dữ liệu UIT-VSFC (Vietnamese Students' Feedback Corpus).
+Giai đoạn triển khai: Dữ liệu người dùng thực khi đưa vào sử dụng.
+Phương 
+pháp
+ nghiên cứu
+Phương pháp nghiên cứu lý thuyết
+Phân tích tài liệu: Nghiên cứu tài liệu chính thức của Vue.js 3, Spring Boot 3, PostgreSQL, PostGIS và pgvector để nắm vững kiến trúc và best practices.
+Nghiên cứu giải thuật: Tìm hiểu và phân tích các công thức xếp hạng xu hướng từ Reddit (Hot Ranking), Hacker News (Gravity-based Decay) và Wilson Score Interval.
+Nghiên cứu AI/NLP: Tìm hiểu lý thuyết TF-IDF, mô hình không gian vector (Vector Space Model), và độ tương đồng Cosine để áp dụng vào tìm kiếm ngữ nghĩa. Nghiên cứu các phương pháp trích xuất đặc trưng hình ảnh (Color Histogram, Sobel Operator, GLCM).
+Nghiên cứu kiến trúc phần mềm: Tìm hiểu mô hình Clean Architecture (Robert C. Martin), Composition API Pattern (Vue.js), và State Management Pattern (Pinia).
+Nghiên cứu phương pháp đánh giá hiệu quả giải thuật: Tìm hiểu các chỉ số Precision, Recall, F1-Score cho phân tích cảm xúc; ROUGE cho tóm tắt văn bản; Mean Average Precision (MAP) cho tìm kiếm.
+Phương pháp thực nghiệm
+Phát triển theo mô hình Agile: Chia dự án thành các sprint ngắn (1-2 tuần), mỗi sprint hoàn thành một nhóm tính năng cụ thể.
+Kiến trúc phân tầng: Áp dụng Clean Architecture cho Backend và Layered Architecture cho Frontend để phân tách rõ ràng các tầng.
+Mock API → Real API: Giai đoạn đầu phát triển Frontend với Mock API, sau đó kết nối dần sang Backend thật.
+Đánh giá hiệu quả giải thuật: Xây dựng tập dữ liệu kiểm thử cho từng giải thuật, đo lường hiệu suất bằng các chỉ số phù hợp, so sánh kết quả với baseline để đánh giá tính hiệu quả.
+Thời gian 
+thực
+ hiện
+Từ 24/08/2026 đến 04/12/2026
+Kết quả dự kiến 
+đạt
+ được
+Xây dựng thành công ứng dụng web (Website) VietBlog — nền tảng chia sẻ bài viết và tương tác nội dung phục vụ cộng đồng công nghệ Việt Nam. Hệ thống được phát triển dưới dạng Single Page Application (SPA), áp dụng kiến trúc Clean Architecture cho Backend và Layered Architecture cho Frontend.
+Các chức năng đạt được phía Người dùng:
+Đăng ký, đăng nhập, quản lý hồ sơ cá nhân
+Tạo, chỉnh sửa, xóa bài viết với trình soạn thảo nâng cao
+Bình luận lồng nhau, upvote/downvote, bookmark bài viết
+Tìm kiếm đa chế độ: từ khóa, ngữ nghĩa, hình ảnh, tài liệu, vị trí địa lý
+Xem bài viết trên bản đồ tương tác, tìm bài viết xung quanh
+Chat thời gian thực (1-1, nhóm)
+Tham gia nhóm cộng đồng
+Xem tóm tắt tự động của bài viết dài
+Các chức năng đạt được phía Admin:
+Dashboard thống kê tổng quan (số bài viết, người dùng, lượt truy cập)
+Kiểm duyệt nội dung bài viết
+Quản lý người dùng (khóa/mở tài khoản, phân quyền)
+Quản lý danh mục, thẻ tag
+Xem biểu đồ phân tích cảm xúc bình luận (hỗ trợ kiểm duyệt)
+Các chức năng đạt được từ giải thuật tự viết:
+Chức năng Bài viết thịnh hành (Trending Posts) với giải thuật Trending Ranking (Reddit Hot + Hacker News Gravity Decay + Wilson Score): Tự động xếp hạng bài viết dựa trên lượt xem, upvote, bình luận và thời gian đăng.
+Chức năng Tìm kiếm ngữ nghĩa (Semantic Search) với giải thuật TF-IDF kết hợp Cosine Similarity: Hiểu ý nghĩa truy vấn thay vì chỉ so khớp từ khóa.
+Chức năng Tìm kiếm bằng hình ảnh (Image Search) với giải thuật Color Histogram + Sobel Edge Detection + GLCM: Upload ảnh để tìm bài viết có ảnh tương tự.
+Chức năng Tìm kiếm tài liệu (Document Search) với giải thuật Text Extraction kết hợp TF-IDF: Upload PDF/DOCX để tìm bài viết liên quan.
+Chức năng Bản đồ bài viết (Location-based Posts) với công thức Haversine kết hợp PostGIS: Hiển thị và tìm kiếm bài viết theo vị trí địa lý trên bản đồ Leaflet.
+Chức năng Tóm tắt tự động (Text Summarization) với giải thuật TF-IDF kết hợp TextRank: Trích xuất câu quan trọng nhất từ bài viết dài.
+Chức năng Phân tích cảm xúc (Sentiment Analysis) với giải thuật Lexicon-based kết hợp Word Embeddings: Phân loại bình luận tích cực/tiêu cực/trung lập, hỗ trợ kiểm duyệt.
+Áp dụng thành công kiến trúc Clean Architecture vào Backend (Spring Boot 3) và kiến trúc phân tầng (Layered Architecture) kết hợp Composition API Pattern vào Frontend (Vue.js 3).
+Nội dung
+LỜI MỞ ĐẦU
+Chương 1. TỔNG QUAN TÀI LIỆU
+<w:tab w:val="left" w:pos="993"/></w:tabs><w:ind w:left="0" w:firstLine="0"/></w:pPr><w:r w:rsidRPr="00454911"><w:t>Tổng quan về các nền tảng chia sẻ nội dung
+Kiến trúc phần mềm Clean Architecture
+Tổng quan về Vue.js 3 và Composition API
+Tổng quan về Spring Boot 3 và REST API
+Hệ quản trị cơ sở dữ liệu PostgreSQL
+Giao thức WebSocket và ứng dụng trong chat thời gian thực
+Redis và mô hình Pub/Sub
+Các giải thuật xếp hạng xu hướng
+Cơ sở lý thuyết Trí tuệ nhân tạo ứng dụng
+Chương 2. PHƯƠNG PHÁP THỰC HIỆN
+Phân tích yêu cầu hệ thống
+Thiết kế kiến trúc hệ thống
+Thiết kế cơ sở dữ liệu
+Thiết kế giải thuật
+Thiết kế API
+Thiết kế giao diện người dùng
+Chương 3. CÀI ĐẶT THỰC NGHIỆM
+3.1
+.
+ Môi trường phát triển và công cụ sử dụng
+3.2
+.
+ Cài đặt Frontend
+3.3
+.
+ Cài đặt Backend
+3.4
+.
+ Cài đặt giải thuật
+3.5
+.
+ Kết quả chạy thử nghiệm
+KẾT LUẬN
+DỰ KIẾN KẾ HOẠCH THỰC HIỆN
+<w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="0" w:type="auto"/><w:tblInd w:w="360" w:type="dxa"/><w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/></w:tblPr><w:tblGrid><w:gridCol w:w="1903"/><w:gridCol w:w="3775"/><w:gridCol w:w="2839"/></w:tblGrid><w:tr w:rsidR="0052450D" w14:paraId="6F659A7E" w14:textId="77777777" w:rsidTr="00CC6F31"><w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="bottom"/></w:tcPr><w:p w14:paraId="4A109E0D" w14:textId="063776E6" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Thời gian
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/><w:vAlign w:val="bottom"/></w:tcPr><w:p w14:paraId="7A8C2F7D" w14:textId="0E3FAC85" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Nội dung
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/><w:vAlign w:val="bottom"/></w:tcPr><w:p w14:paraId="6F06B549" w14:textId="52D4B2B4" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Địa điểm thực hiện
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="7D08A6A7" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 1
+(24/08/2026 – 30/08/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="0DA851F9" w14:textId="750652C2" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="00F65C74" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00F65C74"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Phân tích yêu cầu hệ thống, viết đề cương chi tiết, thiết kế kiến trúc tổng quan (Clean Architecture)
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="0D5D671F" w14:textId="2E67F83C" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="260"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="7BB622FE" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 2
+(31/08/2026 – 06/09/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="322B1DB5" w14:textId="12B08DF3" w:rsidR="0052450D" w:rsidRPr="00F65C74" w:rsidRDefault="00F65C74" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:iCs/><w:szCs w:val="26"/></w:rPr><w:t>Thiết kế cơ sở dữ liệu (ERD), thiết kế API, endpoints, dựng khung dự án Frontend (Vue 3 + Vite Pinia)
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="3B1F757B" w14:textId="6D5DD874" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="7EAAB8ED" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 3
+(07/09/2026 – 13/09/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="1DEEB516" w14:textId="0B578186" w:rsidR="0052450D" w:rsidRPr="00F65C74" w:rsidRDefault="00F65C74" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:iCs/><w:szCs w:val="26"/></w:rPr><w:t>Dựng khung Backend (Spring Boost 3), cấu hình PostgreSQL +  PostGIS, cấu hình Redis
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="69A5DB37" w14:textId="4EDE7A34" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="50D22CBC" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 4
+(14/09/2026 – 20/09/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="411B9655" w14:textId="5C2B9251" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Xây dựng hệ thống xác thực (Login/Register/JWT/RBAC), Layout System, Design System
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="5A630F66" w14:textId="0E990279" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="66A12BFD" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 5
+(21/09/2026 – 27/09/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="4BCA24CC" w14:textId="06CF72F4" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Module Bài viết: CRUD bài viết, quản lý danh mục, hệ thống thẻ tag
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="24F285CB" w14:textId="5F79C199" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="62238913" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 6
+(28/09/2026 – 04/10/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="5D690329" w14:textId="07D086E9" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Hệ thống bình luận lồng nhau (Threaded Comments), Upvote/Downvote, Bookmark
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="20AB27DE" w14:textId="65D44320" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="7488B717" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:lastRenderedPageBreak/><w:t>Tuần 7
+(05/10/2026 – 11/10/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="7A975957" w14:textId="549257DF" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Cài đặt giải thuật Trending Ranking (Reddit Hot + Hacker News tự phát triển), trang Bài viết thịnh hành
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="1B4B48A2" w14:textId="0D41F8BB" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="13455385" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 8
+(12/10/2026 – 18/10/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="375E7B84" w14:textId="0EFEEE2E" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Cài đặt giải thuật Semantic Search (TF-IDF + Cosine Similarity tự viết + pgvector)
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="3EB549AD" w14:textId="6504142E" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="74E37F5E" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 9
+(19/10/2026 – 25/10/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="18D5A44E" w14:textId="73C012C2" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Cài đặt giải thuật Image &amp; Document Search (Color Histogram + Sobel + GLCM tự viết → vector → pgvector)
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="570D055F" w14:textId="2A9C8168" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="0539A8C9" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 10
+(26/10/2026 – 01/11/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="692F95F2" w14:textId="6A2E5728" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Cài đặt giải thuật Geospatial Search (Haversine tự viết + PostGIS + Leaflet), tích hợp bản đồ tương tác
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="61984B0A" w14:textId="0ED29B16" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="619918E5" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 11
+(02/11/2026 – 08/11/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="263E126D" w14:textId="14E67F85" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Cài đặt giải thuật Text Summarization (TF-IDF + TextRank tự viết) và Sentiment Analysis (Lexicon-based + Word Embeddings)
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="3655A9A1" w14:textId="69B6BFEB" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="73542B16" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 12
+(09/11/2026 – 15/11/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="34392D7C" w14:textId="10330C5F" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Module Chat real-time (WebSocket + Redis Pub/Sub), Nhóm cộng đồng, Hệ thống thông báo
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="1092BD19" w14:textId="116E4E63" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="56180602" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 13
+(16/11/2026 – 22/11/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="0DD3E72D" w14:textId="0CBF8580" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="00F65C74" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00F65C74"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trang Quản trị Admin: Dashboard thống kê, kiểm duyệt nội dung, quản lý người dùng
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="15585B1A" w14:textId="3FC36608" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="2060C0E4" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Tuần 14
+(23/11/2026 – 29/11/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="6239E5B4" w14:textId="72C454E0" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Kiểm thử tích hợp, tối ưu hiệu năng, sửa lỗi
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="622E0D38" w14:textId="765F08E4" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+<w:trPr><w:trHeight w:val="271"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="1903" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr><w:p w14:paraId="074E7F3E" w14:textId="77777777" w:rsidR="0052450D" w:rsidRPr="00627CA6" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="00627CA6"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:lastRenderedPageBreak/><w:t>Tuần 15
+(30/11/2026 – 04/12/2026)
+<w:tcPr><w:tcW w:w="3775" w:type="dxa"/></w:tcPr><w:p w14:paraId="0E22800C" w14:textId="69837249" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="00F904D5" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:left="34" w:firstLine="0"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Hoàn thiện báo cáo đồ án
+, chuẩn bị bảo vệ trước hội đồng
+<w:tcPr><w:tcW w:w="2839" w:type="dxa"/></w:tcPr><w:p w14:paraId="5C970634" w14:textId="2E798030" w:rsidR="0052450D" w:rsidRPr="0052450D" w:rsidRDefault="0052450D" w:rsidP="00F01D96"><w:pPr><w:spacing w:after="0"/><w:ind w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:bCs/><w:iCs/><w:szCs w:val="26"/></w:rPr></w:pPr><w:r w:rsidRPr="0052450D"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:color w:val="000000"/><w:szCs w:val="26"/></w:rPr><w:t>Trường ĐH Tài Nguyên Và Môi Trường TP. Hồ Chí Minh
+TÀI LIỆU THAM KHẢO
+[1]
+</w:r><w:r><w:t xml:space="preserve">R. C. Martin, 
+Clean Architecture: A Craftsman's Guide to Software Structure and Design
+. Boston, MA: Prentice Hall, 2017.
+[2] E. You, "Vue.js 3 Documentation," 2020. [Trực tuyến]. Địa chỉ: 
+https://vuejs.org/guide/
+introduction.html
+ [Truy cập ngày 10/09/2026].
+[3] Pivotal Software, "Spring Boot Reference Documentation," 2024. [Trực tuyến]. Địa chỉ: 
+https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/
+ [Truy cập ngày 10/09/2026].
+[4]
+</w:r><w:r><w:t xml:space="preserve">PostgreSQL Global Development Group, "PostgreSQL 16 Documentation," 2024. [Trực tuyến]. Địa chỉ: 
+https://www.postgresql.org/docs/16/
+ [Truy cập ngày 10/09/2026].
+[5] PostGIS Project Steering Committee, "PostGIS Documentation," 2024. [Trực tuyến]. Địa chỉ: 
+https://postgis.net/documentation/
+ [Truy cập ngày 1
+0
+/09/2026].
+[6]
+</w:r><w:r w:rsidRPr="00713C7F"><w:t xml:space="preserve">Redis Ltd., "Redis Documentation," 2024. [Trực tuyến]. Địa chỉ: 
+https://redis.io/
+documentation
+ [Truy cập ngày 1
+0
+/09/2026].
+[7] I. Fette and A. Melnikov, "The WebSocket Protocol," RFC 6455, 2011. [Trực tuyến]. Địa chỉ: 
+https://datatracker.ietf.org/doc/html/rfc6455
+ [Truy cập ngày 1
+0
+/09/2026].
+[
+8
+] C. D. Manning, P. Raghavan, and H. Schütze, 
+Introduction to Information Retrieval
+. Cambridge, UK: Cambridge University Press, 2008.
+[
+9
+]
+</w:r><w:r><w:t xml:space="preserve">R. M. Haralick, K. Shanmugam, and I. Dinstein, "Textural Features for Image Classification," 
+IEEE Transactions on Systems, Man, and Cybernetics
+, vol. SMC-3, no. 6, pp. 610-621, 1973.
+[
+10
+] R. Mihalcea and P. Tarau, "TextRank: Bringing Order into Texts," in 
+Proc. Conference on Empirical Methods in Natural Language Processing (EMNLP)
+, 2004, pp. 404-411.
+[
+11
+] G. Salton, A. Wong, and C. S. Yang, "A Vector Space Model for Automatic Indexing," 
+Communications of the ACM
+, vol. 18, no. 11, pp. 613-620, 1975.
+CÁC CƠ QUAN, ĐƠN VỊ CẦN LIÊN HỆ
+Khoa Công nghệ Thông tin – Trường Đại Học Tài Nguyên Và Môi Trường TP Hồ Chí Minh, 236B Lê Văn Sỹ, Phường Tân Sơn Hòa, TP. Hồ Chí Minh.
+<w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr><w:tab/></w:r></w:p><w:p w14:paraId="4A4C8081" w14:textId="77777777" w:rsidR="00F2751C" w:rsidRDefault="00F2751C"><w:pPr><w:pStyle w:val="ListParagraph"/><w:tabs><w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr></w:pPr></w:p><w:p w14:paraId="73EAB4B2" w14:textId="77777777" w:rsidR="00F2751C" w:rsidRDefault="00F2751C"><w:pPr><w:pStyle w:val="ListParagraph"/><w:tabs><w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr></w:pPr></w:p><w:p w14:paraId="0E22F6B8" w14:textId="77777777" w:rsidR="00F2751C" w:rsidRDefault="00000000"><w:pPr><w:pStyle w:val="ListParagraph"/><w:tabs><w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr><w:tab/></w:r><w:r><w:rPr><w:rFonts w:cs="Times New Roman"/><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><w:t>GIẢNG VIÊN HƯỚNG DẪN
+<w:t>NGƯỜI LẬP ĐỀ CƯƠNG
+<w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr><w:tab/></w:r><w:r><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr><w:tab/><w:t>(ký và ghi rõ họ tên)
+<w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr><w:tab/></w:r></w:p><w:p w14:paraId="2E877D1A" w14:textId="77777777" w:rsidR="00F2751C" w:rsidRDefault="00F2751C"><w:pPr><w:pStyle w:val="ListParagraph"/><w:tabs><w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr></w:pPr></w:p><w:p w14:paraId="1ED72A4F" w14:textId="77777777" w:rsidR="00F2751C" w:rsidRDefault="00000000"><w:pPr><w:pStyle w:val="ListParagraph"/><w:tabs><w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs="Times New Roman"/></w:rPr><w:tab/></w:r></w:p><w:p w14:paraId="3F7EE6B3" w14:textId="77777777" w:rsidR="00F2751C" w:rsidRDefault="00F2751C"><w:pPr><w:pStyle w:val="ListParagraph"/><w:tabs><w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr></w:p><w:p w14:paraId="02653E3E" w14:textId="77777777" w:rsidR="00F2751C" w:rsidRDefault="00F2751C"><w:pPr><w:pStyle w:val="ListParagraph"/><w:tabs><w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr></w:p><w:p w14:paraId="01118281" w14:textId="77777777" w:rsidR="00F2751C" w:rsidRDefault="00F2751C"><w:pPr><w:pStyle w:val="ListParagraph"/><w:tabs><w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr></w:p><w:p w14:paraId="17C84843" w14:textId="77777777" w:rsidR="00F2751C" w:rsidRDefault="00000000"><w:pPr><w:pStyle w:val="ListParagraph"/><w:tabs><w:tab w:val="center" w:pos="2268"/><w:tab w:val="center" w:pos="7371"/></w:tabs><w:ind w:left="567"/><w:rPr><w:rFonts w:cs="Times New Roman"/><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:cs="Times New Roman"/><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><w:tab/></w:r><w:r><w:rPr><w:rFonts w:cs="Times New Roman"/><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><w:tab/><w:t>TRƯỞNG BỘ MÔN

@@ -11,6 +11,7 @@ export interface ApiResponse<T = unknown> {
   success: boolean
   data: T
   message?: string
+  errorCode?: string
   meta?: {
     page: number
     limit: number
@@ -23,7 +24,9 @@ export interface ApiResponse<T = unknown> {
 export interface ApiError {
   success: false
   message: string
+  errorCode?: string
   errors?: Record<string, string[]>
+  data?: Record<string, string>
 }
 
 // Tạo Axios instance 1 lần
@@ -51,27 +54,45 @@ http.interceptors.request.use(
 
 
 // ── Response Interceptor ─────────────────────────────
-// Xử lý lỗi tập trung: 401 → logout, 403 → redirect, 500 → toast
+// Xử lý lỗi tập trung
 http.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError<ApiError>) => {
     const status = error.response?.status
+    const errorMessage = error.response?.data?.message || 'Có lỗi kết nối đến máy chủ!'
 
     if (status === 401) {
-      // Token hết hạn → xóa token, redirect login
+      // Token hết hạn hoặc sai mật khẩu → xóa token, redirect login
       const { useAuthStore } = await import('@/stores/auth.store')
       useAuthStore().clearAuth()
-      router.push('/login')
+      if (router.currentRoute.value.path !== '/login') {
+        router.push('/login')
+      }
     }
 
     if (status === 403) {
       const { useToast } = await import('@/composables/ui/useToast')
       useToast().error('Bạn không có quyền thực hiện hành động này!')
-    }
-
-    if (status && status >= 500) {
+    } else if (status) {
+      // Log errors to console if they exist in data
+      if (error.response?.data?.data && typeof error.response.data.data === 'object') {
+        console.error('Validation Errors:', error.response.data.data);
+      }
+      // Hiển thị toast cho tất cả các lỗi có status (400, 401, 404, 500...)
       const { useToast } = await import('@/composables/ui/useToast')
-      useToast().error(error.response?.data?.message || 'Lỗi kết nối máy chủ!')
+      
+      // Hiển thị message tổng quát
+      useToast().error(errorMessage)
+      
+      // Nếu có field errors, hiển thị thêm toast cho từng lỗi
+      const fieldErrors = error.response?.data?.data as Record<string, string>;
+      if (fieldErrors && typeof fieldErrors === 'object') {
+        Object.values(fieldErrors).forEach(msg => {
+          if (typeof msg === 'string') {
+            useToast().error(msg);
+          }
+        });
+      }
     }
 
     return Promise.reject(error)

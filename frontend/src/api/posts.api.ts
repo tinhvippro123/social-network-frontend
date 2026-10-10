@@ -33,19 +33,15 @@ export interface CreatePostRequest {
 const postsApi = {
   // ── CRUD ──────────────────────────────────
   getAll: async (params?: PostsQuery) => {
-    await delay(500)
-    return { data: { data: mockPosts, success: true, message: 'Success' } } as { data: ApiResponse<Post[]> }
+    return await http.get('/posts', { params })
   },
 
   getById: async (id: string) => {
-    await delay(500)
-    const post = mockPosts.find(p => p.id === id) || mockPosts[0]
-    return { data: { data: post, success: true, message: 'Success' } } as { data: ApiResponse<Post> }
+    return await http.get(`/posts/${id}`)
   },
 
   create: async (data: CreatePostRequest) => {
-    await delay(500)
-    return { data: { data: mockPosts[0], success: true, message: 'Success' } } as { data: ApiResponse<Post> }
+    return await http.post('/posts', data)
   },
 
   update: async (id: string, data: Partial<CreatePostRequest>) => {

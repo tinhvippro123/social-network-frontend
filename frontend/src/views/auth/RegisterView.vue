@@ -24,13 +24,13 @@ const {
 
 <template>
   <div>
-    <h2 class="text-2xl font-bold text-white mb-1">Tạo tài khoản mới</h2>
-    <p class="text-gray-400 text-sm mb-8">Tham gia cộng đồng VietBlog ngay hôm nay</p>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Tạo tài khoản mới</h2>
+    <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Tham gia cộng đồng VietBlog ngay hôm nay</p>
 
-    <form @submit.prevent="handleRegister" class="space-y-4">
+    <form @submit.prevent="handleRegister" class="space-y-3">
       <!-- Name -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">Họ và tên</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Họ và tên</label>
         <div class="relative">
           <User :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -38,8 +38,8 @@ const {
             type="text"
             placeholder="Nguyễn Văn A"
             :class="[
-              'w-full pl-11 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
-              nameError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+              'w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-white/5 border rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              nameError ? 'border-red-500 focus:ring-red-500/50' : 'border-gray-200 dark:border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
             ]"
           />
         </div>
@@ -48,7 +48,7 @@ const {
 
       <!-- Email -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
         <div class="relative">
           <Mail :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -56,8 +56,8 @@ const {
             type="email"
             placeholder="name@example.com"
             :class="[
-              'w-full pl-11 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
-              emailError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+              'w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-white/5 border rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              emailError ? 'border-red-500 focus:ring-red-500/50' : 'border-gray-200 dark:border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
             ]"
           />
         </div>
@@ -66,7 +66,7 @@ const {
 
       <!-- Password -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">Mật khẩu</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mật khẩu</label>
         <div class="relative">
           <Lock :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -75,8 +75,8 @@ const {
             placeholder="Tối thiểu 8 ký tự"
 
             :class="[
-              'w-full pl-11 pr-12 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
-              passwordError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+              'w-full pl-11 pr-12 py-3 bg-gray-50 dark:bg-white/5 border rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              passwordError ? 'border-red-500 focus:ring-red-500/50' : 'border-gray-200 dark:border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
             ]"
           />
           <button
@@ -90,7 +90,7 @@ const {
         </div>
         <p v-if="passwordError" class="mt-1.5 text-sm text-red-500">{{ passwordError }}</p>
         <!-- Password strength indicator -->
-        <div v-if="password.length > 0" class="mt-2">
+        <div v-if="password && password.length > 0" class="mt-2">
           <div class="flex gap-1 mb-1">
             <div
               v-for="i in 4"
@@ -109,7 +109,7 @@ const {
 
       <!-- Confirm Password -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">Xác nhận mật khẩu</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Xác nhận mật khẩu</label>
         <div class="relative">
           <Lock :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -117,8 +117,8 @@ const {
             :type="showPassword ? 'text' : 'password'"
             placeholder="Nhập lại mật khẩu"
             :class="[
-              'w-full pl-11 pr-12 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
-              confirmPasswordError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+              'w-full pl-11 pr-12 py-3 bg-gray-50 dark:bg-white/5 border rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+              confirmPasswordError ? 'border-red-500 focus:ring-red-500/50' : 'border-gray-200 dark:border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
             ]"
           />
           <Check
@@ -135,13 +135,13 @@ const {
         <input
           v-model="agreeTerms"
           type="checkbox"
-          class="w-4 h-4 rounded border-white/20 bg-white/5 text-primary-500 focus:ring-primary-500/30 mt-0.5"
+          class="w-4 h-4 rounded border-gray-300 dark:border-white/20 bg-gray-50 dark:bg-white/5 text-primary-500 focus:ring-primary-500/30 mt-0.5"
         />
-        <span class="text-sm text-gray-400">
+        <span class="text-sm text-gray-600 dark:text-gray-400">
           Tôi đồng ý với
-          <a href="#" class="text-primary-400 hover:text-primary-300">Điều khoản sử dụng</a>
+          <a href="#" class="text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300">Điều khoản sử dụng</a>
           và
-          <a href="#" class="text-primary-400 hover:text-primary-300">Chính sách bảo mật</a>
+          <a href="#" class="text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300">Chính sách bảo mật</a>
         </span>
       </label>
 
@@ -163,9 +163,9 @@ const {
     <AuthSocialLogin />
 
     <!-- Login link -->
-    <p class="text-center text-sm text-gray-400 mt-6">
+    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
       Đã có tài khoản?
-      <router-link to="/login" class="text-primary-400 hover:text-primary-300 font-semibold transition-colors">
+      <router-link to="/login" class="text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 font-semibold transition-colors">
         Đăng nhập
       </router-link>
     </p>

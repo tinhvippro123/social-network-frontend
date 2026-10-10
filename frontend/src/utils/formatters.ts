@@ -5,7 +5,8 @@
 /**
  * Format số lớn thành dạng rút gọn (1200 → "1.2k")
  */
-export function formatNumber(n: number): string {
+export function formatNumber(n: number | null | undefined): string {
+  if (n === null || n === undefined) return '0'
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`
   return n.toString()
@@ -14,7 +15,8 @@ export function formatNumber(n: number): string {
 /**
  * Format ngày thành tiếng Việt (2025-08-27 → "27 thg 8, 2025")
  */
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return 'Chưa rõ'
   return new Date(date).toLocaleDateString('vi-VN', {
     day: 'numeric',
     month: 'short',
@@ -25,7 +27,8 @@ export function formatDate(date: string | Date): string {
 /**
  * Format ngày giờ đầy đủ (2025-08-27T10:00 → "27 thg 8, 2025 10:00")
  */
-export function formatDateTime(date: string | Date): string {
+export function formatDateTime(date: string | Date | null | undefined): string {
+  if (!date) return 'Chưa rõ'
   return new Date(date).toLocaleDateString('vi-VN', {
     day: 'numeric',
     month: 'short',
@@ -38,7 +41,8 @@ export function formatDateTime(date: string | Date): string {
 /**
  * Format thời gian tương đối ("5 phút trước", "2 giờ trước")
  */
-export function formatRelativeTime(date: string | Date): string {
+export function formatRelativeTime(date: string | Date | null | undefined): string {
+  if (!date) return 'Vừa xong'
   const now = new Date()
   const target = new Date(date)
   const diffMs = now.getTime() - target.getTime()
