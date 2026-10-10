@@ -27,6 +27,22 @@ export function usePostDetail() {
       fetchComments(postId),
       fetchPosts({ limit: 4 })
     ])
+
+    // Load actual reaction summary from backend
+    try {
+      const summaryRes = await postsApi.getReactionSummary(postId)
+      if (summaryRes.data?.success && post.value) {
+        const summaryMap = summaryRes.data.data
+        // Convert map { "LIKE": 5, "HEART": 2 } to array format expected by UI
+        post.value.reactions = Object.entries(summaryMap).map(([emoji, count]) => ({
+          emoji,
+          count: Number(count),
+          reacted: false // To accurately know if the *current* user reacted, we would need to check backend, but this is a summary
+        }))
+      }
+    } catch (e) {
+      console.warn("Could not fetch reaction summary", e)
+    }
   }
 
   onMounted(async () => {

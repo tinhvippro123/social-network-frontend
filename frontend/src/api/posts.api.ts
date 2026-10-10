@@ -66,8 +66,11 @@ const postsApi = {
   },
 
   toggleReaction: async (postId: string, emoji: string) => {
-    await delay(300)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
+    return await http.post(`/posts/${postId}/reactions`, { emoji })
+  },
+
+  getReactionSummary: async (postId: string) => {
+    return await http.get(`/posts/${postId}/reactions/summary`)
   },
 
   reportPost: async (postId: string, data: { reason: string; description?: string }) => {
