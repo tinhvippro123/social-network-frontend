@@ -4,6 +4,7 @@ import { useToast } from '../ui/useToast'
 import { useCategories } from '../core/useCategories'
 import { useAsyncState } from '../core/useAsyncState'
 import postsApi from '@/api/posts.api'
+import filesApi from '@/api/files.api'
 import { LOCATION_SUPPORTED_CATEGORIES } from '@/constants'
 import { useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -29,6 +30,9 @@ export function useCreatePost() {
   const isDraft = ref(false)
   const showLocationPicker = ref(false)
   const postLocation = ref<GeoLocation | null>(null)
+  
+  const coverImageFile = ref<File | null>(null)
+  const coverImagePreview = ref<string>('')
 
   // Event time fields
   const eventStartTime = ref('')
@@ -37,6 +41,23 @@ export function useCreatePost() {
   const locationCategories = LOCATION_SUPPORTED_CATEGORIES
   const isLocationCategory = computed(() => locationCategories.includes(selectedCategory.value as any))
   const isEventCategory = computed(() => selectedCategory.value === 'su-kien')
+
+  const handleCoverImageChange = (e: Event) => {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        error('Kích thước ảnh tối đa là 5MB')
+        return
+      }
+      coverImageFile.value = file
+      coverImagePreview.value = URL.createObjectURL(file)
+    }
+  }
+
+  const removeCoverImage = () => {
+    coverImageFile.value = null
+    coverImagePreview.value = ''
+  }
 
   const handleLocationConfirm = (loc: GeoLocation) => {
     postLocation.value = loc
@@ -101,6 +122,9 @@ export function useCreatePost() {
     if (editor.value) {
       editor.value.destroy()
     }
+    if (coverImagePreview.value) {
+      URL.revokeObjectURL(coverImagePreview.value)
+    }
   })
 
   const handleToolbarAction = (action: string) => {
@@ -149,6 +173,18 @@ export function useCreatePost() {
     }
     
     await execute(async () => {
+      let coverImageUrl = ''
+      
+      // Upload cover image first if it exists
+      if (coverImageFile.value) {
+        try {
+          const uploadRes = await filesApi.uploadFile(coverImageFile.value)
+          coverImageUrl = uploadRes.data.data.fileUrl
+        } catch (err) {
+          throw new Error('Không thể tải ảnh bìa lên. Vui lòng thử lại sau.')
+        }
+      }
+
       // Create slug from title as excerpt (temporary)
       const excerpt = content.value.replace(/<[^>]*>?/gm, '').substring(0, 150)
       
@@ -161,6 +197,7 @@ export function useCreatePost() {
         status: (isDraft.value ? 'draft' : 'published') as 'draft' | 'published',
         latitude: postLocation.value?.lat,
         longitude: postLocation.value?.lng,
+        coverImage: coverImageUrl || undefined
       }
       
       await postsApi.create(payload)
@@ -185,10 +222,13 @@ export function useCreatePost() {
     postLocation,
     eventStartTime,
     eventEndTime,
+    coverImagePreview,
     isLocationCategory,
     isEventCategory,
     toolbarItems,
     editor,
+    handleCoverImageChange,
+    removeCoverImage,
     handleLocationConfirm,
     removeLocation,
     addTag,

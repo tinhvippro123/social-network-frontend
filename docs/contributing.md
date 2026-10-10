@@ -91,39 +91,42 @@ feat(chat): add message read receipts
 
 ## 🔃 Quy tắc Pull Request
 
+### ⚠️ Lưu ý quan trọng
+- **BẮT BUỘC**: Pull Request (Title và Description) phải được viết **100% bằng Tiếng Anh**.
+
 ### Title format
 
 ```
-<type>(<scope>): <Mô tả ngắn gọn>
+<type>(<scope>): <Short description in English>
 ```
 
 **Ví dụ:**
-- `feat(frontend): Refactor DRY UI — Skeleton loaders, separated views, dark mode fix`
-- `feat(chat): Enhance messaging — read receipts, emoji, file sharing`
-- `fix(admin): Resolve table layout shifts`
+- `feat(frontend): refactor DRY UI — skeleton loaders, separated views`
+- `feat(chat): enhance messaging — read receipts, emoji, file sharing`
+- `fix(admin): resolve table layout shifts`
 
 ### Description template
 
-Mỗi PR nên có các phần sau:
+Mỗi PR nên copy y nguyên cấu trúc này (bằng Tiếng Anh):
 
 ```markdown
-### Mô tả
-Tóm tắt 1-2 câu mục đích của PR.
+### Description
+Tóm tắt 1-2 câu mục đích của PR bằng Tiếng Anh.
 
-### Thay đổi chính
-- ✨ **Tính năng mới**: ...
+### Key Changes
+- ✨ **New Features**: ...
 - 🐛 **Bug Fixes**: ...
 - 🏗️ **Refactoring**: ...
-- 📊 **Hiệu suất**: ...
+- 📊 **Performance**: ...
 
 ### Screenshots
 _(Paste ảnh chụp màn hình nếu thay đổi UI)_
 
 ### Checklist
-- [ ] Code build thành công
-- [ ] Responsive trên mobile/tablet/desktop
-- [ ] Dark mode hoạt động
-- [ ] Tài liệu đã cập nhật
+- [ ] Code builds successfully
+- [ ] Responsive on mobile/tablet/desktop
+- [ ] Dark mode works correctly
+- [ ] Documentation has been updated
 ```
 
 ### Quy trình review
