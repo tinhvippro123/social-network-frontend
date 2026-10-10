@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { ImageIcon, ChevronDown, X, Tag, MapPin } from '@lucide/vue'
 import type { GeoLocation } from '@/types'
 import PostEditorEventSettings from './PostEditorEventSettings.vue'
@@ -15,6 +16,7 @@ defineProps<{
   isEventCategory: boolean
   eventStartTime: string
   eventEndTime: string
+  coverImagePreview: string
 }>()
 
 const emit = defineEmits<{
@@ -27,16 +29,39 @@ const emit = defineEmits<{
   (e: 'addTag'): void
   (e: 'removeTag', tag: string): void
   (e: 'removeLocation'): void
+  (e: 'coverImageChange', event: Event): void
+  (e: 'removeCoverImage'): void
 }>()
+
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
+const triggerFileInput = () => {
+  fileInputRef.value?.click()
+}
 </script>
 
 <template>
   <div class="flex flex-col gap-6 bg-white dark:bg-surface-800 p-6 rounded-2xl border border-gray-200 dark:border-surface-700 shadow-sm">
     <!-- Cover Image Upload -->
-    <div class="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 dark:border-surface-600 rounded-xl bg-gray-50 dark:bg-surface-800/50 hover:bg-gray-100 dark:hover:bg-surface-700/50 transition-colors cursor-pointer group">
+    <div v-if="!coverImagePreview" @click="triggerFileInput" class="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 dark:border-surface-600 rounded-xl bg-gray-50 dark:bg-surface-800/50 hover:bg-gray-100 dark:hover:bg-surface-700/50 transition-colors cursor-pointer group">
       <ImageIcon :size="32" class="text-gray-300 dark:text-surface-600 mb-3 group-hover:text-primary-500 transition-colors" />
-      <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Kéo thả ảnh hoặc click để tải lên</p>
+      <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Kéo thả ảnh hoặc click để tải ảnh bìa lên</p>
       <p class="text-xs text-gray-400 mt-1">PNG, JPG tối đa 5MB</p>
+      <input ref="fileInputRef" type="file" accept="image/png, image/jpeg" class="hidden" @change="emit('coverImageChange', $event)" />
+    </div>
+
+    <!-- Cover Image Preview -->
+    <div v-else class="relative w-full h-48 sm:h-64 rounded-xl overflow-hidden group">
+      <img :src="coverImagePreview" alt="Cover preview" class="w-full h-full object-cover" />
+      <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-[2px]">
+        <button @click="triggerFileInput" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-medium backdrop-blur-md transition-colors">
+          Thay đổi
+        </button>
+        <button @click="emit('removeCoverImage')" class="px-4 py-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg text-sm font-medium backdrop-blur-md transition-colors">
+          Xóa ảnh
+        </button>
+      </div>
+      <input ref="fileInputRef" type="file" accept="image/png, image/jpeg" class="hidden" @change="emit('coverImageChange', $event)" />
     </div>
 
     <!-- Title -->

@@ -32,6 +32,9 @@ const {
   isEventCategory,
   toolbarItems,
   editor,
+  coverImagePreview,
+  handleCoverImageChange,
+  removeCoverImage,
   handleLocationConfirm,
   removeLocation,
   addTag,
@@ -93,9 +96,12 @@ const router = useRouter()
       :post-location="postLocation"
       :is-location-category="isLocationCategory"
       :is-event-category="isEventCategory"
+      :cover-image-preview="coverImagePreview"
       @add-tag="addTag"
       @remove-tag="removeTag"
       @remove-location="removeLocation"
+      @cover-image-change="handleCoverImageChange"
+      @remove-cover-image="removeCoverImage"
     />
 
     <!-- BOTTOM SECTION: Split Editor & Preview -->
