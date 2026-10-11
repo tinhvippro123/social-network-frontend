@@ -43,14 +43,55 @@ export function usePostDetail() {
     } catch (e) {
       console.warn("Could not fetch reaction summary", e)
     }
+
+    // Load bookmark status from backend if user is authenticated
+    if (user.value) {
+      try {
+        const bookmarkRes = await postsApi.checkBookmark(postId)
+        if (bookmarkRes.data?.success && typeof bookmarkRes.data.data === 'boolean') {
+          isBookmarked.value = bookmarkRes.data.data
+          if (post.value) {
+            post.value.bookmarked = bookmarkRes.data.data
+          }
+        }
+      } catch (e) {
+        console.warn('Could not check bookmark status', e)
+      }
+    }
   }
 
   onMounted(async () => {
     await initData()
   })
 
-  const toggleBookmark = () => {
+  const toggleBookmark = async () => {
+    if (!post.value) return
+    if (!user.value) {
+      router.push('/auth/login')
+      return
+    }
+
+    const previousState = isBookmarked.value
     isBookmarked.value = !isBookmarked.value
+    if (post.value) {
+      post.value.bookmarked = isBookmarked.value
+    }
+
+    try {
+      const res = await postsApi.toggleBookmark(post.value.id)
+      if (res.data?.success && typeof res.data.data === 'boolean') {
+        isBookmarked.value = res.data.data
+        if (post.value) {
+          post.value.bookmarked = res.data.data
+        }
+      }
+    } catch (e) {
+      isBookmarked.value = previousState
+      if (post.value) {
+        post.value.bookmarked = previousState
+      }
+      console.error('Failed to toggle bookmark', e)
+    }
   }
 
   const toggleEmojiPicker = (commentId: string | null) => {

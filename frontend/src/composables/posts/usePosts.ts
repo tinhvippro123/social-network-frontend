@@ -90,11 +90,13 @@ export function usePosts() {
     }, 'Tạo bài viết thất bại')
   }
 
-  async function toggleBookmark(postId: string, isBookmarked: boolean) {
-    if (isBookmarked) {
-      await postsApi.bookmark(postId)
-    } else {
-      await postsApi.removeBookmark(postId)
+  async function toggleBookmark(postId: string, _isBookmarked?: boolean) {
+    try {
+      const { data } = await postsApi.toggleBookmark(postId)
+      return data.data as boolean
+    } catch (err) {
+      console.error('Lỗi toggle bookmark', err)
+      throw err
     }
   }
 
