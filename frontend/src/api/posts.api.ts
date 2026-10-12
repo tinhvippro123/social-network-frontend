@@ -78,14 +78,20 @@ const postsApi = {
     return { data: { success: true, message: 'Báo cáo đã được gửi' } } as { data: ApiResponse }
   },
 
+  toggleBookmark: async (postId: string) => {
+    return await http.post(`/posts/${postId}/bookmarks`)
+  },
+
+  checkBookmark: async (postId: string) => {
+    return await http.get(`/posts/${postId}/bookmarks/check`)
+  },
+
   bookmark: async (id: string) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
+    return await http.post(`/posts/${id}/bookmarks`)
   },
 
   removeBookmark: async (id: string) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
+    return await http.post(`/posts/${id}/bookmarks`)
   },
 
   // ── Đặc biệt ─────────────────────────────

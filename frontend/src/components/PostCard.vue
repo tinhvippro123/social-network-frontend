@@ -5,6 +5,9 @@ import {
 } from '@lucide/vue'
 import type { Post } from '@/types'
 
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatRelativeTime, formatNumber } from '@/utils/formatters'
+
 const props = defineProps<{
   post: Post
 }>()
@@ -12,10 +15,15 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'click', postId: string): void
   (e: 'bookmark', postId: string): void
+  (e: 'toggleBookmark', postId: string): void
+  (e: 'toggle-bookmark', postId: string): void
 }>()
 
-import UserAvatar from '@/components/UserAvatar.vue'
-import { formatRelativeTime, formatNumber } from '@/utils/formatters'
+const handleBookmark = () => {
+  emit('bookmark', props.post.id)
+  emit('toggleBookmark', props.post.id)
+  emit('toggle-bookmark', props.post.id)
+}
 </script>
 
 <template>
@@ -45,7 +53,7 @@ import { formatRelativeTime, formatNumber } from '@/utils/formatters'
       </span>
       <!-- Bookmark -->
       <button
-        @click.stop="emit('bookmark', post.id)"
+        @click.stop="handleBookmark"
         class="absolute top-3 right-3 p-2 rounded-lg bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors"
       >
         <BookmarkCheck v-if="post.bookmarked" :size="16" class="text-primary-500" />

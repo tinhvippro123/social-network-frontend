@@ -17,11 +17,19 @@ export function useBookmarks() {
       .slice(0, 5)
   })
 
-  const toggleBookmark = (postId: string) => {
+  const toggleBookmark = async (postId: string) => {
     const post = posts.value.find(p => p.id === postId)
     if (post) {
+      const prev = post.bookmarked
       post.bookmarked = !post.bookmarked
-      apiToggleBookmark(postId, !post.bookmarked)
+      try {
+        const res = await apiToggleBookmark(postId)
+        if (typeof res === 'boolean') {
+          post.bookmarked = res
+        }
+      } catch {
+        post.bookmarked = prev
+      }
     }
   }
 
