@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, List, ListOrdered,
-  Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote, Eye, Save, Send, MapPin, Tag, ChevronDown, X, Clock, CalendarDays
+  Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote, Eye, Save, Send, MapPin, Tag, ChevronDown, X, Clock, CalendarDays, Loader2
 } from '@lucide/vue'
 import { EditorContent } from '@tiptap/vue-3'
 import { useRouter } from 'vue-router'
@@ -32,7 +32,9 @@ const {
   isEventCategory,
   toolbarItems,
   editor,
+  isLoading,
   coverImagePreview,
+  loadInitialData,
   handleCoverImageChange,
   removeCoverImage,
   handleLocationConfirm,
@@ -43,17 +45,25 @@ const {
   handlePublish
 } = useCreatePost()
 
-onMounted(() => {
-  if (props.mode === 'edit' && props.initialData) {
-    title.value = props.initialData.title || ''
-    selectedCategory.value = props.initialData.category || ''
-    tags.value = props.initialData.tags || []
-    if (editor.value && props.initialData.content) {
-      editor.value.commands.setContent(props.initialData.content)
+watch(
+  () => props.initialData,
+  (val) => {
+    if (val && props.mode === 'edit') {
+      loadInitialData(val)
     }
-    // Also set other initial fields if any
-  }
-})
+  },
+  { immediate: true }
+)
+
+const onSaveDraft = () => {
+  isDraft.value = true
+  handlePublish(props.mode, props.initialData?.id)
+}
+
+const onPublish = () => {
+  isDraft.value = false
+  handlePublish(props.mode, props.initialData?.id)
+}
 
 const router = useRouter()
 </script>
@@ -67,18 +77,21 @@ const router = useRouter()
       </h1>
       <div class="flex items-center gap-3">
         <button
-          @click="isDraft = true"
-          class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all"
+          :disabled="isLoading"
+          @click="onSaveDraft"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all disabled:opacity-50"
         >
           <Save :size="16" />
           <span class="hidden sm:inline">Lưu nháp</span>
         </button>
         <button 
-          @click="handlePublish"
-          class="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25"
+          :disabled="isLoading"
+          @click="onPublish"
+          class="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50"
         >
-          <Send :size="16" />
-          Xuất bản
+          <Loader2 v-if="isLoading" :size="16" class="animate-spin" />
+          <Send v-else :size="16" />
+          {{ props.mode === 'create' ? 'Xuất bản' : 'Lưu thay đổi' }}
         </button>
       </div>
     </div>
