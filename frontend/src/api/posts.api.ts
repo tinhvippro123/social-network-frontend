@@ -45,13 +45,11 @@ const postsApi = {
   },
 
   update: async (id: string, data: Partial<CreatePostRequest>) => {
-    await delay(500)
-    return { data: { data: mockPosts[0], success: true, message: 'Success' } } as { data: ApiResponse<Post> }
+    return await http.put(`/posts/${id}`, data)
   },
 
   delete: async (id: string) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
+    return await http.delete(`/posts/${id}`)
   },
 
   // ── Interactions ──────────────────────────

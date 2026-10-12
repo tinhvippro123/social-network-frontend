@@ -1,15 +1,29 @@
 <script setup lang="ts">
-import { Clock, Eye, MapPin, Edit3 } from '@lucide/vue'
+import { Clock, Eye, MapPin, Edit3, Trash2 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import { useRouter } from 'vue-router'
+import { useToast } from '@/composables/ui/useToast'
+import postsApi from '@/api/posts.api'
 
-defineProps<{
+const props = defineProps<{
   post: any
   user: any
 }>()
 
 const router = useRouter()
+const { success, error } = useToast()
+
+const handleDeletePost = async () => {
+  if (!confirm('Bạn có chắc chắn muốn xóa bài viết này không? Hành động này không thể hoàn tác.')) return
+  try {
+    await postsApi.delete(props.post.id)
+    success('Đã xóa bài viết thành công!')
+    router.push('/')
+  } catch (err: any) {
+    error(err.response?.data?.message || 'Không thể xóa bài viết. Vui lòng thử lại.')
+  }
+}
 </script>
 
 <template>
@@ -24,14 +38,16 @@ const router = useRouter()
           </svg>
         </span>
       </div>
-      <div class="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
-      <div class="absolute bottom-6 left-6 right-6">
-        <span class="inline-block px-3 py-1 rounded-lg text-xs font-semibold bg-white/90 text-gray-700 mb-3">
-          {{ post.category.icon }} {{ post.category.name }}
-        </span>
-        <h1 class="text-2xl sm:text-3xl font-bold text-white wrap-break-word">{{ post.title }}</h1>
-      </div>
+      <!-- Category Badge -->
+      <span class="absolute top-4 left-4 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 shadow-sm">
+        {{ post.category?.icon }} {{ post.category?.name }}
+      </span>
     </div>
+
+    <!-- Title -->
+    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 dark:text-white leading-tight mb-4">
+      {{ post.title }}
+    </h1>
 
     <!-- Author Info -->
     <div class="flex items-center justify-between mb-6 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4">
@@ -46,15 +62,23 @@ const router = useRouter()
           </div>
         </div>
       </div>
-      <!-- Edit button (only for own posts) -->
-      <button
-        v-if="user && user.id === post.author.id"
-        @click="router.push(`/posts/${post.id}/edit`)"
-        class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-gray-500 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 border border-gray-200 dark:border-surface-700 transition-all"
-      >
-        <Edit3 :size="14" />
-        <span class="hidden sm:inline">Chỉnh sửa</span>
-      </button>
+      <!-- Actions (only for own posts) -->
+      <div v-if="user && user.id === post.author?.id" class="flex items-center gap-2">
+        <button
+          @click="router.push(`/posts/${post.id}/edit`)"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 border border-gray-200 dark:border-surface-700 transition-all"
+        >
+          <Edit3 :size="14" />
+          <span class="hidden sm:inline">Chỉnh sửa</span>
+        </button>
+        <button
+          @click="handleDeletePost"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-900/30 transition-all"
+        >
+          <Trash2 :size="14" />
+          <span class="hidden sm:inline">Xóa</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>

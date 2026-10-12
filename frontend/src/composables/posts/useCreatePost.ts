@@ -10,7 +10,7 @@ import { useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import ImageExtension from '@tiptap/extension-image'
 import LinkExtension from '@tiptap/extension-link'
-import type { GeoLocation } from '@/types'
+import type { GeoLocation, Post } from '@/types'
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, List, ListOrdered,
   Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote
@@ -114,6 +114,30 @@ export function useCreatePost() {
     }
   })
 
+  // Load existing post data for Edit mode
+  const loadInitialData = (post: any) => {
+    if (!post) return
+    title.value = post.title || ''
+    content.value = post.content || ''
+    if (editor.value && post.content) {
+      editor.value.commands.setContent(post.content)
+    }
+    selectedCategory.value = post.category?.slug || post.category?.id || post.categoryId || ''
+    tags.value = Array.isArray(post.tags) ? [...post.tags] : []
+    isDraft.value = post.status?.toLowerCase() === 'draft'
+    
+    if (post.coverImage) {
+      coverImagePreview.value = post.coverImage
+    }
+    if (post.latitude && post.longitude) {
+      postLocation.value = {
+        lat: post.latitude,
+        lng: post.longitude,
+        address: post.locationAddress || ''
+      }
+    }
+  }
+
   onMounted(() => {
     fetchCategories()
   })
@@ -122,10 +146,36 @@ export function useCreatePost() {
     if (editor.value) {
       editor.value.destroy()
     }
-    if (coverImagePreview.value) {
+    if (coverImagePreview.value && coverImageFile.value) {
       URL.revokeObjectURL(coverImagePreview.value)
     }
   })
+
+  // Trigger file picker to upload inline image to Cloudinary
+  const insertInlineImage = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (!file) return
+      if (file.size > 5 * 1024 * 1024) {
+        error('Kích thước ảnh tối đa là 5MB')
+        return
+      }
+      try {
+        const uploadRes = await filesApi.uploadFile(file)
+        const url = uploadRes.data?.data?.fileUrl || uploadRes.data?.fileUrl
+        if (url && editor.value) {
+          editor.value.chain().focus().setImage({ src: url }).run()
+          success('Đã tải và chèn ảnh thành công!')
+        }
+      } catch (err) {
+        error('Không thể tải ảnh lên. Vui lòng thử lại.')
+      }
+    }
+    input.click()
+  }
 
   const handleToolbarAction = (action: string) => {
     if (!editor.value) return
@@ -139,19 +189,21 @@ export function useCreatePost() {
       case 'ol': editor.value.chain().focus().toggleOrderedList().run(); break;
       case 'quote': editor.value.chain().focus().toggleBlockquote().run(); break;
       case 'code': editor.value.chain().focus().toggleCodeBlock().run(); break;
-      case 'link': 
-        const url = window.prompt('URL:')
-        if (url) editor.value.chain().focus().setLink({ href: url }).run();
-        break;
-      case 'image':
-        const src = window.prompt('Image URL:')
-        if (src) editor.value.chain().focus().setImage({ src }).run();
+      case 'link': {
+        const url = window.prompt('Nhập đường dẫn liên kết:')
+        if (url) editor.value.chain().focus().setLink({ href: url }).run()
+        break
+      }
+      case 'image': {
+        insertInlineImage()
+        break
+      }
     }
   }
 
   const { execute, isLoading } = useAsyncState()
 
-  const handlePublish = async () => {
+  const handlePublish = async (mode: 'create' | 'edit' = 'create', postId?: string) => {
     if (!title.value.trim()) {
       error('Vui lòng nhập tiêu đề bài viết')
       return
@@ -165,7 +217,7 @@ export function useCreatePost() {
       return
     }
     
-    // Bỏ HTML tags để đếm số ký tự thực sự
+    // Bỏ HTML tags để đếm số ký tự văn bản
     const plainTextContent = content.value.replace(/<[^>]*>?/gm, '').trim()
     if (plainTextContent.length < 50) {
       error('Nội dung bài viết quá ngắn (yêu cầu ít nhất 50 ký tự)')
@@ -173,20 +225,20 @@ export function useCreatePost() {
     }
     
     await execute(async () => {
-      let coverImageUrl = ''
+      let coverImageUrl = coverImagePreview.value || ''
       
-      // Upload cover image first if it exists
+      // Upload ảnh bìa mới lên Cloudinary nếu người dùng đã chọn file mới
       if (coverImageFile.value) {
         try {
           const uploadRes = await filesApi.uploadFile(coverImageFile.value)
-          coverImageUrl = uploadRes.data.data.fileUrl
+          coverImageUrl = uploadRes.data?.data?.fileUrl || uploadRes.data?.fileUrl || ''
         } catch (err) {
-          throw new Error('Không thể tải ảnh bìa lên. Vui lòng thử lại sau.')
+          throw new Error('Không thể tải ảnh bìa lên Cloudinary. Vui lòng thử lại sau.')
         }
       }
 
-      // Create slug from title as excerpt (temporary)
-      const excerpt = content.value.replace(/<[^>]*>?/gm, '').substring(0, 150)
+      // Tạo excerpt từ 150 ký tự đầu của nội dung
+      const excerpt = plainTextContent.substring(0, 150)
       
       const payload = {
         title: title.value.trim(),
@@ -200,13 +252,25 @@ export function useCreatePost() {
         coverImage: coverImageUrl || undefined
       }
       
-      await postsApi.create(payload)
-      
-      success(isDraft.value ? 'Đã lưu bản nháp thành công!' : 'Xuất bản bài viết thành công!')
-      setTimeout(() => {
-        router.push('/')
-      }, 1000)
-    }, 'Đăng bài viết thất bại')
+      if (mode === 'edit' && postId) {
+        await postsApi.update(postId, payload)
+        success(isDraft.value ? 'Đã lưu bản nháp thành công!' : 'Cập nhật bài viết thành công!')
+        setTimeout(() => {
+          router.push(`/posts/${postId}`)
+        }, 800)
+      } else {
+        const res = await postsApi.create(payload)
+        const createdId = res.data?.data?.id
+        success(isDraft.value ? 'Đã lưu bản nháp thành công!' : 'Xuất bản bài viết thành công!')
+        setTimeout(() => {
+          if (createdId) {
+            router.push(`/posts/${createdId}`)
+          } else {
+            router.push('/')
+          }
+        }, 800)
+      }
+    }, mode === 'edit' ? 'Cập nhật bài viết thất bại' : 'Đăng bài viết thất bại')
   }
 
   return {
@@ -227,6 +291,8 @@ export function useCreatePost() {
     isEventCategory,
     toolbarItems,
     editor,
+    isLoading,
+    loadInitialData,
     handleCoverImageChange,
     removeCoverImage,
     handleLocationConfirm,
