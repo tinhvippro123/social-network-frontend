@@ -22,7 +22,7 @@ const { sizeClasses } = useUserAvatar(props)
     :src="user.avatar"
     :alt="user.name"
     :class="[
-      'rounded-full object-cover bg-gray-100 dark:bg-surface-700',
+      'rounded-full object-cover bg-gray-100 dark:bg-surface-700 shrink-0',
       sizeClasses,
       showRing ? 'ring-2 ring-white dark:ring-surface-800' : ''
     ]"
@@ -30,11 +30,11 @@ const { sizeClasses } = useUserAvatar(props)
   <div
     v-else
     :class="[
-      'rounded-full flex items-center justify-center font-bold bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400',
+      'rounded-full flex! items-center justify-center text-center font-bold leading-none select-none bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 shrink-0',
       sizeClasses,
       showRing ? 'ring-2 ring-white dark:ring-surface-800' : ''
     ]"
   >
-    {{ user.name.charAt(0).toUpperCase() }}
+    <span class="inline-flex items-center justify-center leading-none">{{ (user.name || '?').trim().charAt(0).toUpperCase() }}</span>
   </div>
 </template>
