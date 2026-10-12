@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Clock, Eye, ArrowUp, MessageCircle } from '@lucide/vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
@@ -10,6 +11,7 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const imageFailed = ref(false)
 
 const handleClick = () => {
   if (props.isDraft) {
@@ -30,14 +32,16 @@ const handleClick = () => {
   >
     <!-- Cover Image with Fallback -->
     <div
-      v-if="post.coverImage"
+      v-if="post.coverImage && !imageFailed"
       :class="[
-        'hidden sm:block w-32 h-24 rounded-xl overflow-hidden shrink-0',
+        'w-24 h-20 sm:w-32 sm:h-24 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-surface-700',
         isDraft ? 'opacity-60' : ''
       ]"
     >
       <img
         :src="post.coverImage"
+        :alt="post.title"
+        @error="imageFailed = true"
         :class="[
           'w-full h-full object-cover',
           isDraft ? '' : 'transition-transform duration-300 group-hover:scale-105'
@@ -47,12 +51,12 @@ const handleClick = () => {
     <div
       v-else
       :class="[
-        'hidden sm:flex w-32 h-24 rounded-xl shrink-0 items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40',
+        'w-24 h-20 sm:w-32 sm:h-24 rounded-xl shrink-0 flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100/60 dark:from-primary-950/40 dark:to-primary-900/30 border border-primary-200/50 dark:border-primary-800/40',
         isDraft ? 'opacity-60' : 'transition-transform duration-300 group-hover:scale-105'
       ]"
     >
-      <span class="text-primary-300 dark:text-primary-700/50 opacity-50">
-        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <span class="text-primary-400 dark:text-primary-500/80">
+        <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       </span>

@@ -4,7 +4,7 @@ import Skeleton from '@/components/ui/Skeleton.vue'
 
 <template>
   <div class="flex gap-4 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-5">
-    <Skeleton type="image" class="hidden sm:block w-32 h-24 rounded-xl shrink-0" />
+    <Skeleton type="image" class="w-24 h-20 sm:w-32 sm:h-24 rounded-xl shrink-0" />
     <div class="flex-1 space-y-3">
       <Skeleton type="text" class="w-3/4 h-5" />
       <Skeleton type="text" class="w-full h-4" />
