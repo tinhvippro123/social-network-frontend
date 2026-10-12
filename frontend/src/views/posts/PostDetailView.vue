@@ -39,7 +39,8 @@ const {
   setReplyingTo,
   clearReplyingTo,
   addComment,
-  replyComment
+  replyComment,
+  deleteComment
 } = usePostDetail()
 
 const isFollowing = ref(false)
@@ -136,6 +137,7 @@ useCodeHighlight(postContent)
             @toggleEmojiPicker="toggleEmojiPicker"
             @addComment="addComment"
             @replyComment="replyComment"
+            @deleteComment="deleteComment"
           />
         </div>
       </article>

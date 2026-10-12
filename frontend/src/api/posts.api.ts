@@ -128,8 +128,15 @@ const postsApi = {
   },
 
   getComments: async (postId: string) => {
-    await delay(500)
-    return { data: { data: mockComments, success: true, message: 'Success' } } as { data: ApiResponse<any[]> }
+    return await http.get(`/posts/${postId}/comments`)
+  },
+
+  addComment: async (postId: string, data: { content: string; parentId?: string | null }) => {
+    return await http.post(`/posts/${postId}/comments`, data)
+  },
+
+  deleteComment: async (postId: string, commentId: string) => {
+    return await http.delete(`/posts/${postId}/comments/${commentId}`)
   },
 }
 
