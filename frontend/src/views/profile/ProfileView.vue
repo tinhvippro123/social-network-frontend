@@ -1,59 +1,82 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   FileText, Lock, UserX
 } from '@lucide/vue'
 import { useProfileTabs } from '@/composables/ui/useProfileTabs'
-import { onMounted } from 'vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import ProfileHeader from './components/ProfileHeader.vue'
 import ProfilePostItem from './components/ProfilePostItem.vue'
 import ProfilePostSkeleton from './components/ProfilePostSkeleton.vue'
-import { mockUsers } from '@/data/mockData'
 import { useAuth } from '@/composables/auth/useAuth'
+import usersApi from '@/api/users.api'
+import type { UserProfile } from '@/types'
 
 const router = useRouter()
 const route = useRoute()
 const { user: authUser } = useAuth()
-const isOwnProfileComputed = computed(() => !route.params.id || route.params.id === authUser.value?.id)
-const { currentUser: ownUser, activeTab, tabs, posts, isLoading, fetchPosts } = useProfileTabs(isOwnProfileComputed.value)
 
-// Determine which profile to show
 const profileUserId = computed(() => route.params.id as string | undefined)
 const isOwnProfile = computed(() => !profileUserId.value || profileUserId.value === authUser.value?.id)
 
-const profileUser = computed(() => {
-  if (isOwnProfile.value) return ownUser.value
-  // Find user from mock data
-  return mockUsers.find(u => u.id === profileUserId.value) || null
-})
+const profileUser = ref<UserProfile | null>(null)
+const isProfileLoading = ref(true)
 
-// Privacy simulation - other users might have private profiles
+const { activeTab, tabs, posts, isLoading, fetchPosts } = useProfileTabs(isOwnProfile.value, profileUser)
+
+// Privacy setting
 const privacySetting = ref<'public' | 'followers' | 'private'>('public')
 const isAllowedToView = computed(() => {
   if (isOwnProfile.value) return true
   if (privacySetting.value === 'public') return true
-  if (privacySetting.value === 'followers') return true // Simulate being a follower
-  return false // private
+  if (privacySetting.value === 'followers') return true
+  return false
 })
+
+async function loadProfile() {
+  isProfileLoading.value = true
+  try {
+    const targetId = profileUserId.value || authUser.value?.id
+    if (!targetId) {
+      profileUser.value = null
+      return
+    }
+    const res = await usersApi.getProfile(targetId)
+    profileUser.value = res.data.data
+    await fetchPosts(targetId)
+  } catch (err) {
+    profileUser.value = null
+  } finally {
+    isProfileLoading.value = false
+  }
+}
 
 function handleMessage(userId: string) {
   router.push({ name: 'chat', query: { userId } })
 }
 
 onMounted(() => {
-  fetchPosts()
+  loadProfile()
 })
 
-// Re-fetch when profile changes
-watch(profileUserId, () => {
-  fetchPosts()
+// Re-fetch when profile changes or user logs in
+watch(() => [route.params.id, authUser.value?.id], () => {
+  loadProfile()
 })
 </script>
 
 <template>
-  <div v-if="profileUser" class="mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div v-if="isProfileLoading" class="mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 h-64 overflow-hidden">
+      <Skeleton type="image" class="w-full h-full" />
+    </div>
+    <div class="space-y-4">
+      <ProfilePostSkeleton v-for="i in 3" :key="i" />
+    </div>
+  </div>
+
+  <div v-else-if="profileUser" class="mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Profile Header -->
     <ProfileHeader
       :current-user="profileUser"
@@ -98,7 +121,7 @@ watch(profileUserId, () => {
         
         <template v-else-if="posts.length > 0">
           <ProfilePostItem
-            v-for="post in posts.slice(0, 4)"
+            v-for="post in posts"
             :key="post.id"
             :post="post"
           />
@@ -114,7 +137,7 @@ watch(profileUserId, () => {
       <!-- Drafts List (tab: drafts) -->
       <div v-else-if="activeTab === 'drafts'" class="space-y-4 stagger-children">
         <ProfilePostItem
-          v-for="post in posts.slice(0, 3)"
+          v-for="post in posts"
           :key="'draft-' + post.id"
           :post="post"
           :is-draft="true"
@@ -135,9 +158,18 @@ watch(profileUserId, () => {
       </div>
     </template>
   </div>
-  <div v-else class="mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <div class="relative bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 mb-6 h-64 overflow-hidden">
-      <Skeleton type="image" class="w-full h-full" />
+
+  <!-- User Not Found -->
+  <div v-else class="mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center max-w-md">
+    <div class="bg-white dark:bg-surface-800 rounded-3xl p-8 border border-gray-200 dark:border-surface-700 shadow-xl space-y-4">
+      <div class="w-16 h-16 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto text-red-500">
+        <UserX :size="32" />
+      </div>
+      <h2 class="text-xl font-bold text-gray-900 dark:text-white">Không tìm thấy người dùng</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Tài khoản này không tồn tại hoặc đã bị khóa.</p>
+      <button @click="router.push('/')" class="w-full py-2.5 px-4 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-95 transition-opacity">
+        Quay lại trang chủ
+      </button>
     </div>
   </div>
 </template>

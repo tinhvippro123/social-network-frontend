@@ -6,6 +6,8 @@ import { formatDate, formatNumber } from '@/utils/formatters'
 import UserAvatar from '@/components/UserAvatar.vue'
 import FollowersModal from './FollowersModal.vue'
 import { useToast } from '@/composables/ui/useToast'
+import usersApi from '@/api/users.api'
+import { watch } from 'vue'
 
 const props = defineProps<{
   currentUser: any
@@ -23,6 +25,10 @@ const { addToast } = useToast()
 const isFollowing = ref(false)
 const isFollowLoading = ref(false)
 
+watch(() => props.currentUser?.isFollowing, (val) => {
+  isFollowing.value = !!val
+}, { immediate: true })
+
 // Followers/Following modal
 const showFollowersModal = ref(false)
 const followersModalType = ref<'followers' | 'following'>('followers')
@@ -36,11 +42,28 @@ function openFollowersModal(type: 'followers' | 'following') {
 }
 
 async function toggleFollow() {
+  if (!props.currentUser?.id) return
   isFollowLoading.value = true
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 500))
-  isFollowing.value = !isFollowing.value
-  isFollowLoading.value = false
+  try {
+    const res = await usersApi.toggleFollow(props.currentUser.id)
+    const newStatus = res.data.data
+    isFollowing.value = newStatus
+    if (newStatus) {
+      if (typeof props.currentUser.followersCount === 'number') {
+        props.currentUser.followersCount += 1
+      }
+      addToast({ message: 'Đã theo dõi người dùng', type: 'success' })
+    } else {
+      if (typeof props.currentUser.followersCount === 'number') {
+        props.currentUser.followersCount = Math.max(0, props.currentUser.followersCount - 1)
+      }
+      addToast({ message: 'Đã hủy theo dõi', type: 'info' })
+    }
+  } catch (err: any) {
+    addToast({ message: err.response?.data?.message || 'Không thể thực hiện thao tác', type: 'error' })
+  } finally {
+    isFollowLoading.value = false
+  }
 }
 
 function handleMessage() {

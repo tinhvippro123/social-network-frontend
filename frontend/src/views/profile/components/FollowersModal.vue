@@ -3,8 +3,8 @@ import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { X, UserPlus, UserMinus, Search as SearchIcon } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
-import { mockUsers } from '@/data/mockData'
-import type { User } from '@/types'
+import usersApi from '@/api/users.api'
+import type { UserSummary } from '@/types'
 
 const props = defineProps<{
   show: boolean
@@ -18,19 +18,13 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const searchQuery = ref('')
+const isLoading = ref(false)
 
-// Mock followers/following lists
-const followersList = ref<(User & { isFollowing: boolean })[]>(
-  mockUsers.filter(u => u.id !== 'u1').map(u => ({ ...u, isFollowing: Math.random() > 0.3 }))
-)
-const followingList = ref<(User & { isFollowing: boolean })[]>(
-  mockUsers.filter(u => u.id !== 'u1').map(u => ({ ...u, isFollowing: true }))
-)
+const listData = ref<UserSummary[]>([])
 
 const currentList = computed(() => {
-  const list = props.type === 'followers' ? followersList.value : followingList.value
-  if (!searchQuery.value) return list
-  return list.filter(u =>
+  if (!searchQuery.value) return listData.value
+  return listData.value.filter(u =>
     u.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
@@ -39,8 +33,28 @@ const title = computed(() =>
   props.type === 'followers' ? 'Người theo dõi' : 'Đang theo dõi'
 )
 
-function toggleFollow(user: User & { isFollowing: boolean }) {
-  user.isFollowing = !user.isFollowing
+async function loadList() {
+  if (!props.user?.id) return
+  isLoading.value = true
+  try {
+    const res = props.type === 'followers'
+      ? await usersApi.getFollowers(props.user.id)
+      : await usersApi.getFollowing(props.user.id)
+    listData.value = res.data.data || []
+  } catch (e) {
+    listData.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function toggleFollow(user: UserSummary) {
+  try {
+    const res = await usersApi.toggleFollow(user.id)
+    user.isFollowing = res.data.data
+  } catch (e) {
+    // ignore
+  }
 }
 
 function goToProfile(userId: string) {
@@ -48,9 +62,12 @@ function goToProfile(userId: string) {
   router.push(`/profile/${userId}`)
 }
 
-// Reset search when modal opens
-watch(() => props.show, (val) => {
-  if (val) searchQuery.value = ''
+// Reload when modal opens or type changes
+watch(() => [props.show, props.type], ([show]) => {
+  if (show) {
+    searchQuery.value = ''
+    loadList()
+  }
 })
 </script>
 
