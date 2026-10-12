@@ -6,12 +6,16 @@ import { useToast } from './useToast'
 import { useUiStore } from '@/stores/ui.store'
 import { SETTINGS_TABS } from '@/constants/ui'
 
+import filesApi from '@/api/files.api'
+import usersApi from '@/api/users.api'
+
 export function useSettings() {
   const uiStore = useUiStore()
   const { user } = useAuth()
   const authStore = useAuthStore()
   const toast = useToast()
   const isSaving = ref(false)
+  const isUploadingAvatar = ref(false)
 
   const activeTab = ref('profile')
   const themeMode = ref<'light' | 'dark' | 'system'>(uiStore.isDark ? 'dark' : 'light')
@@ -27,6 +31,18 @@ export function useSettings() {
     name: user.value?.name || '',
     bio: user.value?.bio || '',
     email: user.value?.email || '',
+    avatar: user.value?.avatar || '',
+  })
+
+  watch(user, (newUser) => {
+    if (newUser) {
+      profileForm.value = {
+        name: newUser.name || '',
+        bio: newUser.bio || '',
+        email: newUser.email || '',
+        avatar: newUser.avatar || '',
+      }
+    }
   })
 
   const accountForm = ref({
@@ -67,14 +83,38 @@ export function useSettings() {
     if (mode === 'dark' && !uiStore.isDark) uiStore.toggleTheme()
   }
 
+  const uploadAvatar = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Kích thước ảnh tối đa là 5MB')
+      return
+    }
+    isUploadingAvatar.value = true
+    try {
+      const res = await filesApi.uploadFile(file)
+      const url = res.data?.data?.fileUrl || res.data?.fileUrl
+      if (url) {
+        profileForm.value.avatar = url
+        toast.success('Đã tải ảnh lên thành công!')
+      }
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Không thể tải ảnh đại diện lên!')
+    } finally {
+      isUploadingAvatar.value = false
+    }
+  }
+
   const saveProfile = async () => {
+    if (!profileForm.value.name.trim()) {
+      toast.error('Tên hiển thị không được để trống!')
+      return
+    }
     isSaving.value = true
     try {
-      const { data } = await authApi.updateProfile({
-        name: profileForm.value.name,
-        bio: profileForm.value.bio
+      const { data } = await usersApi.updateProfile({
+        name: profileForm.value.name.trim(),
+        bio: profileForm.value.bio,
+        avatar: profileForm.value.avatar
       })
-      // Cập nhật lại store
       authStore.setUser(data.data)
       toast.success('Đã lưu thông tin hồ sơ!')
     } catch (e: any) {
@@ -131,6 +171,8 @@ export function useSettings() {
     showNewPassword,
     showConfirmPassword,
     isSaving,
+    isUploadingAvatar,
+    uploadAvatar,
     notificationSettings,
     privacySettings,
     setSystemTheme,
