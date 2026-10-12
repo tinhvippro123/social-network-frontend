@@ -86,6 +86,16 @@
           >
             Phản hồi
           </button>
+
+          <!-- Delete Button (Only for comment author) -->
+          <button
+            v-if="user && (user.id === comment.author?.id || user.id === comment.authorId)"
+            @click="$emit('delete', comment.id)"
+            class="font-semibold text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 transition-colors ml-1"
+            :class="level === 2 ? 'text-[10px] sm:text-xs' : 'text-xs'"
+          >
+            Xóa
+          </button>
         </div>
 
       </div>
@@ -132,6 +142,7 @@
         @submit-reply="(content, image) => $emit('submit-reply', content, image)"
         @cancel-reply="$emit('cancel-reply')"
         @toggle-emoji="(cid) => $emit('toggle-emoji', cid)"
+        @delete="(cid) => $emit('delete', cid)"
       />
     </div>
   </div>
@@ -164,6 +175,7 @@ const emit = defineEmits<{
   (e: 'submit-reply', content: string, image: File | null): void
   (e: 'cancel-reply'): void
   (e: 'toggle-emoji', commentId: string | null): void
+  (e: 'delete', commentId: string): void
 }>()
 
 const emojiList = ['😀', '😂', '🥰', '😎', '😭', '😡', '👍', '👎', '❤️', '🔥', '🎉', '✨', '🤔', '🙌', '👀', '💯']

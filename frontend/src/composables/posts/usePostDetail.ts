@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePosts } from './usePosts'
+import { usePosts, mapCommentResponse } from './usePosts'
 import { useAuth } from '../auth/useAuth'
 import { COMMENT_EMOJIS } from '@/constants'
 import postsApi from '@/api/posts.api'
@@ -151,43 +151,92 @@ export function usePostDetail() {
     replyingTo.value = null
   }
 
-  const addComment = async (content: string, image: File | null) => {
-    const newCommentObj = {
-      id: Date.now().toString(),
-      author: user.value || { id: 'guest', name: 'Khách', avatar: '', isVerified: false, roles: ['user'] },
-      content,
-      createdAt: new Date().toISOString(),
-      upvotes: 0,
-      downvotes: 0,
-      userVote: 0,
-      replies: []
-    }
-    
-    if (replyingTo.value) {
-      const parent = comments.value.find(c => c.id === replyingTo.value?.commentId)
-      if (parent) {
-        if (!parent.replies) parent.replies = []
-        parent.replies.push(newCommentObj)
+  const addReplyToTree = (list: any[], parentId: string, reply: any): boolean => {
+    for (const item of list) {
+      if (item.id === parentId) {
+        if (!item.replies) item.replies = []
+        item.replies.push(reply)
+        return true
       }
-    } else {
-      comments.value.unshift(newCommentObj)
+      if (item.replies && item.replies.length > 0) {
+        if (addReplyToTree(item.replies, parentId, reply)) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  const addComment = async (content: string, _image: File | null) => {
+    if (!post.value) return
+    if (!user.value) {
+      router.push('/auth/login')
+      return
+    }
+
+    try {
+      const parentId = replyingTo.value?.commentId || null
+      const res = await postsApi.addComment(post.value.id, { content, parentId })
+      if (res.data?.success && res.data.data) {
+        const newComment = mapCommentResponse(res.data.data)
+        if (parentId) {
+          addReplyToTree(comments.value, parentId, newComment)
+        } else {
+          comments.value.unshift(newComment)
+        }
+        if (post.value.commentsCount !== undefined) {
+          post.value.commentsCount += 1
+        }
+      }
+    } catch (e) {
+      console.error('Failed to add comment', e)
     }
   }
 
-  const replyComment = async (parentId: string, content: string, image: File | null) => {
-    const parent = comments.value.find(c => c.id === parentId)
-    if (parent) {
-      if (!parent.replies) parent.replies = []
-      parent.replies.push({
-        id: Date.now().toString(),
-        author: user.value || { id: 'guest', name: 'Khách', avatar: '', isVerified: false, roles: ['user'] },
-        content,
-        createdAt: new Date().toISOString(),
-        upvotes: 0,
-        downvotes: 0,
-        userVote: 0,
-        replies: []
-      })
+  const replyComment = async (parentId: string, content: string, _image: File | null) => {
+    if (!post.value) return
+    if (!user.value) {
+      router.push('/auth/login')
+      return
+    }
+
+    try {
+      const res = await postsApi.addComment(post.value.id, { content, parentId })
+      if (res.data?.success && res.data.data) {
+        const newReply = mapCommentResponse(res.data.data)
+        addReplyToTree(comments.value, parentId, newReply)
+        if (post.value.commentsCount !== undefined) {
+          post.value.commentsCount += 1
+        }
+      }
+    } catch (e) {
+      console.error('Failed to reply comment', e)
+    }
+  }
+
+  const deleteComment = async (commentId: string) => {
+    if (!post.value) return
+    try {
+      await postsApi.deleteComment(post.value.id, commentId)
+      const removeFromTree = (list: any[]): boolean => {
+        const idx = list.findIndex(c => c.id === commentId)
+        if (idx !== -1) {
+          list.splice(idx, 1)
+          return true
+        }
+        for (const item of list) {
+          if (item.replies && removeFromTree(item.replies)) {
+            return true
+          }
+        }
+        return false
+      }
+      removeFromTree(comments.value)
+      if (post.value.commentsCount !== undefined && post.value.commentsCount > 0) {
+        post.value.commentsCount -= 1
+      }
+    } catch (e) {
+      console.error('Failed to delete comment', e)
     }
   }
 
@@ -213,6 +262,7 @@ export function usePostDetail() {
     setReplyingTo,
     clearReplyingTo,
     addComment,
-    replyComment
+    replyComment,
+    deleteComment
   }
 }

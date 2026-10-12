@@ -136,7 +136,7 @@ function handleMessage() {
       </div>
 
       <!-- Stats (clickable) -->
-      <div class="flex items-center gap-6 mt-6 pt-6 border-t border-gray-200 dark:border-surface-700">
+      <div class="flex items-center justify-center gap-8 sm:gap-14 mt-6 pt-6 border-t border-gray-200 dark:border-surface-700">
         <div class="text-center min-w-[60px]">
           <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatNumber(currentUser.postsCount) }}</p>
           <p class="text-xs text-gray-400">Bài viết</p>

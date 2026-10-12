@@ -53,13 +53,39 @@ http.interceptors.request.use(
 )
 
 
+const ERROR_TRANSLATIONS: Record<string, string> = {
+  'Email already in use': 'Email này đã được sử dụng',
+  'Bad credentials': 'Email hoặc mật khẩu không chính xác',
+  'User not found': 'Người dùng không tồn tại',
+  'Post not found': 'Bài viết không tồn tại',
+  'Comment not found': 'Bình luận không tồn tại',
+  'Invalid input': 'Dữ liệu đầu vào không hợp lệ',
+  'Internal server error': 'Đã xảy ra lỗi hệ thống',
+  'Unauthorized': 'Vui lòng đăng nhập để tiếp tục',
+  'Forbidden': 'Bạn không có quyền thực hiện hành động này',
+  'Current password does not match': 'Mật khẩu hiện tại không chính xác',
+  'Parent comment does not belong to this post': 'Bình luận cha không thuộc bài viết này'
+}
+
+function translateErrorMessage(msg: string): string {
+  if (!msg) return 'Có lỗi kết nối đến máy chủ!'
+  const trimmed = msg.trim()
+  for (const [key, val] of Object.entries(ERROR_TRANSLATIONS)) {
+    if (trimmed.toLowerCase() === key.toLowerCase()) {
+      return val
+    }
+  }
+  return msg
+}
+
 // ── Response Interceptor ─────────────────────────────
 // Xử lý lỗi tập trung
 http.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError<ApiError>) => {
     const status = error.response?.status
-    const errorMessage = error.response?.data?.message || 'Có lỗi kết nối đến máy chủ!'
+    const rawMessage = error.response?.data?.message || 'Có lỗi kết nối đến máy chủ!'
+    const errorMessage = translateErrorMessage(rawMessage)
 
     if (status === 401) {
       // Token hết hạn hoặc sai mật khẩu → xóa token, redirect login
@@ -89,7 +115,7 @@ http.interceptors.response.use(
       if (fieldErrors && typeof fieldErrors === 'object') {
         Object.values(fieldErrors).forEach(msg => {
           if (typeof msg === 'string') {
-            useToast().error(msg);
+            useToast().error(translateErrorMessage(msg));
           }
         });
       }

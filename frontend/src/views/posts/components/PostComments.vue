@@ -18,6 +18,7 @@ const emit = defineEmits<{
   (e: 'toggleEmojiPicker', targetId: string | null): void
   (e: 'addComment', content: string, image: File | null): void
   (e: 'replyComment', parentId: string, content: string, image: File | null): void
+  (e: 'deleteComment', commentId: string): void
 }>()
 
 const commentInputRef = ref<HTMLTextAreaElement | null>(null)
@@ -96,6 +97,7 @@ const cancelInlineReply = () => {
         @submit-reply="handleInlineSubmit"
         @cancel-reply="cancelInlineReply"
         @toggle-emoji="emit('toggleEmojiPicker', $event)"
+        @delete="emit('deleteComment', $event)"
       />
     </div>
   </div>

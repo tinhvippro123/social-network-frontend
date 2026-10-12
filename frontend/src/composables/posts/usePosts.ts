@@ -8,6 +8,27 @@ import type { PostsQuery } from '@/api/posts.api'
 import type { Post } from '@/types'
 import { useAsyncState } from '../core/useAsyncState'
 
+export function mapCommentResponse(dto: any): any {
+  if (!dto) return null
+  return {
+    id: String(dto.id),
+    content: dto.content,
+    author: {
+      id: dto.authorId || dto.author?.id || 'guest',
+      name: dto.authorName || dto.author?.name || 'Thành viên',
+      avatar: dto.authorAvatar || dto.author?.avatar || '',
+      isVerified: dto.author?.isVerified || false,
+      roles: dto.author?.roles || ['user']
+    },
+    createdAt: dto.createdAt,
+    upvotes: dto.upvotes ?? 0,
+    downvotes: dto.downvotes ?? 0,
+    reactions: dto.reactions || [],
+    replyTo: dto.replyTo,
+    replies: Array.isArray(dto.replies) ? dto.replies.map(mapCommentResponse).filter(Boolean) : []
+  }
+}
+
 export function usePosts() {
   const posts = ref<Post[]>([])
   const currentPost = ref<Post | null>(null)
@@ -61,7 +82,8 @@ export function usePosts() {
   async function fetchComments(postId: string) {
     await execute(async () => {
       const { data } = await postsApi.getComments(postId)
-      comments.value = data.data
+      const list = data?.data
+      comments.value = Array.isArray(list) ? list.map(mapCommentResponse).filter(Boolean) : []
     }, 'Lỗi lấy comments')
   }
 
