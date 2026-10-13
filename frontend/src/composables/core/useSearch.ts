@@ -3,14 +3,14 @@
 // Tìm kiếm bài viết (keyword, semantic, image)
 // ==========================================
 import { ref } from 'vue'
-import postsApi from '@/api/posts.api'
+import searchApi from '@/api/search.api'
 import type { Post } from '@/types'
 
 export function useSearch() {
   const results = ref<Post[]>([])
   const isSearching = ref(false)
   const searchQuery = ref('')
-  const searchType = ref<'keyword' | 'semantic' | 'image'>('keyword')
+  const searchType = ref<'keyword' | 'semantic' | 'image' | 'document'>('keyword')
   const error = ref<string | null>(null)
 
   /** Tìm kiếm theo từ khóa */
@@ -24,7 +24,7 @@ export function useSearch() {
     searchQuery.value = query
     searchType.value = 'keyword'
     try {
-      const { data } = await postsApi.getAll({ search: query })
+      const { data } = await searchApi.keyword(query)
       results.value = data.data
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Lỗi tìm kiếm'
@@ -33,7 +33,7 @@ export function useSearch() {
     }
   }
 
-  /** Tìm kiếm ngữ nghĩa (Semantic Search — pgvector + Cosine Similarity) */
+  /** Tìm kiếm tương đồng từ vựng bằng TF-IDF và cosine. */
   async function searchSemantic(query: string) {
     if (!query.trim()) {
       results.value = []
@@ -44,7 +44,7 @@ export function useSearch() {
     searchQuery.value = query
     searchType.value = 'semantic'
     try {
-      const { data } = await postsApi.searchSemantic(query)
+      const { data } = await searchApi.semantic(query)
       results.value = data.data
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Lỗi tìm kiếm ngữ nghĩa'
@@ -59,12 +59,25 @@ export function useSearch() {
     error.value = null
     searchType.value = 'image'
     try {
-      const formData = new FormData()
-      formData.append('image', file)
-      const { data } = await postsApi.searchByImage(formData)
+      const { data } = await searchApi.image(file)
       results.value = data.data
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Lỗi tìm kiếm hình ảnh'
+    } finally {
+      isSearching.value = false
+    }
+  }
+
+  /** Trích xuất văn bản PDF/DOCX để tìm bài viết tương đồng. */
+  async function searchByDocument(file: File) {
+    isSearching.value = true
+    error.value = null
+    searchType.value = 'document'
+    try {
+      const { data } = await searchApi.document(file)
+      results.value = data.data
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Lỗi tìm kiếm tài liệu'
     } finally {
       isSearching.value = false
     }
@@ -86,6 +99,7 @@ export function useSearch() {
     searchByKeyword,
     searchSemantic,
     searchByImage,
+    searchByDocument,
     clearSearch,
   }
 }
