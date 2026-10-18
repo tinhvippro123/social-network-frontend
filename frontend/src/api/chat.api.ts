@@ -4,9 +4,6 @@
 import http from './client'
 import type { ApiResponse } from './client'
 import type { ChatConversation, ChatMessage } from '@/types'
-import { mockConversations, mockMessages, mockUsers } from '@/data/mockData'
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 export interface SendMessageRequest {
   conversationId: string
@@ -16,82 +13,59 @@ export interface SendMessageRequest {
   fileName?: string
   fileSize?: string
   imageUrl?: string
+  fileUrl?: string
 }
 
 const chatApi = {
-  getConversations: async () => {
-    await delay(500)
-    return { data: { data: [...mockConversations], success: true, message: 'Success' } } as { data: ApiResponse<ChatConversation[]> }
-  },
+  getConversations: (params?: { page?: number; limit?: number }) =>
+    http.get<ApiResponse<ChatConversation[]>>('/chat/conversations', { params }),
 
-  getMessages: async (conversationId: string, params?: { page?: number; limit?: number }) => {
-    await delay(500)
-    return { data: { data: [...mockMessages], success: true, message: 'Success' } } as { data: ApiResponse<ChatMessage[]> }
-  },
+  getMessages: (conversationId: string, params?: { q?: string; page?: number; limit?: number }) =>
+    http.get<ApiResponse<ChatMessage[]>>(`/chat/conversations/${conversationId}/messages`, { params }),
 
-  sendMessage: async (data: SendMessageRequest) => {
-    await delay(300)
-    const replyTo = data.replyToId
-      ? {
-          id: data.replyToId,
-          content: mockMessages.find(m => m.id === data.replyToId)?.content || '',
-          senderName: mockMessages.find(m => m.id === data.replyToId)?.sender.name || ''
-        }
-      : undefined
-
-    const newMessage: ChatMessage = {
-      id: `m${Date.now()}`,
+  sendMessage: (data: SendMessageRequest) =>
+    http.post<ApiResponse<ChatMessage>>(`/chat/conversations/${data.conversationId}/messages`, {
       content: data.content,
-      sender: mockUsers[0],
-      createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-      isOwn: true,
       type: data.type || 'text',
-      status: 'sending',
-      replyTo,
+      replyToId: data.replyToId,
       fileName: data.fileName,
       fileSize: data.fileSize,
+      fileUrl: data.fileUrl,
       imageUrl: data.imageUrl,
-    }
-    return { data: { data: newMessage, success: true, message: 'Success' } } as { data: ApiResponse<ChatMessage> }
-  },
+    }),
 
-  createConversation: async (data: { participantIds: string[]; name?: string; isGroup?: boolean }) => {
-    await delay(500)
-    return { data: { data: mockConversations[0], success: true, message: 'Success' } } as { data: ApiResponse<ChatConversation> }
-  },
+  createConversation: (data: { participantIds: string[]; name?: string; isGroup?: boolean }) =>
+    http.post<ApiResponse<ChatConversation>>('/chat/conversations', data),
 
-  markAsRead: async (conversationId: string) => {
-    await delay(200)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  markAsRead: (conversationId: string) =>
+    http.post<ApiResponse<void>>(`/chat/conversations/${conversationId}/read`),
 
-  pinConversation: async (conversationId: string, isPinned: boolean) => {
-    await delay(300)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  pinConversation: (conversationId: string, isPinned: boolean) =>
+    http.patch<ApiResponse<void>>(`/chat/conversations/${conversationId}/pin`, { value: isPinned }),
 
-  muteConversation: async (conversationId: string, isMuted: boolean) => {
-    await delay(300)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  muteConversation: (conversationId: string, isMuted: boolean) =>
+    http.patch<ApiResponse<void>>(`/chat/conversations/${conversationId}/mute`, { value: isMuted }),
 
-  blockUser: async (userId: string) => {
-    await delay(300)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  hideConversation: (conversationId: string) =>
+    http.delete<ApiResponse<void>>(`/chat/conversations/${conversationId}`),
 
-  deleteConversation: async (conversationId: string) => {
-    await delay(300)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  deleteConversation: (conversationId: string) =>
+    http.delete<ApiResponse<void>>(`/chat/conversations/${conversationId}`),
 
-  searchMessages: async (conversationId: string, query: string) => {
-    await delay(500)
-    const filtered = mockMessages.filter(m =>
-      m.content.toLowerCase().includes(query.toLowerCase())
-    )
-    return { data: { data: filtered, success: true, message: 'Success' } } as { data: ApiResponse<ChatMessage[]> }
-  },
+  searchMessages: (conversationId: string, q: string) =>
+    http.get<ApiResponse<ChatMessage[]>>(`/chat/conversations/${conversationId}/messages`, { params: { q } }),
+
+  blockUser: (userId: string) =>
+    http.post<ApiResponse<void>>(`/chat/blocks/${userId}`),
+
+  unblockUser: (userId: string) =>
+    http.delete<ApiResponse<void>>(`/chat/blocks/${userId}`),
+
+  revokeMessage: (conversationId: string, messageId: string) =>
+    http.delete<ApiResponse<ChatMessage>>(`/chat/conversations/${conversationId}/messages/${messageId}`),
+
+  pinMessage: (conversationId: string, messageId: string, isPinned: boolean) =>
+    http.patch<ApiResponse<ChatMessage>>(`/chat/conversations/${conversationId}/messages/${messageId}/pin`, { value: isPinned }),
 }
 
 export default chatApi

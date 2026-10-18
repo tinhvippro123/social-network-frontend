@@ -126,9 +126,15 @@ export function usePosts() {
   async function fetchPopularTags() {
     try {
       const { data } = await postsApi.getPopularTags()
-      tags.value = data.data
+      const list = data?.data || []
+      tags.value = list.map((t: any, idx: number) => ({
+        id: t.id || String(idx + 1),
+        name: t.name,
+        count: t.postsCount ?? t.count ?? 0,
+      }))
     } catch (err) {
       console.error('Lỗi tải tags', err)
+      tags.value = []
     }
   }
 

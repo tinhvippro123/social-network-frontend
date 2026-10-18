@@ -4,9 +4,6 @@
 import http from './client'
 import type { ApiResponse } from './client'
 import type { Post } from '@/types'
-import { mockPosts, mockComments } from '@/data/mockData'
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 export interface PostsQuery {
   page?: number
@@ -30,112 +27,88 @@ export interface CreatePostRequest {
   longitude?: number
 }
 
+export interface TagSummary {
+  name: string
+  postsCount: number
+}
+
 const postsApi = {
   // ── CRUD ──────────────────────────────────
-  getAll: async (params?: PostsQuery) => {
-    return await http.get('/posts', { params })
-  },
+  getAll: (params?: PostsQuery) =>
+    http.get<ApiResponse<Post[]>>('/posts', { params }),
 
-  getById: async (id: string) => {
-    return await http.get(`/posts/${id}`)
-  },
+  getById: (id: string) =>
+    http.get<ApiResponse<Post>>(`/posts/${id}`),
 
-  create: async (data: CreatePostRequest) => {
-    return await http.post('/posts', data)
-  },
+  create: (data: CreatePostRequest) =>
+    http.post<ApiResponse<Post>>('/posts', data),
 
-  update: async (id: string, data: Partial<CreatePostRequest>) => {
-    return await http.put(`/posts/${id}`, data)
-  },
+  update: (id: string, data: Partial<CreatePostRequest>) =>
+    http.put<ApiResponse<Post>>(`/posts/${id}`, data),
 
-  delete: async (id: string) => {
-    return await http.delete(`/posts/${id}`)
-  },
+  delete: (id: string) =>
+    http.delete<ApiResponse<void>>(`/posts/${id}`),
 
   // ── Interactions ──────────────────────────
-  upvote: async (id: string) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  upvote: (id: string) =>
+    http.post<ApiResponse<void>>(`/posts/${id}/upvote`),
 
-  downvote: async (id: string) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  downvote: (id: string) =>
+    http.post<ApiResponse<void>>(`/posts/${id}/downvote`),
 
-  toggleReaction: async (postId: string, emoji: string) => {
-    return await http.post(`/posts/${postId}/reactions`, { emoji })
-  },
+  toggleReaction: (postId: string, emoji: string) =>
+    http.post<ApiResponse<any>>(`/posts/${postId}/reactions`, { emoji }),
 
-  getReactionSummary: async (postId: string) => {
-    return await http.get(`/posts/${postId}/reactions/summary`)
-  },
+  getReactionSummary: (postId: string) =>
+    http.get<ApiResponse<any>>(`/posts/${postId}/reactions/summary`),
 
-  reportPost: async (postId: string, data: { reason: string; description?: string }) => {
-    await delay(500)
-    return { data: { success: true, message: 'Báo cáo đã được gửi' } } as { data: ApiResponse }
-  },
+  reportPost: (postId: string, data: { reason: string; description?: string }) =>
+    http.post<ApiResponse<any>>('/reports', {
+      targetId: postId,
+      type: 'POST',
+      reason: data.reason,
+      description: data.description,
+    }),
 
-  toggleBookmark: async (postId: string) => {
-    return await http.post(`/posts/${postId}/bookmarks`)
-  },
+  toggleBookmark: (postId: string) =>
+    http.post<ApiResponse<boolean>>(`/posts/${postId}/bookmarks`),
 
-  checkBookmark: async (postId: string) => {
-    return await http.get(`/posts/${postId}/bookmarks/check`)
-  },
+  checkBookmark: (postId: string) =>
+    http.get<ApiResponse<boolean>>(`/posts/${postId}/bookmarks/check`),
 
-  bookmark: async (id: string) => {
-    return await http.post(`/posts/${id}/bookmarks`)
-  },
+  bookmark: (id: string) =>
+    http.post<ApiResponse<boolean>>(`/posts/${id}/bookmarks`),
 
-  removeBookmark: async (id: string) => {
-    return await http.post(`/posts/${id}/bookmarks`)
-  },
+  removeBookmark: (id: string) =>
+    http.post<ApiResponse<boolean>>(`/posts/${id}/bookmarks`),
 
   // ── Đặc biệt ─────────────────────────────
-  getTrending: async (limit?: number) => {
-    await delay(500)
-    return { data: { data: mockPosts.slice(0, limit || 5), success: true, message: 'Success' } } as { data: ApiResponse<Post[]> }
-  },
+  getTrending: (limit = 10) =>
+    http.get<ApiResponse<Post[]>>('/posts/trending', { params: { limit } }),
 
-  getNearby: async (lat: number, lng: number, radiusKm: number) => {
-    await delay(500)
-    return { data: { data: mockPosts.filter(p => p.location), success: true, message: 'Success' } } as { data: ApiResponse<Post[]> }
-  },
+  getNearby: (lat: number, lng: number, radius = 5, limit = 20) =>
+    http.get<ApiResponse<Post[]>>('/posts/nearby', { params: { lat, lng, radius, limit } }),
 
-  searchSemantic: async (query: string) => {
-    await delay(500)
-    return { data: { data: mockPosts, success: true, message: 'Success' } } as { data: ApiResponse<Post[]> }
-  },
+  searchSemantic: (query: string, limit = 20) =>
+    http.get<ApiResponse<Post[]>>('/search/semantic', { params: { q: query, limit } }),
 
-  searchByImage: async (formData: FormData) => {
-    await delay(500)
-    return { data: { data: mockPosts, success: true, message: 'Success' } } as { data: ApiResponse<Post[]> }
-  },
+  searchByImage: (formData: FormData, limit = 20) =>
+    http.post<ApiResponse<Post[]>>('/search/image', formData, {
+      params: { limit },
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 
-  getPopularTags: async () => {
-    await delay(500)
-    const mockTags = [
-      { id: '1', name: 'Frontend', count: 1250 },
-      { id: '2', name: 'Vue 3', count: 850 },
-      { id: '3', name: 'React', count: 720 },
-      { id: '4', name: 'JavaScript', count: 640 },
-      { id: '5', name: 'TypeScript', count: 590 },
-    ]
-    return { data: { data: mockTags, success: true, message: 'Success' } } as { data: ApiResponse<{id: string, name: string, count: number}[]> }
-  },
+  getPopularTags: (limit = 30) =>
+    http.get<ApiResponse<TagSummary[]>>('/tags', { params: { limit } }),
 
-  getComments: async (postId: string) => {
-    return await http.get(`/posts/${postId}/comments`)
-  },
+  getComments: (postId: string) =>
+    http.get<ApiResponse<any[]>>(`/posts/${postId}/comments`),
 
-  addComment: async (postId: string, data: { content: string; parentId?: string | null }) => {
-    return await http.post(`/posts/${postId}/comments`, data)
-  },
+  addComment: (postId: string, data: { content: string; parentId?: string | null }) =>
+    http.post<ApiResponse<any>>(`/posts/${postId}/comments`, data),
 
-  deleteComment: async (postId: string, commentId: string) => {
-    return await http.delete(`/posts/${postId}/comments/${commentId}`)
-  },
+  deleteComment: (postId: string, commentId: string) =>
+    http.delete<ApiResponse<void>>(`/posts/${postId}/comments/${commentId}`),
 }
 
 export default postsApi

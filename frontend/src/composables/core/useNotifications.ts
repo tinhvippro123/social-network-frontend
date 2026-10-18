@@ -1,6 +1,6 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth.store'
+import notificationsApi from '@/api/notifications.api'
 
 export interface Notification {
   id: string
@@ -13,112 +13,25 @@ export interface Notification {
   createdAt: string
 }
 
+function mapBackendNotification(item: any): Notification {
+  const type = (item.type || 'system').toLowerCase()
+  return {
+    id: item.id,
+    type: type as any,
+    title: item.title || (type === 'system' ? 'Hệ thống' : type.charAt(0).toUpperCase() + type.slice(1)),
+    message: item.message || '',
+    avatar: item.avatar || '',
+    link: item.link || '',
+    isRead: Boolean(item.isRead),
+    createdAt: item.createdAt || new Date().toISOString()
+  }
+}
+
 export function useNotifications() {
   const router = useRouter()
-  const authStore = useAuthStore()
   const isLoading = ref(true)
   const activeFilter = ref<'all' | 'unread'>('all')
-
-  const notifications = ref<Notification[]>([
-    {
-      id: '1',
-      type: 'upvote',
-      title: 'Nguyễn Văn An',
-      message: 'đã upvote bài viết "Hướng dẫn xây dựng REST API với Spring Boot 3"',
-      avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=NVA',
-      link: '/posts/1',
-      isRead: false,
-      createdAt: '2026-09-11T20:30:00Z'
-    },
-    {
-      id: '2',
-      type: 'comment',
-      title: 'Trần Thị Bình',
-      message: 'đã bình luận trong bài viết "Vue 3 Composition API từ cơ bản đến nâng cao"',
-      avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=TTB',
-      link: '/posts/2',
-      isRead: false,
-      createdAt: '2026-09-11T19:15:00Z'
-    },
-    {
-      id: '3',
-      type: 'reply',
-      title: 'Phạm Minh Đức',
-      message: 'đã trả lời bình luận của bạn: "Cảm ơn bạn, bài viết rất hữu ích!"',
-      avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=PMD',
-      link: '/posts/1',
-      isRead: false,
-      createdAt: '2026-09-11T18:00:00Z'
-    },
-    {
-      id: '4',
-      type: 'follow',
-      title: 'Lê Hoàng Nam',
-      message: 'đã bắt đầu theo dõi bạn',
-      avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=LHN',
-      link: '/profile/4',
-      isRead: true,
-      createdAt: '2026-09-11T15:45:00Z'
-    },
-    {
-      id: '5',
-      type: 'mention',
-      title: 'Nguyễn Văn An',
-      message: 'đã nhắc đến bạn trong bình luận: "@lethantinh bạn nghĩ sao về cách tiếp cận này?"',
-      avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=NVA',
-      link: '/posts/3',
-      isRead: true,
-      createdAt: '2026-09-11T14:20:00Z'
-    },
-    {
-      id: '6',
-      type: 'group_invite',
-      title: 'Nhóm "Vue.js Việt Nam"',
-      message: 'đã mời bạn tham gia nhóm',
-      avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=VueVN',
-      link: '/groups/1',
-      isRead: true,
-      createdAt: '2026-09-10T22:00:00Z'
-    },
-    {
-      id: '7',
-      type: 'post_approved',
-      title: 'Bài viết đã được duyệt',
-      message: '"Hướng dẫn Deploy ứng dụng Spring Boot lên AWS" đã được phê duyệt và hiển thị công khai.',
-      link: '/posts/5',
-      isRead: true,
-      createdAt: '2026-09-10T10:30:00Z'
-    },
-    {
-      id: '8',
-      type: 'system',
-      title: 'Chào mừng bạn đến VietBlog!',
-      message: 'Hãy hoàn thiện hồ sơ cá nhân và bắt đầu chia sẻ kiến thức với cộng đồng.',
-      link: '/settings',
-      isRead: true,
-      createdAt: '2026-09-09T08:00:00Z'
-    },
-    {
-      id: '9',
-      type: 'upvote',
-      title: 'Hoàng Thị Mai',
-      message: 'và 5 người khác đã upvote bài viết "Tổng hợp các Design Patterns phổ biến trong Java"',
-      avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=HTM',
-      link: '/posts/4',
-      isRead: true,
-      createdAt: '2026-09-09T06:00:00Z'
-    },
-    {
-      id: '10',
-      type: 'comment',
-      title: 'Đặng Quốc Việt',
-      message: 'đã bình luận: "Bài viết rất chi tiết, cảm ơn tác giả!"',
-      avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=DQV',
-      link: '/posts/1',
-      isRead: true,
-      createdAt: '2026-09-08T20:00:00Z'
-    }
-  ])
+  const notifications = ref<Notification[]>([])
 
   const unreadCount = computed(() => notifications.value.filter(n => !n.isRead).length)
 
@@ -129,13 +42,43 @@ export function useNotifications() {
     return notifications.value
   })
 
-  const markAsRead = (id: string) => {
-    const n = notifications.value.find(n => n.id === id)
-    if (n) n.isRead = true
+  async function fetchNotifications() {
+    isLoading.value = true
+    try {
+      const res = await notificationsApi.getAll({
+        unreadOnly: activeFilter.value === 'unread',
+        page: 1,
+        limit: 50
+      })
+      const list = res.data?.data || []
+      notifications.value = list.map(mapBackendNotification)
+    } catch (err) {
+      console.error('Lỗi tải danh sách thông báo:', err)
+      notifications.value = []
+    } finally {
+      isLoading.value = false
+    }
   }
 
-  const markAllAsRead = () => {
-    notifications.value.forEach(n => n.isRead = true)
+  const markAsRead = async (id: string) => {
+    const n = notifications.value.find(n => n.id === id)
+    if (n && !n.isRead) {
+      n.isRead = true
+      try {
+        await notificationsApi.markRead(id)
+      } catch (err) {
+        console.error('Lỗi đánh dấu đã đọc:', err)
+      }
+    }
+  }
+
+  const markAllAsRead = async () => {
+    notifications.value.forEach(n => { n.isRead = true })
+    try {
+      await notificationsApi.markAllRead()
+    } catch (err) {
+      console.error('Lỗi đánh dấu tất cả đã đọc:', err)
+    }
   }
 
   const deleteNotification = (id: string) => {
@@ -149,10 +92,12 @@ export function useNotifications() {
     }
   }
 
+  watch(activeFilter, () => {
+    fetchNotifications()
+  })
+
   onMounted(() => {
-    setTimeout(() => {
-      isLoading.value = false
-    }, 600)
+    fetchNotifications()
   })
 
   return {
@@ -161,6 +106,7 @@ export function useNotifications() {
     unreadCount,
     isLoading,
     activeFilter,
+    fetchNotifications,
     markAsRead,
     markAllAsRead,
     deleteNotification,

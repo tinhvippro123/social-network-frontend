@@ -1,15 +1,28 @@
+// ==========================================
+// API — Notifications (Thông báo)
+// ==========================================
 import http from './client'
 import type { ApiResponse } from './client'
 import type { Notification } from '@/types'
-import { mockNotifications } from '@/data/mockData'
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+export interface NotificationQuery {
+  unreadOnly?: boolean
+  page?: number
+  limit?: number
+}
 
 const notificationsApi = {
-  getAll: async () => {
-    await delay(500)
-    return { data: { data: mockNotifications, success: true, message: 'Success' } } as { data: ApiResponse<Notification[]> }
-  },
+  getAll: (params?: NotificationQuery) =>
+    http.get<ApiResponse<Notification[]>>('/notifications', { params }),
+
+  getUnreadCount: () =>
+    http.get<ApiResponse<{ count: number }>>('/notifications/unread-count'),
+
+  markRead: (id: string) =>
+    http.patch<ApiResponse<void>>(`/notifications/${id}/read`),
+
+  markAllRead: () =>
+    http.patch<ApiResponse<{ updated: number }>>('/notifications/read-all'),
 }
 
 export default notificationsApi

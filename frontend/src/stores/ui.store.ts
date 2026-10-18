@@ -51,10 +51,12 @@ export const useUiStore = defineStore('ui', () => {
   function markNotificationRead(id: string) {
     const n = notifications.value.find(n => n.id === id)
     if (n) n.isRead = true
+    notificationsApi.markRead(id).catch(err => console.error('Lỗi đánh dấu đã đọc:', err))
   }
 
   function markAllRead() {
     notifications.value.forEach(n => n.isRead = true)
+    notificationsApi.markAllRead().catch(err => console.error('Lỗi đánh dấu tất cả đã đọc:', err))
   }
 
   // ── Search UI ──────────────────────────────
