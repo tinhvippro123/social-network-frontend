@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ChevronRight, ChevronLeft, Flame } from '@lucide/vue'
-import { mockCategories } from '@/data/mockData'
+import { useCategoryTabs } from '@/composables/ui/useCategoryTabs'
+
+const {
+  categories,
+  categoryContainer,
+  scrollCategories
+} = useCategoryTabs()
 
 const props = defineProps<{
   modelValue: string
@@ -10,17 +16,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
-
-// Category scroll
-const categoryContainer = ref<HTMLElement | null>(null)
-const scrollCategories = (direction: 'left' | 'right') => {
-  if (!categoryContainer.value) return
-  const scrollAmount = 200
-  categoryContainer.value.scrollBy({
-    left: direction === 'left' ? -scrollAmount : scrollAmount,
-    behavior: 'smooth'
-  })
-}
 </script>
 
 <template>
@@ -53,8 +48,8 @@ const scrollCategories = (direction: 'left' | 'right') => {
         </span>
       </button>
       <button
-        v-for="cat in mockCategories"
-        :key="cat.id"
+        v-for="cat in categories"
+        :key="cat.slug"
         @click="emit('update:modelValue', cat.slug)"
         :class="[
           'shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',

@@ -26,12 +26,20 @@ export interface Post {
   createdAt: string
   updatedAt: string
   viewsCount: number
-  upvotesCount: number
+  upvotesCount?: number
   commentsCount: number
   bookmarked: boolean
-  upvoted: boolean
+  reactions: Reaction[]
   status: 'draft' | 'published' | 'hidden'
   location?: GeoLocation
+  eventStartTime?: string
+  eventEndTime?: string
+}
+
+export interface Reaction {
+  emoji: string
+  count: number
+  reacted: boolean // Người dùng hiện tại đã react chưa
 }
 
 export interface Comment {
@@ -40,5 +48,6 @@ export interface Comment {
   author: User
   createdAt: string
   replies: Comment[]
-  upvotesCount: number
+  reactions: Reaction[]
+  replyTo?: string // Tên người đang reply (cho cấp 3+)
 }

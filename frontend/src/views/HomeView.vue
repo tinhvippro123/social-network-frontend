@@ -1,24 +1,27 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronRight, ChevronLeft, Flame } from '@lucide/vue'
-import { mockPosts, mockCategories } from '@/data/mockData'
+import { Flame, Loader2, CheckCircle } from '@lucide/vue'
 import PostCard from '@/components/PostCard.vue'
 import TrendingSidebar from '@/components/TrendingSidebar.vue'
 import CategoryTabs from '@/components/CategoryTabs.vue'
+import PostSkeletonCard from '@/components/posts/PostSkeletonCard.vue'
+import HomeHeroBanner from './components/HomeHeroBanner.vue'
+import LoadMoreButton from '@/components/ui/LoadMoreButton.vue'
+import { useHomePosts } from '@/composables/posts/useHomePosts'
 
 const router = useRouter()
-const selectedCategory = ref('all')
 
-const filteredPosts = computed(() => {
-  if (selectedCategory.value === 'all') return mockPosts
-  return mockPosts.filter(p => p.category.slug === selectedCategory.value)
-})
-
-const toggleBookmark = (postId: string) => {
-  const post = mockPosts.find(p => p.id === postId)
-  if (post) post.bookmarked = !post.bookmarked
-}
+const {
+  categories,
+  isLoading,
+  selectedCategory,
+  loadingMore,
+  filteredPosts,
+  hasMore,
+  loadMore,
+  toggleBookmark
+} = useHomePosts()
 </script>
 
 <template>
@@ -27,44 +30,54 @@ const toggleBookmark = (postId: string) => {
       <!-- Main Content -->
       <div class="flex-1 min-w-0">
         <!-- Hero Banner -->
-        <div class="relative overflow-hidden rounded-2xl gradient-primary p-6 sm:p-8 mb-6 shadow-xl glow">
-          <div class="relative z-10">
-            <div class="flex items-center gap-2 mb-3">
-              <Flame :size="20" class="text-amber-300" />
-              <span class="text-primary-100 text-sm font-medium">Chào mừng đến VietBlog</span>
-            </div>
-            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">
-              Khám phá & Chia sẻ kiến thức
-            </h1>
-            <p class="text-primary-100 text-sm sm:text-base max-w-lg">
-              Nơi cộng đồng developer Việt Nam cùng nhau học hỏi, chia sẻ kinh nghiệm và phát triển kỹ năng.
-            </p>
-          </div>
-          <!-- Decorative shapes -->
-          <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div class="absolute bottom-0 right-20 w-24 h-24 bg-white/5 rounded-full translate-y-1/2" />
-        </div>
+        <HomeHeroBanner user-name="Lê Thanh Tình" />
 
-        <!-- Category Tabs -->
+        <!-- Categories -->
         <CategoryTabs v-model="selectedCategory" class="mb-6" />
 
-        <!-- Posts Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 stagger-children">
-          <PostCard
-            v-for="post in filteredPosts"
-            :key="post.id"
-            :post="post"
-            @click="router.push(`/posts/${post.id}`)"
-            @bookmark="toggleBookmark"
-          />
+        <!-- Feed -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger-children">
+          <template v-if="isLoading">
+            <PostSkeletonCard v-for="i in 4" :key="i" />
+          </template>
+          
+          <template v-else-if="filteredPosts.length > 0">
+            <PostCard
+              v-for="post in filteredPosts"
+              :key="post.id"
+              :post="post"
+              @toggle-bookmark="toggleBookmark"
+              @click="router.push(`/posts/${post.id}`)"
+              class="cursor-pointer transition-transform hover:-translate-y-1"
+            />
+          </template>
+          
+          <!-- Empty State -->
+          <div v-else class="col-span-1 lg:col-span-2 flex flex-col items-center justify-center py-16 text-center bg-white dark:bg-surface-800 rounded-2xl border border-gray-100 dark:border-surface-700">
+            <div class="w-16 h-16 bg-primary-50 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-8 h-8 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v10a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Chưa có bài viết nào</h3>
+            <p class="text-gray-500 dark:text-gray-400 mb-6 max-w-sm">Chuyên mục này hiện chưa có bài viết. Hãy là người đầu tiên chia sẻ kiến thức của bạn nhé!</p>
+            <button @click="router.push('/posts/create')" class="px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors shadow-lg shadow-primary-500/30 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Viết bài mới
+            </button>
+          </div>
         </div>
 
         <!-- Load More -->
-        <div class="flex justify-center mt-8">
-          <button class="px-6 py-3 rounded-xl text-sm font-medium text-primary-500 border border-primary-500/30 hover:bg-primary-500/10 transition-all duration-200">
-            Xem thêm bài viết
-          </button>
-        </div>
+        <LoadMoreButton 
+          :has-more="hasMore" 
+          :is-loading="isLoading" 
+          :loading-more="loadingMore" 
+          :item-count="filteredPosts.length" 
+          @load-more="loadMore" 
+        />
       </div>
 
       <!-- Right Sidebar -->

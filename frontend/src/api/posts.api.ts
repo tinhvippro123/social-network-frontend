@@ -27,6 +27,11 @@ export interface CreatePostRequest {
   longitude?: number
 }
 
+export interface TagSummary {
+  name: string
+  postsCount: number
+}
+
 const postsApi = {
   // ── CRUD ──────────────────────────────────
   getAll: (params?: PostsQuery) =>
@@ -42,35 +47,68 @@ const postsApi = {
     http.put<ApiResponse<Post>>(`/posts/${id}`, data),
 
   delete: (id: string) =>
-    http.delete<ApiResponse>(`/posts/${id}`),
+    http.delete<ApiResponse<void>>(`/posts/${id}`),
 
   // ── Interactions ──────────────────────────
   upvote: (id: string) =>
-    http.post<ApiResponse>(`/posts/${id}/upvote`),
+    http.post<ApiResponse<void>>(`/posts/${id}/upvote`),
 
   downvote: (id: string) =>
-    http.post<ApiResponse>(`/posts/${id}/downvote`),
+    http.post<ApiResponse<void>>(`/posts/${id}/downvote`),
+
+  toggleReaction: (postId: string, emoji: string) =>
+    http.post<ApiResponse<any>>(`/posts/${postId}/reactions`, { emoji }),
+
+  getReactionSummary: (postId: string) =>
+    http.get<ApiResponse<any>>(`/posts/${postId}/reactions/summary`),
+
+  reportPost: (postId: string, data: { reason: string; description?: string }) =>
+    http.post<ApiResponse<any>>('/reports', {
+      targetId: postId,
+      type: 'POST',
+      reason: data.reason,
+      description: data.description,
+    }),
+
+  toggleBookmark: (postId: string) =>
+    http.post<ApiResponse<boolean>>(`/posts/${postId}/bookmarks`),
+
+  checkBookmark: (postId: string) =>
+    http.get<ApiResponse<boolean>>(`/posts/${postId}/bookmarks/check`),
 
   bookmark: (id: string) =>
-    http.post<ApiResponse>(`/posts/${id}/bookmark`),
+    http.post<ApiResponse<boolean>>(`/posts/${id}/bookmarks`),
 
   removeBookmark: (id: string) =>
-    http.delete<ApiResponse>(`/posts/${id}/bookmark`),
+    http.post<ApiResponse<boolean>>(`/posts/${id}/bookmarks`),
 
   // ── Đặc biệt ─────────────────────────────
-  getTrending: (limit?: number) =>
+  getTrending: (limit = 10) =>
     http.get<ApiResponse<Post[]>>('/posts/trending', { params: { limit } }),
 
-  getNearby: (lat: number, lng: number, radiusKm: number) =>
-    http.get<ApiResponse<Post[]>>('/posts/nearby', { params: { lat, lng, radius: radiusKm } }),
+  getNearby: (lat: number, lng: number, radius = 5, limit = 20) =>
+    http.get<ApiResponse<Post[]>>('/posts/nearby', { params: { lat, lng, radius, limit } }),
 
-  searchSemantic: (query: string) =>
-    http.get<ApiResponse<Post[]>>('/search/semantic', { params: { q: query } }),
+  searchSemantic: (query: string, limit = 20) =>
+    http.get<ApiResponse<Post[]>>('/search/semantic', { params: { q: query, limit } }),
 
-  searchByImage: (formData: FormData) =>
+  searchByImage: (formData: FormData, limit = 20) =>
     http.post<ApiResponse<Post[]>>('/search/image', formData, {
+      params: { limit },
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
+
+  getPopularTags: (limit = 30) =>
+    http.get<ApiResponse<TagSummary[]>>('/tags', { params: { limit } }),
+
+  getComments: (postId: string) =>
+    http.get<ApiResponse<any[]>>(`/posts/${postId}/comments`),
+
+  addComment: (postId: string, data: { content: string; parentId?: string | null }) =>
+    http.post<ApiResponse<any>>(`/posts/${postId}/comments`, data),
+
+  deleteComment: (postId: string, commentId: string) =>
+    http.delete<ApiResponse<void>>(`/posts/${postId}/comments/${commentId}`),
 }
 
 export default postsApi

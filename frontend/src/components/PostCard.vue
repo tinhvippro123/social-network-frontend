@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import {
-  Eye, MessageCircle, ArrowUp, Bookmark,
+  Eye, MessageCircle, SmilePlus, Bookmark,
   BookmarkCheck, Clock
 } from '@lucide/vue'
 import type { Post } from '@/types'
+
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatRelativeTime, formatNumber } from '@/utils/formatters'
 
 const props = defineProps<{
   post: Post
@@ -12,45 +15,45 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'click', postId: string): void
   (e: 'bookmark', postId: string): void
+  (e: 'toggleBookmark', postId: string): void
+  (e: 'toggle-bookmark', postId: string): void
 }>()
 
-const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-  if (diffHours < 1) return 'Vừa xong'
-  if (diffHours < 24) return `${diffHours} giờ trước`
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 7) return `${diffDays} ngày trước`
-  return date.toLocaleDateString('vi-VN')
-}
-
-const formatNumber = (num: number) => {
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toString()
+const handleBookmark = () => {
+  emit('bookmark', props.post.id)
+  emit('toggleBookmark', props.post.id)
+  emit('toggle-bookmark', props.post.id)
 }
 </script>
 
 <template>
   <article
     @click="emit('click', post.id)"
-    class="group bg-white dark:bg-surface-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 dark:hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer"
+    class="group h-full flex flex-col bg-white dark:bg-surface-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 dark:hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer"
   >
     <!-- Cover Image -->
     <div class="relative overflow-hidden h-48">
       <img
+        v-if="post.coverImage"
         :src="post.coverImage"
         :alt="post.title"
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
-      <div class="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
+      <div v-else class="w-full h-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 transition-transform duration-500 group-hover:scale-105 flex items-center justify-center">
+        <span class="text-primary-300 dark:text-primary-700/50 opacity-50">
+          <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </span>
+      </div>
+      <div class="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
       <!-- Category badge -->
       <span class="absolute top-3 left-3 px-3 py-1 rounded-lg text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300">
         {{ post.category.icon }} {{ post.category.name }}
       </span>
       <!-- Bookmark -->
       <button
-        @click.stop="emit('bookmark', post.id)"
+        @click.stop="handleBookmark"
         class="absolute top-3 right-3 p-2 rounded-lg bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors"
       >
         <BookmarkCheck v-if="post.bookmarked" :size="16" class="text-primary-500" />
@@ -59,15 +62,15 @@ const formatNumber = (num: number) => {
     </div>
 
     <!-- Content -->
-    <div class="p-5">
+    <div class="p-5 flex-1 flex flex-col">
       <!-- Author -->
       <div class="flex items-center gap-2 mb-3">
-        <img :src="post.author.avatar" class="w-7 h-7 rounded-full" />
+        <UserAvatar :user="post.author" size="sm" />
         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ post.author.name }}</span>
         <span class="text-gray-300 dark:text-surface-600">·</span>
         <span class="text-xs text-gray-400 flex items-center gap-1">
           <Clock :size="12" />
-          {{ formatDate(post.createdAt) }}
+          {{ formatRelativeTime(post.createdAt) }}
         </span>
       </div>
 
@@ -77,12 +80,12 @@ const formatNumber = (num: number) => {
       </h2>
 
       <!-- Excerpt -->
-      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4">
+      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1 break-words">
         {{ post.excerpt }}
       </p>
 
       <!-- Tags -->
-      <div class="flex flex-wrap gap-1.5 mb-4">
+      <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap gap-1.5 mb-4">
         <span
           v-for="tag in post.tags.slice(0, 3)"
           :key="tag"
@@ -95,8 +98,8 @@ const formatNumber = (num: number) => {
       <!-- Stats -->
       <div class="flex items-center gap-4 text-gray-400 text-sm">
         <span class="flex items-center gap-1">
-          <ArrowUp :size="14" :class="post.upvoted ? 'text-primary-500' : ''" />
-          {{ formatNumber(post.upvotesCount) }}
+          <SmilePlus :size="14" :class="post.reactions?.some(r => r.reacted) ? 'text-primary-500' : ''" />
+          {{ formatNumber(post.reactions?.reduce((acc, curr) => acc + curr.count, 0) || 0) }}
         </span>
         <span class="flex items-center gap-1">
           <MessageCircle :size="14" />

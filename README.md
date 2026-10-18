@@ -1,4 +1,4 @@
-# 🚀 VietBlog — Web App Quản lý Bài Viết và Tương tác Nội dung
+# 🚀 VietBlog — Nền tảng Cộng đồng & Mạng xã hội Localized cho Sinh viên
 
 <div align="center">
 
@@ -16,13 +16,14 @@
 
 ## 📋 Mô tả
 
-VietBlog là nền tảng web chia sẻ kiến thức dạng blog, tích hợp các giải thuật tự nghiên cứu và phát triển:
+VietBlog không chỉ là một trang blog thông thường, mà là một **Nền tảng Cộng đồng Đa năng (Localized Social Network)** dành riêng cho sinh viên và giới trẻ. Nền tảng hỗ trợ đa dạng nhu cầu từ học tập đến đời sống: **Tìm trọ, Pass đồ cũ, Review địa điểm, Sự kiện, và Thảo luận kiến thức**.
 
-- **Giải thuật xếp hạng bài viết xu hướng** (dựa trên Reddit Hot / Hacker News)
-- **Tìm kiếm ngữ nghĩa** (Semantic Search với pgvector + Cosine Similarity)
-- **Tìm kiếm theo hình ảnh/tài liệu** (phân rã thành vector → lưu DB → search)
-- **Bản đồ hóa bài viết** (PostGIS — tìm kiếm xung quanh vị trí)
-- **Chat real-time** (Redis Pub/Sub + WebSocket)
+Hệ thống tích hợp các giải thuật và công nghệ tự nghiên cứu:
+
+- **Bản đồ hóa nội dung (PostGIS)**: Tìm phòng trọ, quán cafe, đồ cũ đang pass ngay gần vị trí hiện tại của bạn.
+- **Giải thuật xếp hạng xu hướng**: Đẩy các bài viết, tin tức nổi bật lên top (dựa trên thuật toán Reddit Hot / Hacker News).
+- **Tìm kiếm ngữ nghĩa (Semantic Search)**: Tìm bài viết bằng AI với pgvector + Cosine Similarity.
+- **Chat real-time**: Nhắn tin 1-1, trao đổi mua bán, chat nhóm (Redis Pub/Sub + WebSocket).
 
 > ⚠️ **Lưu ý**: Tất cả giải thuật trong bài được **tự viết** theo hướng nghiên cứu (NCKH), không sử dụng thư viện AI/ML có sẵn.
 

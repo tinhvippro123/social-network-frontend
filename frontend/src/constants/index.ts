@@ -70,3 +70,16 @@ export const STORAGE_KEYS = {
   THEME: 'vietblog_theme',
   USER: 'vietblog_user',
 } as const
+
+/** Mảng Emoji được hỗ trợ trong bình luận */
+export const COMMENT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'] as const
+
+/** Danh mục hỗ trợ gắn thẻ địa điểm */
+export const LOCATION_SUPPORTED_CATEGORIES = ['tim-tro', 'pass-do', 'review-dia-diem', 'su-kien'] as const
+
+/** Cấu hình kiểm tra độ mạnh mật khẩu */
+export const PASSWORD_STRENGTH = {
+  COLORS: ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'],
+  LABELS: ['Yếu', 'Trung bình', 'Khá', 'Mạnh']
+} as const
+

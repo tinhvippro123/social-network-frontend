@@ -5,13 +5,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
-
-// Tạm thời dùng mock data, sau thay bằng API
-import { currentUser } from '@/data/mockData'
-
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(currentUser) // TODO: thay bằng null khi có API
-  const accessToken = ref<string | null>(localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN))
+  const user = ref<User | null>(null)
+  const accessToken = ref<string | null>(null)
 
   const isLoggedIn = computed(() => !!user.value)
   const isAdmin = computed(() => user.value?.role === 'admin')
@@ -43,9 +39,22 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(STORAGE_KEYS.USER)
   }
 
+  function initAuth() {
+    accessToken.value = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+    const savedUser = localStorage.getItem(STORAGE_KEYS.USER)
+    try {
+      if (savedUser && savedUser !== 'null' && savedUser !== 'undefined') {
+        user.value = JSON.parse(savedUser)
+      }
+    } catch (e) {
+      console.error('Lỗi khi đọc dữ liệu User từ bộ nhớ tạm:', e)
+      localStorage.removeItem(STORAGE_KEYS.USER)
+    }
+  }
+
   return {
     user, accessToken,
     isLoggedIn, isAdmin, isModerator,
-    setUser, setToken, clearAuth,
+    setUser, setToken, clearAuth, initAuth,
   }
 })

@@ -8,7 +8,7 @@ withDefaults(defineProps<{
   description?: string
   actionText?: string
 }>(), {
-  icon: Inbox as any,
+  icon: () => Inbox as any,
   title: 'Không có dữ liệu',
   description: 'Chưa có thông tin nào để hiển thị tại đây.'
 })

@@ -6,12 +6,11 @@ import { ref, computed } from 'vue'
 import type { Notification } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
 
-// Tạm thời dùng mock data
-import { mockNotifications } from '@/data/mockData'
+import notificationsApi from '@/api/notifications.api'
 
 export const useUiStore = defineStore('ui', () => {
   // ── Theme ──────────────────────────────────
-  const isDark = ref(true)
+  const isDark = ref(false)
 
   function toggleTheme() {
     isDark.value = !isDark.value
@@ -21,7 +20,7 @@ export const useUiStore = defineStore('ui', () => {
 
   function initTheme() {
     const saved = localStorage.getItem(STORAGE_KEYS.THEME)
-    isDark.value = saved ? saved === 'dark' : true
+    isDark.value = saved ? saved === 'dark' : false
     document.documentElement.classList.toggle('dark', isDark.value)
   }
 
@@ -34,7 +33,16 @@ export const useUiStore = defineStore('ui', () => {
   function closeMobileSidebar() { isMobileSidebarOpen.value = false }
 
   // ── Notifications ──────────────────────────
-  const notifications = ref<Notification[]>(mockNotifications) // TODO: thay bằng API
+  const notifications = ref<Notification[]>([])
+  
+  async function fetchNotifications() {
+    try {
+      const { data } = await notificationsApi.getAll()
+      notifications.value = data.data
+    } catch (e) {
+      console.error('Lỗi lấy thông báo:', e)
+    }
+  }
 
   const unreadCount = computed(() =>
     notifications.value.filter(n => !n.isRead).length
@@ -43,15 +51,30 @@ export const useUiStore = defineStore('ui', () => {
   function markNotificationRead(id: string) {
     const n = notifications.value.find(n => n.id === id)
     if (n) n.isRead = true
+    notificationsApi.markRead(id).catch(err => console.error('Lỗi đánh dấu đã đọc:', err))
   }
 
   function markAllRead() {
     notifications.value.forEach(n => n.isRead = true)
+    notificationsApi.markAllRead().catch(err => console.error('Lỗi đánh dấu tất cả đã đọc:', err))
   }
 
   // ── Search UI ──────────────────────────────
   const searchQuery = ref('')
   const isSearchOpen = ref(false)
+
+  // ── Auth Modal ──────────────────────────────
+  const showAuthModal = ref(false)
+  const authModalTab = ref<'login' | 'register'>('login')
+
+  function openAuthModal(tab: 'login' | 'register' = 'login') {
+    authModalTab.value = tab
+    showAuthModal.value = true
+  }
+
+  function closeAuthModal() {
+    showAuthModal.value = false
+  }
 
   return {
     // Theme
@@ -62,5 +85,8 @@ export const useUiStore = defineStore('ui', () => {
     notifications, unreadCount, markNotificationRead, markAllRead,
     // Search
     searchQuery, isSearchOpen,
+    fetchNotifications,
+    // Auth Modal
+    showAuthModal, authModalTab, openAuthModal, closeAuthModal,
   }
 })
