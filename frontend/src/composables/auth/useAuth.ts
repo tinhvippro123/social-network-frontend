@@ -5,7 +5,7 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import authApi from '@/api/auth.api'
-import type { LoginRequest, RegisterRequest } from '@/api/auth.api'
+import type { LoginRequest, RegisterRequest, GoogleLoginPayload } from '@/api/auth.api'
 import { STORAGE_KEYS } from '@/constants'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAsyncState } from '../core/useAsyncState'
@@ -39,6 +39,24 @@ export function useAuth() {
         router.push('/')
       }
     }, 'Đăng nhập thất bại')
+  }
+
+  /** Đăng nhập Google */
+  async function loginWithGoogle(payload: GoogleLoginPayload) {
+    await execute(async () => {
+      const { data } = await authApi.loginWithGoogle(payload)
+      authStore.setToken(data.data.accessToken)
+      authStore.setUser(data.data.user)
+
+      const redirectUrl = route.query.redirect as string
+      if (redirectUrl) {
+        router.push(redirectUrl)
+      } else if (data.data.user.role === 'admin') {
+        router.push('/admin')
+      } else {
+        router.push('/')
+      }
+    }, 'Đăng nhập Google thất bại')
   }
 
   /** Đăng ký */
@@ -85,6 +103,7 @@ export function useAuth() {
     isAdmin,
     isModerator,
     login,
+    loginWithGoogle,
     register,
     logout,
     initAuth,

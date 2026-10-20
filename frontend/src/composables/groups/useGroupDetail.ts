@@ -1,24 +1,53 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGroups } from './useGroups'
-import { usePosts } from '../posts/usePosts'
-import { useUsers } from '../core/useUsers'
 
 export function useGroupDetail() {
   const router = useRouter()
   const route = useRoute()
-  const { currentGroup: group, isLoading: isGroupLoading, fetchGroup } = useGroups()
-  const { posts, isLoading: isPostsLoading, fetchPosts } = usePosts()
-  const { users, isLoading: isUsersLoading, fetchUsers } = useUsers()
+  const {
+    currentGroup: group,
+    groupPosts: posts,
+    groupMembers: users,
+    isLoading: isGroupLoading,
+    fetchGroup,
+    fetchGroupPosts,
+    fetchGroupMembers,
+    joinGroup,
+    leaveGroup
+  } = useGroups()
+
+  const isPostsLoading = ref(false)
+  const isUsersLoading = ref(false)
   const activeTab = ref('posts')
 
   const initData = async () => {
-    const groupId = route.params.id as string || '1'
-    await Promise.all([
-      fetchGroup(groupId),
-      fetchPosts(),
-      fetchUsers()
-    ])
+    const groupId = (route.params.id as string) || ''
+    if (!groupId) return
+
+    isPostsLoading.value = true
+    isUsersLoading.value = true
+
+    try {
+      await fetchGroup(groupId)
+    } finally {
+      // Tải song song danh sách bài viết và thành viên của chính nhóm này
+      Promise.all([
+        fetchGroupPosts(groupId).finally(() => { isPostsLoading.value = false }),
+        fetchGroupMembers(groupId).finally(() => { isUsersLoading.value = false })
+      ])
+    }
+  }
+
+  async function handleToggleJoin() {
+    if (!group.value?.id) return
+    if (group.value.isJoined) {
+      await leaveGroup(group.value.id)
+    } else {
+      await joinGroup(group.value.id)
+    }
+    // Cập nhật lại danh sách thành viên
+    fetchGroupMembers(group.value.id)
   }
 
   onMounted(async () => {
@@ -34,6 +63,7 @@ export function useGroupDetail() {
     users,
     isUsersLoading,
     activeTab,
-    initData
+    initData,
+    handleToggleJoin
   }
 }

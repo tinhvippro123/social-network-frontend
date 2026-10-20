@@ -36,6 +36,8 @@ export const useUiStore = defineStore('ui', () => {
   const notifications = ref<Notification[]>([])
   
   async function fetchNotifications() {
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+    if (!token) return
     try {
       const { data } = await notificationsApi.getAll()
       notifications.value = data.data

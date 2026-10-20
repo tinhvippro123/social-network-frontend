@@ -29,6 +29,25 @@ export function mapCommentResponse(dto: any): any {
   }
 }
 
+export function normalizePost(dto: any): any {
+  if (!dto) return dto
+  const hasGeo = dto.latitude != null && dto.longitude != null
+  const location = dto.location || (hasGeo ? {
+    lat: Number(dto.latitude),
+    lng: Number(dto.longitude),
+    address: dto.locationAddress || ''
+  } : undefined)
+
+  return {
+    ...dto,
+    location,
+    upvotesCount: dto.upvotesCount ?? 0,
+    downvotesCount: dto.downvotesCount ?? 0,
+    commentsCount: dto.commentsCount ?? 0,
+    viewsCount: dto.viewsCount ?? 0
+  }
+}
+
 export function usePosts() {
   const posts = ref<Post[]>([])
   const currentPost = ref<Post | null>(null)
@@ -50,7 +69,7 @@ export function usePosts() {
         limit: pagination.limit,
         ...params,
       })
-      posts.value = data.data
+      posts.value = Array.isArray(data.data) ? data.data.map(normalizePost) : []
       if (data.meta) {
         pagination.page = data.meta.page
         pagination.total = data.meta.total
@@ -63,16 +82,15 @@ export function usePosts() {
   async function fetchPost(id: string) {
     await execute(async () => {
       const { data } = await postsApi.getById(id)
-      currentPost.value = data.data
+      currentPost.value = data.data ? normalizePost(data.data) : null
     }, 'Không tìm thấy bài viết')
   }
 
   /** Lấy bài viết trending */
   async function fetchTrending(limit = 10) {
-    // Không dùng execute để tránh ảnh hưởng loading state chung nếu gọi ngầm
     try {
       const { data } = await postsApi.getTrending(limit)
-      return data.data
+      return Array.isArray(data.data) ? data.data.map(normalizePost) : []
     } catch {
       return []
     }

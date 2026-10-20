@@ -75,9 +75,9 @@ const {
           />
           <span class="text-sm text-gray-600 dark:text-gray-400">Ghi nhớ đăng nhập</span>
         </label>
-        <a href="#" class="text-sm text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors font-medium">
+        <router-link to="/forgot-password" class="text-sm text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors font-medium">
           Quên mật khẩu?
-        </a>
+        </router-link>
       </div>
 
       <!-- Login Button -->

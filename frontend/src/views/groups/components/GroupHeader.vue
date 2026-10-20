@@ -1,48 +1,96 @@
 <script setup lang="ts">
-import { Users, FileText, Globe, Lock } from '@lucide/vue'
+import { Users, FileText, Globe, Lock, Check } from '@lucide/vue'
 
 defineProps<{
   group: any
 }>()
+
+const emit = defineEmits<{
+  (e: 'toggleJoin'): void
+  (e: 'switchTab', tab: 'posts' | 'members' | 'about'): void
+}>()
 </script>
 
 <template>
-  <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 mb-6">
-    <div class="h-48 relative overflow-hidden rounded-t-2xl">
-      <img :src="group.coverImage" class="w-full h-full object-cover" />
-      <div class="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
+  <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 mb-6 overflow-hidden shadow-xs">
+    <!-- Group Cover Banner (Facebook Group Style) -->
+    <div class="h-52 sm:h-64 relative overflow-hidden bg-gray-100 dark:bg-surface-700">
+      <img
+        v-if="group.coverImage"
+        :src="group.coverImage"
+        :alt="group.name"
+        class="w-full h-full object-cover"
+      />
+      <div v-else class="w-full h-full bg-linear-to-r from-primary-600 to-teal-500" />
+      <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
+      
+      <!-- Privacy Badge overlaid on banner top-right -->
+      <div class="absolute top-4 right-4">
+        <span
+          :class="[
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md shadow-md border',
+            group.isPublic
+              ? 'bg-emerald-500/80 border-emerald-400/40 text-white'
+              : 'bg-amber-500/80 border-amber-400/40 text-white'
+          ]"
+        >
+          <Globe v-if="group.isPublic" :size="12" />
+          <Lock v-else :size="12" />
+          {{ group.isPublic ? 'Nhóm công khai' : 'Nhóm riêng tư' }}
+        </span>
+      </div>
     </div>
-    <div class="px-6 pb-6">
-      <div class="flex flex-col sm:flex-row items-start gap-4 -mt-10 relative z-10">
-        <!-- Avatar & Mobile Action -->
-        <div class="flex justify-between items-end w-full sm:w-auto">
-          <img :src="group.avatar" class="w-20 h-20 rounded-2xl ring-4 ring-white dark:ring-surface-800 bg-gray-100 dark:bg-surface-700 shrink-0" />
-          <button class="sm:hidden px-4 py-1.5 mb-1 rounded-xl text-sm font-medium bg-primary-500/10 text-primary-500 hover:bg-primary-500 hover:text-white transition-all">
-            {{ group.isJoined ? 'Đã tham gia' : 'Tham gia' }}
+
+    <!-- Group Information Bar -->
+    <div class="p-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <!-- Title & Description -->
+        <div class="flex-1 min-w-0">
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            {{ group.name }}
+          </h1>
+          <p v-if="group.description" class="text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed max-w-3xl">
+            {{ group.description }}
+          </p>
+
+          <!-- Group Meta Stats (Clickable) -->
+          <div class="flex items-center gap-6 mt-4 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
+            <button
+              type="button"
+              @click="emit('switchTab', 'members')"
+              class="flex items-center gap-1.5 hover:text-primary-500 dark:hover:text-primary-400 transition-colors cursor-pointer group/stat"
+              title="Xem danh sách thành viên"
+            >
+              <Users :size="16" class="text-primary-500 group-hover/stat:scale-110 transition-transform" />
+              <strong class="text-gray-800 dark:text-gray-200 group-hover/stat:underline">{{ Number(group.membersCount || 0).toLocaleString() }}</strong> thành viên
+            </button>
+            <button
+              type="button"
+              @click="emit('switchTab', 'posts')"
+              class="flex items-center gap-1.5 hover:text-primary-500 dark:hover:text-primary-400 transition-colors cursor-pointer group/stat"
+              title="Xem danh sách bài viết"
+            >
+              <FileText :size="16" class="text-primary-500 group-hover/stat:scale-110 transition-transform" />
+              <strong class="text-gray-800 dark:text-gray-200 group-hover/stat:underline">{{ group.postsCount || 0 }}</strong> bài viết
+            </button>
+          </div>
+        </div>
+
+        <!-- Join/Leave Action Button -->
+        <div class="shrink-0 flex items-center gap-3">
+          <button
+            @click="emit('toggleJoin')"
+            :class="[
+              'flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer',
+              group.isJoined
+                ? 'bg-gray-100 dark:bg-surface-700 text-gray-700 dark:text-gray-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400 border border-gray-200 dark:border-surface-600'
+                : 'gradient-primary text-white hover:opacity-90 shadow-md shadow-primary-500/20'
+            ]"
+          >
+            <Check v-if="group.isJoined" :size="16" class="stroke-3" />
+            <span>{{ group.isJoined ? 'Đã tham gia' : 'Tham gia nhóm' }}</span>
           </button>
         </div>
-        
-        <!-- Text content -->
-        <div class="flex-1 w-full sm:pt-12">
-          <div class="flex items-center gap-2 flex-wrap">
-            <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ group.name }}</h1>
-            <span :class="['flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium', group.isPublic ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400']">
-              <Globe v-if="group.isPublic" :size="10" /> <Lock v-else :size="10" />
-              {{ group.isPublic ? 'Công khai' : 'Riêng tư' }}
-            </span>
-          </div>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ group.description }}</p>
-        </div>
-
-        <!-- Desktop Action -->
-        <button class="hidden sm:block shrink-0 mt-12 px-4 py-2 rounded-xl text-sm font-medium bg-primary-500/10 text-primary-500 hover:bg-primary-500 hover:text-white transition-all">
-          {{ group.isJoined ? 'Đã tham gia' : 'Tham gia' }}
-        </button>
-      </div>
-
-      <div class="flex items-center gap-6 mt-6 pt-4 border-t border-gray-200 dark:border-surface-700 text-sm text-gray-400">
-        <span class="flex items-center gap-1"><Users :size="14" /> {{ group.membersCount.toLocaleString() }} thành viên</span>
-        <span class="flex items-center gap-1"><FileText :size="14" /> {{ group.postsCount }} bài viết</span>
       </div>
     </div>
   </div>

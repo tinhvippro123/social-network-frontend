@@ -27,6 +27,10 @@ const {
   isLoading,
   newComment,
   isBookmarked,
+  userVote,
+  currentUserReaction,
+  handleUpvote,
+  handleDownvote,
   replyingTo,
   activeEmojiPicker,
   emojiList,
@@ -116,8 +120,12 @@ useCodeHighlight(postContent)
         <PostInteractionBar
           :post="post"
           :isBookmarked="isBookmarked"
+          :userVote="userVote"
+          :currentUserReaction="currentUserReaction"
           :activeEmojiPicker="activeEmojiPicker"
           :emojiList="emojiList"
+          @upvote="handleUpvote"
+          @downvote="handleDownvote"
           @toggleBookmark="toggleBookmark"
           @toggleEmojiPicker="toggleEmojiPicker"
           @toggleReaction="toggleReaction"

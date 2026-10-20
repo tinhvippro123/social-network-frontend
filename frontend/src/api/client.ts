@@ -62,6 +62,7 @@ const ERROR_TRANSLATIONS: Record<string, string> = {
   'Invalid input': 'Dữ liệu đầu vào không hợp lệ',
   'Internal server error': 'Đã xảy ra lỗi hệ thống',
   'Unauthorized': 'Vui lòng đăng nhập để tiếp tục',
+  'Authentication required': 'Vui lòng đăng nhập để tiếp tục',
   'Forbidden': 'Bạn không có quyền thực hiện hành động này',
   'Current password does not match': 'Mật khẩu hiện tại không chính xác',
   'Parent comment does not belong to this post': 'Bình luận cha không thuộc bài viết này'
@@ -84,16 +85,44 @@ http.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError<ApiError>) => {
     const status = error.response?.status
+    const url = error.config?.url || ''
     const rawMessage = error.response?.data?.message || 'Có lỗi kết nối đến máy chủ!'
     const errorMessage = translateErrorMessage(rawMessage)
 
     if (status === 401) {
-      // Token hết hạn hoặc sai mật khẩu → xóa token, redirect login
+      const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register')
+      const hadToken = !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+
       const { useAuthStore } = await import('@/stores/auth.store')
       useAuthStore().clearAuth()
-      if (router.currentRoute.value.path !== '/login') {
-        router.push('/login')
+
+      // 1. Nếu là lỗi đăng nhập/đăng ký (ví dụ sai mật khẩu)
+      if (isAuthEndpoint) {
+        const { useToast } = await import('@/composables/ui/useToast')
+        useToast().error(errorMessage || 'Email hoặc mật khẩu không chính xác')
+        return Promise.reject(error)
       }
+
+      // 2. Nếu trước đó đã có token mà nhận 401 -> token hết hạn
+      if (hadToken) {
+        if (router.currentRoute.value.path !== '/login') {
+          router.push('/login')
+        }
+        const { useToast } = await import('@/composables/ui/useToast')
+        useToast().error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
+        return Promise.reject(error)
+      }
+
+      // 3. Nếu là khách (chưa có token) và đang ở route yêu cầu đăng nhập
+      if (router.currentRoute.value.meta?.requiresAuth || router.currentRoute.value.meta?.requiresAdmin) {
+        if (router.currentRoute.value.path !== '/login') {
+          router.push('/login')
+        }
+        const { useToast } = await import('@/composables/ui/useToast')
+        useToast().error('Vui lòng đăng nhập để tiếp tục')
+      }
+
+      return Promise.reject(error)
     }
 
     if (status === 403) {
@@ -104,7 +133,7 @@ http.interceptors.response.use(
       if (error.response?.data?.data && typeof error.response.data.data === 'object') {
         console.error('Validation Errors:', error.response.data.data);
       }
-      // Hiển thị toast cho tất cả các lỗi có status (400, 401, 404, 500...)
+      // Hiển thị toast cho tất cả các lỗi có status khác (400, 404, 500...)
       const { useToast } = await import('@/composables/ui/useToast')
       
       // Hiển thị message tổng quát

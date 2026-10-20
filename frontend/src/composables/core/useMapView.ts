@@ -123,7 +123,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
 
   const initMap = async () => {
     if (!mapContainer.value) return
-    await fetchPosts()
+    await fetchPosts({ limit: 100 })
 
     map = L.map(mapContainer.value, {
       zoomControl: false

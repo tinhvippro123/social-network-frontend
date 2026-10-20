@@ -56,6 +56,12 @@ const postsApi = {
   downvote: (id: string) =>
     http.post<ApiResponse<void>>(`/posts/${id}/downvote`),
 
+  getUserVote: (postId: string) =>
+    http.get<ApiResponse<string | null>>(`/posts/${postId}/vote`),
+
+  getCurrentUserReaction: (postId: string) =>
+    http.get<ApiResponse<string | null>>(`/posts/${postId}/reactions/me`),
+
   toggleReaction: (postId: string, emoji: string) =>
     http.post<ApiResponse<any>>(`/posts/${postId}/reactions`, { emoji }),
 

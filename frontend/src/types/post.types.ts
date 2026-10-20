@@ -27,6 +27,7 @@ export interface Post {
   updatedAt: string
   viewsCount: number
   upvotesCount?: number
+  downvotesCount?: number
   commentsCount: number
   bookmarked: boolean
   reactions: Reaction[]

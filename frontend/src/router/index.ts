@@ -20,6 +20,12 @@ const router = createRouter({
       component: () => import('@/views/auth/RegisterView.vue'),
       meta: { layout: 'auth', title: 'Đăng ký', guestOnly: true }
     },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('@/views/auth/ForgotPasswordView.vue'),
+      meta: { layout: 'auth', title: 'Quên mật khẩu', guestOnly: true }
+    },
 
     // ==========================================
     // Client routes (MainLayout - user sidebar)
@@ -77,6 +83,12 @@ const router = createRouter({
       name: 'group-detail',
       component: () => import('@/views/groups/GroupDetailView.vue'),
       meta: { title: 'Chi tiết nhóm' }
+    },
+    {
+      path: '/groups/:id/posts/:postId',
+      name: 'group-post-detail',
+      component: () => import('@/views/groups/GroupPostDetailView.vue'),
+      meta: { title: 'Thảo luận nhóm' }
     },
     {
       path: '/tags/:name',

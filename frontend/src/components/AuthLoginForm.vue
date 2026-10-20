@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
+import authApi from '@/api/auth.api'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const uiStore = useUiStore()
 
@@ -52,27 +55,19 @@ async function handleLogin() {
   isLoading.value = true
   emitError('update:error', '')
 
-  // Mock login - simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800))
-
-  const mockUser = {
-    id: 'u1',
-    name: 'Lê Thanh Tính',
-    email: email.value,
-    avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=LTT',
-    bio: 'Full-stack developer | Vue.js & Spring Boot enthusiast',
-    role: email.value.includes('admin') ? 'admin' as const : 'user' as const,
-    joinedAt: '2026-08-24T00:00:00Z',
-    postsCount: 12,
-    followersCount: 156,
-    followingCount: 42
+  try {
+    const { data } = await authApi.login({
+      email: email.value.trim(),
+      password: password.value
+    })
+    authStore.setToken(data.data.accessToken)
+    authStore.setUser(data.data.user)
+    uiStore.closeAuthModal()
+  } catch (err: any) {
+    emitError('update:error', err.response?.data?.message || 'Email hoặc mật khẩu không chính xác')
+  } finally {
+    isLoading.value = false
   }
-
-  authStore.setToken('mock-jwt-token-' + Date.now())
-  authStore.setUser(mockUser)
-  
-  isLoading.value = false
-  uiStore.closeAuthModal()
 }
 </script>
 
@@ -122,10 +117,16 @@ async function handleLogin() {
       <p v-if="passwordError" class="mt-1.5 text-xs text-red-400">{{ passwordError }}</p>
     </div>
 
-    <!-- Login hint -->
-    <p class="text-xs text-gray-500 bg-surface-700/50 rounded-lg px-3 py-2">
-      💡 Demo: Nhập email bất kỳ + mật khẩu >= 6 ký tự. Dùng email có chữ "admin" để vào trang quản trị.
-    </p>
+    <!-- Forgot password link -->
+    <div class="flex items-center justify-end">
+      <button
+        type="button"
+        @click="uiStore.closeAuthModal(); router.push('/forgot-password')"
+        class="text-xs text-primary-400 hover:text-primary-300 transition-colors font-medium"
+      >
+        Quên mật khẩu?
+      </button>
+    </div>
 
     <!-- Submit -->
     <button

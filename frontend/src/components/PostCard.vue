@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {
   Eye, MessageCircle, SmilePlus, Bookmark,
-  BookmarkCheck, Clock
+  BookmarkCheck, Clock, ChevronUp
 } from '@lucide/vue'
 import type { Post } from '@/types'
 
@@ -97,9 +97,9 @@ const handleBookmark = () => {
 
       <!-- Stats -->
       <div class="flex items-center gap-4 text-gray-400 text-sm">
-        <span class="flex items-center gap-1">
-          <SmilePlus :size="14" :class="post.reactions?.some(r => r.reacted) ? 'text-primary-500' : ''" />
-          {{ formatNumber(post.reactions?.reduce((acc, curr) => acc + curr.count, 0) || 0) }}
+        <span class="flex items-center gap-1 font-semibold text-orange-500" title="Điểm bình chọn">
+          <ChevronUp :size="15" class="stroke-[2.5]" />
+          {{ formatNumber((post.upvotesCount || 0) - (post.downvotesCount || 0)) }}
         </span>
         <span class="flex items-center gap-1">
           <MessageCircle :size="14" />

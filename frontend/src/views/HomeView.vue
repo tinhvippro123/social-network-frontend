@@ -8,9 +8,11 @@ import CategoryTabs from '@/components/CategoryTabs.vue'
 import PostSkeletonCard from '@/components/posts/PostSkeletonCard.vue'
 import HomeHeroBanner from './components/HomeHeroBanner.vue'
 import LoadMoreButton from '@/components/ui/LoadMoreButton.vue'
+import { useAuthStore } from '@/stores/auth.store'
 import { useHomePosts } from '@/composables/posts/useHomePosts'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const {
   categories,
@@ -30,7 +32,7 @@ const {
       <!-- Main Content -->
       <div class="flex-1 min-w-0">
         <!-- Hero Banner -->
-        <HomeHeroBanner user-name="Lê Thanh Tình" />
+        <HomeHeroBanner :user-name="authStore.user?.name || 'bạn'" />
 
         <!-- Categories -->
         <CategoryTabs v-model="selectedCategory" class="mb-6" />

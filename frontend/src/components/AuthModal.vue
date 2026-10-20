@@ -4,6 +4,7 @@ import { X } from '@lucide/vue'
 import { useUiStore } from '@/stores/ui.store'
 import AuthLoginForm from './AuthLoginForm.vue'
 import AuthRegisterForm from './AuthRegisterForm.vue'
+import AuthSocialLogin from '@/views/auth/components/AuthSocialLogin.vue'
 
 const uiStore = useUiStore()
 
@@ -87,6 +88,10 @@ function close() {
 
           <!-- REGISTER Form -->
           <AuthRegisterForm v-else v-model:error="error" />
+
+          <div class="px-8 pb-8 -mt-2">
+            <AuthSocialLogin />
+          </div>
         </div>
       </div>
     </transition>

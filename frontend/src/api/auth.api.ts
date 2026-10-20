@@ -23,9 +23,17 @@ export interface AuthTokens {
 
 
 
+export interface GoogleLoginPayload {
+  accessToken?: string
+  idToken?: string
+}
+
 const authApi = {
   login: (data: LoginRequest) =>
     http.post<ApiResponse<AuthTokens & { user: User }>>('/auth/login', data),
+
+  loginWithGoogle: (data: GoogleLoginPayload) =>
+    http.post<ApiResponse<AuthTokens & { user: User }>>('/auth/google', data),
 
   register: (data: RegisterRequest) =>
     http.post<ApiResponse<{ message: string }>>('/auth/register', data),
@@ -44,6 +52,12 @@ const authApi = {
 
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     http.put<ApiResponse>('/auth/me/password', data),
+
+  forgotPassword: (data: { email: string }) =>
+    http.post<ApiResponse<{ message: string; resetToken?: string; otp?: string; expiresInSeconds?: number }>>('/auth/forgot-password', data),
+
+  resetPassword: (data: { token: string; newPassword: string }) =>
+    http.post<ApiResponse<void>>('/auth/reset-password', data),
 }
 
 export default authApi
