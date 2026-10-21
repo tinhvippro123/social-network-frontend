@@ -10,6 +10,7 @@ import { formatDate, formatNumber } from '@/utils/formatters'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import PostDetailHeader from './components/PostDetailHeader.vue'
 import PostAuthorCard from './components/PostAuthorCard.vue'
+import PostAiSummary from './components/PostAiSummary.vue'
 import PostInteractionBar from './components/PostInteractionBar.vue'
 import PostComments from './components/PostComments.vue'
 import RelatedPostsSidebar from './components/RelatedPostsSidebar.vue'
@@ -87,6 +88,9 @@ useCodeHighlight(postContent)
       <article class="flex-1 min-w-0">
         <!-- Cover Image & Author Info -->
         <PostDetailHeader :post="post" :user="user" />
+
+        <!-- AI TextRank Summarization Block -->
+        <PostAiSummary :postId="post.id" />
 
         <!-- Content -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-8 mb-6 overflow-hidden">
