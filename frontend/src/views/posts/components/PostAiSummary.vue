@@ -163,7 +163,7 @@ async function copySummary() {
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'"
               class="px-2.5 py-1 rounded-md transition-all text-xs"
             >
-              3 câu
+              Ngắn (3 câu)
             </button>
             <button
               type="button"
@@ -174,7 +174,7 @@ async function copySummary() {
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'"
               class="px-2.5 py-1 rounded-md transition-all text-xs"
             >
-              5 câu
+              Chi tiết (5 câu)
             </button>
           </div>
         </div>

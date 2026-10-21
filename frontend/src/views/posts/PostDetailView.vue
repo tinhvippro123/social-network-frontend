@@ -95,7 +95,7 @@ useCodeHighlight(postContent)
         <!-- Content -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-8 mb-6 overflow-hidden">
           <div
-            class="prose prose-lg dark:prose-invert max-w-none break-words break-all
+            class="prose prose-lg dark:prose-invert max-w-none break-words
               prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold
               prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-p:leading-relaxed
               prose-a:text-primary-500 prose-a:no-underline hover:prose-a:underline
