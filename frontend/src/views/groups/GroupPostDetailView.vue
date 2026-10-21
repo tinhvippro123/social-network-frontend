@@ -16,6 +16,7 @@ import groupsApi from '@/api/groups.api'
 import type { GroupPostItem } from '@/api/groups.api'
 import type { Group } from '@/types'
 import UserAvatar from '@/components/UserAvatar.vue'
+import GroupPostDiscussion from './components/GroupPostDiscussion.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatDate } from '@/utils/formatters'
 import { useToast } from '@/composables/ui/useToast'
@@ -196,6 +197,13 @@ onMounted(() => {
             <div class="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200 text-base sm:text-lg leading-relaxed whitespace-pre-wrap font-normal">
               {{ post.content || post.excerpt }}
             </div>
+
+            <!-- Group Post Discussion (Likes & Comments) -->
+            <GroupPostDiscussion
+              :group-id="groupId"
+              :post="post"
+              @update:post="Object.assign(post, $event)"
+            />
 
             <!-- Group Callout Footer -->
             <div class="p-5 rounded-2xl bg-linear-to-r from-primary-50 to-teal-50 dark:from-primary-950/30 dark:to-teal-950/20 border border-primary-200/50 dark:border-primary-800/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-8">

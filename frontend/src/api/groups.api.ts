@@ -44,6 +44,21 @@ export interface GroupPostItem {
   }
   createdAt: string
   updatedAt: string
+  likesCount?: number
+  commentsCount?: number
+  isLiked?: boolean
+}
+
+export interface GroupCommentItem {
+  id: string
+  postId: string
+  content: string
+  author: {
+    id: string
+    name: string
+    avatar?: string
+  }
+  createdAt: string
 }
 
 const groupsApi = {
@@ -94,6 +109,18 @@ const groupsApi = {
 
   deletePost: (id: string, postId: string) =>
     http.delete<ApiResponse<void>>(`/groups/${id}/posts/${postId}`),
+
+  toggleLikePost: (groupId: string, postId: string) =>
+    http.post<ApiResponse<{ isLiked: boolean; likesCount: number }>>(`/groups/${groupId}/posts/${postId}/like`),
+
+  getPostComments: (groupId: string, postId: string) =>
+    http.get<ApiResponse<GroupCommentItem[]>>(`/groups/${groupId}/posts/${postId}/comments`),
+
+  addPostComment: (groupId: string, postId: string, content: string) =>
+    http.post<ApiResponse<GroupCommentItem>>(`/groups/${groupId}/posts/${postId}/comments`, { content }),
+
+  deletePostComment: (groupId: string, postId: string, commentId: string) =>
+    http.delete<ApiResponse<void>>(`/groups/${groupId}/posts/${postId}/comments/${commentId}`),
 }
 
 export default groupsApi

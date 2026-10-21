@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { X, Calendar, Share2, ExternalLink, Check } from '@lucide/vue'
 import { ref } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import GroupPostDiscussion from './GroupPostDiscussion.vue'
 import { formatDate } from '@/utils/formatters'
 import { useToast } from '@/composables/ui/useToast'
 
@@ -141,6 +142,13 @@ const copyPostLink = async () => {
         <div class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
           {{ post.content || post.excerpt }}
         </div>
+
+        <!-- Discussion (Likes & Comments) -->
+        <GroupPostDiscussion
+          :group-id="post.groupId"
+          :post="post"
+          @update:post="Object.assign(post, $event)"
+        />
       </div>
 
       <!-- Modal Footer -->
