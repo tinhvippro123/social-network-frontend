@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Sparkles, Copy, Check, ChevronUp, RefreshCw, BrainCircuit, Quote } from '@lucide/vue'
+import { Sparkles, Copy, Check, ChevronUp, RefreshCw, BrainCircuit, Quote, FileText, ListOrdered } from '@lucide/vue'
 import searchApi, { type PostSummary } from '@/api/search.api'
 
 const props = defineProps<{
@@ -10,6 +10,7 @@ const props = defineProps<{
 const isExpanded = ref(false)
 const isLoading = ref(false)
 const sentencesCount = ref<number>(3)
+const viewMode = ref<'paragraph' | 'bullet'>('paragraph')
 const summaryData = ref<PostSummary | null>(null)
 const isCopied = ref(false)
 const error = ref<string | null>(null)
@@ -122,10 +123,36 @@ async function copySummary() {
 
     <!-- Collapsible Content -->
     <div v-if="isExpanded" class="border-t border-indigo-100 dark:border-indigo-950/60 p-4 sm:p-5 pt-3">
-      <!-- Toolbar: Chọn số câu & Copy -->
+      <!-- Toolbar: View Mode & Số câu & Copy -->
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100 dark:border-surface-800 text-xs">
-        <div class="flex items-center gap-2">
-          <span class="text-gray-500 dark:text-gray-400 font-medium">Độ dài trích xuất:</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Chế độ xem: Đoạn văn vs Từng câu -->
+          <div class="inline-flex p-0.5 rounded-lg bg-gray-100 dark:bg-surface-800 border border-gray-200/80 dark:border-surface-700">
+            <button
+              type="button"
+              @click.stop="viewMode = 'paragraph'"
+              :class="viewMode === 'paragraph'
+                ? 'bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-400 font-bold shadow-xs'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all text-xs"
+            >
+              <FileText :size="12" />
+              <span>Đoạn văn liền mạch</span>
+            </button>
+            <button
+              type="button"
+              @click.stop="viewMode = 'bullet'"
+              :class="viewMode === 'bullet'
+                ? 'bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-400 font-bold shadow-xs'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all text-xs"
+            >
+              <ListOrdered :size="12" />
+              <span>Từng câu cốt lõi</span>
+            </button>
+          </div>
+
+          <!-- Chọn số câu -->
           <div class="inline-flex p-0.5 rounded-lg bg-gray-100 dark:bg-surface-800 border border-gray-200/80 dark:border-surface-700">
             <button
               type="button"
@@ -136,7 +163,7 @@ async function copySummary() {
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'"
               class="px-2.5 py-1 rounded-md transition-all text-xs"
             >
-              3 câu quan trọng
+              3 câu
             </button>
             <button
               type="button"
@@ -147,11 +174,12 @@ async function copySummary() {
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'"
               class="px-2.5 py-1 rounded-md transition-all text-xs"
             >
-              5 câu quan trọng
+              5 câu
             </button>
           </div>
         </div>
 
+        <!-- Copy & Refresh -->
         <div class="flex items-center gap-2">
           <button
             v-if="summaryData"
@@ -206,8 +234,21 @@ async function copySummary() {
 
       <!-- Summary Result Content -->
       <div v-else-if="summaryData" class="space-y-3">
-        <!-- Danh sách từng câu trích xuất có đánh số -->
-        <div class="space-y-2.5">
+        <!-- Chế độ 1: Đoạn văn liền mạch (Mặc định) -->
+        <div
+          v-if="viewMode === 'paragraph'"
+          class="p-4 sm:p-5 rounded-xl bg-white/90 dark:bg-surface-800/90 border border-indigo-100 dark:border-surface-700 shadow-2xs backdrop-blur-xs relative overflow-hidden"
+        >
+          <div class="absolute -bottom-2 -right-2 text-indigo-500/10 dark:text-indigo-400/10 pointer-events-none select-none">
+            <Quote :size="80" />
+          </div>
+          <p class="relative z-10 text-[14.5px] leading-relaxed text-gray-800 dark:text-gray-200 font-normal text-justify">
+            {{ summaryData.summary }}
+          </p>
+        </div>
+
+        <!-- Chế độ 2: Danh sách từng câu cốt lõi có đánh số -->
+        <div v-else class="space-y-2.5">
           <div
             v-for="(sentence, idx) in summaryData.sentences"
             :key="idx"
@@ -226,7 +267,7 @@ async function copySummary() {
         <div class="flex items-center justify-between pt-2 text-[11px] text-gray-400 dark:text-gray-500">
           <div class="flex items-center gap-1.5">
             <Quote :size="12" />
-            <span>Trích xuất câu nguyên bản từ bài viết, giữ nguyên độ trung thực của dữ liệu nguồn.</span>
+            <span>Trích xuất câu quan trọng bằng TextRank, giữ nguyên tính khách quan từ bài viết gốc.</span>
           </div>
           <span class="font-mono text-[10px] text-indigo-500/80">
             alg: {{ summaryData.algorithm }}
