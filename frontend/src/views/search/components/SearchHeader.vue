@@ -8,10 +8,7 @@ import {
   Sparkles,
   Camera,
   FileText,
-  Image as ImageIcon,
-  FileType,
-  SlidersHorizontal,
-  Info
+  FileType
 } from '@lucide/vue'
 
 const props = defineProps<{
@@ -79,10 +76,14 @@ function handleKeyDown(event: KeyboardEvent) {
     emit('search')
   }
 }
+
+function toggleAiMode() {
+  emit('update:textMode', props.textMode === 'semantic' ? 'keyword' : 'semantic')
+}
 </script>
 
 <template>
-  <div class="mb-8">
+  <div class="mb-6">
     <!-- Back button -->
     <button
       @click="router.back()"
@@ -126,10 +127,10 @@ function handleKeyDown(event: KeyboardEvent) {
             fileType === 'image'
               ? 'Đang tìm kiếm bằng hình ảnh tải lên...'
               : fileType === 'document'
-              ? 'Đang tìm kiếm bằng tài liệu văn bản...'
+              ? 'Đang tìm kiếm bằng tài liệu tải lên...'
               : textMode === 'semantic'
-              ? 'Tìm kiếm ý nghĩa AI: nhập câu hỏi, khái niệm cần tìm...'
-              : 'Tìm kiếm từ khóa: tiêu đề, nội dung, tác giả...'
+              ? 'Hỏi bất kỳ điều gì, AI sẽ tìm bài viết theo ngữ cảnh...'
+              : 'Tìm kiếm bài viết, tác giả, chủ đề...'
           "
           class="w-full bg-transparent border-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none text-base sm:text-lg px-2 py-2"
           :disabled="selectedFile !== null"
@@ -139,7 +140,7 @@ function handleKeyDown(event: KeyboardEvent) {
         <button
           v-if="query && !selectedFile"
           @click="emit('update:query', '')"
-          class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors shrink-0"
+          class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors shrink-0 cursor-pointer"
           title="Xóa nội dung"
         >
           <X :size="18" />
@@ -152,11 +153,11 @@ function handleKeyDown(event: KeyboardEvent) {
             type="button"
             @click="triggerImagePicker"
             class="p-2.5 rounded-2xl text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/40 transition-all relative group cursor-pointer"
-            title="Tìm bằng hình ảnh (AI trích xuất đặc trưng)"
+            title="Tìm bằng hình ảnh"
           >
             <Camera :size="20" />
             <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-[11px] px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
-              Tìm bằng ảnh
+              Tìm bằng hình ảnh
             </span>
           </button>
 
@@ -165,11 +166,11 @@ function handleKeyDown(event: KeyboardEvent) {
             type="button"
             @click="triggerDocumentPicker"
             class="p-2.5 rounded-2xl text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-all relative group cursor-pointer"
-            title="Tìm bằng tài liệu (PDF, Word DOCX)"
+            title="Tìm bằng tài liệu (PDF, Word)"
           >
             <FileText :size="20" />
             <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-[11px] px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
-              Tìm bằng file
+              Tìm bằng tài liệu
             </span>
           </button>
 
@@ -210,7 +211,7 @@ function handleKeyDown(event: KeyboardEvent) {
           <div class="truncate">
             <div class="flex items-center gap-2">
               <span class="text-xs font-semibold px-2 py-0.5 rounded-md" :class="fileType === 'image' ? 'bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300' : 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300'">
-                {{ fileType === 'image' ? '🖼️ Tìm kiếm bằng ảnh' : '📄 Tìm kiếm bằng tài liệu' }}
+                {{ fileType === 'image' ? '🖼️ Tìm kiếm theo ảnh' : '📄 Tìm kiếm theo tài liệu' }}
               </span>
               <span class="text-xs text-gray-500 dark:text-gray-400">
                 ({{ formatFileSize(selectedFile.size) }})
@@ -224,7 +225,7 @@ function handleKeyDown(event: KeyboardEvent) {
 
         <button
           @click="emit('removeFile')"
-          class="p-2 text-gray-400 hover:text-red-500 hover:bg-white dark:hover:bg-surface-800 rounded-xl transition-colors shrink-0"
+          class="p-2 text-gray-400 hover:text-red-500 hover:bg-white dark:hover:bg-surface-800 rounded-xl transition-colors shrink-0 cursor-pointer"
           title="Hủy tệp này"
         >
           <X :size="18" />
@@ -232,70 +233,47 @@ function handleKeyDown(event: KeyboardEvent) {
       </div>
     </div>
 
-    <!-- Mode Selector & Hint Pill -->
+    <!-- Category Tabs & Clean AI Toggle Bar -->
     <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-      <!-- Text Mode Switcher (Keyword vs Semantic) -->
-      <div v-if="!selectedFile" class="flex items-center gap-1.5 bg-gray-100 dark:bg-surface-800 p-1 rounded-2xl border border-gray-200 dark:border-surface-700">
-        <button
-          type="button"
-          @click="emit('update:textMode', 'keyword')"
-          :class="[
-            'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer',
-            textMode === 'keyword'
-              ? 'bg-white dark:bg-surface-700 text-gray-900 dark:text-white shadow-xs'
-              : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
-          ]"
-        >
-          <span>🔤 Khớp từ khóa</span>
-        </button>
-
-        <button
-          type="button"
-          @click="emit('update:textMode', 'semantic')"
-          :class="[
-            'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer',
-            textMode === 'semantic'
-              ? 'bg-linear-to-r from-primary-600 to-indigo-600 text-white shadow-xs'
-              : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
-          ]"
-        >
-          <Sparkles :size="14" />
-          <span>🧠 AI Ngữ nghĩa (TF-IDF)</span>
-        </button>
-      </div>
-
-      <!-- Mode explanation tooltip/badge -->
-      <div class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
-        <Info :size="14" class="text-primary-500 shrink-0" />
-        <span v-if="selectedFile && fileType === 'image'">
-          AI trích xuất đặc trưng màu (HSV), cạnh biên (Sobel) và kết cấu (GLCM)
-        </span>
-        <span v-else-if="selectedFile && fileType === 'document'">
-          Trích xuất văn bản từ tệp và so khớp vector ngữ nghĩa TF-IDF
-        </span>
-        <span v-else-if="textMode === 'semantic'">
-          Mô hình không gian vector (Vector Space Model) + Cosine Similarity
-        </span>
-        <span v-else>
-          Tìm kiếm chính xác theo chuỗi ký tự tiêu đề và nội dung
-        </span>
-      </div>
-
-      <!-- Optional Tabs for Posts / Users / Tags if tabs are passed -->
-      <div v-if="tabs && tabs.length && !selectedFile" class="flex items-center gap-1 bg-gray-100 dark:bg-surface-800 rounded-xl p-1 border border-gray-200 dark:border-surface-700">
+      <!-- Standard Category Tabs (Posts, Users, Tags) -->
+      <div v-if="tabs && tabs.length && !selectedFile" class="flex items-center gap-1 bg-gray-100 dark:bg-surface-800 rounded-2xl p-1 border border-gray-200 dark:border-surface-700">
         <button
           v-for="tab in tabs"
           :key="tab.key"
           @click="emit('update:activeTab', tab.key)"
           :class="[
-            'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer',
+            'flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer',
             activeTab === tab.key
               ? 'bg-white dark:bg-surface-700 text-gray-900 dark:text-white shadow-xs'
               : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
           ]"
         >
-          <component :is="tab.icon" :size="14" />
+          <component :is="tab.icon" :size="16" />
           {{ tab.label }}
+        </button>
+      </div>
+
+      <!-- Modern AI Search Toggle Button (Production Grade) -->
+      <div v-if="!selectedFile" class="flex items-center">
+        <button
+          type="button"
+          @click="toggleAiMode"
+          :class="[
+            'flex items-center gap-2 px-3.5 py-1.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all cursor-pointer border',
+            textMode === 'semantic'
+              ? 'bg-linear-to-r from-purple-600 via-indigo-600 to-primary-600 text-white border-transparent shadow-sm shadow-purple-500/20'
+              : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-surface-700 hover:border-purple-400 dark:hover:border-purple-500'
+          ]"
+          title="Bật chế độ tìm kiếm thông minh theo ý nghĩa câu hỏi"
+        >
+          <Sparkles :size="15" :class="textMode === 'semantic' ? 'animate-pulse text-amber-200' : 'text-purple-500'" />
+          <span>Tìm kiếm AI</span>
+          <span
+            class="text-[11px] px-1.5 py-0.2 rounded-full font-medium"
+            :class="textMode === 'semantic' ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-surface-700 text-gray-500 dark:text-gray-400'"
+          >
+            {{ textMode === 'semantic' ? 'Bật' : 'Tắt' }}
+          </span>
         </button>
       </div>
     </div>

@@ -10,8 +10,7 @@ import {
   Camera,
   Layers,
   ArrowRight,
-  TrendingUp,
-  Cpu
+  TrendingUp
 } from '@lucide/vue'
 import { useSearch } from '@/composables/core/useSearch'
 import { usePosts } from '@/composables/posts/usePosts'
@@ -58,7 +57,7 @@ const trendingSuggestions = [
   'Spring Boot',
   'Vue 3',
   'Điện toán đám mây',
-  'Microservices',
+  'Clean Architecture',
   'An toàn thông tin'
 ]
 
@@ -211,65 +210,46 @@ const tabs = [
       @search="executeSearch"
     />
 
-    <!-- Active Search Info & Algorithm Badge Banner -->
+    <!-- Clean, Natural Search Summary Status (Production Grade) -->
     <div
       v-if="hasActiveSearch"
-      class="mb-6 p-4 rounded-2xl bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 shadow-xs flex flex-wrap items-center justify-between gap-3"
+      class="mb-6 flex flex-wrap items-center justify-between gap-3 px-1"
     >
-      <div class="flex items-center gap-3">
-        <!-- Badge icon -->
-        <div
-          class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          :class="[
-            selectedFile && fileType === 'image'
-              ? 'bg-primary-100 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400'
-              : selectedFile && fileType === 'document'
-              ? 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
-              : textMode === 'semantic'
-              ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400'
-              : 'bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
-          ]"
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <span class="text-sm text-gray-500 dark:text-gray-400">Kết quả cho:</span>
+        <span class="text-base font-bold text-gray-900 dark:text-white">
+          "{{ selectedFile ? selectedFile.name : query }}"
+        </span>
+
+        <!-- Elegant AI Badge -->
+        <span
+          v-if="textMode === 'semantic' && !selectedFile"
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-2xs"
         >
-          <Camera v-if="selectedFile && fileType === 'image'" :size="20" />
-          <FileText v-else-if="selectedFile && fileType === 'document'" :size="20" />
-          <Sparkles v-else-if="textMode === 'semantic'" :size="20" />
-          <SearchIcon v-else :size="20" />
-        </div>
+          <Sparkles :size="12" /> AI Search
+        </span>
 
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-900 dark:text-white">
-              {{
-                selectedFile && fileType === 'image'
-                  ? `Tìm bài viết bằng ảnh: "${selectedFile.name}"`
-                  : selectedFile && fileType === 'document'
-                  ? `Tìm bài viết theo tài liệu: "${selectedFile.name}"`
-                  : `Kết quả tìm kiếm cho: "${query}"`
-              }}
-            </span>
-          </div>
-          <div class="flex items-center gap-2 mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            <Cpu :size="12" class="text-primary-500" />
-            <span v-if="selectedFile && fileType === 'image'">
-              Thuật toán: Computer Vision (Color Histogram HSV + Sobel Edge + GLCM Texture)
-            </span>
-            <span v-else-if="selectedFile && fileType === 'document'">
-              Thuật toán: Trích xuất nội dung văn bản + TF-IDF Vector Space Model
-            </span>
-            <span v-else-if="textMode === 'semantic'">
-              Thuật toán: AI Ngữ nghĩa (Vector Space Model: TF-IDF + Cosine Similarity)
-            </span>
-            <span v-else>
-              Thuật toán: Khớp từ vựng chính xác (Keyword Token String Match)
-            </span>
-          </div>
-        </div>
+        <!-- Elegant Image Badge -->
+        <span
+          v-else-if="selectedFile && fileType === 'image'"
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-950/60 dark:text-primary-300 border border-primary-200 dark:border-primary-800 shadow-2xs"
+        >
+          <Camera :size="12" /> Tìm bằng ảnh
+        </span>
+
+        <!-- Elegant Document Badge -->
+        <span
+          v-else-if="selectedFile && fileType === 'document'"
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shadow-2xs"
+        >
+          <FileText :size="12" /> Tìm bằng tài liệu
+        </span>
       </div>
 
-      <!-- Result count badge -->
-      <div v-if="!isSearching" class="px-3.5 py-1.5 rounded-full bg-gray-100 dark:bg-surface-700 text-xs font-semibold text-gray-700 dark:text-gray-300">
+      <!-- Result count -->
+      <span v-if="!isSearching" class="text-xs text-gray-500 dark:text-gray-400 font-medium">
         {{ results.length }} bài viết tìm thấy
-      </div>
+      </span>
     </div>
 
     <!-- Error notice -->
@@ -310,17 +290,17 @@ const tabs = [
         <SearchIcon :size="48" class="mx-auto mb-4 text-gray-300 dark:text-gray-600" />
         <h3 class="text-lg font-bold text-gray-900 dark:text-white">Không tìm thấy bài viết nào</h3>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-md mx-auto">
-          Không có bài viết nào khớp với truy vấn của bạn. Hãy thử từ khóa khái quát hơn hoặc sử dụng chế độ AI Ngữ nghĩa.
+          Không có bài viết nào phù hợp. Hãy thử từ khóa khác hoặc bật tính năng Tìm kiếm AI để tìm theo ý nghĩa câu hỏi.
         </p>
 
         <!-- Switch mode suggestion if keyword mode -->
         <div v-if="textMode === 'keyword' && !selectedFile" class="mt-5">
           <button
             @click="textMode = 'semantic'"
-            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-linear-to-r from-primary-600 to-indigo-600 text-white font-medium text-sm shadow-sm hover:from-primary-700 hover:to-indigo-700 transition-all cursor-pointer"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-linear-to-r from-purple-600 to-indigo-600 text-white font-medium text-sm shadow-sm hover:from-purple-700 hover:to-indigo-700 transition-all cursor-pointer"
           >
             <Sparkles :size="16" />
-            <span>Thử tìm bằng AI Ngữ nghĩa (TF-IDF)</span>
+            <span>Thử tìm bằng Tìm kiếm AI</span>
           </button>
         </div>
       </div>
@@ -331,7 +311,7 @@ const tabs = [
         <div class="p-6 bg-linear-to-br from-primary-50/50 via-white to-indigo-50/30 dark:from-surface-800 dark:via-surface-850 dark:to-surface-800 rounded-3xl border border-primary-100 dark:border-surface-700">
           <div class="flex items-center gap-2 mb-3">
             <TrendingUp :size="18" class="text-primary-600 dark:text-primary-400" />
-            <h3 class="font-bold text-gray-900 dark:text-white text-base">Từ khóa nổi bật & Gợi ý AI</h3>
+            <h3 class="font-bold text-gray-900 dark:text-white text-base">Từ khóa nổi bật & Gợi ý</h3>
           </div>
           <div class="flex flex-wrap gap-2">
             <button
