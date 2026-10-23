@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { MessageCircle, Search as SearchIcon, Edit } from '@lucide/vue'
-import { mockConversations } from '@/data/mockData'
 import type { ChatConversation } from '@/types'
+import chatApi from '@/api/chat.api'
+import { useAuthStore } from '@/stores/auth.store'
+import { mockConversations } from '@/data/mockData'
 
 const props = defineProps<{
   showChat: boolean
@@ -15,16 +17,53 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const authStore = useAuthStore()
 const searchQuery = ref('')
 const triggerRef = ref<HTMLElement | null>(null)
+const liveConversations = ref<ChatConversation[]>([])
+
+async function loadConversations() {
+  if (!authStore.isLoggedIn) {
+    liveConversations.value = []
+    return
+  }
+  try {
+    const { data } = await chatApi.getConversations()
+    if (data && data.data && data.data.length > 0) {
+      liveConversations.value = data.data
+    } else {
+      liveConversations.value = []
+    }
+  } catch (e) {
+    console.warn('Could not load navbar conversations', e)
+  }
+}
+
+onMounted(() => {
+  loadConversations()
+})
+
+watch(() => props.showChat, (isOpen) => {
+  if (isOpen) {
+    loadConversations()
+  }
+})
+
+// Use live conversations if logged in and available; otherwise fallback cleanly
+const displayedConversations = computed(() => {
+  if (authStore.isLoggedIn && liveConversations.value.length > 0) {
+    return liveConversations.value
+  }
+  return authStore.isLoggedIn ? liveConversations.value : mockConversations
+})
 
 const totalUnread = computed(() =>
-  mockConversations.reduce((sum, c) => sum + c.unreadCount, 0)
+  displayedConversations.value.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
 )
 
 const filteredConversations = computed(() => {
-  if (!searchQuery.value) return mockConversations
-  return mockConversations.filter(c =>
+  if (!searchQuery.value) return displayedConversations.value
+  return displayedConversations.value.filter(c =>
     c.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
@@ -51,7 +90,11 @@ function handleChatClick() {
 
 function selectConversation(conv: ChatConversation) {
   conv.unreadCount = 0
-  emit('openChatWindow', conv)
+  if (window.innerWidth < 640) {
+    router.push('/chat')
+  } else {
+    emit('openChatWindow', conv)
+  }
   emit('update:showChat', false)
 }
 </script>
@@ -78,7 +121,7 @@ function selectConversation(conv: ChatConversation) {
         <div
           v-if="showChat"
           :style="dropdownStyle"
-          class="w-80 bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-surface-700 overflow-hidden z-[9999]"
+          class="w-80 bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-surface-700 overflow-hidden z-9999"
         >
           <!-- Header -->
           <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-surface-700">
@@ -124,11 +167,11 @@ function selectConversation(conv: ChatConversation) {
                 />
               </div>
               <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between">
-                  <p :class="['text-sm truncate', conv.unreadCount > 0 ? 'font-bold text-gray-900 dark:text-white' : 'font-medium text-gray-700 dark:text-gray-300']">
+                <div class="flex items-center justify-between gap-2">
+                  <p :class="['text-sm truncate min-w-0', conv.unreadCount > 0 ? 'font-bold text-gray-900 dark:text-white' : 'font-medium text-gray-700 dark:text-gray-300']">
                     {{ conv.name }}
                   </p>
-                  <span class="text-xs text-gray-400 shrink-0 ml-2">{{ conv.lastMessageTime }}</span>
+                  <span class="text-xs text-gray-400 shrink-0">{{ conv.lastMessageTime }}</span>
                 </div>
                 <p :class="['text-xs truncate mt-0.5', conv.unreadCount > 0 ? 'font-semibold text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400']">
                   {{ conv.lastMessage }}

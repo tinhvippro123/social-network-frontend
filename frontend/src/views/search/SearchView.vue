@@ -14,6 +14,7 @@ import {
 } from '@lucide/vue'
 import { useSearch } from '@/composables/core/useSearch'
 import { usePosts } from '@/composables/posts/usePosts'
+import { useUiStore } from '@/stores/ui.store'
 import usersApi from '@/api/users.api'
 import type { UserSummary } from '@/types'
 import PostCard from '@/components/PostCard.vue'
@@ -23,6 +24,7 @@ import SearchUserItem from './components/SearchUserItem.vue'
 
 const route = useRoute()
 const router = useRouter()
+const uiStore = useUiStore()
 
 // Omni-Search states
 const query = ref((route.query.q as string) || '')
@@ -61,10 +63,26 @@ const trendingSuggestions = [
   'An toàn thông tin'
 ]
 
+function checkPendingFile(): boolean {
+  if (uiStore.pendingSearchFile) {
+    const pending = uiStore.consumePendingSearchFile()
+    if (pending) {
+      handleSelectFile(pending.file, pending.type)
+      return true
+    }
+  }
+  return false
+}
+
 onMounted(async () => {
   // Fetch initial posts & users in background
   fetchPosts()
   fetchUsers()
+
+  // Prioritize pending file upload from navbar if any
+  if (checkPendingFile()) {
+    return
+  }
 
   // Execute search if route has query
   if (route.query.q) {
@@ -73,6 +91,13 @@ onMounted(async () => {
       textMode.value = 'semantic'
     }
     executeSearch()
+  }
+})
+
+// Watch for pending file if user triggers image upload from navbar while already on /search
+watch(() => uiStore.pendingSearchFile, (newFile) => {
+  if (newFile) {
+    checkPendingFile()
   }
 })
 
@@ -266,8 +291,8 @@ const tabs = [
     <!-- TAB 1: POSTS -->
     <div v-if="activeTab === 'posts'">
       <!-- Loading Skeleton -->
-      <div v-if="isSearching" class="space-y-4">
-        <div v-for="i in 3" :key="i" class="p-6 bg-white dark:bg-surface-800 rounded-3xl border border-gray-100 dark:border-surface-700 space-y-4">
+      <div v-if="isSearching" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div v-for="i in 4" :key="i" class="p-6 bg-white dark:bg-surface-800 rounded-3xl border border-gray-100 dark:border-surface-700 space-y-4">
           <div class="flex items-center gap-3">
             <Skeleton type="avatar" size="md" />
             <div class="space-y-1.5 flex-1">
@@ -281,7 +306,7 @@ const tabs = [
       </div>
 
       <!-- Results found from Search -->
-      <div v-else-if="hasActiveSearch && results.length > 0" class="space-y-4">
+      <div v-else-if="hasActiveSearch && results.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PostCard v-for="post in results" :key="post.id" :post="post" />
       </div>
 
@@ -335,8 +360,8 @@ const tabs = [
             </h3>
           </div>
 
-          <div v-if="isLoadingInitial" class="space-y-4">
-            <div v-for="i in 3" :key="i" class="p-6 bg-white dark:bg-surface-800 rounded-3xl border border-gray-100 dark:border-surface-700 space-y-4">
+          <div v-if="isLoadingInitial" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div v-for="i in 4" :key="i" class="p-6 bg-white dark:bg-surface-800 rounded-3xl border border-gray-100 dark:border-surface-700 space-y-4">
               <div class="flex items-center gap-3">
                 <Skeleton type="avatar" size="md" />
                 <div class="space-y-1.5 flex-1">
@@ -346,7 +371,7 @@ const tabs = [
               <Skeleton type="text" class="w-3/4 h-5" />
             </div>
           </div>
-          <div v-else-if="initialPosts.length > 0" class="space-y-4">
+          <div v-else-if="initialPosts.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <PostCard v-for="post in initialPosts" :key="post.id" :post="post" />
           </div>
         </div>

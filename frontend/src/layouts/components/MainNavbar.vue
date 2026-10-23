@@ -1,14 +1,16 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import {
   SearchIcon, MenuIcon, X,
-  ChevronLeft, ChevronRight, PenSquare
+  ChevronLeft, ChevronRight, PenSquare,
+  Camera, Sparkles
 } from '@lucide/vue'
 import MainNavbarNotifications from './MainNavbarNotifications.vue'
 import MainNavbarUserMenu from './MainNavbarUserMenu.vue'
 import MainNavbarChat from './MainNavbarChat.vue'
 import type { ChatConversation } from '@/types'
 
-defineProps<{
+const props = defineProps<{
   user: any
   uiStore: any
   showNotifications: boolean
@@ -24,6 +26,26 @@ const emit = defineEmits<{
   (e: 'logout'): void
   (e: 'openChatWindow', conv: ChatConversation): void
 }>()
+
+const navbarImageInput = ref<HTMLInputElement | null>(null)
+
+function handleSearchSubmit() {
+  const q = props.uiStore.searchQuery?.trim()
+  if (q) {
+    emit('navigate', `/search?q=${encodeURIComponent(q)}`)
+  } else {
+    emit('navigate', '/search')
+  }
+}
+
+function onNavbarImagePicked(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files[0]) {
+    props.uiStore.setPendingSearchFile(target.files[0], 'image')
+    emit('navigate', '/search')
+    target.value = ''
+  }
+}
 </script>
 
 <template>
@@ -50,25 +72,61 @@ const emit = defineEmits<{
       </button>
 
       <!-- Search Bar -->
-      <div class="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-4 py-2 w-64 lg:w-96 transition-all duration-200 focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:bg-white dark:focus-within:bg-surface-600">
-        <SearchIcon :size="18" class="text-gray-400 shrink-0" />
+      <div class="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-3 py-1.5 w-64 lg:w-96 transition-all duration-200 focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:bg-white dark:focus-within:bg-surface-600">
+        <button
+          type="button"
+          @click="handleSearchSubmit"
+          class="text-gray-400 hover:text-primary-500 transition-colors shrink-0 cursor-pointer"
+          title="Tìm kiếm"
+        >
+          <SearchIcon :size="18" />
+        </button>
         <input
           v-model="uiStore.searchQuery"
-          @keydown.enter="uiStore.searchQuery.trim() && emit('navigate', `/search?q=${encodeURIComponent(uiStore.searchQuery.trim())}`)"
+          @keydown.enter="handleSearchSubmit"
           type="text"
-          placeholder="Tìm kiếm bài viết, người dùng..."
+          placeholder="Tìm kiếm bài viết, người dùng, AI..."
           class="bg-transparent border-none outline-none text-sm w-full text-gray-700 dark:text-gray-200 placeholder-gray-400"
         />
-        <kbd class="hidden lg:inline-flex items-center px-2 py-0.5 text-xs font-mono text-gray-400 bg-gray-200 dark:bg-surface-600 rounded">
-          ⌘K
-        </kbd>
+        <!-- Image search button directly in Navbar -->
+        <button
+          type="button"
+          @click="navbarImageInput?.click()"
+          class="p-1 rounded-lg text-gray-400 hover:text-primary-500 hover:bg-gray-200 dark:hover:bg-surface-600 transition-colors shrink-0 cursor-pointer"
+          title="Tìm kiếm bằng hình ảnh (AI)"
+        >
+          <Camera :size="16" />
+        </button>
+        <!-- AI Badge button -->
+        <button
+          type="button"
+          @click="emit('navigate', '/search')"
+          class="hidden lg:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors shrink-0"
+          title="Mở trang tìm kiếm AI"
+        >
+          <Sparkles :size="12" />
+          <span>AI</span>
+        </button>
       </div>
+
+      <!-- Hidden file input for image search -->
+      <input
+        ref="navbarImageInput"
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        class="hidden"
+        @change="onNavbarImagePicked"
+      />
     </div>
 
     <!-- Right: Actions -->
     <div class="flex items-center gap-2">
       <!-- Mobile search -->
-      <button class="sm:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+      <button
+        @click="emit('navigate', '/search')"
+        class="sm:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+        title="Tìm kiếm AI"
+      >
         <SearchIcon :size="20" />
       </button>
 

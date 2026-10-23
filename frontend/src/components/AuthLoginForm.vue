@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from '@lucide/vue'
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, User } from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
 import authApi from '@/api/auth.api'
@@ -16,6 +16,16 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const emailError = ref('')
 const passwordError = ref('')
+
+function fillDemo(role: 'admin' | 'user') {
+  if (role === 'admin') {
+    email.value = 'admin@vietblog.com'
+    password.value = 'Password123!'
+  } else {
+    email.value = 'nguyenvanan@gmail.com'
+    password.value = 'Password123!'
+  }
+}
 
 const emit = defineProps<{
   error?: string
@@ -63,6 +73,10 @@ async function handleLogin() {
     authStore.setToken(data.data.accessToken)
     authStore.setUser(data.data.user)
     uiStore.closeAuthModal()
+    const role = (data.data.user?.role || '').toLowerCase()
+    if (role === 'admin') {
+      router.push('/admin')
+    }
   } catch (err: any) {
     emitError('update:error', err.response?.data?.message || 'Email hoặc mật khẩu không chính xác')
   } finally {
@@ -126,6 +140,36 @@ async function handleLogin() {
       >
         Quên mật khẩu?
       </button>
+    </div>
+
+    <!-- Quick Demo Accounts -->
+    <div class="pt-2 border-t border-white/10">
+      <div class="text-[11px] text-gray-400 mb-1.5 font-medium">Tài khoản demo sẵn (Bấm để điền nhanh):</div>
+      <div class="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          @click="fillDemo('admin')"
+          class="p-2 rounded-xl text-left border border-purple-500/30 bg-purple-950/30 hover:bg-purple-900/40 transition-colors"
+        >
+          <div class="font-semibold text-xs text-purple-300 flex items-center gap-1">
+            <ShieldCheck :size="12" />
+            <span>Admin</span>
+          </div>
+          <div class="text-[10px] text-gray-400 font-mono truncate">admin@vietblog.com</div>
+        </button>
+
+        <button
+          type="button"
+          @click="fillDemo('user')"
+          class="p-2 rounded-xl text-left border border-blue-500/30 bg-blue-950/30 hover:bg-blue-900/40 transition-colors"
+        >
+          <div class="font-semibold text-xs text-blue-300 flex items-center gap-1">
+            <User :size="12" />
+            <span>User</span>
+          </div>
+          <div class="text-[10px] text-gray-400 font-mono truncate">nguyenvanan@gmail.com</div>
+        </button>
+      </div>
     </div>
 
     <!-- Submit -->

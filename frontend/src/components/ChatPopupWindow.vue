@@ -154,7 +154,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-82 bg-white dark:bg-surface-800 rounded-t-xl shadow-2xl border border-b-0 border-gray-200 dark:border-surface-700 flex flex-col" style="height: 455px;">
+  <div class="w-84.5 bg-white dark:bg-surface-800 rounded-t-xl shadow-2xl border border-b-0 border-gray-200 dark:border-surface-700 flex flex-col" style="height: 455px;">
     <!-- Header -->
     <div class="relative z-50 header-menu-container">
       <div class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-surface-800 border-b border-gray-200 dark:border-surface-700 shrink-0 rounded-t-xl">
@@ -191,6 +191,8 @@ onMounted(() => {
     <!-- Messages -->
     <div
       ref="messageContainer"
+      @click="activeMessageAction = null"
+      @scroll="activeMessageAction = null"
       class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1.5 chat-messages relative z-0"
     >
       <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center py-8">
@@ -204,7 +206,7 @@ onMounted(() => {
         :key="msg.id"
         :class="['flex', msg.isOwn ? 'justify-end' : 'justify-start']"
       >
-        <div :class="['max-w-[75%] flex gap-1.5 items-end relative group/bubble', msg.isOwn ? 'flex-row-reverse' : '']">
+        <div :class="['max-w-[calc(100%-86px)] flex gap-1.5 items-end relative group/bubble', msg.isOwn ? 'flex-row-reverse' : '']">
           <img v-if="!msg.isOwn" :src="msg.sender.avatar" class="w-6 h-6 rounded-full object-cover shrink-0" />
           <div class="relative flex items-center min-w-0" :class="msg.isOwn ? 'flex-row-reverse' : ''">
             <div>

@@ -79,6 +79,16 @@ export function usePostDetail() {
 
   onMounted(async () => {
     await initData()
+    if (route.hash) {
+      setTimeout(() => {
+        const el = document.querySelector(route.hash)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          el.classList.add('ring-2', 'ring-primary-500', 'transition-all')
+          setTimeout(() => el.classList.remove('ring-2', 'ring-primary-500'), 2500)
+        }
+      }, 400)
+    }
   })
 
   const toggleBookmark = async () => {

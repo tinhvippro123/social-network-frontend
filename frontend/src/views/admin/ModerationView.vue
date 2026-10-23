@@ -5,6 +5,7 @@ import { useModeration } from '@/composables/core/useModeration'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import ModerationReportItem from './components/ModerationReportItem.vue'
 import ModerationSkeletonItem from './components/ModerationSkeletonItem.vue'
+import ModerationSentimentWidget from './components/ModerationSentimentWidget.vue'
 
 const {
   extendedReports,
@@ -37,6 +38,9 @@ const {
         </button>
       </template>
     </AdminPageHeader>
+
+    <!-- AI Sentiment Analysis Widget -->
+    <ModerationSentimentWidget />
 
     <!-- Reports -->
     <div class="space-y-4">

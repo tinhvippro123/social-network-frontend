@@ -31,9 +31,10 @@ export function useAuth() {
       authStore.setUser(data.data.user)
 
       const redirectUrl = route.query.redirect as string
+      const userRole = (data.data.user.role || '').toLowerCase()
       if (redirectUrl) {
         router.push(redirectUrl)
-      } else if (data.data.user.role === 'admin') {
+      } else if (userRole === 'admin') {
         router.push('/admin')
       } else {
         router.push('/')
@@ -49,9 +50,10 @@ export function useAuth() {
       authStore.setUser(data.data.user)
 
       const redirectUrl = route.query.redirect as string
+      const userRole = (data.data.user.role || '').toLowerCase()
       if (redirectUrl) {
         router.push(redirectUrl)
-      } else if (data.data.user.role === 'admin') {
+      } else if (userRole === 'admin') {
         router.push('/admin')
       } else {
         router.push('/')

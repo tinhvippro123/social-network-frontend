@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { Sun, Moon } from '@lucide/vue'
+import { Sun, Moon, Shield } from '@lucide/vue'
 import { NAV_ITEMS } from '@/constants/ui'
+import { useAuthStore } from '@/stores/auth.store'
+
+const authStore = useAuthStore()
 
 defineProps<{
   isMobile: boolean
@@ -67,6 +70,23 @@ const emit = defineEmits<{
           v-if="currentPath === item.to"
           class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse-glow"
         />
+      </button>
+
+      <!-- Admin link if user is admin -->
+      <button
+        v-if="authStore.isAdmin"
+        @click="emit('navigate', '/admin')"
+        :class="[
+          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group border mt-3',
+          currentPath.startsWith('/admin')
+            ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20 border-purple-500'
+            : 'text-purple-600 dark:text-purple-400 bg-purple-50/60 dark:bg-purple-950/25 border-purple-200 dark:border-purple-800/50 hover:bg-purple-100 dark:hover:bg-purple-900/40'
+        ]"
+      >
+        <Shield :size="20" class="shrink-0 transition-transform duration-200 group-hover:scale-110" />
+        <transition name="fade">
+          <span v-if="isSidebarOpen || isMobile" class="whitespace-nowrap">Trang quản trị</span>
+        </transition>
       </button>
     </nav>
 

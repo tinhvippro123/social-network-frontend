@@ -1,10 +1,11 @@
 import {
   Home, TrendingUp, Bookmark, PenSquare, Users, MessageCircle, MapPin,
-  User, Lock, Palette, Bell, Shield
+  User, Lock, Palette, Bell, Shield, Sparkles
 } from '@lucide/vue'
 
 export const NAV_ITEMS = [
   { icon: Home, label: 'Trang chủ', to: '/' },
+  { icon: Sparkles, label: 'Tìm kiếm AI', to: '/search' },
   { icon: TrendingUp, label: 'Thịnh hành', to: '/trending' },
   { icon: Bookmark, label: 'Đã lưu', to: '/bookmarks' },
   { icon: PenSquare, label: 'Viết bài', to: '/posts/create' },

@@ -495,78 +495,97 @@ export const mockGroups: Group[] = [
 // ---- Chat ----
 export const mockConversations: ChatConversation[] = [
   {
-    id: 'conv1', name: 'Nguyễn Văn An', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=an',
-    lastMessage: 'Bạn đã xong phần frontend chưa?', lastMessageTime: '10:30', unreadCount: 2,
+    id: 'conv1', name: 'Nhóm Đồ án Chuyên ngành VietBlog 2026', avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=vietblog-grad',
+    lastMessage: 'Admin: Rất xuất sắc! Chúc các em đạt kết quả cao nhất! 🎉', lastMessageTime: '10:35', unreadCount: 3,
+    isGroup: true, isOnline: true, isPinned: true, isMuted: false, participants: mockUsers
+  },
+  {
+    id: 'conv2', name: 'Nguyễn Văn An', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=an',
+    lastMessage: 'Dạ vâng thầy, em gửi link demo ngay đây ạ!', lastMessageTime: '10:30', unreadCount: 0,
     isGroup: false, isOnline: true, isPinned: true, isMuted: false, participants: [mockUsers[0], mockUsers[1]]
   },
   {
-    id: 'conv2', name: 'Vietnam Developers', avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=vndev',
-    lastMessage: 'Phạm Tuấn: Có ai biết cách fix lỗi CORS không?', lastMessageTime: '09:45', unreadCount: 5,
-    isGroup: true, isOnline: false, isPinned: false, isMuted: false, participants: [mockUsers[0], mockUsers[1], mockUsers[3]]
+    id: 'conv3', name: '🔥 Vietnam Developers (Fullstack)', avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=vndev',
+    lastMessage: 'Trọng: Cụm Docker PostgreSQL và Redis chạy latency dưới 10ms!', lastMessageTime: '09:45', unreadCount: 5,
+    isGroup: true, isOnline: false, isPinned: false, isMuted: false, participants: [mockUsers[0], mockUsers[1], mockUsers[2], mockUsers[3], mockUsers[4]]
   },
   {
-    id: 'conv3', name: 'Trần Thị Mai', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=mai',
-    lastMessage: 'Mình gửi bạn file design nha', lastMessageTime: 'Hôm qua', unreadCount: 0,
-    isGroup: false, isOnline: false, isPinned: false, isMuted: true, participants: [mockUsers[0], mockUsers[2]]
+    id: 'conv4', name: 'Trần Đình Trọng', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=trong',
+    lastMessage: 'Tối nay rảnh vào làm ván game xả stress nhé! 🎮', lastMessageTime: '09:15', unreadCount: 1,
+    isGroup: false, isOnline: true, isPinned: false, isMuted: false, participants: [mockUsers[0], mockUsers[3]]
   },
   {
-    id: 'conv4', name: 'Nhóm ĐACN', avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=hcmunre',
-    lastMessage: 'Thầy: Các em nhớ nộp báo cáo tuần này nha', lastMessageTime: 'Hôm qua', unreadCount: 0,
+    id: 'conv5', name: '🎨 CLB UI/UX & Frontend HCMUNRE', avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=uiuxclub',
+    lastMessage: 'Trang: Design system mới bo góc rounded-2xl rất xịn!', lastMessageTime: 'Hôm qua', unreadCount: 0,
+    isGroup: true, isOnline: false, isPinned: false, isMuted: false, participants: [mockUsers[0], mockUsers[1], mockUsers[2], mockUsers[5]]
+  },
+  {
+    id: 'conv6', name: 'Nguyễn Thu Trang', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=mai',
+    lastMessage: 'Icon reaction 3 chấm trên thanh chat hôm nay nhìn ưng ý chưa?', lastMessageTime: 'Hôm qua', unreadCount: 0,
+    isGroup: false, isOnline: false, isPinned: false, isMuted: false, participants: [mockUsers[0], mockUsers[2]]
+  },
+  {
+    id: 'conv7', name: '💡 Nhóm Nghiên cứu AI & NLP tiếng Việt', avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=ainlp',
+    lastMessage: 'Khoa: Phân tích cảm xúc Lexicon nhận diện từ lóng rất chuẩn xác!', lastMessageTime: 'Hôm qua', unreadCount: 0,
     isGroup: true, isOnline: false, isPinned: false, isMuted: false, participants: mockUsers
   }
 ]
 
 export const mockMessages: ChatMessage[] = [
   {
-    id: 'm1', content: 'Chào bạn! Mình muốn hỏi về phần REST API', sender: mockUsers[1], createdAt: '10:15', isOwn: false, type: 'text', status: 'read',
-    readBy: [{ user: mockUsers[0], readAt: '10:16' }]
+    id: 'm1', content: 'Chào cả nhóm! Tuần này chúng ta tổng duyệt toàn bộ tính năng của đồ án VietBlog trước buổi bảo vệ nhé.', sender: mockUsers[0], createdAt: '09:00', isOwn: true, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[1], readAt: '09:01' }, { user: mockUsers[2], readAt: '09:02' }, { user: mockUsers[3], readAt: '09:03' }]
   },
   {
-    id: 'm2', content: 'Chào bạn! Bạn hỏi đi, mình sẽ giúp 😊', sender: mockUsers[0], createdAt: '10:18', isOwn: true, type: 'text', status: 'read',
-    readBy: [{ user: mockUsers[1], readAt: '10:19' }]
+    id: 'm2', content: 'Dạ vâng thầy/admin! Nhóm em đã chuẩn bị đầy đủ slide, demo tính năng và báo cáo chi tiết Word theo đúng chuẩn HCMUNRE ạ.', sender: mockUsers[1], createdAt: '09:05', isOwn: false, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[0], readAt: '09:06' }],
+    reactions: [{ emoji: '👍', userId: 'u1', userName: 'Admin System' }]
   },
   {
-    id: 'm3', content: 'Mình đang implement phần authentication, bạn có recommend dùng JWT hay Session-based không?', sender: mockUsers[1], createdAt: '10:20', isOwn: false, type: 'text', status: 'read',
-    readBy: [{ user: mockUsers[0], readAt: '10:20' }]
+    id: 'm3', content: 'Giao diện và trải nghiệm người dùng responsive từ mobile đến desktop đều đã được tối ưu chỉn chu, bảng màu HSL và Dark Mode rất dịu mắt.', sender: mockUsers[2], createdAt: '09:10', isOwn: false, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[0], readAt: '09:12' }]
   },
   {
-    id: 'm4', content: 'Theo mình nên dùng JWT cho REST API vì nó stateless, phù hợp với microservices. Còn nếu monolith thì Session cũng ổn.', sender: mockUsers[0], createdAt: '10:22', isOwn: true, type: 'text', status: 'read',
-    readBy: [{ user: mockUsers[1], readAt: '10:23' }],
-    reactions: [{ emoji: '👍', userId: 'u2', userName: 'Nguyễn Văn An' }]
+    id: 'm4', content: 'Phần backend Spring Boot 4, kiến trúc Clean Architecture và caching Redis cũng đã pass 100% test, latency trung bình chỉ dưới 15ms.', sender: mockUsers[3], createdAt: '09:15', isOwn: false, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[0], readAt: '09:16' }],
+    reactions: [{ emoji: '🔥', userId: 'u2', userName: 'Nguyễn Văn An' }]
   },
   {
-    id: 'm5', content: '', sender: mockUsers[0], createdAt: '10:24', isOwn: true, type: 'image', status: 'read',
-    imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80',
-    readBy: [{ user: mockUsers[1], readAt: '10:24' }]
+    id: 'm5', content: 'Mình vừa bổ sung sơ đồ kiến trúc hệ thống và luồng xác thực Google OAuth 2.0 vào tài liệu này nè mọi người:', sender: mockUsers[0], createdAt: '09:20', isOwn: true, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[1], readAt: '09:22' }]
   },
   {
-    id: 'm6', content: 'Tuyệt vời! Cảm ơn bạn nhiều nha 🙏', sender: mockUsers[1], createdAt: '10:25', isOwn: false, type: 'text', status: 'read',
-    readBy: [{ user: mockUsers[0], readAt: '10:25' }],
-    replyTo: { id: 'm4', content: 'Theo mình nên dùng JWT cho REST API vì nó stateless...', senderName: 'Lê Thanh Tính' }
+    id: 'm6', content: '', sender: mockUsers[0], createdAt: '09:21', isOwn: true, type: 'image', status: 'read',
+    imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&q=80',
+    readBy: [{ user: mockUsers[1], readAt: '09:22' }, { user: mockUsers[2], readAt: '09:23' }]
   },
   {
-    id: 'm7', content: '', sender: mockUsers[1], createdAt: '10:28', isOwn: false, type: 'file', status: 'read',
-    fileName: 'project-requirements.pdf', fileSize: '2.4 MB',
-    readBy: [{ user: mockUsers[0], readAt: '10:28' }]
+    id: 'm7', content: 'Sơ đồ vẽ trực quan và chi tiết quá thầy ơi! 🙏', sender: mockUsers[1], createdAt: '09:25', isOwn: false, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[0], readAt: '09:26' }],
+    replyTo: { id: 'm6', content: '[Hình ảnh sơ đồ kiến trúc]', senderName: 'Admin System' }
   },
   {
-    id: 'm8', content: 'Bạn đã xong phần frontend chưa?', sender: mockUsers[1], createdAt: '10:30', isOwn: false, type: 'text', status: 'read',
-    readBy: [{ user: mockUsers[0], readAt: '10:30' }]
+    id: 'm8', content: '', sender: mockUsers[1], createdAt: '09:28', isOwn: false, type: 'file', status: 'read',
+    fileName: 'Bao_Cao_Chuyen_Nganh_VietBlog_2026.pdf', fileSize: '4.8 MB',
+    readBy: [{ user: mockUsers[0], readAt: '09:29' }]
   },
   {
-    id: 'm9', content: 'Gần xong rồi, đang polish UI thêm 🚀', sender: mockUsers[0], createdAt: '10:32', isOwn: true, type: 'text', status: 'read',
-    readBy: [
-      { user: mockUsers[1], readAt: '10:33' },
-      { user: mockUsers[2], readAt: '10:33' },
-      { user: mockUsers[3], readAt: '10:34' },
-      { user: mockUsers[4], readAt: '10:35' }
-    ]
+    id: 'm9', content: 'Giải thuật TextRank tóm tắt tự động và Sentiment Analysis phân tích cảm xúc bình luận hoạt động rất chính xác với bộ từ điển tiếng Việt mới cập nhật.', sender: mockUsers[4], createdAt: '09:32', isOwn: false, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[0], readAt: '09:33' }]
+  },
+  {
+    id: 'm10', content: 'Tầm 14h chiều mai nhóm mình họp online một buổi để dợt thử thuyết trình demo toàn bộ luồng nhé mọi người!', sender: mockUsers[1], createdAt: '09:35', isOwn: false, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[0], readAt: '09:36' }],
+    reactions: [{ emoji: '🎉', userId: 'u1', userName: 'Admin System' }, { emoji: '❤️', userId: 'u3', userName: 'Trần Thị Mai' }]
+  },
+  {
+    id: 'm11', content: 'Rất xuất sắc! Thầy đánh giá rất cao tinh thần làm việc nhóm và chất lượng sản phẩm của các em. Chúc nhóm đạt điểm 10 tuyệt đối! 🎉🚀', sender: mockUsers[0], createdAt: '09:40', isOwn: true, type: 'text', status: 'read',
+    readBy: [{ user: mockUsers[1], readAt: '09:41' }, { user: mockUsers[2], readAt: '09:41' }, { user: mockUsers[3], readAt: '09:42' }]
   },
   // --- Mock data to test "Xem tất cả" ---
   ...Array.from({ length: 11 }).map((_, i) => {
-    // Generate dates spread across last 3 months
     const date = new Date()
-    date.setDate(date.getDate() - (i * 15)) // Every 15 days ago
+    date.setDate(date.getDate() - (i * 15))
     return {
       id: `m_img_${i}`, content: '', sender: mockUsers[0], createdAt: date.toISOString(), isOwn: true, type: 'image' as const, status: 'read' as const,
       imageUrl: `https://picsum.photos/seed/chatimg${i}/400/400`,
@@ -575,7 +594,7 @@ export const mockMessages: ChatMessage[] = [
   }),
   ...Array.from({ length: 7 }).map((_, i) => {
     const date = new Date()
-    date.setDate(date.getDate() - (i * 20)) // Every 20 days ago
+    date.setDate(date.getDate() - (i * 20))
     return {
       id: `m_file_${i}`, content: '', sender: mockUsers[1], createdAt: date.toISOString(), isOwn: false, type: 'file' as const, status: 'read' as const,
       fileName: `tai_lieu_tham_khao_${i + 1}.pdf`, fileSize: `${(Math.random() * 5 + 1).toFixed(1)} MB`,

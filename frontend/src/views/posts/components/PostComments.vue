@@ -63,7 +63,7 @@ const cancelInlineReply = () => {
 </script>
 
 <template>
-  <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
+  <div id="comments" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6 scroll-mt-20">
     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
       <MessageCircle :size="20" class="text-primary-500" />
       Bình luận ({{ comments.length }})
@@ -87,6 +87,7 @@ const cancelInlineReply = () => {
     <div class="space-y-5">
       <CommentItem
         v-for="comment in comments"
+        :id="'comment-' + comment.id"
         :key="comment.id"
         :comment="comment"
         :level="0"

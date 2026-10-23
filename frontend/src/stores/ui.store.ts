@@ -64,6 +64,17 @@ export const useUiStore = defineStore('ui', () => {
   // ── Search UI ──────────────────────────────
   const searchQuery = ref('')
   const isSearchOpen = ref(false)
+  const pendingSearchFile = ref<{ file: File; type: 'image' | 'document' } | null>(null)
+
+  function setPendingSearchFile(file: File, type: 'image' | 'document') {
+    pendingSearchFile.value = { file, type }
+  }
+
+  function consumePendingSearchFile() {
+    const item = pendingSearchFile.value
+    pendingSearchFile.value = null
+    return item
+  }
 
   // ── Auth Modal ──────────────────────────────
   const showAuthModal = ref(false)
@@ -86,7 +97,7 @@ export const useUiStore = defineStore('ui', () => {
     // Notifications
     notifications, unreadCount, markNotificationRead, markAllRead,
     // Search
-    searchQuery, isSearchOpen,
+    searchQuery, isSearchOpen, pendingSearchFile, setPendingSearchFile, consumePendingSearchFile,
     fetchNotifications,
     // Auth Modal
     showAuthModal, authModalTab, openAuthModal, closeAuthModal,

@@ -5,8 +5,11 @@ import {
 } from '@lucide/vue'
 import type { Post } from '@/types'
 
+import { useRouter } from 'vue-router'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatRelativeTime, formatNumber } from '@/utils/formatters'
+
+const router = useRouter()
 
 const props = defineProps<{
   post: Post
@@ -19,7 +22,13 @@ const emit = defineEmits<{
   (e: 'toggle-bookmark', postId: string): void
 }>()
 
-const handleBookmark = () => {
+const handleClick = () => {
+  emit('click', props.post.id)
+  router.push(`/posts/${props.post.id}`)
+}
+
+const handleBookmark = (e: Event) => {
+  e.stopPropagation()
   emit('bookmark', props.post.id)
   emit('toggleBookmark', props.post.id)
   emit('toggle-bookmark', props.post.id)
@@ -28,7 +37,7 @@ const handleBookmark = () => {
 
 <template>
   <article
-    @click="emit('click', post.id)"
+    @click="handleClick"
     class="group h-full flex flex-col bg-white dark:bg-surface-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 dark:hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer"
   >
     <!-- Cover Image -->
@@ -39,7 +48,7 @@ const handleBookmark = () => {
         :alt="post.title"
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
-      <div v-else class="w-full h-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 transition-transform duration-500 group-hover:scale-105 flex items-center justify-center">
+      <div v-else class="w-full h-full bg-linear-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 transition-transform duration-500 group-hover:scale-105 flex items-center justify-center">
         <span class="text-primary-300 dark:text-primary-700/50 opacity-50">
           <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -80,7 +89,7 @@ const handleBookmark = () => {
       </h2>
 
       <!-- Excerpt -->
-      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1 break-words">
+      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1 wrap-break-word">
         {{ post.excerpt }}
       </p>
 

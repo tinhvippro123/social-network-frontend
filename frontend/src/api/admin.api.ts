@@ -69,6 +69,10 @@ const adminApi = {
   dismissReport: (reportId: string) =>
     http.patch<ApiResponse<any>>(`/admin/reports/${reportId}/dismiss`),
 
+  // ── Sentiment Analysis (AI/NLP) ───────────
+  getSentimentStats: () =>
+    http.get<ApiResponse<{ positive: number; negative: number; neutral: number }>>('/moderation/sentiment'),
+
   // ── Categories ────────────────────────────
   getCategories: () =>
     http.get<ApiResponse<any[]>>('/categories'),

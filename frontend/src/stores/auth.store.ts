@@ -10,8 +10,14 @@ export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref<string | null>(null)
 
   const isLoggedIn = computed(() => !!user.value)
-  const isAdmin = computed(() => user.value?.role === 'admin')
-  const isModerator = computed(() => user.value?.role === 'moderator' || isAdmin.value)
+  const isAdmin = computed(() => {
+    const role = (user.value?.role || '').toLowerCase()
+    return role === 'admin'
+  })
+  const isModerator = computed(() => {
+    const role = (user.value?.role || '').toLowerCase()
+    return role === 'moderator' || isAdmin.value
+  })
 
   function setUser(newUser: User | null) {
     user.value = newUser

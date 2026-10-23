@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from '@lucide/vue'
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, User } from '@lucide/vue'
 import AuthSocialLogin from './components/AuthSocialLogin.vue'
 import { useLogin } from '@/composables/auth/useLogin'
 
@@ -13,6 +13,16 @@ const {
   rememberMe,
   handleLogin
 } = useLogin()
+
+function fillDemo(role: 'admin' | 'user') {
+  if (role === 'admin') {
+    email.value = 'admin@vietblog.com'
+    password.value = 'Password123!'
+  } else {
+    email.value = 'nguyenvanan@gmail.com'
+    password.value = 'Password123!'
+  }
+}
 </script>
 
 <template>
@@ -93,6 +103,36 @@ const {
         </template>
       </button>
     </form>
+
+    <!-- Quick Demo Accounts -->
+    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-white/10">
+      <div class="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">Tài khoản demo sẵn (Bấm để điền nhanh):</div>
+      <div class="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          @click="fillDemo('admin')"
+          class="p-2.5 rounded-xl text-left border border-purple-200 dark:border-purple-800/40 bg-purple-50/60 dark:bg-purple-950/20 hover:bg-purple-100/80 transition-colors"
+        >
+          <div class="font-semibold text-xs text-purple-700 dark:text-purple-300 flex items-center gap-1">
+            <ShieldCheck :size="13" />
+            <span>Quản trị viên (Admin)</span>
+          </div>
+          <div class="text-[11px] text-gray-500 font-mono mt-0.5 truncate">admin@vietblog.com</div>
+        </button>
+
+        <button
+          type="button"
+          @click="fillDemo('user')"
+          class="p-2.5 rounded-xl text-left border border-blue-200 dark:border-blue-800/40 bg-blue-50/60 dark:bg-blue-950/20 hover:bg-blue-100/80 transition-colors"
+        >
+          <div class="font-semibold text-xs text-blue-700 dark:text-blue-300 flex items-center gap-1">
+            <User :size="13" />
+            <span>Người dùng (User)</span>
+          </div>
+          <div class="text-[11px] text-gray-500 font-mono mt-0.5 truncate">nguyenvanan@gmail.com</div>
+        </button>
+      </div>
+    </div>
 
     <!-- Social Login -->
     <AuthSocialLogin />

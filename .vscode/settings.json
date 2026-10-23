@@ -7,5 +7,18 @@
             "path": "D:\\Program Files\\Java\\jdk-17",
             "default": true
         }
-    ]
+    ],
+    "java.import.exclusions": [
+        "**/node_modules/**",
+        "**/.metadata/**",
+        "**/archetype/**",
+        "**/META-INF/maven/**",
+        "**/build/**",
+        "**/bin/**"
+    ],
+    "files.watcherExclude": {
+        "**/build/**": true,
+        "**/bin/**": true,
+        "**/node_modules/**": true
+    }
 }

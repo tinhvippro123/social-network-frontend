@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { Bell } from '@lucide/vue'
 import { formatRelativeTime } from '@/utils/formatters'
 
-defineProps<{
+const router = useRouter()
+
+const props = defineProps<{
   uiStore: any
   showNotifications: boolean
 }>()
@@ -10,6 +13,14 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'update:showNotifications', value: boolean): void
 }>()
+
+function handleNotificationClick(notif: any) {
+  props.uiStore.markNotificationRead(notif.id)
+  emit('update:showNotifications', false)
+  if (notif.link) {
+    router.push(notif.link)
+  }
+}
 </script>
 
 <template>
@@ -51,7 +62,7 @@ const emit = defineEmits<{
             v-else
             v-for="notif in uiStore.notifications"
             :key="notif.id"
-            @click="uiStore.markNotificationRead(notif.id); emit('update:showNotifications', false)"
+            @click="handleNotificationClick(notif)"
             :class="[
               'flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-surface-700 cursor-pointer transition-colors border-b border-gray-100 dark:border-surface-700 last:border-0',
               !notif.isRead ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''
