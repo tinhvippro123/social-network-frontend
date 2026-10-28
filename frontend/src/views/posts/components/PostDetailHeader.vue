@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Clock, Eye, MapPin, Edit3, Trash2 } from '@lucide/vue'
+import { Clock, Eye, MapPin, Edit3, Trash2, ZoomIn } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import { useRouter } from 'vue-router'
 import { useToast } from '@/composables/ui/useToast'
+import { useConfirm } from '@/composables/ui/useConfirm'
 import postsApi from '@/api/posts.api'
 
 const props = defineProps<{
@@ -11,11 +12,22 @@ const props = defineProps<{
   user: any
 }>()
 
+const emit = defineEmits<{
+  (e: 'open-lightbox', index: number): void
+}>()
+
 const router = useRouter()
 const { success, error } = useToast()
+const { confirm } = useConfirm()
 
 const handleDeletePost = async () => {
-  if (!confirm('Bạn có chắc chắn muốn xóa bài viết này không? Hành động này không thể hoàn tác.')) return
+  const ok = await confirm({
+    title: 'Xóa bài viết',
+    message: 'Bạn có chắc chắn muốn xóa bài viết này không? Hành động này không thể hoàn tác.',
+    confirmText: 'Xóa bài viết',
+    variant: 'danger'
+  })
+  if (!ok) return
   try {
     await postsApi.delete(props.post.id)
     success('Đã xóa bài viết thành công!')
@@ -29,9 +41,17 @@ const handleDeletePost = async () => {
 <template>
   <div>
     <!-- Cover Image -->
-    <div class="relative rounded-2xl overflow-hidden mb-6 h-64 sm:h-80">
-      <img v-if="post.coverImage" :src="post.coverImage" :alt="post.title" class="w-full h-full object-cover" />
-      <div v-else class="w-full h-full bg-gradient-to-br from-primary-100 to-primary-300 dark:from-primary-900/50 dark:to-primary-800/50 flex items-center justify-center">
+    <div
+      class="relative rounded-2xl overflow-hidden mb-6 h-64 sm:h-80 group cursor-pointer"
+      @click="post.coverImage ? emit('open-lightbox', 0) : null"
+    >
+      <img
+        v-if="post.coverImage"
+        :src="post.coverImage"
+        :alt="post.title"
+        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
+      />
+      <div v-else class="w-full h-full bg-linear-to-br from-primary-100 to-primary-300 dark:from-primary-900/50 dark:to-primary-800/50 flex items-center justify-center">
         <span class="text-primary-300 dark:text-primary-700/50 opacity-40">
           <svg class="w-24 h-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -42,6 +62,15 @@ const handleDeletePost = async () => {
       <span class="absolute top-4 left-4 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 shadow-sm">
         {{ post.category?.icon }} {{ post.category?.name }}
       </span>
+
+      <!-- Expand button badge on hover -->
+      <div
+        v-if="post.coverImage"
+        class="absolute bottom-4 right-4 px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md text-white text-xs font-medium flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+      >
+        <ZoomIn :size="14" />
+        <span>Phóng to ảnh bìa</span>
+      </div>
     </div>
 
     <!-- Title -->
