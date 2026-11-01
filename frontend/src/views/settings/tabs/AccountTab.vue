@@ -1,8 +1,38 @@
 <script setup lang="ts">
 import { Lock, Eye, EyeOff, Save, AlertTriangle, Trash2 } from '@lucide/vue'
 import { useSettings } from '@/composables/ui/useSettings'
+import { useConfirm } from '@/composables/ui/useConfirm'
+import { useToast } from '@/composables/ui/useToast'
 
 const { accountForm, showCurrentPassword, showNewPassword, showConfirmPassword, changePassword, isSaving } = useSettings()
+const { confirm } = useConfirm()
+const toast = useToast()
+
+async function handleDeactivateAccount() {
+  const ok = await confirm({
+    title: 'Vô hiệu hóa tài khoản?',
+    message: 'Tài khoản của bạn sẽ bị tạm ẩn và không thể đăng nhập cho đến khi liên hệ quản trị viên để mở lại. Bạn có chắc chắn không?',
+    confirmText: 'Vô hiệu hóa',
+    cancelText: 'Hủy bỏ',
+    variant: 'warning'
+  })
+  if (ok) {
+    toast.info('Yêu cầu vô hiệu hóa tài khoản đã được ghi nhận. Vui lòng liên hệ Quản trị viên để hoàn tất.')
+  }
+}
+
+async function handleDeleteAccount() {
+  const ok = await confirm({
+    title: 'Xóa tài khoản vĩnh viễn?',
+    message: 'Toàn bộ bài viết, bình luận và dữ liệu cá nhân của bạn sẽ bị xóa vĩnh viễn và KHÔNG THỂ KHÔI PHỤC. Bạn có chắc chắn muốn tiếp tục?',
+    confirmText: 'Xóa vĩnh viễn',
+    cancelText: 'Giữ lại tài khoản',
+    variant: 'danger'
+  })
+  if (ok) {
+    toast.warning('Để bảo vệ an toàn dữ liệu, tính năng tự xóa vĩnh viễn cần được duyệt bởi Quản trị viên hệ thống.')
+  }
+}
 </script>
 
 <template>
@@ -70,7 +100,10 @@ const { accountForm, showCurrentPassword, showNewPassword, showConfirmPassword, 
             <p class="text-sm font-medium text-gray-900 dark:text-white">Vô hiệu hóa tài khoản</p>
             <p class="text-xs text-gray-400 mt-0.5">Tài khoản sẽ bị ẩn và không thể đăng nhập. Bạn có thể kích hoạt lại sau.</p>
           </div>
-          <button class="px-4 py-2 rounded-xl text-sm font-medium text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800/50 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-all shrink-0">
+          <button
+            @click="handleDeactivateAccount"
+            class="px-4 py-2 rounded-xl text-sm font-medium text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800/50 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-all shrink-0 cursor-pointer"
+          >
             Vô hiệu hóa
           </button>
         </div>
@@ -79,7 +112,10 @@ const { accountForm, showCurrentPassword, showNewPassword, showConfirmPassword, 
             <p class="text-sm font-medium text-gray-900 dark:text-white">Xóa tài khoản vĩnh viễn</p>
             <p class="text-xs text-gray-400 mt-0.5">Tất cả dữ liệu sẽ bị xóa vĩnh viễn và không thể khôi phục.</p>
           </div>
-          <button class="px-4 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800/50 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all shrink-0">
+          <button
+            @click="handleDeleteAccount"
+            class="px-4 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800/50 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all shrink-0 cursor-pointer"
+          >
             <Trash2 :size="14" class="inline mr-1" /> Xóa tài khoản
           </button>
         </div>

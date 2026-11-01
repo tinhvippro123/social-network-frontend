@@ -6,6 +6,10 @@ defineProps<{
   reports: any[]
   isLoading: boolean
 }>()
+
+const emit = defineEmits<{
+  (e: 'resolve', reportId: string, action: 'keep' | 'delete' | 'ban'): void
+}>()
 </script>
 
 <template>
@@ -51,13 +55,28 @@ defineProps<{
           </div>
         </div>
         <div v-if="report.status === 'pending'" class="flex gap-2 mt-3">
-          <button class="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all">
+          <button
+            type="button"
+            @click="emit('resolve', report.id, 'keep')"
+            class="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all cursor-pointer"
+            title="Giữ lại nội dung"
+          >
             <Check :size="12" /> Giữ lại
           </button>
-          <button class="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all">
+          <button
+            type="button"
+            @click="emit('resolve', report.id, 'delete')"
+            class="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer"
+            title="Xóa / Ẩn nội dung vi phạm"
+          >
             <X :size="12" /> Xóa
           </button>
-          <button class="flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all">
+          <button
+            type="button"
+            @click="emit('resolve', report.id, 'ban')"
+            class="flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all cursor-pointer"
+            title="Cấm tác giả"
+          >
             <Ban :size="12" />
           </button>
         </div>

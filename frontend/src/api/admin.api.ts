@@ -5,6 +5,16 @@ import http from './client'
 import type { ApiResponse } from './client'
 import type { AdminStats, Report, User } from '@/types'
 
+const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+
+/** Nhãn trục X theo độ dài khoảng: ≤7 mốc → thứ; còn lại → dd/MM */
+function growthLabel(dateStr: string, total: number): string {
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return ''
+  if (total <= 7) return WEEKDAYS[d.getDay()] ?? ''
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
 function mapAdminStats(s: any): AdminStats {
   const growth = Array.isArray(s?.growth) ? s.growth : []
   return {
@@ -12,15 +22,16 @@ function mapAdminStats(s: any): AdminStats {
     newUsersToday: s?.newUsersToday ?? 0,
     totalPosts: s?.totalPosts ?? 0,
     newPostsToday: s?.newPostsToday ?? 0,
+    totalComments: s?.totalComments ?? 0,
     totalGroups: s?.totalGroups ?? 0,
     totalReports: s?.totalReports ?? 0,
     pendingReports: s?.pendingReports ?? 0,
+    totalViews: s?.totalViews ?? 0,
+    growthLabels: growth.map((g: any) => growthLabel(g.date, growth.length)),
     userGrowth: growth.map((g: any) => g.users ?? 0),
     postGrowth: growth.map((g: any) => g.posts ?? 0),
-    viewsToday: {
-      total: s?.totalViews ?? 0,
-      growthPct: 0,
-    },
+    newUsersInRange: s?.newUsersInRange ?? 0,
+    newPostsInRange: s?.newPostsInRange ?? 0,
     topCategories: s?.topCategories || [],
     recentActivities: s?.recentActivities || [],
   }
@@ -28,8 +39,8 @@ function mapAdminStats(s: any): AdminStats {
 
 const adminApi = {
   // ── Dashboard ─────────────────────────────
-  getStats: async () => {
-    const res = await http.get<ApiResponse<any>>('/admin/stats')
+  getStats: async (days = 7) => {
+    const res = await http.get<ApiResponse<any>>('/admin/stats', { params: { days } })
     return {
       ...res,
       data: {

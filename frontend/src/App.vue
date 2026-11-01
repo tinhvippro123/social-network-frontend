@@ -7,6 +7,7 @@ import MainLayout from '@/layouts/MainLayout.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import ToastProvider from '@/components/ui/ToastProvider.vue'
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import AuthModal from '@/components/AuthModal.vue'
 
 const route = useRoute()
@@ -28,6 +29,7 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-surface-50 dark:bg-surface-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
     <ToastProvider />
+    <ConfirmDialog />
     <AuthModal />
     
     <AuthLayout v-if="layout === 'auth'">

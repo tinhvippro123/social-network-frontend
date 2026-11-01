@@ -1,18 +1,23 @@
 <script setup lang="ts">
-import { Plus, Edit3, Trash2, GripVertical, FolderTree } from '@lucide/vue'
+import { Plus, FolderTree } from '@lucide/vue'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import CategoriesManageSkeletonRow from './components/CategoriesManageSkeletonRow.vue'
 import CategoriesManageRow from './components/CategoriesManageRow.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
 import { useAdminCategories } from '@/composables/admin/useAdminCategories'
 
 const {
   categories,
   isLoading,
   showAddModal,
+  showEditModal,
   newCategoryName,
   newCategoryIcon,
-  handleAddCategory
+  editCategoryName,
+  editCategoryIcon,
+  handleAddCategory,
+  openEditModal,
+  handleUpdateCategory,
+  handleDeleteCategory
 } = useAdminCategories()
 </script>
 
@@ -26,7 +31,11 @@ const {
         <FolderTree :size="24" class="text-red-500" />
       </template>
       <template #actions>
-        <button @click="showAddModal = true" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-500/25">
+        <button
+          type="button"
+          @click="showAddModal = true"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-500/25 cursor-pointer"
+        >
           <Plus :size="16" /> Thêm danh mục
         </button>
       </template>
@@ -50,7 +59,13 @@ const {
               <CategoriesManageSkeletonRow v-for="i in 5" :key="i" />
             </template>
             <template v-else-if="categories.length">
-              <CategoriesManageRow v-for="cat in categories" :key="cat.slug" :category="cat" />
+              <CategoriesManageRow
+                v-for="cat in categories"
+                :key="cat.slug"
+                :category="cat"
+                @edit="openEditModal"
+                @delete="handleDeleteCategory"
+              />
             </template>
             <tr v-else>
               <td colspan="6" class="px-5 py-12 text-center">
@@ -80,8 +95,31 @@ const {
             </div>
           </div>
           <div class="flex gap-3 mt-6">
-            <button @click="showAddModal = false" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all">Hủy</button>
-            <button @click="showAddModal = false" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-500/25">Thêm</button>
+            <button type="button" @click="showAddModal = false" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all cursor-pointer">Hủy</button>
+            <button type="button" @click="handleAddCategory" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-500/25 cursor-pointer">Thêm</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Edit Modal -->
+    <transition name="fade">
+      <div v-if="showEditModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="showEditModal = false">
+        <div class="bg-white dark:bg-surface-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200 dark:border-surface-700 animate-slide-up">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Chỉnh sửa danh mục</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon (emoji)</label>
+              <input v-model="editCategoryIcon" type="text" placeholder="💻" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tên danh mục</label>
+              <input v-model="editCategoryName" type="text" placeholder="Nhập tên danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
+            </div>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button type="button" @click="showEditModal = false" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all cursor-pointer">Hủy</button>
+            <button type="button" @click="handleUpdateCategory" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/25 cursor-pointer">Lưu thay đổi</button>
           </div>
         </div>
       </div>

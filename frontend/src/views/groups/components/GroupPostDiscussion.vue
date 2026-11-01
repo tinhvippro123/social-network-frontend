@@ -5,6 +5,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import { formatRelativeTime } from '@/utils/formatters'
 import { useAuthStore } from '@/stores/auth.store'
 import { useToast } from '@/composables/ui/useToast'
+import { useConfirm } from '@/composables/ui/useConfirm'
 import groupsApi from '@/api/groups.api'
 import type { GroupPostItem, GroupCommentItem } from '@/api/groups.api'
 
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 
 const authStore = useAuthStore()
 const toast = useToast()
+const { confirm } = useConfirm()
 
 const isLiked = ref(props.post.isLiked ?? false)
 const likesCount = ref(props.post.likesCount ?? 0)
@@ -109,7 +111,13 @@ const submitComment = async () => {
 }
 
 const deleteComment = async (commentId: string) => {
-  if (!confirm('Bạn có chắc chắn muốn xóa bình luận này?')) return
+  const ok = await confirm({
+    title: 'Xóa bình luận',
+    message: 'Bạn có chắc chắn muốn xóa bình luận này?',
+    confirmText: 'Xóa',
+    variant: 'danger'
+  })
+  if (!ok) return
   try {
     await groupsApi.deletePostComment(props.groupId, props.post.id, commentId)
     comments.value = comments.value.filter(c => c.id !== commentId)

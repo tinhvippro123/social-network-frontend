@@ -33,9 +33,11 @@ const {
   isLoading,
   activeTab,
   selectedPeriod,
+  periodTitle,
   statCards,
   chartData,
-  chartOptions
+  chartOptions,
+  resolveReport
 } = useAdminDashboard()
 
 ChartJS.register(
@@ -90,12 +92,12 @@ ChartJS.register(
         <div class="flex items-center justify-between mb-6">
           <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <BarChart3 :size="18" class="text-primary-500" />
-            Thống kê tuần này
+            {{ periodTitle }}
           </h3>
-          <select class="text-xs bg-gray-100 dark:bg-surface-700 border-none rounded-lg px-3 py-1.5 text-gray-600 dark:text-gray-400">
-            <option>7 ngày qua</option>
-            <option>30 ngày qua</option>
-            <option>3 tháng qua</option>
+          <select v-model="selectedPeriod" class="text-xs bg-gray-100 dark:bg-surface-700 border-none rounded-lg px-3 py-1.5 text-gray-600 dark:text-gray-400 focus:outline-none">
+            <option value="7d">7 ngày qua</option>
+            <option value="30d">30 ngày qua</option>
+            <option value="90d">3 tháng qua</option>
           </select>
         </div>
 
@@ -116,7 +118,7 @@ ChartJS.register(
       </div>
 
       <!-- Moderation Queue -->
-      <ModerationQueueWidget :reports="reports" :isLoading="isLoading" />
+      <ModerationQueueWidget :reports="reports" :isLoading="isLoading" @resolve="resolveReport" />
     </div>
 
     <!-- Users Table -->

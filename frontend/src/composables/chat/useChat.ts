@@ -2,25 +2,47 @@ import { ref } from 'vue'
 import chatApi from '@/api/chat.api'
 import type { ChatConversation, ChatMessage, MessageStatus } from '@/types'
 import { useAsyncState } from '../core/useAsyncState'
+import { useChatNicknames } from './useChatNicknames'
 
 export function useChat() {
+  const { applyNicknamesToConversations } = useChatNicknames()
   const conversations = ref<ChatConversation[]>([])
   const messages = ref<ChatMessage[]>([])
   const isTyping = ref(false)
   const typingUser = ref('')
   const { isLoading, error, execute } = useAsyncState()
 
+  if (typeof window !== 'undefined') {
+    window.addEventListener('chat-nickname-changed', (e: any) => {
+      const detail = e.detail
+      if (!detail) return
+      const target = conversations.value.find(c => c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
+      if (target) {
+        target.nickname = detail.nickname
+        target.name = detail.name
+        if (detail.originalName) target.originalName = detail.originalName
+      }
+    })
+  }
+
   async function fetchConversations() {
     await execute(async () => {
       const { data } = await chatApi.getConversations()
-      conversations.value = data.data
+      conversations.value = applyNicknamesToConversations(data.data)
     }, 'Không thể tải hội thoại')
   }
 
   async function fetchMessages(conversationId: string) {
     await execute(async () => {
       const { data } = await chatApi.getMessages(conversationId)
-      messages.value = data.data
+      messages.value = [...(data.data || [])]
+        .reverse()
+        .sort((a, b) => {
+          const ta = new Date(a.createdAt || a.timestamp || '').getTime()
+          const tb = new Date(b.createdAt || b.timestamp || '').getTime()
+          if (Number.isNaN(ta) || Number.isNaN(tb)) return 0
+          return ta - tb
+        })
     }, 'Không thể tải tin nhắn')
   }
 

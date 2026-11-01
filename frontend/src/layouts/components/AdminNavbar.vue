@@ -49,7 +49,11 @@ const emit = defineEmits<{
     <!-- Right -->
     <div class="flex items-center gap-2">
       <!-- Notifications -->
-      <button class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+      <button
+        @click="emit('navigate', '/admin/moderation')"
+        title="Kiểm duyệt & Báo cáo vi phạm"
+        class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+      >
         <Bell :size="20" />
         <span v-if="uiStore.unreadCount > 0" class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
           {{ uiStore.unreadCount }}

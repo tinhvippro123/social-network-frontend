@@ -152,7 +152,7 @@ async function copySummary() {
             </button>
           </div>
 
-          <!-- Chọn số câu -->
+          <!-- Chọn số câu nhanh: Ngắn (3 câu) | Chi tiết (5 câu) -->
           <div class="inline-flex p-0.5 rounded-lg bg-gray-100 dark:bg-surface-800 border border-gray-200/80 dark:border-surface-700">
             <button
               type="button"

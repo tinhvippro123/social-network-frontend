@@ -125,6 +125,10 @@ http.interceptors.response.use(
       return Promise.reject(error)
     }
 
+    if ((error.config as any)?.skipErrorToast) {
+      return Promise.reject(error)
+    }
+
     if (status === 403) {
       const { useToast } = await import('@/composables/ui/useToast')
       useToast().error('Bạn không có quyền thực hiện hành động này!')

@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { Eye, Check, X, Ban, Clock } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDateTime } from '@/utils/formatters'
 import type { Report } from '@/types'
 
-defineProps<{
+const props = defineProps<{
   report: Report & {
     targetTitle: string
     reporter: {
@@ -13,6 +14,23 @@ defineProps<{
     }
   }
 }>()
+
+const emit = defineEmits<{
+  (e: 'resolve', reportId: string, action: 'keep' | 'delete' | 'ban'): void
+  (e: 'dismiss', reportId: string): void
+}>()
+
+const router = useRouter()
+
+function viewTarget() {
+  const type = (props.report.type || '').toLowerCase()
+  let path = '/'
+  if (type === 'post') path = `/posts/${props.report.targetId}`
+  else if (type === 'user') path = `/profile/${props.report.targetId}`
+  else if (type === 'group') path = `/groups/${props.report.targetId}`
+  // Mở tab mới để admin không bị rời khỏi hàng đợi kiểm duyệt
+  window.open(router.resolve(path).href, '_blank', 'noopener')
+}
 </script>
 
 <template>
@@ -46,7 +64,7 @@ defineProps<{
           <div class="flex-1 min-w-0 flex items-center gap-2">
             <span class="text-sm font-medium text-gray-900 dark:text-white">{{ report.reporter.name }}</span>
             <span class="text-xs text-gray-500">đã báo cáo</span>
-            <span class="text-sm font-medium text-blue-500 hover:underline cursor-pointer">{{ report.targetTitle }}</span>
+            <span @click="viewTarget" class="text-sm font-medium text-blue-500 hover:underline cursor-pointer">{{ report.targetTitle }}</span>
           </div>
           <span class="text-xs text-gray-400 flex items-center gap-1"><Clock :size="12" /> {{ formatDateTime(report.createdAt) }}</span>
         </div>
@@ -54,16 +72,32 @@ defineProps<{
 
       <!-- Actions -->
       <div v-if="report.status === 'pending'" class="flex flex-col gap-2 shrink-0">
-        <button class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all">
+        <button
+          type="button"
+          @click="viewTarget"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all cursor-pointer"
+        >
           <Eye :size="12" /> Xem nội dung
         </button>
-        <button class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all">
+        <button
+          type="button"
+          @click="emit('resolve', report.id, 'keep')"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all cursor-pointer"
+        >
           <Check :size="12" /> Giữ lại
         </button>
-        <button class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all">
+        <button
+          type="button"
+          @click="emit('resolve', report.id, 'delete')"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer"
+        >
           <X :size="12" /> Xóa nội dung
         </button>
-        <button class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all">
+        <button
+          type="button"
+          @click="emit('resolve', report.id, 'ban')"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all cursor-pointer"
+        >
           <Ban :size="12" /> Cấm người đăng
         </button>
       </div>

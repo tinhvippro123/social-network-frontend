@@ -46,6 +46,13 @@ const chatApi = {
   muteConversation: (conversationId: string, isMuted: boolean) =>
     http.patch<ApiResponse<void>>(`/chat/conversations/${conversationId}/mute`, { value: isMuted }),
 
+  updateNickname: (conversationId: string, nickname: string, targetUserId?: string) =>
+    http.patch<ApiResponse<void>>(
+      `/chat/conversations/${conversationId}/nickname`,
+      { nickname, targetUserId },
+      { skipErrorToast: true } as any
+    ),
+
   hideConversation: (conversationId: string) =>
     http.delete<ApiResponse<void>>(`/chat/conversations/${conversationId}`),
 

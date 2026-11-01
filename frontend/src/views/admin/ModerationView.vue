@@ -12,7 +12,9 @@ const {
   isLoading,
   filterStatus,
   reportFilters,
-  pendingCount
+  pendingCount,
+  resolveReport,
+  dismissReport
 } = useModeration()
 </script>
 
@@ -52,6 +54,8 @@ const {
           v-for="report in extendedReports.filter(r => filterStatus === 'all' || r.status === filterStatus)"
           :key="report.id"
           :report="report"
+          @resolve="resolveReport"
+          @dismiss="dismissReport"
         />
       </template>
       <div v-else class="text-center py-16 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700">

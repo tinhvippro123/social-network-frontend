@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Calendar } from '@lucide/vue'
+import { Calendar, MessageSquare } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDate } from '@/utils/formatters'
 
@@ -13,6 +14,14 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const imageError = ref(false)
+
+watch(
+  () => props.post?.coverImage,
+  () => {
+    imageError.value = false
+  }
+)
 
 const goToProfile = (userId?: string) => {
   if (userId) {
@@ -26,12 +35,26 @@ const goToProfile = (userId?: string) => {
     @click="emit('select', post)"
     class="flex flex-col sm:flex-row gap-4 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5 hover:border-primary-500/40 hover:shadow-md transition-all group cursor-pointer"
   >
-    <img
-      v-if="post.coverImage"
-      :src="post.coverImage"
-      :alt="post.title"
-      class="w-full sm:w-40 h-32 sm:h-28 rounded-xl object-cover shrink-0 bg-gray-100 dark:bg-surface-700 group-hover:scale-[1.02] transition-transform"
-    />
+    <div class="w-full sm:w-40 h-32 sm:h-28 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-surface-700">
+      <img
+        v-if="post.coverImage && !imageError"
+        :src="post.coverImage"
+        :alt="post.title"
+        @error="imageError = true"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+      <div
+        v-else
+        class="w-full h-full bg-linear-to-br from-primary-50 via-teal-50/80 to-emerald-100/70 dark:from-primary-950/50 dark:via-surface-700 dark:to-teal-900/30 border border-primary-100/80 dark:border-surface-600/60 rounded-xl flex flex-col items-center justify-center gap-1.5 group-hover:scale-[1.02] transition-transform duration-300"
+      >
+        <div class="w-9 h-9 rounded-xl bg-white/85 dark:bg-surface-800/85 shadow-2xs flex items-center justify-center text-primary-500 dark:text-primary-400">
+          <MessageSquare :size="18" />
+        </div>
+        <span class="text-[11px] font-semibold text-primary-600/80 dark:text-primary-300/80 tracking-wide">
+          Thảo luận
+        </span>
+      </div>
+    </div>
     <div class="flex-1 min-w-0 flex flex-col justify-between">
       <div>
         <h3 class="font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors line-clamp-2 text-base leading-snug mb-1.5">

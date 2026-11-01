@@ -1,6 +1,7 @@
 import { ref, watch, onMounted } from 'vue'
 import adminApi from '@/api/admin.api'
 import { useToast } from '../ui/useToast'
+import { useConfirm } from '../ui/useConfirm'
 import { useAuthStore } from '@/stores/auth.store'
 
 const PAGE_SIZE = 10
@@ -11,6 +12,7 @@ function errorMessage(err: any, fallback: string) {
 
 export function useAdminUsers() {
   const toast = useToast()
+  const { confirm } = useConfirm()
   const authStore = useAuthStore()
 
   const allUsers = ref<any[]>([])
@@ -77,7 +79,12 @@ export function useAdminUsers() {
 
   async function toggleBan(user: any) {
     const banning = user.active !== false
-    if (banning && !window.confirm(`Cấm tài khoản "${user.name}"? Người dùng sẽ không thể đăng nhập.`)) return
+    if (banning && !(await confirm({
+      title: 'Cấm tài khoản',
+      message: `Cấm tài khoản "${user.name}"? Người dùng sẽ không thể đăng nhập.`,
+      confirmText: 'Cấm tài khoản',
+      variant: 'warning'
+    }))) return
     busyUserId.value = user.id
     try {
       const { data } = await adminApi.banUser(user.id, banning)
@@ -91,7 +98,12 @@ export function useAdminUsers() {
   }
 
   async function deleteUser(user: any) {
-    if (!window.confirm(`Xóa vĩnh viễn tài khoản "${user.name}"? Hành động này không thể hoàn tác.`)) return
+    if (!(await confirm({
+      title: 'Xóa tài khoản',
+      message: `Xóa vĩnh viễn tài khoản "${user.name}"? Hành động này không thể hoàn tác.`,
+      confirmText: 'Xóa vĩnh viễn',
+      variant: 'danger'
+    }))) return
     busyUserId.value = user.id
     try {
       await adminApi.deleteUser(user.id)

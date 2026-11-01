@@ -6,6 +6,7 @@ import PostEditorEventSettings from './PostEditorEventSettings.vue'
 
 defineProps<{
   title: string
+  excerpt?: string
   selectedCategory: string
   tags: string[]
   tagInput: string
@@ -21,6 +22,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:title', value: string): void
+  (e: 'update:excerpt', value: string): void
   (e: 'update:selectedCategory', value: string): void
   (e: 'update:tagInput', value: string): void
   (e: 'update:showLocationPicker', value: boolean): void
@@ -72,6 +74,18 @@ const triggerFileInput = () => {
       placeholder="Tiêu đề bài viết..."
       class="w-full text-3xl font-bold text-gray-900 dark:text-white bg-transparent border-none outline-none placeholder-gray-300 dark:placeholder-surface-600"
     />
+
+    <!-- Excerpt (Optional) -->
+    <div class="relative">
+      <input
+        :value="excerpt"
+        @input="emit('update:excerpt', ($event.target as HTMLInputElement).value)"
+        type="text"
+        placeholder="Mô tả ngắn / Tóm tắt bài viết (tùy chọn - nếu để trống sẽ tự lấy từ nội dung)..."
+        maxlength="300"
+        class="w-full text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-surface-700 rounded-xl px-4 py-2.5 focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-all outline-none placeholder-gray-400 dark:placeholder-surface-500"
+      />
+    </div>
 
     <!-- Category & Tags -->
     <div class="flex flex-wrap items-center gap-3">

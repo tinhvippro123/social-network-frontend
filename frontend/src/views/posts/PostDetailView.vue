@@ -16,6 +16,7 @@ import PostComments from './components/PostComments.vue'
 import RelatedPostsSidebar from './components/RelatedPostsSidebar.vue'
 import ReportPostModal from './components/ReportPostModal.vue'
 import ImageLightboxModal from '@/components/ui/ImageLightboxModal.vue'
+import { formatContentWithGalleries } from '@/utils/proseGallery'
 import { usePostDetail } from '@/composables/posts/usePostDetail'
 import { useCodeHighlight } from '@/composables/core/useCodeHighlight'
 import 'highlight.js/styles/github-dark.css'
@@ -54,6 +55,9 @@ const isFollowing = ref(false)
 const postContent = computed(() => post.value?.content || null)
 useCodeHighlight(postContent)
 
+// Transform consecutive images in each section into Collage Gallery Grids (+N)
+const formattedPostContent = computed(() => formatContentWithGalleries(post.value?.content))
+
 // Image Lightbox Gallery
 const isLightboxOpen = ref(false)
 const lightboxIndex = ref(0)
@@ -71,7 +75,7 @@ function updateGalleryImages() {
   if (typeof document !== 'undefined') {
     const proseImgs = document.querySelectorAll('.post-prose-content img')
     proseImgs.forEach((imgEl) => {
-      const src = (imgEl as HTMLImageElement).currentSrc || (imgEl as HTMLImageElement).src
+      const src = (imgEl as HTMLImageElement).getAttribute('src') || (imgEl as HTMLImageElement).src
       const alt = (imgEl as HTMLImageElement).alt || ''
       if (src && !list.some((item) => item.src === src)) {
         list.push({ src, alt })
@@ -91,14 +95,37 @@ function handleProseClick(e: MouseEvent) {
   const target = e.target as HTMLElement
   if (target && target.tagName === 'IMG') {
     const img = target as HTMLImageElement
-    const src = img.currentSrc || img.src
+    const src = img.getAttribute('src') || img.src
+
+    // Check if the clicked image belongs to a section's inline Collage Gallery
+    const inlineGallery = img.closest('.post-inline-gallery')
+    if (inlineGallery) {
+      const groupImgs = Array.from(inlineGallery.querySelectorAll('img'))
+      const groupList = groupImgs
+        .map((el) => ({
+          src: el.getAttribute('src') || el.src,
+          alt: el.alt || post.value?.title || 'Ảnh bài viết'
+        }))
+        .filter((item) => Boolean(item.src))
+
+      if (groupList.length > 0) {
+        galleryImages.value = groupList
+        const idx = groupList.findIndex((item) => item.src === src)
+        lightboxIndex.value = idx !== -1 ? idx : 0
+        isLightboxOpen.value = true
+        return
+      }
+    }
+
+    // Standalone image: open with all article images
     updateGalleryImages()
     const foundIdx = galleryImages.value.findIndex((item) => item.src === src)
     if (foundIdx !== -1) {
       handleOpenLightbox(foundIdx)
     } else {
       galleryImages.value.push({ src, alt: img.alt || '' })
-      handleOpenLightbox(galleryImages.value.length - 1)
+      lightboxIndex.value = galleryImages.value.length - 1
+      isLightboxOpen.value = true
     }
   }
 }
@@ -152,7 +179,7 @@ function handleProseClick(e: MouseEvent) {
               prose-li:text-gray-600 dark:prose-li:text-gray-300
               prose-strong:text-gray-900 dark:prose-strong:text-white"
             @click="handleProseClick"
-            v-html="post.content || '<p>Đang cập nhật nội dung...</p>'"
+            v-html="formattedPostContent"
           ></div>
 
           <!-- Tags -->
@@ -252,13 +279,15 @@ function handleProseClick(e: MouseEvent) {
   }
 }
 
-.post-prose-content img {
+.post-prose-content > img,
+.post-prose-content p > img {
   cursor: zoom-in;
   border-radius: 0.75rem;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.post-prose-content img:hover {
+.post-prose-content > img:hover,
+.post-prose-content p > img:hover {
   transform: scale(1.008);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
 }

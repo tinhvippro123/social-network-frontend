@@ -3,12 +3,42 @@ import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import {
   X, Send, Minus, Phone, Video,
   Smile, Paperclip, Image as ImageIcon,
-  PlusCircle, ChevronDown
+  PlusCircle, ChevronDown, BellOff
 } from '@lucide/vue'
 import type { ChatConversation, ChatMessage } from '@/types'
 import { currentUser, mockMessages } from '@/data/mockData'
 import ChatMessageActions from '@/views/chat/components/ChatMessageActions.vue'
 import ChatPopupHeaderMenu from '@/components/ChatPopupHeaderMenu.vue'
+import NicknameModal from '@/components/NicknameModal.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { useToast } from '@/composables/ui/useToast'
+import { useChatNicknames } from '@/composables/chat/useChatNicknames'
+
+const toast = useToast()
+const { setNickname, applyNicknameToConversation } = useChatNicknames()
+const showNicknameModal = ref(false)
+
+onMounted(() => {
+  applyNicknameToConversation(props.conv)
+})
+
+function handleSaveNickname(newNick: string) {
+  setNickname(props.conv, newNick)
+  if (newNick.trim()) {
+    toast.success(`Đã đổi biệt danh thành "${newNick.trim()}"`)
+  } else {
+    toast.info('Đã gỡ bỏ biệt danh')
+  }
+  showNicknameModal.value = false
+}
+
+function startVoiceCall() {
+  toast.info('Tính năng gọi thoại đang trong lộ trình phát triển')
+}
+
+function startVideoCall() {
+  toast.info('Tính năng gọi video đang trong lộ trình phát triển')
+}
 
 const props = defineProps<{
   conv: ChatConversation
@@ -24,7 +54,12 @@ const textOnlyMessages = computed(() => {
   return mockMessages.filter(m => m.type === 'text' && m.content.trim() !== '')
 })
 
-const messages = ref<ChatMessage[]>([...textOnlyMessages.value].slice(-5))
+const messages = ref<ChatMessage[]>([...textOnlyMessages.value].slice(-5).map((m, idx) => ({
+  ...m,
+  createdAt: m.createdAt && (m.createdAt.includes('-') || m.createdAt.includes('T'))
+    ? m.createdAt
+    : new Date(Date.now() - (5 - idx) * 3600000).toISOString()
+})))
 const newMessage = ref('')
 const isTyping = ref(false)
 const activeHeaderMenu = ref(false)
@@ -53,15 +88,43 @@ const handleDocumentClick = (e: MouseEvent) => {
 onMounted(() => document.addEventListener('click', handleDocumentClick))
 onUnmounted(() => document.removeEventListener('click', handleDocumentClick))
 
-function formatTime(timeStr: string): string {
+const toDate = (timeStr?: string) => {
+  if (!timeStr) return null
+  if (timeStr.includes('-') || timeStr.includes('T')) {
+    const d = new Date(timeStr)
+    return isNaN(d.getTime()) ? null : d
+  }
+  return null
+}
+
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+const daysAgo = (d: Date) => Math.round((startOfDay(new Date()) - startOfDay(d)) / 86_400_000)
+const WEEKDAYS = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+
+function formatClockTime(timeStr?: string): string {
+  if (!timeStr) return ''
   if (/^\d{1,2}:\d{2}$/.test(timeStr)) return timeStr
-  try {
-    const date = new Date(timeStr)
-    if (!isNaN(date.getTime())) {
-      return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-    }
-  } catch {}
-  return timeStr
+  const d = toDate(timeStr)
+  if (!d) return timeStr
+  return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDayLabel(timeStr?: string): string {
+  const d = toDate(timeStr)
+  if (!d) return 'Hôm nay'
+  const diff = daysAgo(d)
+  if (diff === 0) return 'Hôm nay'
+  if (diff === 1) return 'Hôm qua'
+  if (diff < 7) return `${WEEKDAYS[d.getDay()]}, ${d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}`
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function isSameDay(a?: string, b?: string): boolean {
+  if (!a || !b) return true
+  const da = toDate(a)
+  const db = toDate(b)
+  if (!da || !db) return a === b
+  return startOfDay(da) === startOfDay(db)
 }
 
 function getStatusIcon(status: string) {
@@ -109,7 +172,7 @@ function sendMessage() {
     id: `popup-m${Date.now()}`,
     content,
     sender: currentUser,
-    createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+    createdAt: new Date().toISOString(),
     isOwn: true,
     type: 'text',
     status: 'sending'
@@ -137,7 +200,7 @@ function sendMessage() {
         id: `popup-r${Date.now()}`,
         content: 'OK mình hiểu rồi, cảm ơn bạn nhé! 👍',
         sender: props.conv.participants.find(p => p.id !== currentUser.id) || props.conv.participants[0],
-        createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+        createdAt: new Date().toISOString(),
         isOwn: false,
         type: 'text',
         status: 'read'
@@ -159,7 +222,12 @@ onMounted(() => {
     <div class="relative z-50 header-menu-container">
       <div class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-surface-800 border-b border-gray-200 dark:border-surface-700 shrink-0 rounded-t-xl">
         <div class="relative shrink-0">
-          <img :src="conv.avatar" class="w-8 h-8 rounded-full object-cover" />
+          <UserAvatar 
+            :user="{ avatar: conv.avatar, name: conv.name }" 
+            :is-group="conv.isGroup || (!conv.avatar && conv.name?.includes('Nhóm'))"
+            size="sm" 
+            class="w-8! h-8!" 
+          />
           <div v-if="conv.isOnline" class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-surface-800" />
         </div>
         <div 
@@ -167,14 +235,17 @@ onMounted(() => {
           @click="toggleHeaderMenu"
         >
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:underline">{{ conv.name }}</p>
+            <p class="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:underline flex items-center gap-1.5">
+              <span>{{ conv.nickname || conv.name }}</span>
+              <BellOff v-if="conv.isMuted" :size="13" class="text-amber-500 shrink-0" title="Đã tắt thông báo" />
+            </p>
             <p class="text-xs text-gray-400">{{ conv.isOnline ? 'Đang hoạt động' : 'Ngoại tuyến' }}</p>
           </div>
           <ChevronDown :size="16" :class="['text-primary-500 transition-transform', activeHeaderMenu ? 'rotate-180' : '']" />
         </div>
         <div class="flex items-center gap-0.5 shrink-0">
-          <button class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Phone :size="14" /></button>
-          <button class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Video :size="14" /></button>
+          <button @click="startVoiceCall" title="Gọi thoại" class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Phone :size="14" /></button>
+          <button @click="startVideoCall" title="Gọi video" class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Video :size="14" /></button>
           <button @click="$emit('minimize')" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"><Minus :size="14" /></button>
           <button @click="$emit('close')" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"><X :size="14" /></button>
         </div>
@@ -183,7 +254,11 @@ onMounted(() => {
       <Transition name="fade">
         <ChatPopupHeaderMenu 
           v-if="activeHeaderMenu"
+          :conv="conv"
+          @clear-chat="messages = []"
           @close="activeHeaderMenu = false"
+          @close-window="$emit('close')"
+          @open-nickname="showNicknameModal = true"
         />
       </Transition>
     </div>
@@ -196,48 +271,66 @@ onMounted(() => {
       class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1.5 chat-messages relative z-0"
     >
       <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center py-8">
-        <img :src="conv.avatar" class="w-16 h-16 rounded-full object-cover mb-3" />
+        <UserAvatar 
+          :user="{ avatar: conv.avatar, name: conv.name }" 
+          :is-group="conv.isGroup || (!conv.avatar && conv.name?.includes('Nhóm'))"
+          size="lg" 
+          class="w-16! h-16! mb-3" 
+        />
         <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ conv.name }}</p>
         <p class="text-xs text-gray-400 mt-1">Bắt đầu cuộc trò chuyện mới</p>
       </div>
 
-      <div
-        v-for="msg in messages"
-        :key="msg.id"
-        :class="['flex', msg.isOwn ? 'justify-end' : 'justify-start']"
-      >
-        <div :class="['max-w-[calc(100%-86px)] flex gap-1.5 items-end relative group/bubble', msg.isOwn ? 'flex-row-reverse' : '']">
-          <img v-if="!msg.isOwn" :src="msg.sender.avatar" class="w-6 h-6 rounded-full object-cover shrink-0" />
-          <div class="relative flex items-center min-w-0" :class="msg.isOwn ? 'flex-row-reverse' : ''">
-            <div>
-              <div :class="[
-                'px-3 py-1.5 text-[15px] leading-relaxed wrap-break-word min-w-0',
-                msg.isOwn
-                  ? 'bg-primary-500 text-white rounded-2xl rounded-br-sm'
-                  : 'bg-gray-100 dark:bg-surface-700 text-gray-900 dark:text-white rounded-2xl rounded-bl-sm'
-              ]">
-                {{ msg.content }}
-              </div>
-              <div :class="['flex items-center gap-1 mt-0.5 text-[10px] text-gray-400', msg.isOwn ? 'justify-end' : '']">
-                <span>{{ formatTime(msg.createdAt) }}</span>
-                <span v-if="msg.isOwn" :class="msg.status === 'read' ? 'text-primary-500' : ''">{{ getStatusIcon(msg.status) }}</span>
-              </div>
-            </div>
+      <template v-for="(msg, index) in messages" :key="msg.id">
+        <!-- Date separator -->
+        <div 
+          v-if="index === 0 || !isSameDay(msg.createdAt || msg.timestamp, messages[index - 1].createdAt || messages[index - 1].timestamp)"
+          class="flex justify-center my-3"
+        >
+          <span class="px-2.5 py-0.5 bg-gray-200/70 dark:bg-surface-700/70 rounded-full text-[10px] font-medium text-gray-500 dark:text-gray-400 select-none">
+            {{ formatDayLabel(msg.createdAt || msg.timestamp) }}
+          </span>
+        </div>
 
-            <!-- Hover Actions for Popup -->
-            <ChatMessageActions 
-              :msg="msg"
-              :active-action-menu="activeMessageAction"
-              @toggle-action-menu="toggleMessageAction"
-            />
+        <div :class="['flex', msg.isOwn ? 'justify-end' : 'justify-start']">
+          <div :class="['max-w-[calc(100%-86px)] flex gap-1.5 items-end relative group/bubble', msg.isOwn ? 'flex-row-reverse' : '']">
+            <img v-if="!msg.isOwn" :src="msg.sender.avatar" class="w-6 h-6 rounded-full object-cover shrink-0" />
+            <div class="relative flex items-center min-w-0" :class="msg.isOwn ? 'flex-row-reverse' : ''">
+              <div>
+                <div :class="[
+                  'px-3 py-1.5 text-[15px] leading-relaxed wrap-break-word min-w-0',
+                  msg.isOwn
+                    ? 'bg-primary-500 text-white rounded-2xl rounded-br-sm'
+                    : 'bg-gray-100 dark:bg-surface-700 text-gray-900 dark:text-white rounded-2xl rounded-bl-sm'
+                ]">
+                  {{ msg.content }}
+                </div>
+                <div :class="['flex items-center gap-1 mt-0.5 text-[10px] text-gray-400', msg.isOwn ? 'justify-end' : '']">
+                  <span>{{ formatClockTime(msg.createdAt || msg.timestamp) }}</span>
+                  <span v-if="msg.isOwn" :class="msg.status === 'read' ? 'text-primary-500' : ''">{{ getStatusIcon(msg.status) }}</span>
+                </div>
+              </div>
+
+              <!-- Hover Actions for Popup -->
+              <ChatMessageActions 
+                :msg="msg"
+                :active-action-menu="activeMessageAction"
+                @toggle-action-menu="toggleMessageAction"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </template>
 
       <!-- Typing -->
       <div v-if="isTyping" class="flex justify-start">
         <div class="flex gap-1.5 items-end">
-          <img :src="conv.avatar" class="w-6 h-6 rounded-full object-cover shrink-0" />
+          <UserAvatar 
+            :user="{ avatar: conv.avatar, name: conv.name }" 
+            :is-group="conv.isGroup || (!conv.avatar && conv.name?.includes('Nhóm'))"
+            size="sm" 
+            class="w-6! h-6! shrink-0" 
+          />
           <div class="bg-gray-100 dark:bg-surface-700 rounded-2xl rounded-bl-sm px-4 py-2.5">
             <div class="flex gap-1">
               <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
@@ -277,6 +370,16 @@ onMounted(() => {
         <button @click="sendMessage" class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5"><Send :size="20" class="fill-current" /></button>
       </div>
     </div>
+
+    <!-- Nickname Modal -->
+    <NicknameModal
+      :show="showNicknameModal"
+      :user-name="conv.originalName || conv.name"
+      :user-avatar="conv.avatar"
+      :current-nickname="conv.nickname"
+      @close="showNicknameModal = false"
+      @save="handleSaveNickname"
+    />
   </div>
 </template>
 

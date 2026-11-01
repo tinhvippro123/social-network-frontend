@@ -9,6 +9,7 @@ import { currentUser, mockUsers } from '@/data/mockData'
 import type { ChatConversation, User } from '@/types'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ChatPopupWindow from '@/components/ChatPopupWindow.vue'
+import { useChatNicknames } from '@/composables/chat/useChatNicknames'
 
 const route = useRoute()
 const isChatRoute = computed(() => route.path.startsWith('/chat'))
@@ -24,6 +25,7 @@ const composeSearch = ref('')
 
 // More menu (⋯)
 const showMoreMenu = ref(false)
+const { applyNicknameToConversation } = useChatNicknames()
 
 // Global click handler to close menus
 const handleDocumentClick = (e: MouseEvent) => {
@@ -33,7 +35,23 @@ const handleDocumentClick = (e: MouseEvent) => {
   }
 }
 
-onMounted(() => document.addEventListener('click', handleDocumentClick))
+onMounted(() => {
+  document.addEventListener('click', handleDocumentClick)
+  window.addEventListener('chat-nickname-changed', (e: any) => {
+    const detail = e.detail
+    if (!detail) return
+    const findAndApply = (list: ChatConversation[]) => {
+      const match = list.find(c => c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
+      if (match) {
+        match.nickname = detail.nickname
+        match.name = detail.name
+        if (detail.originalName) match.originalName = detail.originalName
+      }
+    }
+    findAndApply(openWindows.value)
+    findAndApply(minimizedChats.value)
+  })
+})
 onUnmounted(() => document.removeEventListener('click', handleDocumentClick))
 
 const MAX_WINDOWS = 2
@@ -86,6 +104,7 @@ function selectComposeUser(user: User) {
 }
 
 function openChatWindow(conv: ChatConversation) {
+  applyNicknameToConversation(conv)
   const existingIdx = openWindows.value.findIndex(w => w.id === conv.id)
   if (existingIdx >= 0) return
 
@@ -195,9 +214,11 @@ defineExpose({ openChatWindow })
             @click="restoreWindow(conv)"
             class="relative cursor-pointer group"
           >
-            <img
-              :src="conv.avatar"
-              class="w-12 h-12 rounded-full object-cover shadow-lg border-2 border-white dark:border-surface-800 hover:scale-110 transition-transform"
+            <UserAvatar
+              :user="{ avatar: conv.avatar, name: conv.name }"
+              :is-group="conv.isGroup || (!conv.avatar && conv.name?.includes('Nhóm'))"
+              size="lg"
+              class="w-12! h-12! shadow-lg border-2 border-white dark:border-surface-800 hover:scale-110 transition-transform"
             />
             <div v-if="conv.isOnline" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-surface-800" />
             <button

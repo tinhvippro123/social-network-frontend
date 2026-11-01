@@ -11,9 +11,13 @@ import { useAdminPosts } from '@/composables/admin/useAdminPosts'
 const {
   posts,
   isLoading,
+  totalItems,
+  pageSize,
   searchQuery,
   filterStatus,
-  currentPage
+  currentPage,
+  togglePostStatus,
+  deletePost
 } = useAdminPosts()
 </script>
 
@@ -21,7 +25,7 @@ const {
   <div class="p-6">
     <AdminPageHeader
       title="Quản lý bài viết"
-      subtitle="Duyệt và quản lý tất cả bài viết trong hệ thống"
+      :subtitle="`${totalItems} bài viết trong hệ thống`"
       searchPlaceholder="Tìm bài viết..."
       v-model="searchQuery"
     >
@@ -34,11 +38,17 @@ const {
     </AdminPageHeader>
 
     <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden">
-      <PostsManageTable :posts="posts" :is-loading="isLoading" />
+      <PostsManageTable
+        :posts="posts"
+        :is-loading="isLoading"
+        @toggle-status="togglePostStatus"
+        @delete="deletePost"
+      />
 
       <AdminPagination 
         v-model:current-page="currentPage"
-        :total-items="posts.length"
+        :total-items="totalItems"
+        :items-per-page="pageSize"
         item-name="bài viết"
       />
     </div>

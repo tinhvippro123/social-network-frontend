@@ -38,7 +38,7 @@
           v-model="content"
           :placeholder="replyToName ? 'Viết phản hồi...' : placeholder"
           :rows="rows"
-          class="w-full bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 placeholder-gray-400 resize-none outline-none p-0 relative z-20 break-words break-all overflow-hidden"
+          class="w-full bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 placeholder-gray-400 resize-none outline-none p-0 relative z-20 wrap-break-word overflow-hidden"
           :class="compact ? 'text-xs leading-relaxed' : 'text-sm leading-relaxed'"
           :style="{ textIndent: replyToName ? `${tagWidth}px` : '0px' }"
           @input="adjustHeight"

@@ -15,7 +15,8 @@ const {
   showCreateModal,
   searchGroup,
   filterType,
-  filteredGroups
+  filteredGroups,
+  initData
 } = useGroupsView()
 </script>
 
@@ -82,6 +83,6 @@ const {
     </div>
 
     <!-- Create Group Modal -->
-    <CreateGroupModal v-model="showCreateModal" />
+    <CreateGroupModal v-model="showCreateModal" @created="initData" />
   </div>
 </template>

@@ -1,4 +1,4 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePosts, mapCommentResponse } from './usePosts'
 import { useAuth } from '../auth/useAuth'
@@ -77,19 +77,119 @@ export function usePostDetail() {
     }
   }
 
+  const highlightAndScrollToComment = (targetPayload?: string | { targetHash?: string; authorName?: string }) => {
+    let targetHash = ''
+    let authorName = ''
+
+    if (typeof targetPayload === 'string') {
+      targetHash = targetPayload
+    } else if (targetPayload && typeof targetPayload === 'object') {
+      targetHash = targetPayload.targetHash || ''
+      authorName = targetPayload.authorName || ''
+    }
+
+    if (!targetHash && route.hash) {
+      targetHash = route.hash
+    }
+    if (!authorName && route.query.highlightAuthor) {
+      authorName = String(route.query.highlightAuthor)
+    }
+
+    const cleanId = targetHash.replace(/^#comment-/, '').replace(/^#/, '').trim()
+    const cleanAuthor = authorName.toLowerCase().trim()
+
+    let attempts = 0
+    const maxAttempts = 35 // Check every 100ms for up to 3.5s
+
+    const findCommentByAuthor = (list: any[], author: string): any => {
+      for (const c of list) {
+        if (c.author?.name && c.author.name.toLowerCase().includes(author)) {
+          return c
+        }
+        if (c.replies && c.replies.length > 0) {
+          const found = findCommentByAuthor(c.replies, author)
+          if (found) return found
+        }
+      }
+      return null
+    }
+
+    const tryScroll = () => {
+      let el: HTMLElement | null = null
+
+      // 1. Try finding by comment ID if specified and not just generic comments section
+      if (cleanId && cleanId !== 'comments-section' && cleanId !== 'comments') {
+        el = document.getElementById(`comment-${cleanId}`) || document.getElementById(cleanId)
+      }
+
+      // 2. If not found by ID or no ID, search in loaded comments by author name
+      if (!el && cleanAuthor && comments.value.length > 0) {
+        const matched = findCommentByAuthor(comments.value, cleanAuthor)
+        if (matched) {
+          el = document.getElementById(`comment-${matched.id}`)
+        }
+      }
+
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el.classList.remove('highlight-comment-target')
+        void el.offsetWidth // Trigger reflow to restart animation
+        el.classList.add('highlight-comment-target')
+        setTimeout(() => {
+          el?.classList.remove('highlight-comment-target')
+        }, 3500)
+        return true
+      }
+
+      attempts++
+      if (attempts < maxAttempts) {
+        setTimeout(tryScroll, 100)
+      } else {
+        // Fallback: Scroll down to comments section
+        const commentsSec = document.getElementById('comments-section') || document.getElementById('comments')
+        if (commentsSec) {
+          commentsSec.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }
+      return false
+    }
+
+    tryScroll()
+  }
+
   onMounted(async () => {
     await initData()
-    if (route.hash) {
-      setTimeout(() => {
-        const el = document.querySelector(route.hash)
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          el.classList.add('ring-2', 'ring-primary-500', 'transition-all')
-          setTimeout(() => el.classList.remove('ring-2', 'ring-primary-500'), 2500)
-        }
-      }, 400)
+    if (route.hash || route.query.highlightAuthor) {
+      highlightAndScrollToComment()
     }
   })
+
+  // Watch for hash or highlightAuthor changes while user is already on the post page
+  watch(
+    () => [route.hash, route.query.highlightAuthor],
+    ([newHash, newAuthor]) => {
+      if (newHash || newAuthor) {
+        highlightAndScrollToComment()
+      }
+    }
+  )
+
+  // Watch when comments finish loading, re-run scroll check
+  watch(comments, (newComments) => {
+    if ((route.hash || route.query.highlightAuthor) && newComments.length > 0) {
+      highlightAndScrollToComment()
+    }
+  })
+
+  // Listen to custom jump-to-comment event from navbar or notification lists
+  if (typeof window !== 'undefined') {
+    window.addEventListener('jump-to-comment', (e: any) => {
+      const detail = e.detail
+      if (detail) {
+        highlightAndScrollToComment(detail)
+      }
+    })
+  }
 
   const toggleBookmark = async () => {
     if (!post.value) return

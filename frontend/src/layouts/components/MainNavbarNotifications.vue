@@ -3,6 +3,8 @@ import { useRouter } from 'vue-router'
 import { Bell } from '@lucide/vue'
 import { formatRelativeTime } from '@/utils/formatters'
 
+import { navigateToNotificationLink } from '@/utils/notificationNavigation'
+
 const router = useRouter()
 
 const props = defineProps<{
@@ -17,9 +19,7 @@ const emit = defineEmits<{
 function handleNotificationClick(notif: any) {
   props.uiStore.markNotificationRead(notif.id)
   emit('update:showNotifications', false)
-  if (notif.link) {
-    router.push(notif.link)
-  }
+  navigateToNotificationLink(router, notif)
 }
 </script>
 

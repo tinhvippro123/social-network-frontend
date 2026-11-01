@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   SearchIcon, MenuIcon, X,
   ChevronLeft, ChevronRight, PenSquare,
@@ -28,6 +29,8 @@ const emit = defineEmits<{
 }>()
 
 const navbarImageInput = ref<HTMLInputElement | null>(null)
+const route = useRoute()
+const isSearchPage = computed(() => route.path === '/search')
 
 function handleSearchSubmit() {
   const q = props.uiStore.searchQuery?.trim()
@@ -71,8 +74,8 @@ function onNavbarImagePicked(event: Event) {
         <ChevronRight v-else :size="22" class="transition-transform duration-200" />
       </button>
 
-      <!-- Search Bar -->
-      <div class="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-3 py-1.5 w-64 lg:w-96 transition-all duration-200 focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:bg-white dark:focus-within:bg-surface-600">
+      <!-- Search Bar (Ẩn khi đang ở trang /search để tránh trùng lặp 2 ô tìm kiếm) -->
+      <div v-if="!isSearchPage" class="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-xl px-3 py-1.5 w-64 lg:w-96 transition-all duration-200 focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:bg-white dark:focus-within:bg-surface-600">
         <button
           type="button"
           @click="handleSearchSubmit"
@@ -121,8 +124,9 @@ function onNavbarImagePicked(event: Event) {
 
     <!-- Right: Actions -->
     <div class="flex items-center gap-2">
-      <!-- Mobile search -->
+      <!-- Mobile search (ẩn khi đang ở trang /search) -->
       <button
+        v-if="!isSearchPage"
         @click="emit('navigate', '/search')"
         class="sm:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
         title="Tìm kiếm AI"

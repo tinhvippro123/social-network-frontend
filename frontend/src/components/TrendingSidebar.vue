@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { Hash, SmilePlus, Star, TrendingUp } from '@lucide/vue'
+import { ref } from 'vue'
+import { Hash, SmilePlus, Star, TrendingUp, Check } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber } from '@/utils/formatters'
 import { useTrendingSidebar } from '@/composables/ui/useTrendingSidebar'
+import { useToast } from '@/composables/ui/useToast'
+
+const toast = useToast()
+const followedUserIds = ref<Set<string>>(new Set())
 
 const {
   router,
@@ -12,6 +17,16 @@ const {
   users,
   isLoading
 } = useTrendingSidebar()
+
+function toggleFollowUser(u: any) {
+  if (followedUserIds.value.has(u.id)) {
+    followedUserIds.value.delete(u.id)
+    toast.info(`Đã bỏ theo dõi ${u.name}`)
+  } else {
+    followedUserIds.value.add(u.id)
+    toast.success(`Đang theo dõi ${u.name}`)
+  }
+}
 </script>
 
 <template>
@@ -70,7 +85,8 @@ const {
         <span
           v-for="tag in tags"
           :key="tag.id"
-          class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700 hover:bg-gray-100 dark:hover:bg-surface-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors cursor-pointer border border-gray-200 dark:border-surface-600"
+          @click="router.push('/tags/' + tag.name)"
+          class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700 hover:bg-primary-50 dark:hover:bg-primary-950/40 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-200 dark:hover:border-primary-800 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors cursor-pointer border border-gray-200 dark:border-surface-600"
         >
           #{{ tag.name }}
         </span>
@@ -102,8 +118,17 @@ const {
             </p>
             <p class="text-xs text-gray-400">{{ user.postsCount }} bài viết</p>
           </div>
-          <button class="px-3 py-1 rounded-lg text-xs font-medium border border-primary-500/30 text-primary-500 hover:bg-primary-500 hover:text-white transition-all duration-200">
-            Theo dõi
+          <button
+            @click="toggleFollowUser(user)"
+            :class="[
+              'px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer flex items-center gap-1',
+              followedUserIds.has(user.id)
+                ? 'bg-primary-500 text-white border border-primary-500'
+                : 'border border-primary-500/30 text-primary-500 hover:bg-primary-500 hover:text-white'
+            ]"
+          >
+            <Check v-if="followedUserIds.has(user.id)" :size="12" />
+            {{ followedUserIds.has(user.id) ? 'Đang theo dõi' : 'Theo dõi' }}
           </button>
         </div>
       </div>

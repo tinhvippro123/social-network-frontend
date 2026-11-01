@@ -1,6 +1,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import notificationsApi from '@/api/notifications.api'
+import { navigateToNotificationLink } from '@/utils/notificationNavigation'
 
 export interface Notification {
   id: string
@@ -87,9 +88,7 @@ export function useNotifications() {
 
   const handleClick = (notification: Notification) => {
     markAsRead(notification.id)
-    if (notification.link) {
-      router.push(notification.link)
-    }
+    navigateToNotificationLink(router, notification)
   }
 
   watch(activeFilter, () => {

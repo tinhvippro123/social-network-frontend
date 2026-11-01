@@ -3,11 +3,17 @@ import { GripVertical, Edit3, Trash2 } from '@lucide/vue'
 
 defineProps<{
   category: {
+    id?: string
     name: string
     slug: string
     icon: string
     postsCount: number
   }
+}>()
+
+const emit = defineEmits<{
+  (e: 'edit', category: any): void
+  (e: 'delete', category: any): void
 }>()
 </script>
 
@@ -26,14 +32,24 @@ defineProps<{
       <code class="text-xs bg-gray-100 dark:bg-surface-700 px-2 py-1 rounded text-gray-500">{{ category.slug }}</code>
     </td>
     <td class="px-5 py-4">
-      <span class="text-sm text-gray-600 dark:text-gray-400">{{ category.postsCount }} bài</span>
+      <span class="text-sm text-gray-600 dark:text-gray-400">{{ category.postsCount || 0 }} bài</span>
     </td>
     <td class="px-5 py-4 text-right">
       <div class="flex items-center justify-end gap-1">
-        <button class="p-1.5 rounded-lg text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:text-blue-500 transition-colors">
+        <button
+          type="button"
+          @click="emit('edit', category)"
+          class="p-1.5 rounded-lg text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:text-blue-500 transition-colors cursor-pointer"
+          title="Chỉnh sửa danh mục"
+        >
           <Edit3 :size="14" />
         </button>
-        <button class="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-500 transition-colors">
+        <button
+          type="button"
+          @click="emit('delete', category)"
+          class="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-500 transition-colors cursor-pointer"
+          title="Xóa danh mục"
+        >
           <Trash2 :size="14" />
         </button>
       </div>

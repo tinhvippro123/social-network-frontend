@@ -6,7 +6,7 @@ import GroupsManageRow from './components/GroupsManageRow.vue'
 import GroupsManageSkeletonRow from './components/GroupsManageSkeletonRow.vue'
 import { useAdminGroups } from '@/composables/admin/useAdminGroups'
 
-const { groups, isLoading } = useAdminGroups()
+const { groups, isLoading, deleteGroup } = useAdminGroups()
 </script>
 
 <template>
@@ -38,6 +38,7 @@ const { groups, isLoading } = useAdminGroups()
                 v-for="group in groups"
                 :key="group.id"
                 :group="group"
+                @delete="deleteGroup"
               />
             </template>
             <tr v-else>

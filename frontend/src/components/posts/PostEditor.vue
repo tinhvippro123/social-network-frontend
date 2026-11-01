@@ -8,6 +8,7 @@ import { EditorContent } from '@tiptap/vue-3'
 import { useRouter } from 'vue-router'
 import LocationPickerModal from '@/components/LocationPickerModal.vue'
 import { useCreatePost } from '@/composables/posts/useCreatePost'
+import { formatContentWithGalleries } from '@/utils/proseGallery'
 import PostEditorSettings from './PostEditorSettings.vue'
 
 const props = defineProps<{
@@ -18,6 +19,7 @@ const props = defineProps<{
 const {
   categories,
   title,
+  excerpt,
   content,
   selectedCategory,
   tags,
@@ -65,6 +67,8 @@ const onPublish = () => {
   handlePublish(props.mode, props.initialData?.id)
 }
 
+const formattedPreviewContent = computed(() => formatContentWithGalleries(content.value))
+
 const router = useRouter()
 </script>
 
@@ -99,6 +103,7 @@ const router = useRouter()
     <!-- TOP SECTION: Settings (Cover, Title, Tags) -->
     <PostEditorSettings
       v-model:title="title"
+      v-model:excerpt="excerpt"
       v-model:selected-category="selectedCategory"
       v-model:tag-input="tagInput"
       v-model:show-location-picker="showLocationPicker"
@@ -153,9 +158,9 @@ const router = useRouter()
         </div>
         
         <div class="flex-1 overflow-y-auto bg-white dark:bg-surface-800 overflow-x-hidden">
-          <div class="prose dark:prose-invert max-w-none prose-img:rounded-xl break-words p-6 text-base leading-relaxed text-gray-700 dark:text-gray-300">
+          <div class="prose dark:prose-invert max-w-none prose-img:rounded-xl wrap-break-word p-6 text-base leading-relaxed text-gray-700 dark:text-gray-300">
             <p v-if="!content || content === '<p></p>'" class="text-gray-400 italic">Chưa có nội dung. Hãy nhập nội dung ở ô bên trái để xem trước...</p>
-            <div v-else v-html="content" class="tiptap-preview"></div>
+            <div v-else v-html="formattedPreviewContent" class="tiptap-preview"></div>
           </div>
         </div>
       </div>

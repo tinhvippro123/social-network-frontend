@@ -25,6 +25,8 @@ export function mapCommentResponse(dto: any): any {
     downvotes: dto.downvotes ?? 0,
     reactions: dto.reactions || [],
     replyTo: dto.replyTo,
+    sentiment: dto.sentiment,
+    sentimentScore: dto.sentimentScore,
     replies: Array.isArray(dto.replies) ? dto.replies.map(mapCommentResponse).filter(Boolean) : []
   }
 }

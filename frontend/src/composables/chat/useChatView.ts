@@ -1,4 +1,5 @@
 import { ref, watch, watchEffect, onMounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 
 import { useAuth } from '../auth/useAuth'
 import { useChat } from './useChat'
@@ -7,7 +8,10 @@ import type { ChatMessage } from '@/types'
 import chatApi from '@/api/chat.api'
 
 export function useChatView() {
+  const route = useRoute()
   const { user: currentUser } = useAuth()
+  const newChatInitialMode = ref<'direct' | 'group'>('direct')
+  const newChatPreselectedUserId = ref<string | null>(null)
   
   const {
     conversations, messages, isLoading, isTyping, typingUser,
@@ -21,6 +25,21 @@ export function useChatView() {
   const newMessage = ref('')
   const isInitialLoading = ref(true)
   const showMobileChat = ref(false)
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('chat-nickname-changed', (e: any) => {
+      const detail = e.detail
+      if (!detail || !selectedConversation.value) return
+      if (
+        selectedConversation.value.id === detail.convId ||
+        selectedConversation.value.participants?.some((p: any) => p.id === detail.otherId)
+      ) {
+        selectedConversation.value.nickname = detail.nickname
+        selectedConversation.value.name = detail.name
+        if (detail.originalName) selectedConversation.value.originalName = detail.originalName
+      }
+    })
+  }
 
   // UI states
   const showInfoPanel = ref(false)
@@ -48,6 +67,22 @@ export function useChatView() {
   const showScrollBottom = ref(false)
   const searchChat = ref('')
   const imagePreview = ref<string | null>(null)
+  const highlightedMessageId = ref<string | null>(null)
+  let highlightTimer: ReturnType<typeof setTimeout> | null = null
+
+  const scrollToMessage = (messageId?: string) => {
+    if (!messageId) return
+    const el = document.getElementById(`chat-message-${messageId}`)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    highlightedMessageId.value = messageId
+    if (highlightTimer) clearTimeout(highlightTimer)
+    highlightTimer = setTimeout(() => {
+      if (highlightedMessageId.value === messageId) {
+        highlightedMessageId.value = null
+      }
+    }, 2200)
+  }
 
   const {
     searchChat: searchChatLogic,
@@ -59,7 +94,10 @@ export function useChatView() {
     filteredConversations,
     lastOwnMessage,
     emojiList,
-    formatMessageTime
+    formatMessageTime,
+    formatClockTime,
+    formatDayLabel,
+    isSameDay
   } = useChatLogic(messages, conversations)
 
   watchEffect(() => {
@@ -81,10 +119,26 @@ export function useChatView() {
   onMounted(async () => {
     isInitialLoading.value = true
     await fetchConversations()
-    if (conversations.value.length > 0) {
+    if (route.query.id) {
+      const match = conversations.value.find(c => c.id === route.query.id)
+      if (match) {
+        selectedConversation.value = match
+        await fetchMessages(match.id)
+      } else if (conversations.value.length > 0) {
+        selectedConversation.value = conversations.value[0]
+        await fetchMessages(selectedConversation.value.id)
+      }
+    } else if (conversations.value.length > 0) {
       selectedConversation.value = conversations.value[0]
       await fetchMessages(selectedConversation.value.id)
     }
+
+    if (route.query.createGroup === 'true') {
+      newChatInitialMode.value = 'group'
+      newChatPreselectedUserId.value = (route.query.memberId as string) || null
+      showNewChatModal.value = true
+    }
+
     isInitialLoading.value = false
     await nextTick()
     scrollToBottom(false)
@@ -104,6 +158,7 @@ export function useChatView() {
     showEmojiPicker.value = false
     showSearchInChat.value = false
     replyingTo.value = null
+    highlightedMessageId.value = null
     messages.value = []
     await fetchMessages(conv.id)
     await nextTick()
@@ -121,6 +176,7 @@ export function useChatView() {
 
     newMessage.value = ''
     replyingTo.value = null
+    highlightedMessageId.value = null
     showEmojiPicker.value = false
 
     await apiSendMessage(selectedConversation.value.id, content, 'text', {
@@ -172,6 +228,9 @@ export function useChatView() {
     if (!searchQuery.value.trim() || !selectedConversation.value) return
     const results = await searchMessages(selectedConversation.value.id, searchQuery.value)
     searchResults.value = results
+    if (results.length > 0 && results[0]?.id) {
+      scrollToMessage(results[0].id)
+    }
   }
 
   const toggleActionMenu = (messageId: string) => {
@@ -340,6 +399,8 @@ export function useChatView() {
     showScrollBottom,
     searchChat,
     imagePreview,
+    highlightedMessageId,
+    scrollToMessage,
     sharedMedia,
     sharedFiles,
     groupedSharedMedia,
@@ -349,6 +410,9 @@ export function useChatView() {
     lastOwnMessage,
     emojiList,
     formatMessageTime,
+    formatClockTime,
+    formatDayLabel,
+    isSameDay,
     openMediaView,
     scrollToBottom,
     selectConversation,
@@ -380,6 +444,8 @@ export function useChatView() {
     getMessageStatusLabel,
     isLastOwnWithReadStatus,
     showNewChatModal,
+    newChatInitialMode,
+    newChatPreselectedUserId,
     createNewConversation
   }
 }

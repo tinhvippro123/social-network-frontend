@@ -5,6 +5,7 @@ import { UserCheck, Ban, Trash2, Users, ShieldCheck, Loader2 } from '@lucide/vue
 import UserAvatar from '@/components/UserAvatar.vue'
 import UsersTableSkeletonRow from './UsersTableSkeletonRow.vue'
 import { formatDate } from '@/utils/formatters'
+import { useConfirm } from '@/composables/ui/useConfirm'
 
 const props = defineProps<{
   users: any[]
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const openInNewTab = (path: string) => window.open(router.resolve(path).href, '_blank', 'noopener')
 const editingRoleId = ref<string | null>(null)
 
 const ROLE_OPTIONS = [
@@ -31,10 +33,17 @@ const ROLE_OPTIONS = [
 /** Admin accounts and the current admin are protected by the backend. */
 const isProtected = (user: any) => user.role === 'admin' || !!props.isSelf?.(user)
 
-function onRoleSelected(user: any, event: Event) {
+const { confirm } = useConfirm()
+
+async function onRoleSelected(user: any, event: Event) {
   const role = (event.target as HTMLSelectElement).value
   editingRoleId.value = null
-  if (role === 'admin' && !window.confirm(`Cấp quyền Admin cho "${user.name}"? Tài khoản Admin không thể bị hạ quyền sau đó.`)) return
+  if (role === 'admin' && !(await confirm({
+    title: 'Cấp quyền Admin',
+    message: `Cấp quyền Admin cho "${user.name}"? Tài khoản Admin không thể bị hạ quyền sau đó.`,
+    confirmText: 'Cấp quyền',
+    variant: 'warning'
+  }))) return
   emit('change-role', user, role)
 }
 </script>
@@ -61,7 +70,7 @@ function onRoleSelected(user: any, event: Event) {
           <tr v-for="user in users" :key="user.id"
             :class="['border-b border-gray-100 dark:border-surface-700 hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors', busyUserId === user.id && 'opacity-60 pointer-events-none']">
             <td class="py-3 px-4">
-              <button type="button" class="flex items-center gap-3 text-left group" @click="router.push(`/profile/${user.id}`)">
+              <button type="button" class="flex items-center gap-3 text-left group" @click="openInNewTab(`/profile/${user.id}`)">
                 <UserAvatar :user="user" size="md" />
                 <div class="min-w-0">
                   <p class="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:text-red-500 transition-colors">

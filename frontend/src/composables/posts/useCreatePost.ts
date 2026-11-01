@@ -22,6 +22,7 @@ export function useCreatePost() {
   const router = useRouter()
 
   const title = ref('')
+  const excerpt = ref('')
   const content = ref('')
   const selectedCategory = ref('')
   const tags = ref<string[]>([])
@@ -94,7 +95,7 @@ export function useCreatePost() {
     { icon: null, label: 'divider', action: '' },
     { icon: CodeIcon, label: 'Code', action: 'code' },
     { icon: LinkIcon, label: 'Link', action: 'link' },
-    { icon: ImageIcon, label: 'Image', action: 'image' },
+    { icon: ImageIcon, label: 'Chèn ảnh / Bộ sưu tập ảnh (chọn 1 hoặc nhiều ảnh)', action: 'image' },
   ]
 
   const editor = useEditor({
@@ -118,6 +119,7 @@ export function useCreatePost() {
   const loadInitialData = (post: any) => {
     if (!post) return
     title.value = post.title || ''
+    excerpt.value = post.excerpt || ''
     content.value = post.content || ''
     if (editor.value && post.content) {
       editor.value.commands.setContent(post.content)
@@ -151,24 +153,38 @@ export function useCreatePost() {
     }
   })
 
-  // Trigger file picker to upload inline image to Cloudinary
+  // Trigger file picker to upload 1 or multiple inline images to Cloudinary (auto-forms Gallery if >= 2 images)
   const insertInlineImage = () => {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
+    input.multiple = true
     input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0]
-      if (!file) return
-      if (file.size > 5 * 1024 * 1024) {
-        error('Kích thước ảnh tối đa là 5MB')
-        return
+      const files = Array.from((e.target as HTMLInputElement).files || [])
+      if (files.length === 0) return
+      for (const file of files) {
+        if (file.size > 5 * 1024 * 1024) {
+          error(`Ảnh "${file.name}" vượt quá kích thước tối đa 5MB`)
+          return
+        }
       }
       try {
-        const uploadRes = await filesApi.uploadFile(file)
-        const url = uploadRes.data?.data?.fileUrl || uploadRes.data?.fileUrl
-        if (url && editor.value) {
-          editor.value.chain().focus().setImage({ src: url }).run()
-          success('Đã tải và chèn ảnh thành công!')
+        const uploadResponses = await Promise.all(files.map(file => filesApi.uploadFile(file)))
+        const urls = uploadResponses
+          .map(res => res.data?.data?.fileUrl || res.data?.fileUrl)
+          .filter((url): url is string => Boolean(url))
+
+        if (urls.length > 0 && editor.value) {
+          const imageNodes = urls.map(url => ({
+            type: 'image',
+            attrs: { src: url, alt: title.value || 'Ảnh bài viết' }
+          }))
+          editor.value.chain().focus().insertContent(imageNodes).run()
+          success(
+            urls.length > 1
+              ? `Đã tải và tạo cụm Gallery (${urls.length} ảnh) thành công!`
+              : 'Đã tải và chèn ảnh thành công!'
+          )
         }
       } catch (err) {
         error('Không thể tải ảnh lên. Vui lòng thử lại.')
@@ -237,13 +253,13 @@ export function useCreatePost() {
         }
       }
 
-      // Tạo excerpt từ 150 ký tự đầu của nội dung
-      const excerpt = plainTextContent.substring(0, 150)
+      // Lấy excerpt người dùng tự gõ, nếu để trống thì tự động cắt 150 ký tự đầu của nội dung
+      const finalExcerpt = excerpt.value.trim() || plainTextContent.substring(0, 150)
       
       const payload = {
         title: title.value.trim(),
         content: content.value,
-        excerpt: excerpt,
+        excerpt: finalExcerpt,
         categoryId: selectedCategory.value,
         tags: tags.value,
         status: (isDraft.value ? 'draft' : 'published') as 'draft' | 'published',
@@ -276,6 +292,7 @@ export function useCreatePost() {
   return {
     categories,
     title,
+    excerpt,
     content,
     selectedCategory,
     tags,

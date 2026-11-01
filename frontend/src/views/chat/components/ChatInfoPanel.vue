@@ -14,6 +14,8 @@ import ChatInfoHeader from './ChatInfoHeader.vue'
 import ChatMediaFilesView from './ChatMediaFilesView.vue'
 import ChatInfoSharedMedia from './ChatInfoSharedMedia.vue'
 import ChatInfoSharedFiles from './ChatInfoSharedFiles.vue'
+import NicknameModal from '@/components/NicknameModal.vue'
+import { useChatNicknames } from '@/composables/chat/useChatNicknames'
 
 import { useToast } from '@/composables/ui/useToast'
 
@@ -22,7 +24,35 @@ if (!chatState) {
   throw new Error('ChatState is not provided')
 }
 
-const { addToast } = useToast()
+const toast = useToast()
+const { addToast } = toast
+const isMuted = ref(false)
+const showNicknameModal = ref(false)
+const { setNickname } = useChatNicknames()
+
+function viewPinnedMessages() {
+  toast.info('Hiện chưa có tin nhắn nào được ghim trong cuộc trò chuyện này')
+}
+
+function editNickname() {
+  showNicknameModal.value = true
+}
+
+function handleSaveNickname(newNick: string) {
+  if (!selectedConversation?.value) return
+  setNickname(selectedConversation.value, newNick)
+  if (newNick.trim()) {
+    toast.success(`Đã đổi biệt danh thành "${newNick.trim()}"`)
+  } else {
+    toast.info('Đã gỡ bỏ biệt danh')
+  }
+  showNicknameModal.value = false
+}
+
+function toggleMuteNotifications() {
+  isMuted.value = !isMuted.value
+  toast.info(isMuted.value ? 'Đã tắt thông báo cuộc trò chuyện' : 'Đã bật lại thông báo cuộc trò chuyện')
+}
 
 const {
   router,
@@ -75,7 +105,7 @@ const {
 
         <!-- Accordion 1: Thông tin về đoạn chat -->
         <AccordionSection title="Thông tin về đoạn chat">
-          <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
+          <button @click="viewPinnedMessages" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
             <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
               <PinIcon :size="16" />
             </div>
@@ -88,7 +118,7 @@ const {
         <!-- Accordion 2: Tùy chỉnh đoạn chat -->
         <AccordionSection title="Tùy chỉnh đoạn chat">
           <div class="space-y-0.5">
-            <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
+            <button @click="editNickname" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
               <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
                 <TypeIcon :size="16" />
               </div>
@@ -109,12 +139,12 @@ const {
         <!-- Accordion 4: Quyền riêng tư và hỗ trợ -->
         <AccordionSection title="Quyền riêng tư và hỗ trợ">
           <div class="space-y-0.5">
-            <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
-              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
+            <button @click="toggleMuteNotifications" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
+              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0" :class="isMuted ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' : ''">
                 <BellOffIcon :size="16" />
               </div>
               <div class="flex-1 text-left min-w-0">
-                <p class="truncate">Tắt thông báo</p>
+                <p class="truncate">{{ isMuted ? 'Bật thông báo' : 'Tắt thông báo' }}</p>
               </div>
             </button>
 
@@ -183,4 +213,15 @@ const {
       <ChatMediaFilesView v-else-if="rightSidebarView === 'media_files'" />
     </aside>
   </Transition>
+
+  <!-- Nickname Modal -->
+  <NicknameModal
+    v-if="selectedConversation"
+    :show="showNicknameModal"
+    :user-name="selectedConversation.originalName || selectedConversation.name"
+    :user-avatar="selectedConversation.avatar"
+    :current-nickname="selectedConversation.nickname"
+    @close="showNicknameModal = false"
+    @save="handleSaveNickname"
+  />
 </template>

@@ -62,11 +62,51 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
     '👀', '🫡', '✅', '⭐', '🚀', '💪', '🤝', '👏'
   ]
 
+  const toDate = (timeStr?: string) => {
+    if (!timeStr || !timeStr.includes('-')) return null
+    const d = new Date(timeStr)
+    return isNaN(d.getTime()) ? null : d
+  }
+
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const daysAgo = (d: Date) => Math.round((startOfDay(new Date()) - startOfDay(d)) / 86_400_000)
+  const WEEKDAYS = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+
+  /** Giờ:phút — dùng trong bong bóng tin nhắn */
+  const formatClockTime = (timeStr: string) => {
+    const d = toDate(timeStr)
+    if (!d) return timeStr
+    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  /** Nhãn vạch phân cách ngày: Hôm nay / Hôm qua / Thứ 3, 21/10/2026 */
+  const formatDayLabel = (timeStr: string) => {
+    const d = toDate(timeStr)
+    if (!d) return ''
+    const diff = daysAgo(d)
+    if (diff === 0) return 'Hôm nay'
+    if (diff === 1) return 'Hôm qua'
+    return `${WEEKDAYS[d.getDay()]}, ${d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+  }
+
+  const isSameDay = (a?: string, b?: string) => {
+    const da = toDate(a)
+    const db = toDate(b)
+    return !!da && !!db && startOfDay(da) === startOfDay(db)
+  }
+
+  /**
+   * Thời gian rút gọn kiểu Messenger — dùng cho danh sách hội thoại, file:
+   * hôm nay → 14:05 · hôm qua → Hôm qua · trong tuần → Thứ 3 · cũ hơn → 21/10/2026
+   */
   const formatMessageTime = (timeStr: string) => {
-    if (!timeStr.includes('-')) return timeStr
-    const date = new Date(timeStr)
-    if (isNaN(date.getTime())) return timeStr
-    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+    const d = toDate(timeStr)
+    if (!d) return timeStr
+    const diff = daysAgo(d)
+    if (diff === 0) return formatClockTime(timeStr)
+    if (diff === 1) return 'Hôm qua'
+    if (diff < 7) return WEEKDAYS[d.getDay()] ?? ''
+    return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
   }
 
   return {
@@ -79,6 +119,9 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
     filteredConversations,
     lastOwnMessage,
     emojiList,
-    formatMessageTime
+    formatMessageTime,
+    formatClockTime,
+    formatDayLabel,
+    isSameDay
   }
 }

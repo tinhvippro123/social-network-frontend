@@ -6,6 +6,9 @@ import type { ChatConversation } from '@/types'
 import chatApi from '@/api/chat.api'
 import { useAuthStore } from '@/stores/auth.store'
 import { mockConversations } from '@/data/mockData'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { formatMessengerTime } from '@/utils/formatters'
+import { useChatNicknames } from '@/composables/chat/useChatNicknames'
 
 const props = defineProps<{
   showChat: boolean
@@ -21,6 +24,7 @@ const authStore = useAuthStore()
 const searchQuery = ref('')
 const triggerRef = ref<HTMLElement | null>(null)
 const liveConversations = ref<ChatConversation[]>([])
+const { applyNicknamesToConversations } = useChatNicknames()
 
 async function loadConversations() {
   if (!authStore.isLoggedIn) {
@@ -41,6 +45,9 @@ async function loadConversations() {
 
 onMounted(() => {
   loadConversations()
+  window.addEventListener('chat-nickname-changed', () => {
+    liveConversations.value = [...liveConversations.value]
+  })
 })
 
 watch(() => props.showChat, (isOpen) => {
@@ -51,10 +58,10 @@ watch(() => props.showChat, (isOpen) => {
 
 // Use live conversations if logged in and available; otherwise fallback cleanly
 const displayedConversations = computed(() => {
-  if (authStore.isLoggedIn && liveConversations.value.length > 0) {
-    return liveConversations.value
-  }
-  return authStore.isLoggedIn ? liveConversations.value : mockConversations
+  const base = authStore.isLoggedIn && liveConversations.value.length > 0
+    ? liveConversations.value
+    : (authStore.isLoggedIn ? liveConversations.value : mockConversations)
+  return applyNicknamesToConversations(base)
 })
 
 const totalUnread = computed(() =>
@@ -126,7 +133,11 @@ function selectConversation(conv: ChatConversation) {
           <!-- Header -->
           <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-surface-700">
             <h3 class="font-semibold text-sm text-gray-900 dark:text-white">Tin nhắn</h3>
-            <button class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+            <button
+              @click="router.push('/chat'); emit('update:showChat', false)"
+              title="Mở toàn bộ cuộc trò chuyện"
+              class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+            >
               <Edit :size="16" />
             </button>
           </div>
@@ -155,30 +166,40 @@ function selectConversation(conv: ChatConversation) {
               :key="conv.id"
               @click="selectConversation(conv)"
               :class="[
-                'flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-surface-700/50 cursor-pointer transition-colors',
-                conv.unreadCount > 0 ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''
+                'flex items-center gap-3 px-3.5 py-2.5 hover:bg-gray-50 dark:hover:bg-surface-700/50 cursor-pointer transition-colors',
+                conv.unreadCount > 0 ? 'bg-primary-50/40 dark:bg-primary-900/10' : ''
               ]"
             >
+              <!-- Avatar with fallback and online indicator -->
               <div class="relative shrink-0">
-                <img :src="conv.avatar" class="w-10 h-10 rounded-full object-cover" />
+                <UserAvatar 
+                  :user="{ avatar: conv.avatar, name: conv.name }" 
+                  :is-group="conv.isGroup || (!conv.avatar && conv.name?.includes('Nhóm'))"
+                  size="md" 
+                />
                 <div
                   v-if="conv.isOnline"
-                  class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-surface-800"
+                  class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-surface-800"
                 />
               </div>
+
+              <!-- Content: Name & Message Preview with Messenger-style relative time -->
               <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between gap-2">
-                  <p :class="['text-sm truncate min-w-0', conv.unreadCount > 0 ? 'font-bold text-gray-900 dark:text-white' : 'font-medium text-gray-700 dark:text-gray-300']">
-                    {{ conv.name }}
-                  </p>
-                  <span class="text-xs text-gray-400 shrink-0">{{ conv.lastMessageTime }}</span>
-                </div>
-                <p :class="['text-xs truncate mt-0.5', conv.unreadCount > 0 ? 'font-semibold text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400']">
-                  {{ conv.lastMessage }}
+                <p :class="['text-[13px] truncate min-w-0 leading-tight', conv.unreadCount > 0 ? 'font-bold text-gray-900 dark:text-white' : 'font-medium text-gray-800 dark:text-gray-200']">
+                  {{ conv.name }}
+                </p>
+                <p :class="['text-xs truncate flex items-center min-w-0 mt-0.5', conv.unreadCount > 0 ? 'font-semibold text-gray-800 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400']">
+                  <span class="truncate">{{ conv.lastMessage || 'Đã bắt đầu cuộc trò chuyện' }}</span>
+                  <span v-if="conv.lastMessageTime" class="mx-1 shrink-0 text-gray-400 dark:text-gray-500">·</span>
+                  <span v-if="conv.lastMessageTime" class="shrink-0 text-gray-400 dark:text-gray-500 font-normal">
+                    {{ formatMessengerTime(conv.lastMessageTime) }}
+                  </span>
                 </p>
               </div>
-              <div v-if="conv.unreadCount > 0" class="shrink-0 w-5 h-5 bg-primary-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                {{ conv.unreadCount }}
+
+              <!-- Unread blue dot indicator (Facebook Messenger style) -->
+              <div v-if="conv.unreadCount > 0" class="shrink-0">
+                <div class="w-2.5 h-2.5 bg-primary-500 rounded-full"></div>
               </div>
             </div>
           </div>

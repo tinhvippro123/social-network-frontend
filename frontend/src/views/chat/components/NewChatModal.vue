@@ -6,9 +6,14 @@ import UserSelectionItem from './UserSelectionItem.vue'
 import usersApi from '@/api/users.api'
 import type { User } from '@/types'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   show: boolean
-}>()
+  initialMode?: 'direct' | 'group'
+  preselectedUserId?: string | null
+}>(), {
+  initialMode: 'direct',
+  preselectedUserId: null
+})
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -90,8 +95,19 @@ const handleClose = () => {
 
 // Load users when shown
 import { watch } from 'vue'
-watch(() => props.show, (val) => {
-  if (val) loadUsers()
+watch(() => props.show, async (val) => {
+  if (val) {
+    if (props.initialMode) {
+      chatMode.value = props.initialMode
+    }
+    await loadUsers()
+    if (props.preselectedUserId && allUsers.value.length > 0) {
+      const match = allUsers.value.find(u => u.id === props.preselectedUserId)
+      if (match && !selectedUsers.value.some(u => u.id === match.id)) {
+        selectedUsers.value = [match]
+      }
+    }
+  }
 })
 </script>
 

@@ -8,11 +8,12 @@ defineProps<{
 
 defineEmits<{
   (e: 'unpin', id: string): void
+  (e: 'select', id: string): void
 }>()
 </script>
 
 <template>
-  <div class="flex items-center justify-between px-4 py-2 bg-primary-50 dark:bg-primary-900/20 border-b border-primary-100 dark:border-primary-900/30 cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors">
+  <div @click="$emit('select', pinnedMessage.id)" title="Nhấn để đi tới tin nhắn đã ghim" class="flex items-center justify-between px-4 py-2 bg-primary-50 dark:bg-primary-900/20 border-b border-primary-100 dark:border-primary-900/30 cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors">
     <div class="flex items-center gap-3 overflow-hidden">
       <PinIcon :size="16" class="text-primary-600 dark:text-primary-400 shrink-0" />
       <div class="flex-1 min-w-0">

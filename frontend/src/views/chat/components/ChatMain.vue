@@ -60,8 +60,10 @@ const {
   showScrollBottom,
   pinnedMessage,
   emojiList,
-  formatMessageTime,
+  formatDayLabel,
+  isSameDay,
   scrollToBottom,
+  scrollToMessage,
   handleSendMessage,
   handleSendImage,
   handleSendFile,
@@ -98,6 +100,7 @@ const getFileIcon = (fileName: string) => {
       <ChatPinnedMessageBar
         v-if="pinnedMessage"
         :pinned-message="pinnedMessage"
+        @select="scrollToMessage"
         @unpin="handlePinMessage"
       />
 
@@ -122,21 +125,21 @@ const getFileIcon = (fileName: string) => {
 
         <template v-else>
           <div v-for="(msg, index) in messages" :key="msg.id">
-            <template v-if="Number(index) === 0 || formatMessageTime(msg.timestamp || msg.createdAt).split(' ')[0] !== formatMessageTime(messages[Number(index) - 1].timestamp || messages[Number(index) - 1].createdAt).split(' ')[0]">
+            <template v-if="Number(index) === 0 || !isSameDay(msg.timestamp || msg.createdAt, messages[Number(index) - 1].timestamp || messages[Number(index) - 1].createdAt)">
               <div class="flex justify-center my-6">
                 <span class="px-3 py-1 bg-gray-200/50 dark:bg-surface-700/50 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {{ formatMessageTime(msg.timestamp || msg.createdAt).split(' ')[0] }}
+                  {{ formatDayLabel(msg.timestamp || msg.createdAt) }}
                 </span>
               </div>
             </template>
 
-            <div :class="['group relative flex flex-col', msg.isOwn ? 'items-end' : 'items-start', 'mb-2']">
+            <div :id="`chat-message-${msg.id}`" :class="['group relative flex flex-col scroll-mt-20', msg.isOwn ? 'items-end' : 'items-start', 'mb-2']">
               <!-- Reply indicator -->
-              <div v-if="msg.replyTo" class="flex items-center gap-1.5 mb-1 text-xs text-gray-500 opacity-80 pl-2">
+              <button type="button" v-if="msg.replyTo" @click="scrollToMessage(msg.replyTo.id)" title="Nhấn để xem tin nhắn gốc" class="flex items-center gap-1.5 mb-1 text-xs text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-200/60 dark:hover:bg-surface-700/60 px-2 py-0.5 rounded-lg transition-colors cursor-pointer">
                 <CornerUpLeftIcon :size="12" />
-                <span>Trả lời {{ msg.replyTo.sender?.name || 'Ai đó' }}:</span>
-                <span class="truncate max-w-37.5">{{ msg.replyTo.content || 'Đính kèm' }}</span>
-              </div>
+                <span>Trả lời {{ msg.replyTo.senderName || msg.replyTo.sender?.name || 'Thành viên' }}:</span>
+                <span class="truncate max-w-48">{{ msg.replyTo.content || 'Đính kèm' }}</span>
+              </button>
 
               <!-- Message bubble -->
               <ChatMessageBubble :msg="msg" />

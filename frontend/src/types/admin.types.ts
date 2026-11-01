@@ -27,24 +27,27 @@ export interface AdminStats {
   newUsersToday: number
   totalPosts: number
   newPostsToday: number
+  totalComments: number
   totalGroups: number
   totalReports: number
   pendingReports: number
+  totalViews: number
+  /** Nhãn trục X tương ứng từng mốc (ngày/tuần/tháng) lấy từ ngày thật của backend */
+  growthLabels: string[]
   userGrowth: number[]
   postGrowth: number[]
-  viewsToday: {
-    total: number
-    growthPct: number
-  }
+  newUsersInRange: number
+  newPostsInRange: number
   topCategories: Array<{
     name: string
+    icon?: string
     count: number
     pct: number
   }>
   recentActivities: Array<{
+    type: 'post' | 'user' | 'report'
     text: string
     time: string
-    color: string
   }>
 }
 
