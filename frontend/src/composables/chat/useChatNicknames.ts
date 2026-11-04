@@ -1,5 +1,5 @@
 import type { ChatConversation } from '@/types'
-import { currentUser } from '@/data/mockData'
+import { useAuthStore } from '@/stores/auth.store'
 import chatApi from '@/api/chat.api'
 
 const NICKNAMES_STORAGE_KEY = 'vietblog_chat_nicknames'
@@ -32,7 +32,8 @@ function saveNicknames(map: NicknameStorageMap): void {
 
 function getOtherParticipantId(conv: ChatConversation): string | undefined {
   if (!conv.participants || conv.participants.length === 0) return undefined
-  const other = conv.participants.find(p => p.id && p.id !== currentUser.id && !p.id.startsWith('curr'))
+  const myId = useAuthStore().user?.id
+  const other = conv.participants.find(p => p.id && p.id !== myId && !p.id.startsWith('curr'))
   return other?.id || conv.participants[0]?.id
 }
 

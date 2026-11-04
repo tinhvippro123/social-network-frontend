@@ -15,6 +15,7 @@ import ChatInfoSharedFiles from './ChatInfoSharedFiles.vue'
 import NicknameModal from '@/components/NicknameModal.vue'
 import { useChatNicknames } from '@/composables/chat/useChatNicknames'
 import { useToast } from '@/composables/ui/useToast'
+import http from '@/api/client'
 
 const chatState = inject<any>('chatState')
 if (!chatState) {
@@ -116,6 +117,21 @@ function handleViewProfile() {
     router.push(`/profile/${targetId}`)
   }
 }
+
+async function handleReportConversation() {
+  const targetId = otherParticipant.value?.id || selectedConversation.value?.id
+  if (!targetId) return
+  try {
+    await http.post('/reports', {
+      targetId,
+      type: 'USER',
+      reason: `Báo cáo cuộc trò chuyện: ${selectedConversation.value?.name || ''}`
+    })
+    toast.success('Đã gửi báo cáo cuộc trò chuyện đến bộ phận kiểm duyệt')
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể gửi báo cáo lúc này')
+  }
+}
 </script>
 
 <template>
@@ -204,7 +220,7 @@ function handleViewProfile() {
               </div>
             </button>
 
-            <button @click="addToast({ message: 'Tính năng báo cáo đang được phát triển', type: 'info' })" class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer">
+            <button @click="handleReportConversation" class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer">
               <div class="flex items-center gap-3 w-full">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-500 dark:bg-red-900/30">
                   <FlagIcon :size="16" />

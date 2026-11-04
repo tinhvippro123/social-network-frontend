@@ -34,15 +34,6 @@ async function toggleFollowUser(u: any) {
     toast.error(err.response?.data?.message || 'Vui lòng đăng nhập để theo dõi tác giả')
   }
 }
-function _oldToggleFollowUser(u: any) {
-  if (followedUserIds.value.has(u.id)) {
-    followedUserIds.value.delete(u.id)
-    toast.info(`Đã bỏ theo dõi ${u.name}`)
-  } else {
-    followedUserIds.value.add(u.id)
-    toast.success(`Đang theo dõi ${u.name}`)
-  }
-}
 </script>
 
 <template>

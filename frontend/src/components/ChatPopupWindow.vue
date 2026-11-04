@@ -114,6 +114,54 @@ const toggleMessageAction = (msgId: string) => {
   activeMessageAction.value = activeMessageAction.value === msgId ? null : msgId
 }
 
+async function handleRevokeMessage(msgId: string) {
+  try {
+    const { data } = await chatApi.revokeMessage(props.conv.id, msgId)
+    const idx = messages.value.findIndex(m => m.id === msgId)
+    if (idx >= 0) {
+      messages.value[idx] = data?.data || {
+        ...messages.value[idx],
+        isRevoked: true,
+        status: 'revoked',
+        content: 'Tin nhắn đã bị thu hồi'
+      }
+    }
+    toast.info('Đã thu hồi tin nhắn')
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể thu hồi tin nhắn')
+  }
+}
+
+async function handlePinMessage(msgId: string) {
+  try {
+    const msg = messages.value.find(m => m.id === msgId)
+    const nextPinned = !msg?.isPinned
+    await chatApi.pinMessage(props.conv.id, msgId, nextPinned)
+    if (msg) msg.isPinned = nextPinned
+    toast.success(nextPinned ? 'Đã ghim tin nhắn' : 'Đã bỏ ghim tin nhắn')
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể ghim tin nhắn')
+  }
+}
+
+function handleAddReaction(msgId: string, emoji: string) {
+  const msg = messages.value.find(m => m.id === msgId)
+  if (!msg) return
+  if (!msg.reactions) msg.reactions = []
+  const existingIdx = msg.reactions.findIndex(r => r.emoji === emoji && r.userId === 'me')
+  if (existingIdx >= 0) {
+    msg.reactions.splice(existingIdx, 1)
+  } else {
+    msg.reactions.push({ emoji, userId: 'me', userName: 'Bạn' })
+  }
+}
+
+function handleSetReplyTo(msg: ChatMessage) {
+  newMessage.value = `> ${msg.sender?.name || ''}: ${(msg.content || '').slice(0, 40)}\n`
+  const textarea = document.getElementById(`chat-textarea-${props.conv.id}`)
+  textarea?.focus()
+}
+
 const handleDocumentClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   if (activeHeaderMenu.value && !target.closest('.header-menu-container')) {
@@ -376,6 +424,10 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
                 :msg="msg"
                 :active-action-menu="activeMessageAction"
                 @toggle-action-menu="toggleMessageAction"
+                @revoke-message="handleRevokeMessage"
+                @pin-message="handlePinMessage"
+                @add-reaction="handleAddReaction"
+                @set-reply-to="handleSetReplyTo"
               />
             </div>
           </div>

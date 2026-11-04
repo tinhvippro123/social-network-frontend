@@ -10,6 +10,10 @@ import {
   Flag as FlagIcon,
 } from '@lucide/vue'
 import type { ChatMessage } from '@/types'
+import { useToast } from '@/composables/ui/useToast'
+import http from '@/api/client'
+
+const toast = useToast()
 
 const props = defineProps<{
   msg: ChatMessage
@@ -66,6 +70,32 @@ function onGlobalClick(e: MouseEvent) {
       emit('toggleActionMenu', 'null')
     }
   }
+}
+
+async function handleCopyOrForward() {
+  try {
+    if (navigator.clipboard && props.msg.content) {
+      await navigator.clipboard.writeText(props.msg.content)
+    }
+    toast.success('Đã sao chép nội dung tin nhắn vào khay nhớ tạm để chuyển tiếp')
+  } catch {
+    toast.info('Đã chọn tin nhắn để chuyển tiếp')
+  }
+  emit('toggleActionMenu', 'null')
+}
+
+async function handleReportMessage() {
+  try {
+    await http.post('/reports', {
+      targetId: props.msg.sender?.id || props.msg.id,
+      type: 'USER',
+      reason: `Báo cáo tin nhắn vi phạm: "${(props.msg.content || '').slice(0, 80)}"`
+    })
+    toast.success('Đã gửi báo cáo tin nhắn đến bộ phận kiểm duyệt')
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể gửi báo cáo lúc này')
+  }
+  emit('toggleActionMenu', 'null')
 }
 
 onMounted(() => {
@@ -137,7 +167,7 @@ onUnmounted(() => {
       </button>
 
       <button
-        @click.stop="emit('toggleActionMenu', 'null')"
+        @click.stop="handleCopyOrForward"
         class="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-left transition-colors cursor-pointer"
       >
         <CornerUpLeftIcon :size="16" class="text-gray-400 shrink-0" />
@@ -154,7 +184,7 @@ onUnmounted(() => {
 
       <button
         v-if="!msg.isOwn"
-        @click.stop="emit('toggleActionMenu', 'null')"
+        @click.stop="handleReportMessage"
         class="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 text-left transition-colors cursor-pointer"
       >
         <FlagIcon :size="16" class="shrink-0" />
