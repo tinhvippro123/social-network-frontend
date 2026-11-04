@@ -5,6 +5,7 @@ import { Hash, Star, Check } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { useToast } from '@/composables/ui/useToast'
+import { useAuthStore } from '@/stores/auth.store'
 import usersApi from '@/api/users.api'
 
 const props = defineProps<{
@@ -15,6 +16,7 @@ const props = defineProps<{
 
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
 const followedUserIds = ref<Set<string>>(new Set())
 
 watch(() => props.users, (list) => {
@@ -29,14 +31,22 @@ watch(() => props.users, (list) => {
 }, { immediate: true, deep: true })
 
 async function toggleFollowUser(u: any) {
+  if (!authStore.isLoggedIn) {
+    toast.info('Vui lòng đăng nhập để theo dõi tác giả')
+    router.push('/login')
+    return
+  }
   try {
     const res = await usersApi.toggleFollow(u.id)
     const isNowFollowing = typeof res.data?.data === 'boolean' ? res.data.data : !followedUserIds.value.has(u.id)
+    const next = new Set<string>(followedUserIds.value)
     if (isNowFollowing) {
-      followedUserIds.value.add(u.id)
+      next.add(u.id)
+      followedUserIds.value = next
       toast.success(`Đang theo dõi ${u.name}`)
     } else {
-      followedUserIds.value.delete(u.id)
+      next.delete(u.id)
+      followedUserIds.value = next
       toast.info(`Đã bỏ theo dõi ${u.name}`)
     }
   } catch (err: any) {
@@ -94,6 +104,7 @@ async function toggleFollowUser(u: any) {
             <p class="text-xs text-gray-400">{{ user.postsCount ?? 0 }} bài viết</p>
           </div>
           <button
+            v-if="user.id !== authStore.user?.id"
             @click="toggleFollowUser(user)"
             :class="[
               'px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer flex items-center gap-1',

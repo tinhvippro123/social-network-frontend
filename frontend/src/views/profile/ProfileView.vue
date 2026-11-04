@@ -12,13 +12,16 @@ import ProfilePostSkeleton from './components/ProfilePostSkeleton.vue'
 import GroupCard from '@/components/groups/GroupCard.vue'
 import { useAuth } from '@/composables/auth/useAuth'
 import { useToast } from '@/composables/ui/useToast'
+import { useConfirm } from '@/composables/ui/useConfirm'
 import usersApi from '@/api/users.api'
+import groupsApi from '@/api/groups.api'
 import type { UserProfile } from '@/types'
 
 const router = useRouter()
 const route = useRoute()
 const { user: authUser } = useAuth()
 const toast = useToast()
+const { confirm } = useConfirm()
 
 const profileUserId = computed(() => route.params.id as string | undefined)
 const isOwnProfile = computed(() => !profileUserId.value || profileUserId.value === authUser.value?.id)
@@ -66,11 +69,36 @@ async function loadProfile() {
 }
 
 async function handleDeleteDraft(postId: string) {
+  const ok = await confirm({
+    title: 'Xóa bản nháp',
+    message: 'Bạn có chắc chắn muốn xóa bản nháp này không?',
+    confirmText: 'Xóa bản nháp',
+    variant: 'danger'
+  })
+  if (!ok) return
   try {
     await deleteDraft(postId)
     toast.success('Đã xóa bản nháp thành công')
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Không thể xóa bản nháp')
+  }
+}
+
+async function handleToggleJoinGroup(group: any) {
+  if (!group?.id) return
+  try {
+    if (group.isJoined) {
+      await groupsApi.leave(group.id)
+      group.isJoined = false
+      joinedGroups.value = joinedGroups.value.filter(g => g.id !== group.id)
+      toast.info(`Đã rời khỏi nhóm "${group.name}"`)
+    } else {
+      await groupsApi.join(group.id)
+      group.isJoined = true
+      toast.success(`Đã tham gia nhóm "${group.name}"`)
+    }
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể cập nhật trạng thái nhóm')
   }
 }
 
@@ -195,6 +223,7 @@ watch(() => [route.params.id, authUser.value?.id], () => {
             v-for="group in joinedGroups"
             :key="group.id"
             :group="group"
+            @toggle-join="handleToggleJoinGroup"
           />
         </div>
         <div v-else class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-12 text-center">

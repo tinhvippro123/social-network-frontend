@@ -1,14 +1,20 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { usePosts } from './usePosts'
 import { useCategories } from '../core/useCategories'
 
 export function useHomePosts() {
+  const route = useRoute()
   const { posts, isLoading, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
   const { categories, fetchCategories } = useCategories()
 
-  const selectedCategory = ref('all')
+  const selectedCategory = ref((route.query.category as string) || 'all')
   const visibleCount = ref(4)
   const loadingMore = ref(false)
+
+  watch(() => route.query.category, (newCat) => {
+    selectedCategory.value = (newCat as string) || 'all'
+  })
 
   const filteredPosts = computed(() => {
     const all = selectedCategory.value === 'all'
@@ -26,7 +32,6 @@ export function useHomePosts() {
 
   const loadMore = async () => {
     loadingMore.value = true
-
     visibleCount.value += 4
     loadingMore.value = false
   }

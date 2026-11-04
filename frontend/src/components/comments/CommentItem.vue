@@ -108,7 +108,7 @@
 
             <!-- Delete Button (Only for author) -->
             <button
-              v-if="user && (user.id === comment.author?.id || user.id === comment.authorId)"
+              v-if="user && (user.id === comment.author?.id || user.id === comment.authorId || ['admin', 'moderator'].includes((user.role || '').toLowerCase()))"
               @click="$emit('delete', comment.id)"
               class="font-semibold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
             >

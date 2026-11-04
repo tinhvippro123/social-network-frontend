@@ -1,4 +1,5 @@
 import { ref, computed, watch, onMounted, onUnmounted, type Ref } from 'vue'
+import { useRoute } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { usePosts, normalizePost } from '../posts/usePosts'
@@ -53,6 +54,7 @@ export function formatDistance(km: number): string {
 }
 
 export function useMapView(mapContainer: Ref<HTMLElement | null>) {
+  const route = useRoute()
   const toast = useToast()
   const searchRadius = ref(5)
   const searchLocation = ref('')
@@ -315,7 +317,23 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
     })
 
     renderMarkers()
+
+    const queryPostId = route.query.postId as string | undefined
+    if (queryPostId) {
+      const targetPost = postsWithLocation.value.find(p => p.id === queryPostId)
+      if (targetPost) {
+        selectPostFromList(targetPost)
+      }
+    }
   }
+
+  watch(() => route.query.postId, (newId) => {
+    if (!newId) return
+    const targetPost = postsWithLocation.value.find(p => p.id === newId)
+    if (targetPost) {
+      selectPostFromList(targetPost)
+    }
+  })
 
   const destroyMap = () => {
     if (radiusTimer) clearTimeout(radiusTimer)

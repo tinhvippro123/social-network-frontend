@@ -45,7 +45,12 @@ const router = useRouter()
               {{ post.title }}
             </p>
             <div class="flex items-center gap-2 mt-1 text-xs text-gray-400">
-              <span>{{ post.author.name }}</span>
+              <span
+                @click.stop="post.author?.id && router.push(`/profile/${post.author.id}`)"
+                class="hover:text-primary-500 hover:underline transition-colors"
+              >
+                {{ post.author.name }}
+              </span>
               <span>·</span>
               <span class="flex items-center gap-0.5">
                 <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc: number, curr: any) => acc + curr.count, 0) || (post.upvotesCount || 0) + (post.commentsCount || 0)) }}

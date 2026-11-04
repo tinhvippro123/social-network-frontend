@@ -4,9 +4,13 @@ import type { ChatConversation, ChatMessage, MessageStatus } from '@/types'
 import { useAsyncState } from '../core/useAsyncState'
 import { useChatNicknames } from './useChatNicknames'
 import { useWebSocket } from '../core/useWebSocket'
+import { useAuthStore } from '@/stores/auth.store'
+import { useToast } from '../ui/useToast'
 
 export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: string) => void) {
   const { applyNicknamesToConversations } = useChatNicknames()
+  const authStore = useAuthStore()
+  const toast = useToast()
   const conversations = ref<ChatConversation[]>([])
   const messages = ref<ChatMessage[]>([])
   const activeConversationId = ref<string | null>(null)
@@ -218,20 +222,30 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     conversations.value = conversations.value.filter(c => c.id !== conversationId)
   }
 
-  async function blockUser(userIdOrConvId: string) {
+  function resolveTargetUserId(userIdOrConvId: string): string | null {
     const conv = conversations.value.find(c => c.id === userIdOrConvId)
-    const targetUserId = conv
-      ? (conv.participants?.[0]?.id || userIdOrConvId)
-      : userIdOrConvId
+    if (!conv) return userIdOrConvId
+    if (conv.isGroup) return null
+    const myId = authStore.user?.id
+    const other = conv.participants?.find(p => p.id && p.id !== myId)
+    return other?.id || conv.participants?.[0]?.id || null
+  }
+
+  async function blockUser(userIdOrConvId: string) {
+    const targetUserId = resolveTargetUserId(userIdOrConvId)
+    if (!targetUserId) {
+      toast.info('Không thể chặn cuộc trò chuyện nhóm')
+      return
+    }
     await chatApi.blockUser(targetUserId)
+    toast.info('Đã chặn người dùng')
   }
 
   async function unblockUser(userIdOrConvId: string) {
-    const conv = conversations.value.find(c => c.id === userIdOrConvId)
-    const targetUserId = conv
-      ? (conv.participants?.[0]?.id || userIdOrConvId)
-      : userIdOrConvId
+    const targetUserId = resolveTargetUserId(userIdOrConvId)
+    if (!targetUserId) return
     await chatApi.unblockUser(targetUserId)
+    toast.success('Đã bỏ chặn người dùng')
   }
 
   async function searchMessages(conversationId: string, query: string) {

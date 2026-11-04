@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { Calendar, MapPin, Link as LinkIcon, Edit3, UserPlus, UserCheck, MessageCircle, MoreHorizontal, Shield, Flag } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import UserAvatar from '@/components/UserAvatar.vue'
 import FollowersModal from './FollowersModal.vue'
 import { useToast } from '@/composables/ui/useToast'
+import { useAuthStore } from '@/stores/auth.store'
 import usersApi from '@/api/users.api'
 import chatApi from '@/api/chat.api'
 import http from '@/api/client'
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const authStore = useAuthStore()
 const { addToast } = useToast()
 
 // Follow state
@@ -37,6 +39,21 @@ const followersModalType = ref<'followers' | 'following'>('followers')
 // More menu
 const showMoreMenu = ref(false)
 const isBlockedUser = ref(false)
+const moreMenuRef = ref<HTMLElement | null>(null)
+
+function handleOutsideClick(e: MouseEvent) {
+  if (showMoreMenu.value && moreMenuRef.value && !moreMenuRef.value.contains(e.target as Node)) {
+    showMoreMenu.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick)
+})
 
 function openFollowersModal(type: 'followers' | 'following') {
   followersModalType.value = type
@@ -45,6 +62,11 @@ function openFollowersModal(type: 'followers' | 'following') {
 
 async function handleToggleBlockUser() {
   showMoreMenu.value = false
+  if (!authStore.isLoggedIn) {
+    addToast({ message: 'Vui lòng đăng nhập để thực hiện thao tác này', type: 'info' })
+    router.push('/login')
+    return
+  }
   if (!props.currentUser?.id) return
   try {
     if (isBlockedUser.value) {
@@ -63,6 +85,11 @@ async function handleToggleBlockUser() {
 
 async function handleReportUser() {
   showMoreMenu.value = false
+  if (!authStore.isLoggedIn) {
+    addToast({ message: 'Vui lòng đăng nhập để gửi báo cáo', type: 'info' })
+    router.push('/login')
+    return
+  }
   if (!props.currentUser?.id) return
   try {
     await http.post('/reports', {
@@ -77,6 +104,11 @@ async function handleReportUser() {
 }
 
 async function toggleFollow() {
+  if (!authStore.isLoggedIn) {
+    addToast({ message: 'Vui lòng đăng nhập để theo dõi người dùng', type: 'info' })
+    router.push('/login')
+    return
+  }
   if (!props.currentUser?.id) return
   isFollowLoading.value = true
   try {
@@ -102,6 +134,11 @@ async function toggleFollow() {
 }
 
 function handleMessage() {
+  if (!authStore.isLoggedIn) {
+    addToast({ message: 'Vui lòng đăng nhập để nhắn tin', type: 'info' })
+    router.push('/login')
+    return
+  }
   emit('message', props.currentUser.id)
 }
 </script>
@@ -127,7 +164,7 @@ function handleMessage() {
           <div class="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2 sm:gap-4">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ currentUser.name }}</h1>
             <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 w-fit mx-auto sm:mx-0">
-              {{ currentUser.role === 'admin' ? '👑 Admin' : currentUser.role === 'moderator' ? '🛡️ Moderator' : '👤 Member' }}
+              {{ (currentUser.role || '').toLowerCase() === 'admin' ? '👑 Admin' : (currentUser.role || '').toLowerCase() === 'moderator' ? '🛡️ Moderator' : '👤 Member' }}
             </span>
           </div>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ currentUser.bio }}</p>
@@ -171,9 +208,9 @@ function handleMessage() {
             </button>
 
             <!-- More Menu -->
-            <div class="relative">
+            <div ref="moreMenuRef" class="relative">
               <button
-                @click="showMoreMenu = !showMoreMenu"
+                @click.stop="showMoreMenu = !showMoreMenu"
                 class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"
               >
                 <MoreHorizontal :size="16" />

@@ -103,12 +103,14 @@ async function handleToggleBlock() {
   try {
     if (isBlocked.value) {
       await unblockUser(targetId)
-      blockedUserIds.value.delete(targetId)
-      toast.success(`Đã bỏ chặn ${otherParticipant.value?.name || 'người dùng'}`)
+      const next = new Set(blockedUserIds.value)
+      next.delete(targetId)
+      blockedUserIds.value = next
     } else {
       await blockUser(targetId)
-      blockedUserIds.value.add(targetId)
-      toast.info(`Đã chặn ${otherParticipant.value?.name || 'người dùng'}`)
+      const next = new Set(blockedUserIds.value)
+      next.add(targetId)
+      blockedUserIds.value = next
     }
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Không thể thực hiện thao tác chặn')
@@ -249,7 +251,7 @@ async function handleReportConversation() {
 
             <button
               v-if="selectedConversation"
-              @click="deleteConversation(selectedConversation.id); selectedConversation = null; showInfoPanel = false"
+              @click="deleteConversation(selectedConversation.id)"
               class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer"
             >
               <div class="flex items-center gap-3 w-full">

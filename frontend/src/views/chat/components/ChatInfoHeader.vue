@@ -10,6 +10,7 @@ defineProps<{
     avatar: string
     isOnline: boolean
     isMuted?: boolean
+    isGroup?: boolean
   }
 }>()
 
@@ -30,6 +31,7 @@ defineEmits<{
     <!-- Quick Actions -->
     <div class="flex gap-6 mt-4">
       <ChatInfoQuickAction
+        v-if="!conversation.isGroup"
         label="Trang cá nhân"
         :icon="UserIcon"
         @click="$emit('viewProfile')"

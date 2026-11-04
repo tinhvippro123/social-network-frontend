@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '../auth/useAuth'
 import { useChat } from './useChat'
 import { useChatLogic } from './useChatLogic'
+import { useChatNicknames } from './useChatNicknames'
 import { useToast } from '../ui/useToast'
 import type { ChatMessage } from '@/types'
 import chatApi from '@/api/chat.api'
@@ -14,6 +15,7 @@ export function useChatView() {
   const router = useRouter()
   const toast = useToast()
   const { user: currentUser } = useAuth()
+  const { applyNicknameToConversation } = useChatNicknames()
   const newChatInitialMode = ref<'direct' | 'group'>('direct')
   const newChatPreselectedUserId = ref<string | null>(null)
 
@@ -174,6 +176,29 @@ export function useChatView() {
     await nextTick()
     scrollToBottom(false)
   })
+
+  watch(
+    () => [route.query.id, route.query.userId],
+    async ([newId, newUserId]) => {
+      if (isInitialLoading.value) return
+      if (newUserId) {
+        const targetUserId = String(newUserId)
+        const existingDirect = conversations.value.find(
+          c => !c.isGroup && c.participants?.some((p: any) => p.id === targetUserId)
+        )
+        if (existingDirect && selectedConversation.value?.id !== existingDirect.id) {
+          await selectConversation(existingDirect)
+        } else if (!existingDirect) {
+          await createNewConversation([targetUserId])
+        }
+      } else if (newId && selectedConversation.value?.id !== newId) {
+        const match = conversations.value.find(c => c.id === newId)
+        if (match) {
+          await selectConversation(match)
+        }
+      }
+    }
+  )
 
   watch(isTyping, async (val) => {
     if (val && !showScrollBottom.value) {
@@ -424,17 +449,36 @@ export function useChatView() {
 
   const showNewChatModal = ref(false)
 
+  const handleDeleteConversation = async (conversationId: string) => {
+    try {
+      await deleteConversation(conversationId)
+      if (selectedConversation.value?.id === conversationId) {
+        selectedConversation.value = conversations.value[0] || null
+        showInfoPanel.value = false
+        showMobileChat.value = false
+        if (selectedConversation.value) {
+          await fetchMessages(selectedConversation.value.id)
+        } else {
+          messages.value = []
+        }
+      }
+      toast.info('Đã xóa cuộc trò chuyện')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể xóa cuộc trò chuyện')
+    }
+  }
+
   const createNewConversation = async (participantIds: string[], name?: string, isGroup?: boolean) => {
     try {
       const { data } = await chatApi.createConversation({ participantIds, name, isGroup })
-      const newConv = data.data
+      const newConv = applyNicknameToConversation(data.data)
       if (!conversations.value.find(c => c.id === newConv.id)) {
         conversations.value.unshift(newConv)
       }
       await selectConversation(newConv)
       showNewChatModal.value = false
-    } catch (err) {
-      console.error('Lỗi tạo cuộc trò chuyện', err)
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể tạo cuộc trò chuyện')
     }
   }
 
@@ -510,7 +554,7 @@ export function useChatView() {
     downloadFile,
     pinConversation,
     muteConversation,
-    deleteConversation,
+    deleteConversation: handleDeleteConversation,
     blockUser,
     unblockUser,
     insertEmoji,

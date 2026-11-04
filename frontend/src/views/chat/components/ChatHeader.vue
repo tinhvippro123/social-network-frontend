@@ -36,6 +36,10 @@ const otherParticipantId = computed(() => {
 })
 
 function handleOpenProfile() {
+  if (selectedConversation?.value?.isGroup) {
+    showInfoPanel.value = !showInfoPanel.value
+    return
+  }
   if (otherParticipantId.value) {
     router.push(`/profile/${otherParticipantId.value}`)
   }

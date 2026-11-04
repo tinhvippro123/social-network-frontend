@@ -59,12 +59,23 @@ export function useGroupDetail() {
 
   async function handleToggleJoin() {
     if (!group.value?.id) return
-    if (group.value.isJoined) {
-      await leaveGroup(group.value.id)
-    } else {
-      await joinGroup(group.value.id)
+    if (!authStore.isLoggedIn) {
+      toast.info('Vui lòng đăng nhập để tham gia nhóm')
+      router.push('/login')
+      return
     }
-    fetchGroupMembers(group.value.id)
+    try {
+      if (group.value.isJoined) {
+        await leaveGroup(group.value.id)
+        toast.info(`Đã rời khỏi nhóm "${group.value.name}"`)
+      } else {
+        await joinGroup(group.value.id)
+        toast.success(`Đã tham gia nhóm "${group.value.name}"`)
+      }
+      fetchGroupMembers(group.value.id)
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể cập nhật trạng thái tham gia nhóm')
+    }
   }
 
   async function handleToggleMemberRole(memberItem: any) {

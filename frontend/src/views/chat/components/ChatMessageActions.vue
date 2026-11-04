@@ -39,12 +39,14 @@ function toggleMore(e: MouseEvent) {
   const btn = (e.currentTarget as HTMLElement) || moreBtnRef.value
   if (btn) {
     const rect = btn.getBoundingClientRect()
-    const menuHeight = 160
+    const menuHeight = 185
     const menuWidth = 176
-    // Center menu vertically with button, clamp within window bounds
     const idealTop = rect.top + (rect.height / 2) - 44
     const clampedTop = Math.max(16, Math.min(window.innerHeight - menuHeight - 16, idealTop))
-    const idealRight = window.innerWidth - rect.left + 8
+    // For own messages, open to the left of the button; for received messages, open to the right so it never covers the bubble
+    const idealRight = props.msg.isOwn
+      ? window.innerWidth - rect.left + 8
+      : window.innerWidth - rect.right - menuWidth - 8
     menuPos.value = {
       top: clampedTop,
       right: Math.max(16, Math.min(window.innerWidth - menuWidth - 16, idealRight))
@@ -158,8 +160,15 @@ onUnmounted(() => {
       :style="{ top: `${menuPos.top}px`, right: `${menuPos.right}px` }"
       @click.stop
     >
-      <!-- Triangular Pointer pointing right towards the 3-dots button -->
-      <div class="absolute -right-1.5 top-11 -translate-y-1/2 w-3 h-3 bg-white dark:bg-surface-800 border-t border-r border-gray-200/90 dark:border-surface-700 rotate-45 pointer-events-none"></div>
+      <!-- Triangular Pointer pointing towards the 3-dots button -->
+      <div
+        v-if="msg.isOwn"
+        class="absolute -right-1.5 top-11 -translate-y-1/2 w-3 h-3 bg-white dark:bg-surface-800 border-t border-r border-gray-200/90 dark:border-surface-700 rotate-45 pointer-events-none"
+      ></div>
+      <div
+        v-else
+        class="absolute -left-1.5 top-11 -translate-y-1/2 w-3 h-3 bg-white dark:bg-surface-800 border-b border-l border-gray-200/90 dark:border-surface-700 rotate-45 pointer-events-none"
+      ></div>
 
       <button
         v-if="msg.isOwn"
@@ -168,6 +177,14 @@ onUnmounted(() => {
       >
         <TrashIcon :size="16" class="text-gray-400 shrink-0" />
         <span>Thu hồi</span>
+      </button>
+
+      <button
+        @click.stop="emit('deleteMessage', msg.id); emit('toggleActionMenu', 'null')"
+        class="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-left transition-colors cursor-pointer"
+      >
+        <TrashIcon :size="16" class="text-gray-400 shrink-0" />
+        <span>Xóa ở phía tôi</span>
       </button>
 
       <button

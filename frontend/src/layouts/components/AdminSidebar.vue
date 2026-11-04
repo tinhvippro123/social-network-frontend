@@ -45,7 +45,11 @@ const navItems = computed(() =>
     ]"
   >
     <!-- Logo -->
-    <div class="flex items-center gap-3 px-5 h-16 border-b border-gray-200 dark:border-surface-800 shrink-0">
+    <div
+      @click="emit('navigate', authStore.isAdmin ? '/admin' : '/admin/moderation')"
+      class="flex items-center gap-3 px-5 h-16 border-b border-gray-200 dark:border-surface-800 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+      title="Về trang chủ quản trị"
+    >
       <div class="w-9 h-9 rounded-xl bg-linear-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg shrink-0">
         <span class="text-white font-bold text-lg">A</span>
       </div>

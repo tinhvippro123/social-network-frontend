@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 </script>
 
 <template>
@@ -15,7 +18,11 @@
     <div class="relative z-10 w-full max-w-md mx-4">
       <!-- Logo -->
       <div class="text-center mb-6 animate-slide-up">
-        <div class="inline-flex items-center gap-3 mb-2">
+        <div
+          @click="router.push('/')"
+          class="inline-flex items-center gap-3 mb-2 cursor-pointer hover:opacity-90 transition-opacity"
+          title="Về trang chủ"
+        >
           <div class="w-10 h-10 rounded-2xl gradient-primary flex items-center justify-center shadow-lg glow">
             <span class="text-white font-bold text-xl">V</span>
           </div>

@@ -2,6 +2,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePosts, mapCommentResponse } from './usePosts'
 import { useAuth } from '../auth/useAuth'
+import { useToast } from '../ui/useToast'
 import { COMMENT_EMOJIS } from '@/constants'
 import postsApi from '@/api/posts.api'
 import filesApi from '@/api/files.api'
@@ -9,6 +10,7 @@ import filesApi from '@/api/files.api'
 export function usePostDetail() {
   const router = useRouter()
   const { user } = useAuth()
+  const toast = useToast()
   const route = useRoute()
   const { currentPost: post, posts, comments, isLoading, fetchPost, fetchComments, fetchPosts } = usePosts()
   
@@ -389,7 +391,17 @@ export function usePostDetail() {
   /** Report the current post */
   const reportPost = async (reason: string, description?: string) => {
     if (!post.value) return
-    await postsApi.reportPost(post.value.id, { reason, description })
+    if (!user.value) {
+      toast.info('Vui lòng đăng nhập để gửi báo cáo')
+      router.push('/login')
+      return
+    }
+    try {
+      await postsApi.reportPost(post.value.id, { reason, description })
+      toast.success('Đã gửi báo cáo bài viết thành công!')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể gửi báo cáo bài viết')
+    }
   }
 
   /** Scroll to comments section */
@@ -508,8 +520,9 @@ export function usePostDetail() {
       if (post.value.commentsCount !== undefined && post.value.commentsCount > 0) {
         post.value.commentsCount -= 1
       }
-    } catch (e) {
-      console.error('Failed to delete comment', e)
+      toast.info('Đã xóa bình luận')
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Không thể xóa bình luận')
     }
   }
 

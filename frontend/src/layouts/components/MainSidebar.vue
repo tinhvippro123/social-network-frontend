@@ -29,7 +29,11 @@ const emit = defineEmits<{
     ]"
   >
     <!-- Logo -->
-    <div class="flex items-center gap-3 px-5 h-16 border-b border-gray-200 dark:border-surface-700 shrink-0">
+    <div
+      @click="emit('navigate', '/')"
+      class="flex items-center gap-3 px-5 h-16 border-b border-gray-200 dark:border-surface-700 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+      title="Về trang chủ"
+    >
       <div class="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-lg glow-sm shrink-0">
         <span class="text-white font-bold text-lg">V</span>
       </div>
@@ -47,7 +51,7 @@ const emit = defineEmits<{
         :key="item.to"
         @click="emit('navigate', item.to)"
         :class="[
-          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
+          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group cursor-pointer',
           currentPath === item.to
             ? 'bg-primary-500/10 text-primary-500 dark:text-primary-400 shadow-sm'
             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-900 dark:hover:text-gray-200'
@@ -77,7 +81,7 @@ const emit = defineEmits<{
         v-if="authStore.isModerator"
         @click="emit('navigate', authStore.isAdmin ? '/admin' : '/admin/moderation')"
         :class="[
-          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group border mt-3',
+          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group border mt-3 cursor-pointer',
           currentPath.startsWith('/admin')
             ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20 border-purple-500'
             : 'text-purple-600 dark:text-purple-400 bg-purple-50/60 dark:bg-purple-950/25 border-purple-200 dark:border-purple-800/50 hover:bg-purple-100 dark:hover:bg-purple-900/40'
@@ -94,7 +98,7 @@ const emit = defineEmits<{
     <div class="p-3 border-t border-gray-200 dark:border-surface-700 shrink-0">
       <button
         @click="emit('toggleTheme')"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all duration-200"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all duration-200 cursor-pointer"
       >
         <Sun v-if="isDark" :size="20" class="shrink-0 text-amber-400" />
         <Moon v-else :size="20" class="shrink-0 text-indigo-500" />

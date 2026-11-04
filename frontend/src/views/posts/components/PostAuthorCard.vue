@@ -105,6 +105,14 @@ function goToProfile() {
     </div>
 
     <button
+      v-if="user?.id === author?.id"
+      @click="goToProfile"
+      class="w-full py-2 rounded-xl text-sm font-medium transition-all cursor-pointer bg-gray-100 dark:bg-surface-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-surface-600 hover:bg-gray-200 dark:hover:bg-surface-600"
+    >
+      Xem trang cá nhân
+    </button>
+    <button
+      v-else
       @click="toggleFollow"
       :disabled="isFollowLoading"
       :class="[

@@ -2,7 +2,6 @@
 import { useRouter } from 'vue-router'
 import { Bell } from '@lucide/vue'
 import { formatRelativeTime } from '@/utils/formatters'
-
 import { navigateToNotificationLink } from '@/utils/notificationNavigation'
 
 const router = useRouter()
@@ -26,7 +25,7 @@ function handleNotificationClick(notif: any) {
 <template>
   <div class="relative">
     <button
-      class="notification-trigger relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+      class="notification-trigger relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"
       @click.stop="emit('update:showNotifications', !showNotifications)"
     >
       <Bell :size="20" />
@@ -48,7 +47,7 @@ function handleNotificationClick(notif: any) {
           <h3 class="font-semibold text-sm">Thông báo</h3>
           <button
             @click="uiStore.markAllRead"
-            class="text-xs text-primary-500 hover:text-primary-600 font-medium"
+            class="text-xs text-primary-500 hover:text-primary-600 font-medium cursor-pointer"
           >
             Đánh dấu tất cả đã đọc
           </button>
@@ -82,6 +81,16 @@ function handleNotificationClick(notif: any) {
             </div>
             <div v-if="!notif.isRead" class="w-2 h-2 rounded-full bg-primary-500 shrink-0 mt-2" />
           </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t border-gray-200 dark:border-surface-700 px-4 py-2.5">
+          <button
+            @click="router.push('/notifications'); emit('update:showNotifications', false)"
+            class="w-full text-center text-sm font-medium text-primary-500 hover:text-primary-600 transition-colors cursor-pointer"
+          >
+            Xem tất cả thông báo
+          </button>
         </div>
       </div>
     </transition>

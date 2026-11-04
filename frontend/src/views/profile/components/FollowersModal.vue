@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { X, UserPlus, UserMinus, Search as SearchIcon } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import usersApi from '@/api/users.api'
+import { useAuthStore } from '@/stores/auth.store'
+import { useToast } from '@/composables/ui/useToast'
 import type { UserSummary } from '@/types'
 
 const props = defineProps<{
@@ -17,6 +19,8 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const authStore = useAuthStore()
+const toast = useToast()
 const searchQuery = ref('')
 const isLoading = ref(false)
 
@@ -52,11 +56,18 @@ async function loadList() {
 }
 
 async function toggleFollow(user: UserSummary) {
+  if (!authStore.isLoggedIn) {
+    toast.info('Vui lòng đăng nhập để theo dõi người dùng')
+    emit('close')
+    router.push('/login')
+    return
+  }
   try {
     const res = await usersApi.toggleFollow(user.id)
     user.isFollowing = res.data.data
-  } catch (e) {
-    // ignore
+    toast.success(user.isFollowing ? `Đã theo dõi ${user.name}` : `Đã bỏ theo dõi ${user.name}`)
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể thực hiện thao tác')
   }
 }
 
@@ -126,9 +137,10 @@ watch(() => [props.show, props.type], ([show]) => {
               </div>
 
               <button
+                v-if="u.id !== authStore.user?.id"
                 @click.stop="toggleFollow(u)"
                 :class="[
-                  'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200',
+                  'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer',
                   u.isFollowing
                     ? 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400'
                     : 'bg-primary-500 text-white hover:bg-primary-600 shadow-md shadow-primary-500/25'

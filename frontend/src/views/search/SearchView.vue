@@ -47,7 +47,22 @@ const {
 } = useSearch()
 
 // Discover posts for initial recommendations
-const { posts: initialPosts, isLoading: isLoadingInitial, fetchPosts } = usePosts()
+const { posts: initialPosts, isLoading: isLoadingInitial, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
+
+async function handleToggleBookmark(postId: string) {
+  const target = results.value.find(p => p.id === postId) || initialPosts.value.find(p => p.id === postId)
+  if (!target) return
+  const prev = target.bookmarked
+  target.bookmarked = !prev
+  try {
+    const res = await apiToggleBookmark(postId)
+    if (typeof res === 'boolean') {
+      target.bookmarked = res
+    }
+  } catch {
+    target.bookmarked = prev
+  }
+}
 
 // Recommended users
 const recommendedUsers = ref<UserSummary[]>([])
@@ -307,7 +322,7 @@ const tabs = [
 
       <!-- Results found from Search -->
       <div v-else-if="hasActiveSearch && results.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <PostCard v-for="post in results" :key="post.id" :post="post" />
+        <PostCard v-for="post in results" :key="post.id" :post="post" @bookmark="handleToggleBookmark" />
       </div>
 
       <!-- No Results Found -->
@@ -372,7 +387,7 @@ const tabs = [
             </div>
           </div>
           <div v-else-if="initialPosts.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <PostCard v-for="post in initialPosts" :key="post.id" :post="post" />
+            <PostCard v-for="post in initialPosts" :key="post.id" :post="post" @bookmark="handleToggleBookmark" />
           </div>
         </div>
       </div>

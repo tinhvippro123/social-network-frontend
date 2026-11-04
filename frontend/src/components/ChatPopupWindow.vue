@@ -162,6 +162,10 @@ function handleSetReplyTo(msg: ChatMessage) {
   textarea?.focus()
 }
 
+function handleDeleteMessage(msgId: string) {
+  messages.value = messages.value.filter(m => m.id !== msgId)
+}
+
 const handleDocumentClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   if (activeHeaderMenu.value && !target.closest('.header-menu-container')) {
@@ -391,7 +395,14 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
 
         <div :class="['flex', msg.isOwn ? 'justify-end' : 'justify-start']">
           <div :class="['max-w-[calc(100%-86px)] flex gap-1.5 items-end relative group/bubble', msg.isOwn ? 'flex-row-reverse' : '']">
-            <UserAvatar v-if="!msg.isOwn" :user="msg.sender as any" size="sm" class="w-6! h-6! shrink-0" />
+            <UserAvatar
+              v-if="!msg.isOwn"
+              :user="msg.sender as any"
+              size="sm"
+              class="w-6! h-6! shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+              title="Xem trang cá nhân"
+              @click="msg.sender?.id && router.push(`/profile/${msg.sender.id}`)"
+            />
             <div class="relative flex items-center min-w-0" :class="msg.isOwn ? 'flex-row-reverse' : ''">
               <div class="relative">
                 <img
@@ -458,6 +469,7 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
                 :active-action-menu="activeMessageAction"
                 @toggle-action-menu="toggleMessageAction"
                 @revoke-message="handleRevokeMessage"
+                @delete-message="handleDeleteMessage"
                 @pin-message="handlePinMessage"
                 @add-reaction="handleAddReaction"
                 @set-reply-to="handleSetReplyTo"

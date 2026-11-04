@@ -14,6 +14,11 @@ const toasts = ref<Toast[]>([])
 
 export function useToast() {
   const addToast = (toast: Omit<Toast, 'id'>) => {
+    if (!toast.message) return
+    // Tránh hiển thị trùng lặp 2 toast giống hệt nhau cùng lúc (ví dụ từ axios interceptor và catch block)
+    if (toasts.value.some(t => t.type === toast.type && t.message === toast.message)) {
+      return
+    }
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
     const newToast = { ...toast, id }
     toasts.value.push(newToast)

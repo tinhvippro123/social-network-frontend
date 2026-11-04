@@ -56,10 +56,10 @@ const triggerFileInput = () => {
     <div v-else class="relative w-full h-48 sm:h-64 rounded-xl overflow-hidden group">
       <img :src="coverImagePreview" alt="Cover preview" class="w-full h-full object-cover" />
       <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-[2px]">
-        <button @click="triggerFileInput" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-medium backdrop-blur-md transition-colors">
+        <button @click="triggerFileInput" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-medium backdrop-blur-md transition-colors cursor-pointer">
           Thay đổi
         </button>
-        <button @click="emit('removeCoverImage')" class="px-4 py-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg text-sm font-medium backdrop-blur-md transition-colors">
+        <button @click="emit('removeCoverImage')" class="px-4 py-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg text-sm font-medium backdrop-blur-md transition-colors cursor-pointer">
           Xóa ảnh
         </button>
       </div>
@@ -110,7 +110,7 @@ const triggerFileInput = () => {
           class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400"
         >
           #{{ tag }}
-          <button @click="emit('removeTag', tag)" class="hover:text-red-500 transition-colors">
+          <button @click="emit('removeTag', tag)" class="hover:text-red-500 transition-colors cursor-pointer">
             <X :size="12" />
           </button>
         </span>
@@ -120,6 +120,7 @@ const triggerFileInput = () => {
             :value="tagInput"
             @input="emit('update:tagInput', ($event.target as HTMLInputElement).value)"
             @keydown.enter.prevent="emit('addTag')"
+            @blur="emit('addTag')"
             type="text"
             placeholder="Thêm tag..."
             class="bg-transparent border-none outline-none text-sm text-gray-600 dark:text-gray-400 placeholder-gray-400 w-24"
@@ -133,7 +134,7 @@ const triggerFileInput = () => {
           v-if="!postLocation"
           @click="emit('update:showLocationPicker', true)"
           type="button"
-          class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-dashed border-gray-300 dark:border-surface-600 hover:border-red-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-dashed border-gray-300 dark:border-surface-600 hover:border-red-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all cursor-pointer"
         >
           <MapPin :size="16" />
           Ghim vị trí
@@ -153,7 +154,7 @@ const triggerFileInput = () => {
           </span>
           <button
             @click="emit('removeLocation')"
-            class="p-0.5 rounded-md text-red-400 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors shrink-0"
+            class="p-0.5 rounded-md text-red-400 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors shrink-0 cursor-pointer"
           >
             <X :size="14" />
           </button>
@@ -166,7 +167,7 @@ const triggerFileInput = () => {
           <MapPin :size="14" class="text-amber-500 shrink-0" />
           <span class="text-amber-700 dark:text-amber-400">
             Danh mục này nên có vị trí! 
-            <button @click="emit('update:showLocationPicker', true)" class="font-semibold underline hover:no-underline">Ghim ngay</button>
+            <button @click="emit('update:showLocationPicker', true)" class="font-semibold underline hover:no-underline cursor-pointer">Ghim ngay</button>
           </span>
         </div>
       </Transition>

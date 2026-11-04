@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { MessageCircle, Search as SearchIcon, Edit } from '@lucide/vue'
 import type { ChatConversation } from '@/types'
@@ -23,6 +23,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const searchQuery = ref('')
 const triggerRef = ref<HTMLElement | null>(null)
+const dropdownRef = ref<HTMLElement | null>(null)
 const liveConversations = ref<ChatConversation[]>([])
 const { applyNicknamesToConversations } = useChatNicknames()
 
@@ -43,11 +44,27 @@ async function loadConversations() {
   }
 }
 
+function handleOutsideClick(e: MouseEvent) {
+  if (!props.showChat) return
+  const target = e.target as Node
+  if (
+    triggerRef.value && !triggerRef.value.contains(target) &&
+    dropdownRef.value && !dropdownRef.value.contains(target)
+  ) {
+    emit('update:showChat', false)
+  }
+}
+
 onMounted(() => {
   loadConversations()
+  document.addEventListener('click', handleOutsideClick)
   window.addEventListener('chat-nickname-changed', () => {
     liveConversations.value = [...liveConversations.value]
   })
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick)
 })
 
 watch(() => props.showChat, (isOpen) => {
@@ -58,8 +75,6 @@ watch(() => props.showChat, (isOpen) => {
 
 // Use live conversations if logged in and available; otherwise fallback cleanly
 const displayedConversations = computed(() => {
-
-
   const base = authStore.isLoggedIn ? liveConversations.value : []
   return applyNicknamesToConversations(base)
 })
@@ -110,7 +125,7 @@ function selectConversation(conv: ChatConversation) {
   <div class="relative">
     <button
       ref="triggerRef"
-      class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+      class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"
       @click.stop="handleChatClick"
     >
       <MessageCircle :size="20" />
@@ -127,6 +142,7 @@ function selectConversation(conv: ChatConversation) {
       <transition name="slide-up">
         <div
           v-if="showChat"
+          ref="dropdownRef"
           :style="dropdownStyle"
           class="w-80 bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-surface-700 overflow-hidden z-9999"
         >
@@ -136,7 +152,7 @@ function selectConversation(conv: ChatConversation) {
             <button
               @click="router.push('/chat'); emit('update:showChat', false)"
               title="Mở toàn bộ cuộc trò chuyện"
-              class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+              class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"
             >
               <Edit :size="16" />
             </button>
@@ -208,7 +224,7 @@ function selectConversation(conv: ChatConversation) {
           <div class="border-t border-gray-200 dark:border-surface-700 px-4 py-2.5">
             <button
               @click="$router.push('/chat'); emit('update:showChat', false)"
-              class="w-full text-center text-sm font-medium text-primary-500 hover:text-primary-600 transition-colors"
+              class="w-full text-center text-sm font-medium text-primary-500 hover:text-primary-600 transition-colors cursor-pointer"
             >
               Xem tất cả tin nhắn
             </button>

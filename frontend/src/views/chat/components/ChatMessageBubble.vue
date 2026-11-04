@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   Trash2 as TrashIcon,
   Download as DownloadIcon,
@@ -11,12 +12,12 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import ChatMessageActions from './ChatMessageActions.vue'
 import ChatMessageReadReceipt from './ChatMessageReadReceipt.vue'
 import type { ChatMessage } from '@/types'
-import { computed } from 'vue'
 
 const props = defineProps<{
   msg: ChatMessage
 }>()
 
+const router = useRouter()
 const chatState = inject<any>('chatState')
 if (!chatState) {
   throw new Error('ChatState is not provided')
@@ -39,7 +40,7 @@ const {
   isLastOwnWithReadStatus
 } = chatState
 
-const getFileIcon = (fileName: string) => {
+const getFileIcon = (_fileName: string) => {
   return PaperclipIcon
 }
 
@@ -52,11 +53,24 @@ const groupedReactions = computed(() => {
   })
   return Array.from(groups.entries()).map(([emoji, users]) => ({ emoji, users }))
 })
+
+function openSenderProfile() {
+  if (props.msg.sender?.id) {
+    router.push(`/profile/${props.msg.sender.id}`)
+  }
+}
 </script>
 
 <template>
   <div class="flex items-end gap-2 max-w-[70%] sm:max-w-[65%] relative">
-    <UserAvatar v-if="!msg.isOwn" :user="msg.sender" size="sm" class="shrink-0 mb-1" />
+    <UserAvatar
+      v-if="!msg.isOwn"
+      :user="msg.sender"
+      size="sm"
+      class="shrink-0 mb-1 cursor-pointer hover:opacity-80 transition-opacity"
+      title="Xem trang cá nhân"
+      @click="openSenderProfile"
+    />
 
     <div class="flex flex-col min-w-0" :class="msg.isOwn ? 'items-end' : 'items-start'">
       <div class="relative group/bubble flex items-center gap-2 min-w-0">
@@ -92,7 +106,7 @@ const groupedReactions = computed(() => {
               <p class="text-sm font-medium truncate" :class="msg.isOwn ? 'text-white' : 'text-gray-900 dark:text-white'">{{ msg.fileName }}</p>
               <p class="text-xs opacity-80">{{ msg.fileSize }}</p>
             </div>
-            <button @click="downloadFile(msg.fileUrl, msg.fileName)" class="p-2 rounded-lg bg-white/20 hover:bg-white/30 dark:bg-surface-700 dark:hover:bg-surface-600 transition-colors shrink-0">
+            <button @click="downloadFile(msg.fileUrl, msg.fileName)" class="p-2 rounded-lg bg-white/20 hover:bg-white/30 dark:bg-surface-700 dark:hover:bg-surface-600 transition-colors shrink-0 cursor-pointer">
               <DownloadIcon :size="16" />
             </button>
           </div>

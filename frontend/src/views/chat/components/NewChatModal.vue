@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { X, Search, MessageCirclePlus, Users, Check } from '@lucide/vue'
+import { ref, computed, watch } from 'vue'
+import { X, Search, MessageCirclePlus, Users } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import UserSelectionItem from './UserSelectionItem.vue'
 import usersApi from '@/api/users.api'
@@ -72,7 +72,8 @@ const handleCreate = async () => {
   
   const participantIds = selectedUsers.value.map(u => u.id)
   const isGroup = chatMode.value === 'group'
-  const name = isGroup ? groupName.value || undefined : undefined
+  const fallbackGroupName = 'Nhóm: ' + selectedUsers.value.map(u => u.name).join(', ').slice(0, 80)
+  const name = isGroup ? (groupName.value.trim() || fallbackGroupName) : undefined
   
   emit('create', participantIds, name, isGroup)
 
@@ -93,8 +94,6 @@ const handleClose = () => {
   emit('close')
 }
 
-// Load users when shown
-import { watch } from 'vue'
 watch(() => props.show, async (val) => {
   if (val) {
     if (props.initialMode) {
@@ -137,7 +136,7 @@ watch(() => props.show, async (val) => {
                 <p class="text-xs text-gray-500 dark:text-gray-400">Chọn người để nhắn tin</p>
               </div>
             </div>
-            <button @click="handleClose" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-500 transition-colors">
+            <button @click="handleClose" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-500 transition-colors cursor-pointer">
               <X :size="20" />
             </button>
           </div>
@@ -147,7 +146,7 @@ watch(() => props.show, async (val) => {
             <button
               @click="chatMode = 'direct'; selectedUsers = []"
               :class="[
-                'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all',
+                'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer',
                 chatMode === 'direct'
                   ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border border-primary-300 dark:border-primary-700'
                   : 'bg-gray-50 dark:bg-surface-700 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-600 hover:bg-gray-100 dark:hover:bg-surface-600'
@@ -159,7 +158,7 @@ watch(() => props.show, async (val) => {
             <button
               @click="chatMode = 'group'; selectedUsers = []"
               :class="[
-                'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all',
+                'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer',
                 chatMode === 'group'
                   ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border border-primary-300 dark:border-primary-700'
                   : 'bg-gray-50 dark:bg-surface-700 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-600 hover:bg-gray-100 dark:hover:bg-surface-600'
@@ -189,7 +188,7 @@ watch(() => props.show, async (val) => {
             >
               <UserAvatar :user="user" size="sm" />
               {{ user.name }}
-              <button @click="removeSelectedUser(user)" class="hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-full p-0.5 transition-colors">
+              <button @click="removeSelectedUser(user)" class="hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-full p-0.5 transition-colors cursor-pointer">
                 <X :size="12" />
               </button>
             </div>
@@ -232,7 +231,7 @@ watch(() => props.show, async (val) => {
           <div class="flex items-center gap-3 p-4 border-t border-gray-200 dark:border-surface-700 bg-gray-50 dark:bg-surface-700/50 shrink-0">
             <button
               @click="handleClose"
-              class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-surface-700 border border-gray-200 dark:border-surface-600 hover:bg-gray-50 dark:hover:bg-surface-600 transition-all"
+              class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-surface-700 border border-gray-200 dark:border-surface-600 hover:bg-gray-50 dark:hover:bg-surface-600 transition-all cursor-pointer"
             >
               Huỷ
             </button>
@@ -240,7 +239,7 @@ watch(() => props.show, async (val) => {
               @click="handleCreate"
               :disabled="selectedUsers.length === 0 || isCreating"
               :class="[
-                'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all',
+                'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all cursor-pointer',
                 selectedUsers.length === 0 || isCreating
                   ? 'bg-gray-300 dark:bg-surface-600 cursor-not-allowed'
                   : 'gradient-primary hover:opacity-90 shadow-lg shadow-primary-500/25'

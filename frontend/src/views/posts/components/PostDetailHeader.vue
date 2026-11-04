@@ -59,7 +59,10 @@ const handleDeletePost = async () => {
         </span>
       </div>
       <!-- Category Badge -->
-      <span class="absolute top-4 left-4 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 shadow-sm">
+      <span
+        @click.stop="post.category?.slug && router.push(`/?category=${post.category.slug}`)"
+        class="absolute top-4 left-4 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 shadow-sm hover:bg-white dark:hover:bg-surface-700 transition-colors cursor-pointer"
+      >
         {{ post.category?.icon }} {{ post.category?.name }}
       </span>
 
@@ -87,7 +90,14 @@ const handleDeletePost = async () => {
           <div class="flex flex-wrap items-center gap-3 text-xs text-gray-400 mt-1">
             <span class="flex items-center gap-1"><Clock :size="12" /> {{ formatDate(post.createdAt) }}</span>
             <span class="flex items-center gap-1"><Eye :size="12" /> {{ formatNumber(post.viewsCount) }} lượt xem</span>
-            <span v-if="post.location" class="flex items-center gap-1"><MapPin :size="12" /> {{ post.location.address }}</span>
+            <span
+              v-if="post.location"
+              @click="router.push(`/map?postId=${post.id}`)"
+              class="flex items-center gap-1 text-red-500 hover:text-red-600 hover:underline cursor-pointer"
+              title="Xem vị trí trên bản đồ"
+            >
+              <MapPin :size="12" /> {{ post.location.address }}
+            </span>
           </div>
         </div>
       </div>
@@ -95,14 +105,14 @@ const handleDeletePost = async () => {
       <div v-if="user && user.id === post.author?.id" class="flex items-center gap-2">
         <button
           @click="router.push(`/posts/${post.id}/edit`)"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 border border-gray-200 dark:border-surface-700 transition-all"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 border border-gray-200 dark:border-surface-700 transition-all cursor-pointer"
         >
           <Edit3 :size="14" />
           <span class="hidden sm:inline">Chỉnh sửa</span>
         </button>
         <button
           @click="handleDeletePost"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-900/30 transition-all"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-900/30 transition-all cursor-pointer"
         >
           <Trash2 :size="14" />
           <span class="hidden sm:inline">Xóa</span>

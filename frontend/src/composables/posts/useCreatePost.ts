@@ -10,7 +10,7 @@ import { useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import ImageExtension from '@tiptap/extension-image'
 import LinkExtension from '@tiptap/extension-link'
-import type { GeoLocation, Post } from '@/types'
+import type { GeoLocation } from '@/types'
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, List, ListOrdered,
   Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote
@@ -70,9 +70,11 @@ export function useCreatePost() {
   }
 
   const addTag = () => {
-    const tag = tagInput.value.trim()
+    const tag = tagInput.value.trim().replace(/^#+/, '').trim()
     if (tag && !tags.value.includes(tag) && tags.value.length < 5) {
       tags.value.push(tag)
+      tagInput.value = ''
+    } else if (tag && tags.value.includes(tag)) {
       tagInput.value = ''
     }
   }
@@ -223,6 +225,11 @@ export function useCreatePost() {
   const { execute, isLoading } = useAsyncState()
 
   const handlePublish = async (mode: 'create' | 'edit' = 'create', postId?: string) => {
+    // Tự động lưu tag đang gõ dở trong ô input nếu chưa nhấn Enter
+    if (tagInput.value.trim()) {
+      addTag()
+    }
+
     if (!title.value.trim()) {
       error('Vui lòng nhập tiêu đề bài viết')
       return

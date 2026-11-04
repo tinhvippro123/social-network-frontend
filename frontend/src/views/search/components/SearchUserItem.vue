@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import UserAvatar from '@/components/UserAvatar.vue'
 import usersApi from '@/api/users.api'
+import { useAuthStore } from '@/stores/auth.store'
+import { useToast } from '@/composables/ui/useToast'
 
 const props = defineProps<{
   user: {
@@ -20,6 +23,9 @@ defineEmits<{
   (e: 'click'): void
 }>()
 
+const router = useRouter()
+const authStore = useAuthStore()
+const toast = useToast()
 const isFollowing = ref(Boolean(props.user.isFollowing ?? props.user.following))
 const isToggling = ref(false)
 
@@ -34,13 +40,19 @@ const avatarUser = computed(() => ({
 
 async function handleToggleFollow(e: Event) {
   e.stopPropagation()
+  if (!authStore.isLoggedIn) {
+    toast.info('Vui lòng đăng nhập để theo dõi tác giả')
+    router.push('/login')
+    return
+  }
   if (isToggling.value) return
   isToggling.value = true
   try {
     const res = await usersApi.toggleFollow(props.user.id)
     isFollowing.value = res.data?.data ?? !isFollowing.value
-  } catch (err) {
-    console.error('Follow toggle error:', err)
+    toast.success(isFollowing.value ? `Đã theo dõi ${props.user.name}` : `Đã bỏ theo dõi ${props.user.name}`)
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể thực hiện thao tác')
   } finally {
     isToggling.value = false
   }
@@ -63,6 +75,7 @@ async function handleToggleFollow(e: Event) {
       </div>
     </div>
     <button
+      v-if="user.id !== authStore.user?.id"
       @click="handleToggleFollow"
       :disabled="isToggling"
       :class="[

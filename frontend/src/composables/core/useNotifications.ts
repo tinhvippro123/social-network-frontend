@@ -2,6 +2,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import notificationsApi from '@/api/notifications.api'
 import { navigateToNotificationLink } from '@/utils/notificationNavigation'
+import { useUiStore } from '@/stores/ui.store'
 
 export interface Notification {
   id: string
@@ -30,6 +31,7 @@ function mapBackendNotification(item: any): Notification {
 
 export function useNotifications() {
   const router = useRouter()
+  const uiStore = useUiStore()
   const isLoading = ref(true)
   const activeFilter = ref<'all' | 'unread'>('all')
   const notifications = ref<Notification[]>([])
@@ -67,6 +69,7 @@ export function useNotifications() {
       n.isRead = true
       try {
         await notificationsApi.markRead(id)
+        uiStore.fetchNotifications()
       } catch (err) {
         console.error('Lỗi đánh dấu đã đọc:', err)
       }
@@ -77,6 +80,7 @@ export function useNotifications() {
     notifications.value.forEach(n => { n.isRead = true })
     try {
       await notificationsApi.markAllRead()
+      uiStore.fetchNotifications()
     } catch (err) {
       console.error('Lỗi đánh dấu tất cả đã đọc:', err)
     }
@@ -86,6 +90,7 @@ export function useNotifications() {
     notifications.value = notifications.value.filter(n => n.id !== id)
     try {
       await notificationsApi.delete(id)
+      uiStore.fetchNotifications()
     } catch (err) {
       console.error('Lỗi xóa thông báo:', err)
     }

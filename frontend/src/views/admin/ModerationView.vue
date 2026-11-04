@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import { ShieldAlert, AlertTriangle } from '@lucide/vue'
 import { useModeration } from '@/composables/core/useModeration'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
@@ -35,7 +34,7 @@ const {
       </template>
       <template #filters>
         <button v-for="f in reportFilters" :key="f.key" @click="filterStatus = f.key as any"
-          :class="['px-4 py-2.5 rounded-xl text-sm font-medium transition-all', filterStatus === f.key ? 'bg-red-500 text-white' : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700']">
+          :class="['px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer', filterStatus === f.key ? 'bg-red-500 text-white' : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700']">
           {{ f.label }} <span class="ml-1 text-xs opacity-70">({{ f.count }})</span>
         </button>
       </template>
@@ -49,7 +48,7 @@ const {
       <template v-if="isLoading">
         <ModerationSkeletonItem v-for="i in 3" :key="i" />
       </template>
-      <template v-else-if="extendedReports.length">
+      <template v-else-if="extendedReports.filter(r => filterStatus === 'all' || r.status === filterStatus).length">
         <ModerationReportItem
           v-for="report in extendedReports.filter(r => filterStatus === 'all' || r.status === filterStatus)"
           :key="report.id"

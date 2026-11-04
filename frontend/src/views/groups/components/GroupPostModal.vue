@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { X, Calendar, Share2, ExternalLink, Check } from '@lucide/vue'
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import GroupPostDiscussion from './GroupPostDiscussion.vue'
 import { formatDate } from '@/utils/formatters'
@@ -19,6 +19,20 @@ const emit = defineEmits<{
 const router = useRouter()
 const toast = useToast()
 const copied = ref(false)
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && props.post) {
+    emit('close')
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 
 const goToProfile = (userId?: string) => {
   if (!userId) return

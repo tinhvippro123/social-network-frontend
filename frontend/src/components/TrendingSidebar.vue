@@ -6,9 +6,11 @@ import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber } from '@/utils/formatters'
 import { useTrendingSidebar } from '@/composables/ui/useTrendingSidebar'
 import { useToast } from '@/composables/ui/useToast'
+import { useAuthStore } from '@/stores/auth.store'
 import usersApi from '@/api/users.api'
 
 const toast = useToast()
+const authStore = useAuthStore()
 const followedUserIds = ref<Set<string>>(new Set())
 
 const {
@@ -31,14 +33,22 @@ watch(users, (list) => {
 }, { immediate: true, deep: true })
 
 async function toggleFollowUser(u: any) {
+  if (!authStore.isLoggedIn) {
+    toast.info('Vui lòng đăng nhập để theo dõi tác giả')
+    router.push('/login')
+    return
+  }
   try {
     const res = await usersApi.toggleFollow(u.id)
     const isNowFollowing = typeof res.data?.data === 'boolean' ? res.data.data : !followedUserIds.value.has(u.id)
+    const next = new Set<string>(followedUserIds.value)
     if (isNowFollowing) {
-      followedUserIds.value.add(u.id)
+      next.add(u.id)
+      followedUserIds.value = next
       toast.success(`Đang theo dõi ${u.name}`)
     } else {
-      followedUserIds.value.delete(u.id)
+      next.delete(u.id)
+      followedUserIds.value = next
       toast.info(`Đã bỏ theo dõi ${u.name}`)
     }
   } catch (err: any) {
@@ -79,7 +89,12 @@ async function toggleFollowUser(u: any) {
               {{ post.title }}
             </p>
             <div class="flex items-center gap-2 mt-1 text-xs text-gray-400">
-              <span>{{ post.author.name }}</span>
+              <span
+                @click.stop="post.author?.id && router.push(`/profile/${post.author.id}`)"
+                class="hover:text-primary-500 hover:underline transition-colors"
+              >
+                {{ post.author.name }}
+              </span>
               <span>·</span>
               <span class="flex items-center gap-0.5">
                 <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc, curr) => acc + curr.count, 0) || ((post.upvotesCount || 0) + (post.commentsCount || 0))) }}
@@ -137,6 +152,7 @@ async function toggleFollowUser(u: any) {
             <p class="text-xs text-gray-400">{{ user.postsCount ?? 0 }} bài viết</p>
           </div>
           <button
+            v-if="user.id !== authStore.user?.id"
             @click="toggleFollowUser(user)"
             :class="[
               'px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer flex items-center gap-1',

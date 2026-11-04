@@ -10,7 +10,22 @@ const route = useRoute()
 const router = useRouter()
 const tagName = computed(() => (route.params.name as string) || '')
 
-const { posts, isLoading, fetchPosts } = usePosts()
+const { posts, isLoading, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
+
+async function handleToggleBookmark(postId: string) {
+  const post = posts.value.find(p => p.id === postId)
+  if (!post) return
+  const prev = post.bookmarked
+  post.bookmarked = !prev
+  try {
+    const res = await apiToggleBookmark(postId)
+    if (typeof res === 'boolean') {
+      post.bookmarked = res
+    }
+  } catch {
+    post.bookmarked = prev
+  }
+}
 
 onMounted(() => {
   fetchPosts({ limit: 100 })
@@ -65,6 +80,7 @@ const displayPosts = computed(() => {
         v-for="post in displayPosts"
         :key="post.id"
         :post="post"
+        @bookmark="handleToggleBookmark"
       />
     </div>
 
