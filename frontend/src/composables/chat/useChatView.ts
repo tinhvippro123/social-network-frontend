@@ -131,7 +131,20 @@ export function useChatView() {
   onMounted(async () => {
     isInitialLoading.value = true
     await fetchConversations()
-    if (route.query.id) {
+    const targetUserId = route.query.userId ? String(route.query.userId) : null
+    if (targetUserId) {
+      const existingDirect = conversations.value.find(
+        c => !c.isGroup && c.participants?.some((p: any) => p.id === targetUserId)
+      )
+      if (existingDirect) {
+        selectedConversation.value = existingDirect
+        showMobileChat.value = true
+        await fetchMessages(existingDirect.id)
+        markAsRead(existingDirect.id)
+      } else {
+        await createNewConversation([targetUserId])
+      }
+    } else if (route.query.id) {
       const match = conversations.value.find(c => c.id === route.query.id)
       if (match) {
         selectedConversation.value = match

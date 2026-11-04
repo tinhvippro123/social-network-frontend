@@ -98,8 +98,13 @@ const handleBookmark = async (e: Event) => {
     <div class="p-5 flex-1 flex flex-col">
       <!-- Author -->
       <div class="flex items-center gap-2 mb-3">
-        <UserAvatar :user="post.author" size="sm" />
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ post.author.name }}</span>
+        <div
+          class="flex items-center gap-2 hover:text-primary-500 transition-colors"
+          @click.stop="post.author?.id && router.push('/profile/' + post.author.id)"
+        >
+          <UserAvatar :user="post.author" size="sm" />
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-500 transition-colors">{{ post.author.name }}</span>
+        </div>
         <span class="text-gray-300 dark:text-surface-600">·</span>
         <span class="text-xs text-gray-400 flex items-center gap-1">
           <Clock :size="12" />
@@ -122,7 +127,8 @@ const handleBookmark = async (e: Event) => {
         <span
           v-for="tag in post.tags.slice(0, 3)"
           :key="tag"
-          class="px-2 py-0.5 rounded-md text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400"
+          @click.stop="router.push('/tags/' + tag)"
+          class="px-2 py-0.5 rounded-md text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors cursor-pointer"
         >
           #{{ tag }}
         </span>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import usersApi from '@/api/users.api'
 
@@ -12,6 +12,7 @@ const props = defineProps<{
     postsCount?: number
     followersCount?: number
     isFollowing?: boolean
+    following?: boolean
   }
 }>()
 
@@ -19,8 +20,12 @@ defineEmits<{
   (e: 'click'): void
 }>()
 
-const isFollowing = ref(props.user.isFollowing ?? false)
+const isFollowing = ref(Boolean(props.user.isFollowing ?? props.user.following))
 const isToggling = ref(false)
+
+watch(() => [props.user.isFollowing, props.user.following], ([val1, val2]) => {
+  isFollowing.value = Boolean(val1 ?? val2)
+})
 
 const avatarUser = computed(() => ({
   name: props.user.name,

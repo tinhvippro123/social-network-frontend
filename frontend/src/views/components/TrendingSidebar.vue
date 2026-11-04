@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Hash, Star, Check } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -7,7 +7,7 @@ import Skeleton from '@/components/ui/Skeleton.vue'
 import { useToast } from '@/composables/ui/useToast'
 import usersApi from '@/api/users.api'
 
-defineProps<{
+const props = defineProps<{
   tags: any[]
   users: any[]
   sidebarLoading: boolean
@@ -16,6 +16,17 @@ defineProps<{
 const router = useRouter()
 const toast = useToast()
 const followedUserIds = ref<Set<string>>(new Set())
+
+watch(() => props.users, (list) => {
+  if (!Array.isArray(list)) return
+  const next = new Set<string>(followedUserIds.value)
+  for (const u of list) {
+    if (u?.isFollowing || u?.following) {
+      next.add(u.id)
+    }
+  }
+  followedUserIds.value = next
+}, { immediate: true, deep: true })
 
 async function toggleFollowUser(u: any) {
   try {
@@ -74,13 +85,13 @@ async function toggleFollowUser(u: any) {
         </div>
       </div>
       <div v-else class="space-y-4">
-        <div v-for="user in users.slice(0, 3)" :key="user.id" class="flex items-center gap-3">
+        <div v-for="user in users.slice(0, 3)" :key="user.id" class="flex items-center gap-3 group">
           <UserAvatar :user="user" size="md" class="cursor-pointer" @click="router.push(`/profile/${user.id}`)" />
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 truncate">
+          <div class="flex-1 min-w-0 cursor-pointer" @click="router.push(`/profile/${user.id}`)">
+            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary-500 transition-colors truncate">
               {{ user.name }}
             </p>
-            <p class="text-xs text-gray-400">{{ user.postsCount }} bài viết</p>
+            <p class="text-xs text-gray-400">{{ user.postsCount ?? 0 }} bài viết</p>
           </div>
           <button
             @click="toggleFollowUser(user)"

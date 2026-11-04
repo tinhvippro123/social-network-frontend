@@ -26,9 +26,9 @@ const { addToast } = useToast()
 const isFollowing = ref(false)
 const isFollowLoading = ref(false)
 
-watch(() => props.currentUser?.isFollowing, (val) => {
-  isFollowing.value = !!val
-}, { immediate: true })
+watch(() => props.currentUser, (val) => {
+  isFollowing.value = Boolean(val?.isFollowing ?? val?.following)
+}, { immediate: true, deep: true })
 
 // Followers/Following modal
 const showFollowersModal = ref(false)

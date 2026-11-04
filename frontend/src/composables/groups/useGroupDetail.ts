@@ -1,4 +1,4 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGroups } from './useGroups'
 import { useAuthStore } from '@/stores/auth.store'
@@ -31,11 +31,12 @@ export function useGroupDetail() {
   const isGroupOwner = computed(() => {
     const myId = authStore.user?.id
     if (!myId || !group.value) return false
-    return (group.value as any).myRole === 'OWNER' || group.value.owner?.id === myId
+    const role = (group.value as any).memberRole || (group.value as any).myRole
+    return role === 'OWNER' || group.value.owner?.id === myId
   })
 
   const isGroupManager = computed(() => {
-    const role = (group.value as any)?.myRole
+    const role = (group.value as any)?.memberRole || (group.value as any)?.myRole
     return isGroupOwner.value || role === 'ADMIN'
   })
 
@@ -108,6 +109,12 @@ export function useGroupDetail() {
 
   onMounted(async () => {
     await initData()
+  })
+
+  watch(() => route.params.id, async (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      await initData()
+    }
   })
 
   return {

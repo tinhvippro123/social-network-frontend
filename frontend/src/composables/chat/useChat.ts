@@ -218,12 +218,20 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     conversations.value = conversations.value.filter(c => c.id !== conversationId)
   }
 
-  async function blockUser(userId: string) {
-    await chatApi.blockUser(userId)
+  async function blockUser(userIdOrConvId: string) {
+    const conv = conversations.value.find(c => c.id === userIdOrConvId)
+    const targetUserId = conv
+      ? (conv.participants?.[0]?.id || userIdOrConvId)
+      : userIdOrConvId
+    await chatApi.blockUser(targetUserId)
   }
 
-  async function unblockUser(userId: string) {
-    await chatApi.unblockUser(userId)
+  async function unblockUser(userIdOrConvId: string) {
+    const conv = conversations.value.find(c => c.id === userIdOrConvId)
+    const targetUserId = conv
+      ? (conv.participants?.[0]?.id || userIdOrConvId)
+      : userIdOrConvId
+    await chatApi.unblockUser(targetUserId)
   }
 
   async function searchMessages(conversationId: string, query: string) {

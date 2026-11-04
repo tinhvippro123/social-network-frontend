@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePosts, mapCommentResponse } from './usePosts'
 import { useAuth } from '../auth/useAuth'
@@ -25,11 +25,17 @@ export function usePostDetail() {
 
   const initData = async () => {
     const postId = route.params.id as string || '1'
+    userVote.value = null
+    currentUserReaction.value = null
     await Promise.all([
       fetchPost(postId),
       fetchComments(postId),
       fetchPosts({ limit: 4 })
     ])
+
+    if (post.value?.bookmarked != null) {
+      isBookmarked.value = Boolean(post.value.bookmarked)
+    }
 
     // Load user vote, current reaction, and bookmark status from backend if user is authenticated
     if (user.value) {
@@ -165,6 +171,17 @@ export function usePostDetail() {
     }
   })
 
+  // Watch for post ID changes when clicking related posts
+  watch(
+    () => route.params.id,
+    async (newId, oldId) => {
+      if (newId && newId !== oldId) {
+        await initData()
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }
+  )
+
   // Watch for hash or highlightAuthor changes while user is already on the post page
   watch(
     () => [route.hash, route.query.highlightAuthor],
@@ -195,7 +212,7 @@ export function usePostDetail() {
   const toggleBookmark = async () => {
     if (!post.value) return
     if (!user.value) {
-      router.push('/auth/login')
+      router.push('/login')
       return
     }
 
@@ -422,7 +439,7 @@ export function usePostDetail() {
   const addComment = async (content: string, image: File | null) => {
     if (!post.value) return
     if (!user.value) {
-      router.push('/auth/login')
+      router.push('/login')
       return
     }
 
@@ -450,7 +467,7 @@ export function usePostDetail() {
   const replyComment = async (parentId: string, content: string, image: File | null) => {
     if (!post.value) return
     if (!user.value) {
-      router.push('/auth/login')
+      router.push('/login')
       return
     }
 

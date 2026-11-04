@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   ChevronLeft,
@@ -85,6 +85,13 @@ const goToPost = (targetPostId: string) => {
 
 onMounted(() => {
   loadData()
+})
+
+watch([groupId, postId], ([newGroupId, newPostId], [oldGroupId, oldPostId]) => {
+  if (newGroupId && newPostId && (newGroupId !== oldGroupId || newPostId !== oldPostId)) {
+    loadData()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 })
 </script>
 

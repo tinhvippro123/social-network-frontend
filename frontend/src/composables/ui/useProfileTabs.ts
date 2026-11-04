@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, unref, watch } from 'vue'
 import { FileText, Bookmark, Users, FilePenLine } from '@lucide/vue'
 import { useAuth } from '../auth/useAuth'
 import usersApi from '@/api/users.api'
@@ -6,9 +6,12 @@ import postsApi from '@/api/posts.api'
 import groupsApi from '@/api/groups.api'
 import { normalizePost } from '../posts/usePosts'
 import type { Post, UserProfile, Group } from '@/types'
-import type { Ref } from 'vue'
+import type { Ref, ComputedRef } from 'vue'
 
-export function useProfileTabs(isOwnProfile: boolean = true, targetUserRef?: Ref<UserProfile | null>) {
+export function useProfileTabs(
+  isOwnProfile: Ref<boolean> | ComputedRef<boolean> | boolean = true,
+  targetUserRef?: Ref<UserProfile | null>
+) {
   const { user: currentUser } = useAuth()
   const posts = ref<Post[]>([])
   const drafts = ref<Post[]>([])
@@ -17,13 +20,19 @@ export function useProfileTabs(isOwnProfile: boolean = true, targetUserRef?: Ref
   const isLoading = ref(false)
   const activeTab = ref('posts')
 
+  watch(() => unref(isOwnProfile), (own) => {
+    if (!own && activeTab.value !== 'posts') {
+      activeTab.value = 'posts'
+    }
+  })
+
   const tabs = computed(() => {
     const postCount = posts.value.length || targetUserRef?.value?.postsCount || 0
     const baseTabs = [
       { key: 'posts', label: 'Bài viết', icon: FileText, count: postCount },
     ]
 
-    if (isOwnProfile) {
+    if (unref(isOwnProfile)) {
       baseTabs.push(
         { key: 'drafts', label: 'Nháp', icon: FilePenLine, count: drafts.value.length },
         { key: 'bookmarks', label: 'Đã lưu', icon: Bookmark, count: bookmarkedPosts.value.length },
@@ -35,7 +44,8 @@ export function useProfileTabs(isOwnProfile: boolean = true, targetUserRef?: Ref
   })
 
   async function fetchPosts(userId?: string) {
-    const uid = userId || targetUserRef?.value?.id || (isOwnProfile ? currentUser.value?.id : undefined)
+    const own = unref(isOwnProfile)
+    const uid = userId || targetUserRef?.value?.id || (own ? currentUser.value?.id : undefined)
     if (!uid) return
     isLoading.value = true
     try {
@@ -45,7 +55,7 @@ export function useProfileTabs(isOwnProfile: boolean = true, targetUserRef?: Ref
         }).catch(() => { posts.value = [] })
       ]
 
-      if (isOwnProfile && currentUser.value?.id === uid) {
+      if (own && currentUser.value?.id === uid) {
         tasks.push(
           usersApi.getUserPosts(uid, 1, 20, 'DRAFT').then(res => {
             drafts.value = (res.data.data || []).map(normalizePost)
@@ -60,6 +70,10 @@ export function useProfileTabs(isOwnProfile: boolean = true, targetUserRef?: Ref
             joinedGroups.value = res.data.data || []
           }).catch(() => { joinedGroups.value = [] })
         )
+      } else {
+        drafts.value = []
+        bookmarkedPosts.value = []
+        joinedGroups.value = []
       }
 
       await Promise.allSettled(tasks)

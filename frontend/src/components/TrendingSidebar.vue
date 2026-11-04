@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { Hash, SmilePlus, Star, TrendingUp, Check } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
@@ -18,6 +18,17 @@ const {
   users,
   isLoading
 } = useTrendingSidebar()
+
+watch(users, (list) => {
+  if (!Array.isArray(list)) return
+  const next = new Set<string>(followedUserIds.value)
+  for (const u of list as any[]) {
+    if (u?.isFollowing || u?.following) {
+      next.add(u.id)
+    }
+  }
+  followedUserIds.value = next
+}, { immediate: true, deep: true })
 
 async function toggleFollowUser(u: any) {
   try {
@@ -71,7 +82,7 @@ async function toggleFollowUser(u: any) {
               <span>{{ post.author.name }}</span>
               <span>·</span>
               <span class="flex items-center gap-0.5">
-                <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc, curr) => acc + curr.count, 0) || 0) }}
+                <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc, curr) => acc + curr.count, 0) || ((post.upvotesCount || 0) + (post.commentsCount || 0))) }}
               </span>
             </div>
           </div>
@@ -117,13 +128,13 @@ async function toggleFollowUser(u: any) {
         </div>
       </div>
       <div v-else class="space-y-4">
-        <div v-for="user in users.slice(0, 3)" :key="user.id" class="flex items-center gap-3">
+        <div v-for="user in users.slice(0, 3)" :key="user.id" class="flex items-center gap-3 group">
           <UserAvatar :user="user" size="md" class="ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all cursor-pointer" @click="router.push(`/profile/${user.id}`)" />
-          <div class="flex-1 min-w-0">
+          <div class="flex-1 min-w-0 cursor-pointer" @click="router.push(`/profile/${user.id}`)">
             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary-500 transition-colors truncate">
               {{ user.name }}
             </p>
-            <p class="text-xs text-gray-400">{{ user.postsCount }} bài viết</p>
+            <p class="text-xs text-gray-400">{{ user.postsCount ?? 0 }} bài viết</p>
           </div>
           <button
             @click="toggleFollowUser(user)"

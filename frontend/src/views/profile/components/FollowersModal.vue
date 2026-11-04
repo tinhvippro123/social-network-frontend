@@ -40,7 +40,10 @@ async function loadList() {
     const res = props.type === 'followers'
       ? await usersApi.getFollowers(props.user.id)
       : await usersApi.getFollowing(props.user.id)
-    listData.value = res.data.data || []
+    listData.value = (res.data.data || []).map((u: any) => ({
+      ...u,
+      isFollowing: Boolean(u.isFollowing ?? u.following)
+    }))
   } catch (e) {
     listData.value = []
   } finally {

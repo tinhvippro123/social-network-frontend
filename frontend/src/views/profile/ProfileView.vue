@@ -36,7 +36,7 @@ const {
   isLoading,
   fetchPosts,
   deleteDraft
-} = useProfileTabs(isOwnProfile.value, profileUser)
+} = useProfileTabs(isOwnProfile, profileUser)
 
 // Privacy setting
 const privacySetting = ref<'public' | 'followers' | 'private'>('public')
