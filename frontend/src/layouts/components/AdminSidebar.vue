@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Home, Users, FileText, Settings, ShieldAlert, FolderTree, MessageCircle, BarChart3, ChevronLeft, Sun, Moon } from '@lucide/vue'
+import { useAuthStore } from '@/stores/auth.store'
+
+const authStore = useAuthStore()
 
 defineProps<{
   isMobile: boolean
@@ -15,16 +19,20 @@ const emit = defineEmits<{
   (e: 'navigateHome'): void
 }>()
 
-const navItems = [
-  { icon: Home, label: 'Dashboard', to: '/admin' },
-  { icon: Users, label: 'Người dùng', to: '/admin/users' },
-  { icon: FileText, label: 'Bài viết', to: '/admin/posts' },
-  { icon: ShieldAlert, label: 'Kiểm duyệt', to: '/admin/moderation' },
-  { icon: FolderTree, label: 'Danh mục', to: '/admin/categories' },
-  { icon: MessageCircle, label: 'Nhóm', to: '/admin/groups' },
-  { icon: BarChart3, label: 'Thống kê', to: '/admin/analytics' },
-  { icon: Settings, label: 'Cài đặt', to: '/admin/settings' },
+const allNavItems = [
+  { icon: Home, label: 'Dashboard', to: '/admin', adminOnly: true },
+  { icon: Users, label: 'Người dùng', to: '/admin/users', adminOnly: true },
+  { icon: FileText, label: 'Bài viết', to: '/admin/posts', adminOnly: false },
+  { icon: ShieldAlert, label: 'Kiểm duyệt', to: '/admin/moderation', adminOnly: false },
+  { icon: FolderTree, label: 'Danh mục & Tag', to: '/admin/categories', adminOnly: true },
+  { icon: MessageCircle, label: 'Nhóm', to: '/admin/groups', adminOnly: false },
+  { icon: BarChart3, label: 'Thống kê', to: '/admin/analytics', adminOnly: true },
+  { icon: Settings, label: 'Cài đặt', to: '/admin/settings', adminOnly: true },
 ]
+
+const navItems = computed(() =>
+  authStore.isAdmin ? allNavItems : allNavItems.filter(item => !item.adminOnly)
+)
 </script>
 
 <template>
@@ -44,7 +52,7 @@ const navItems = [
       <transition name="fade">
         <div v-if="sidebarOpen || isMobile" class="whitespace-nowrap">
           <span class="text-base font-bold text-gray-900 dark:text-white">VietBlog</span>
-          <span class="block text-[10px] font-semibold text-red-500 dark:text-red-400 uppercase tracking-widest -mt-0.5">Admin Panel</span>
+          <span class="block text-[10px] font-semibold text-red-500 dark:text-red-400 uppercase tracking-widest -mt-0.5">{{ authStore.isAdmin ? 'Admin Panel' : 'Moderator Panel' }}</span>
         </div>
       </transition>
     </div>

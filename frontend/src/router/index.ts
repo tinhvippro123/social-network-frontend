@@ -146,13 +146,13 @@ const router = createRouter({
       path: '/admin/posts',
       name: 'admin-posts',
       component: () => import('@/views/admin/PostsManageView.vue'),
-      meta: { layout: 'admin', title: 'Quản lý bài viết', requiresAdmin: true }
+      meta: { layout: 'admin', title: 'Quản lý bài viết', requiresModerator: true }
     },
     {
       path: '/admin/moderation',
       name: 'admin-moderation',
       component: () => import('@/views/admin/ModerationView.vue'),
-      meta: { layout: 'admin', title: 'Kiểm duyệt nội dung', requiresAdmin: true }
+      meta: { layout: 'admin', title: 'Kiểm duyệt nội dung', requiresModerator: true }
     },
     {
       path: '/admin/categories',
@@ -164,7 +164,7 @@ const router = createRouter({
       path: '/admin/groups',
       name: 'admin-groups',
       component: () => import('@/views/admin/GroupsManageView.vue'),
-      meta: { layout: 'admin', title: 'Quản lý nhóm', requiresAdmin: true }
+      meta: { layout: 'admin', title: 'Quản lý nhóm', requiresModerator: true }
     },
     {
       path: '/admin/analytics',
@@ -209,6 +209,17 @@ router.beforeEach((to, from, next) => {
       return next({ name: 'login', query: { redirect: to.fullPath } })
     }
     if (!authStore.isAdmin) {
+      if (authStore.isModerator) return next({ name: 'admin-moderation' })
+      return next({ name: 'home' })
+    }
+    return next()
+  }
+
+  if (to.meta.requiresModerator) {
+    if (!authStore.isLoggedIn) {
+      return next({ name: 'login', query: { redirect: to.fullPath } })
+    }
+    if (!authStore.isModerator) {
       return next({ name: 'home' })
     }
     return next()

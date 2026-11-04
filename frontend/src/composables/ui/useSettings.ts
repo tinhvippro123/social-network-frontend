@@ -19,7 +19,7 @@ export function useSettings() {
 
   const activeTab = ref('profile')
   const themeMode = ref<'light' | 'dark' | 'system'>(uiStore.isDark ? 'dark' : 'light')
-  
+
   watch(() => uiStore.isDark, (isDark) => {
     if (themeMode.value !== 'system') {
       themeMode.value = isDark ? 'dark' : 'light'
@@ -42,6 +42,7 @@ export function useSettings() {
         email: newUser.email || '',
         avatar: newUser.avatar || '',
       }
+      loadPersistedPrefs(newUser.id)
     }
   })
 
@@ -70,6 +71,29 @@ export function useSettings() {
     showOnlineStatus: true,
     showReadReceipts: true,
   })
+
+  function getPrefsKey(userId?: string) {
+    return `vb_user_prefs_${userId || user.value?.id || 'default'}`
+  }
+
+  function loadPersistedPrefs(userId?: string) {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = localStorage.getItem(getPrefsKey(userId))
+      if (!raw) return
+      const parsed = JSON.parse(raw)
+      if (parsed?.notificationSettings) {
+        notificationSettings.value = { ...notificationSettings.value, ...parsed.notificationSettings }
+      }
+      if (parsed?.privacySettings) {
+        privacySettings.value = { ...privacySettings.value, ...parsed.privacySettings }
+      }
+    } catch {
+      // ignore invalid JSON
+    }
+  }
+
+  loadPersistedPrefs()
 
   const setSystemTheme = () => {
     themeMode.value = 'system'
@@ -151,8 +175,15 @@ export function useSettings() {
   const saveSettings = async () => {
     isSaving.value = true
     try {
-      // API call mock (Chưa có endpoint cho Settings)
-      await new Promise(r => setTimeout(r, 500))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          getPrefsKey(),
+          JSON.stringify({
+            notificationSettings: notificationSettings.value,
+            privacySettings: privacySettings.value,
+          })
+        )
+      }
       toast.success('Đã lưu cấu hình cá nhân!')
     } finally {
       isSaving.value = false

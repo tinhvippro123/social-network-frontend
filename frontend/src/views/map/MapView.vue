@@ -1,18 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import {
-  MapPin, Navigation, Minus, Plus, Search as SearchIcon,
-  Clock, Eye, ArrowUp, X, CalendarDays, Filter
-} from '@lucide/vue'
+import { ref } from 'vue'
+import { Navigation, Minus, Plus, Loader2 } from '@lucide/vue'
 import { useMapView } from '@/composables/core/useMapView'
-import { formatDate, formatNumber } from '@/utils/formatters'
 import MapSidebar from './components/MapSidebar.vue'
 import MapSelectedPostCard from './components/MapSelectedPostCard.vue'
 import MapControlButton from './components/MapControlButton.vue'
-import type { Post } from '@/types'
 
-const router = useRouter()
 const mapContainer = ref<HTMLElement | null>(null)
 
 const {
@@ -22,15 +15,19 @@ const {
   categoryFilters,
   selectedFilter,
   postsWithLocation,
+  searchCenter,
+  isNearbyLoading,
+  isLocating,
+  regionLabel,
+  distanceTo,
   selectPostFromList,
-  initMap,
-  destroyMap,
   zoomIn,
   zoomOut,
-  locateUser,
   getCategoryEmoji,
   formatEventTime,
-  goToCurrentLocation
+  goToCurrentLocation,
+  searchAroundCampus,
+  clearNearby
 } = useMapView(mapContainer)
 </script>
 
@@ -44,9 +41,15 @@ const {
       :selectedPost="selectedPost"
       :categoryFilters="categoryFilters"
       :postsWithLocation="postsWithLocation"
+      :searchCenter="searchCenter"
+      :isNearbyLoading="isNearbyLoading"
+      :isLocating="isLocating"
+      :distanceTo="distanceTo"
       :getCategoryEmoji="getCategoryEmoji"
       :formatEventTime="formatEventTime"
       @goToCurrentLocation="goToCurrentLocation"
+      @searchAroundCampus="searchAroundCampus"
+      @clearNearby="clearNearby"
       @selectPostFromList="selectPostFromList"
     />
 
@@ -57,23 +60,26 @@ const {
 
       <!-- Map Controls -->
       <div class="absolute top-4 right-4 flex flex-col gap-2 z-1000">
-        <MapControlButton :icon="Plus" @click="zoomIn" />
-        <MapControlButton :icon="Minus" @click="zoomOut" />
-        <MapControlButton :icon="Navigation" @click="goToCurrentLocation" />
+        <MapControlButton :icon="Plus" @click="zoomIn" title="Phóng to" />
+        <MapControlButton :icon="Minus" @click="zoomOut" title="Thu nhỏ" />
+        <MapControlButton :icon="Navigation" @click="goToCurrentLocation" title="Tìm quanh vị trí của tôi" />
       </div>
 
       <!-- Selected Post Card -->
       <MapSelectedPostCard
         v-model:selectedPost="selectedPost"
+        :distanceTo="distanceTo"
         :getCategoryEmoji="getCategoryEmoji"
         :formatEventTime="formatEventTime"
       />
 
       <!-- Info badge -->
-      <div class="absolute top-4 left-4 sm:left-auto bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg border border-gray-200 dark:border-surface-700 z-20">
-        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">
-          📍 TP. Hồ Chí Minh · {{ postsWithLocation.length }} bài viết
-          <span v-if="selectedFilter !== 'all'" class="text-primary-500">
+      <div class="absolute top-4 left-4 right-20 sm:right-auto max-w-md bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg border border-gray-200 dark:border-surface-700 z-1000">
+        <p class="text-xs font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
+          <Loader2 v-if="isNearbyLoading" :size="12" class="animate-spin text-primary-500" />
+          <span>📍</span>
+          <span class="truncate">{{ regionLabel }} · {{ postsWithLocation.length }} bài viết</span>
+          <span v-if="selectedFilter !== 'all'" class="text-primary-500 whitespace-nowrap">
             · {{ categoryFilters.find(c => c.slug === selectedFilter)?.label }}
           </span>
         </p>
@@ -83,16 +89,6 @@ const {
 </template>
 
 <style scoped>
-
-/* Hide scrollbar for filter chips */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
 /* Custom emoji marker - remove default leaflet icon styling */
 :deep(.emoji-marker) {
   background: none !important;

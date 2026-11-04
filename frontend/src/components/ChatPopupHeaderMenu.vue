@@ -5,7 +5,7 @@ import {
   MessageCircle, User as UserIcon, Edit, Users,
   Bell, BellOff, Ban, Archive, Trash2, AlertTriangle
 } from '@lucide/vue'
-import { currentUser } from '@/data/mockData'
+import { useAuthStore } from '@/stores/auth.store'
 import type { ChatConversation } from '@/types'
 import { useToast } from '@/composables/ui/useToast'
 import { useConfirm } from '@/composables/ui/useConfirm'
@@ -24,6 +24,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const authStore = useAuthStore()
 const toast = useToast()
 const { confirm } = useConfirm()
 
@@ -56,7 +57,7 @@ const menuGroups = computed(() => [
 
 const handleAction = async (action: string) => {
   emit('close')
-  const other = props.conv.participants?.find(p => p.id !== currentUser.id) || props.conv
+  const other = props.conv.participants?.find(p => p.id !== authStore.user?.id) || props.conv
 
   switch (action) {
     case 'open-tab':

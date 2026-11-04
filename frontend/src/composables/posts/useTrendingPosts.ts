@@ -37,7 +37,7 @@ export function useTrendingPosts() {
 
   const loadMore = async () => {
     loadingMore.value = true
-    await new Promise(r => setTimeout(r, 800))
+
     visibleCount.value += 4
     loadingMore.value = false
   }

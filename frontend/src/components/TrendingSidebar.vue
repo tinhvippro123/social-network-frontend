@@ -6,6 +6,7 @@ import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber } from '@/utils/formatters'
 import { useTrendingSidebar } from '@/composables/ui/useTrendingSidebar'
 import { useToast } from '@/composables/ui/useToast'
+import usersApi from '@/api/users.api'
 
 const toast = useToast()
 const followedUserIds = ref<Set<string>>(new Set())
@@ -18,7 +19,22 @@ const {
   isLoading
 } = useTrendingSidebar()
 
-function toggleFollowUser(u: any) {
+async function toggleFollowUser(u: any) {
+  try {
+    const res = await usersApi.toggleFollow(u.id)
+    const isNowFollowing = typeof res.data?.data === 'boolean' ? res.data.data : !followedUserIds.value.has(u.id)
+    if (isNowFollowing) {
+      followedUserIds.value.add(u.id)
+      toast.success(`Đang theo dõi ${u.name}`)
+    } else {
+      followedUserIds.value.delete(u.id)
+      toast.info(`Đã bỏ theo dõi ${u.name}`)
+    }
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Vui lòng đăng nhập để theo dõi tác giả')
+  }
+}
+function _oldToggleFollowUser(u: any) {
   if (followedUserIds.value.has(u.id)) {
     followedUserIds.value.delete(u.id)
     toast.info(`Đã bỏ theo dõi ${u.name}`)

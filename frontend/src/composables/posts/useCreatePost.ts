@@ -127,6 +127,9 @@ export function useCreatePost() {
     selectedCategory.value = post.category?.slug || post.category?.id || post.categoryId || ''
     tags.value = Array.isArray(post.tags) ? [...post.tags] : []
     isDraft.value = post.status?.toLowerCase() === 'draft'
+    // datetime-local input cần định dạng YYYY-MM-DDTHH:mm
+    eventStartTime.value = post.eventStartTime ? String(post.eventStartTime).slice(0, 16) : ''
+    eventEndTime.value = post.eventEndTime ? String(post.eventEndTime).slice(0, 16) : ''
     
     if (post.coverImage) {
       coverImagePreview.value = post.coverImage
@@ -265,6 +268,9 @@ export function useCreatePost() {
         status: (isDraft.value ? 'draft' : 'published') as 'draft' | 'published',
         latitude: postLocation.value?.lat,
         longitude: postLocation.value?.lng,
+        locationAddress: postLocation.value?.address || undefined,
+        eventStartTime: isEventCategory.value && eventStartTime.value ? eventStartTime.value : undefined,
+        eventEndTime: isEventCategory.value && eventEndTime.value ? eventEndTime.value : undefined,
         coverImage: coverImageUrl || undefined
       }
       

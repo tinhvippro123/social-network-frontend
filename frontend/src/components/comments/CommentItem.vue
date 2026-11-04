@@ -45,7 +45,13 @@
             <p
               class="text-gray-900 dark:text-gray-100 whitespace-pre-line wrap-break-word leading-snug"
               :class="level === 0 ? 'text-[13px] sm:text-sm' : 'text-xs sm:text-[13px]'"
-            ><span v-if="comment.replyTo" class="text-primary-600 dark:text-primary-400 font-bold cursor-pointer hover:underline mr-1">@{{ comment.replyTo }}</span><span>{{ (comment.content || '').trim() }}</span></p>
+            ><span v-if="comment.replyTo" class="text-primary-600 dark:text-primary-400 font-bold cursor-pointer hover:underline mr-1">@{{ comment.replyTo }}</span><span>{{ cleanCommentText }}</span></p>
+            <img
+              v-if="commentImageUrl"
+              :src="commentImageUrl"
+              alt="Ảnh bình luận"
+              class="mt-2 max-h-52 w-auto rounded-xl object-cover border border-gray-200 dark:border-surface-600"
+            />
           </div>
           
           <!-- Actions: Time + Reply + Reactions (Facebook style snug spacing) -->
@@ -266,6 +272,17 @@ const emojiList = ['😀', '😂', '🥰', '😎', '😭', '😡', '👍', '👎
 const inlineComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
 const isCollapsed = ref(false)
 const route = useRoute()
+
+const commentImageUrl = computed(() => {
+  const raw = props.comment?.content || ''
+  const match = raw.match(/\[img:(https?:\/\/[^\]]+)\]/)
+  return match ? match[1] : null
+})
+
+const cleanCommentText = computed(() => {
+  const raw = props.comment?.content || ''
+  return raw.replace(/\[img:https?:\/\/[^\]]+\]/g, '').trim()
+})
 
 const containerClass = computed(() => {
   if (props.level === 0) return 'mt-5'

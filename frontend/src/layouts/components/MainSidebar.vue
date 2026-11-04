@@ -74,8 +74,8 @@ const emit = defineEmits<{
 
       <!-- Admin link if user is admin -->
       <button
-        v-if="authStore.isAdmin"
-        @click="emit('navigate', '/admin')"
+        v-if="authStore.isModerator"
+        @click="emit('navigate', authStore.isAdmin ? '/admin' : '/admin/moderation')"
         :class="[
           'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group border mt-3',
           currentPath.startsWith('/admin')
@@ -85,7 +85,7 @@ const emit = defineEmits<{
       >
         <Shield :size="20" class="shrink-0 transition-transform duration-200 group-hover:scale-110" />
         <transition name="fade">
-          <span v-if="isSidebarOpen || isMobile" class="whitespace-nowrap">Trang quản trị</span>
+          <span v-if="isSidebarOpen || isMobile" class="whitespace-nowrap">{{ authStore.isAdmin ? 'Trang quản trị' : 'Kiểm duyệt' }}</span>
         </transition>
       </button>
     </nav>

@@ -4,6 +4,10 @@ import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Check } from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
 import AuthPasswordStrength from './AuthPasswordStrength.vue'
+import authApi from '@/api/auth.api'
+import { useToast } from '@/composables/ui/useToast'
+
+const toast = useToast()
 
 const authStore = useAuthStore()
 const uiStore = useUiStore()
@@ -47,8 +51,8 @@ function validateRegister(): boolean {
   if (!password.value) {
     passwordError.value = 'Vui lòng nhập mật khẩu'
     valid = false
-  } else if (password.value.length < 6) {
-    passwordError.value = 'Mật khẩu phải có ít nhất 6 ký tự'
+  } else if (password.value.length < 8) {
+    passwordError.value = 'Mật khẩu phải có ít nhất 8 ký tự'
     valid = false
   }
 
@@ -78,27 +82,29 @@ async function handleRegister() {
   isLoading.value = true
   emitError('update:error', '')
 
-  // Mock register - simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  try {
+    // 1. Tạo tài khoản thật trên Backend
+    await authApi.register({
+      name: name.value.trim(),
+      email: email.value.trim(),
+      password: password.value,
+      passwordConfirm: confirmPassword.value
+    })
 
-  const mockUser = {
-    id: Date.now().toString(),
-    name: name.value,
-    email: email.value,
-    avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(name.value)}`,
-    bio: '',
-    role: 'user' as const,
-    joinedAt: new Date().toISOString(),
-    postsCount: 0,
-    followersCount: 0,
-    followingCount: 0
+    // 2. Đăng nhập luôn bằng tài khoản vừa tạo để người dùng không phải nhập lại
+    const { data } = await authApi.login({
+      email: email.value.trim(),
+      password: password.value
+    })
+    authStore.setToken(data.data.accessToken)
+    authStore.setUser(data.data.user)
+    uiStore.closeAuthModal()
+    toast.success(`Chào mừng ${data.data.user?.name || name.value.trim()} đến với VietBlog!`)
+  } catch (err: any) {
+    emitError('update:error', err.response?.data?.message || 'Đăng ký thất bại, vui lòng thử lại')
+  } finally {
+    isLoading.value = false
   }
-
-  authStore.setToken('mock-jwt-token-' + Date.now())
-  authStore.setUser(mockUser)
-
-  isLoading.value = false
-  uiStore.closeAuthModal()
 }
 </script>
 
@@ -148,7 +154,7 @@ async function handleRegister() {
         <input
           v-model="password"
           :type="showPassword ? 'text' : 'password'"
-          placeholder="Tối thiểu 6 ký tự"
+          placeholder="Tối thiểu 8 ký tự"
           :class="[
             'w-full pl-11 pr-12 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
             passwordError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'

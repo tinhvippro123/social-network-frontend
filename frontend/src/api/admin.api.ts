@@ -91,12 +91,14 @@ const adminApi = {
   createCategory: (data: { name: string; icon?: string }) =>
     http.post<ApiResponse<any>>('/categories', {
       name: data.name,
+      icon: data.icon || '📁',
       slug: data.name.toLowerCase().trim().replace(/[\s\W-]+/g, '-'),
     }),
 
   updateCategory: (id: string, data: { name: string; icon?: string }) =>
     http.put<ApiResponse<any>>(`/categories/${id}`, {
       name: data.name,
+      icon: data.icon || '📁',
       slug: data.name.toLowerCase().trim().replace(/[\s\W-]+/g, '-'),
     }),
 
@@ -105,7 +107,7 @@ const adminApi = {
 
   // ── Tags ──────────────────────────────────
   renameTag: (name: string, replacement: string) =>
-    http.patch<ApiResponse<void>>(`/admin/tags/${encodeURIComponent(name)}`, null, {
+    http.patch<ApiResponse<void>>(`/admin/tags/${encodeURIComponent(name)}`, { name: replacement }, {
       params: { replacement },
     }),
 

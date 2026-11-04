@@ -4,27 +4,52 @@ import { useRoute } from 'vue-router'
 import { useAuth } from '../auth/useAuth'
 import { useChat } from './useChat'
 import { useChatLogic } from './useChatLogic'
+import { useToast } from '../ui/useToast'
 import type { ChatMessage } from '@/types'
 import chatApi from '@/api/chat.api'
+import filesApi from '@/api/files.api'
 
 export function useChatView() {
   const route = useRoute()
+  const toast = useToast()
   const { user: currentUser } = useAuth()
   const newChatInitialMode = ref<'direct' | 'group'>('direct')
   const newChatPreselectedUserId = ref<string | null>(null)
-  
-  const {
-    conversations, messages, isLoading, isTyping, typingUser,
-    fetchConversations, fetchMessages, sendMessage: apiSendMessage,
-    markAsRead, pinConversation, muteConversation, deleteConversation,
-    blockUser, searchMessages, simulateTyping,
-    addReaction, deleteMessage, revokeMessage, pinMessage
-  } = useChat()
 
   const selectedConversation = ref<any>(null)
   const newMessage = ref('')
   const isInitialLoading = ref(true)
   const showMobileChat = ref(false)
+  const chatContainer = ref<HTMLElement | null>(null)
+  const showScrollBottom = ref(false)
+
+  const scrollToBottom = (smooth: boolean | Event = true) => {
+    if (chatContainer.value) {
+      const isSmooth = typeof smooth === 'boolean' ? smooth : true
+      const distance = chatContainer.value.scrollHeight - chatContainer.value.scrollTop
+      chatContainer.value.scrollTo({
+        top: chatContainer.value.scrollHeight,
+        behavior: (isSmooth && distance < 1000) ? 'smooth' : 'auto'
+      })
+      showScrollBottom.value = false
+    }
+  }
+
+  const {
+    conversations, messages, isLoading, isTyping, typingUser,
+    fetchConversations, fetchMessages, sendMessage: apiSendMessage,
+    markAsRead, pinConversation, muteConversation, deleteConversation,
+    blockUser, unblockUser, searchMessages,
+    addReaction, deleteMessage, revokeMessage, pinMessage
+  } = useChat(async (incoming, convId) => {
+    if (selectedConversation.value?.id === convId) {
+      await nextTick()
+      scrollToBottom()
+      if (!incoming.isOwn) {
+        markAsRead(convId)
+      }
+    }
+  })
 
   if (typeof window !== 'undefined') {
     window.addEventListener('chat-nickname-changed', (e: any) => {
@@ -58,13 +83,12 @@ export function useChatView() {
   const showMembersSection = ref(true)
   const searchQuery = ref('')
   const searchResults = ref<ChatMessage[]>([])
+  const currentSearchIndex = ref(0)
   const replyingTo = ref<ChatMessage | null>(null)
   const activeActionMenu = ref<string | null>(null)
   const showCallDialog = ref(false)
   const callType = ref<'audio' | 'video'>('audio')
 
-  const chatContainer = ref<HTMLElement | null>(null)
-  const showScrollBottom = ref(false)
   const searchChat = ref('')
   const imagePreview = ref<string | null>(null)
   const highlightedMessageId = ref<string | null>(null)
@@ -104,18 +128,6 @@ export function useChatView() {
     searchChatLogic.value = searchChat.value
   })
 
-  const scrollToBottom = (smooth: boolean | Event = true) => {
-    if (chatContainer.value) {
-      const isSmooth = typeof smooth === 'boolean' ? smooth : true
-      const distance = chatContainer.value.scrollHeight - chatContainer.value.scrollTop
-      chatContainer.value.scrollTo({
-        top: chatContainer.value.scrollHeight,
-        behavior: (isSmooth && distance < 1000) ? 'smooth' : 'auto'
-      })
-      showScrollBottom.value = false
-    }
-  }
-
   onMounted(async () => {
     isInitialLoading.value = true
     await fetchConversations()
@@ -124,13 +136,16 @@ export function useChatView() {
       if (match) {
         selectedConversation.value = match
         await fetchMessages(match.id)
+        markAsRead(match.id)
       } else if (conversations.value.length > 0) {
         selectedConversation.value = conversations.value[0]
         await fetchMessages(selectedConversation.value.id)
+        markAsRead(selectedConversation.value.id)
       }
     } else if (conversations.value.length > 0) {
       selectedConversation.value = conversations.value[0]
       await fetchMessages(selectedConversation.value.id)
+      markAsRead(selectedConversation.value.id)
     }
 
     if (route.query.createGroup === 'true') {
@@ -163,10 +178,7 @@ export function useChatView() {
     await fetchMessages(conv.id)
     await nextTick()
     scrollToBottom(false)
-    
-    // Fire and forget, don't await so UI doesn't pause
     markAsRead(conv.id)
-    setTimeout(() => simulateTyping(conv.name), 2000)
   }
 
   const handleSendMessage = async () => {
@@ -191,13 +203,21 @@ export function useChatView() {
     const file = target.files?.[0]
     if (!file || !selectedConversation.value) return
 
-    const url = URL.createObjectURL(file)
-    await apiSendMessage(selectedConversation.value.id, '', 'image', {
-      imageUrl: url
-    })
-    await nextTick()
-    scrollToBottom()
-    target.value = ''
+    try {
+      const uploadRes = await filesApi.uploadFile(file)
+      const imageUrl = uploadRes.data?.data?.fileUrl
+      if (!imageUrl) throw new Error('Không nhận được đường dẫn ảnh')
+
+      await apiSendMessage(selectedConversation.value.id, '[Hình ảnh]', 'image', {
+        imageUrl
+      })
+      await nextTick()
+      scrollToBottom()
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gửi hình ảnh thất bại')
+    } finally {
+      target.value = ''
+    }
   }
 
   const handleSendFile = async (event: Event) => {
@@ -209,13 +229,23 @@ export function useChatView() {
       ? `${(file.size / 1024).toFixed(1)} KB`
       : `${(file.size / (1024 * 1024)).toFixed(1)} MB`
 
-    await apiSendMessage(selectedConversation.value.id, '', 'file', {
-      fileName: file.name,
-      fileSize: size
-    })
-    await nextTick()
-    scrollToBottom()
-    target.value = ''
+    try {
+      const uploadRes = await filesApi.uploadFile(file)
+      const fileUrl = uploadRes.data?.data?.fileUrl
+      if (!fileUrl) throw new Error('Không nhận được đường dẫn tệp')
+
+      await apiSendMessage(selectedConversation.value.id, file.name, 'file', {
+        fileName: file.name,
+        fileSize: size,
+        fileUrl
+      })
+      await nextTick()
+      scrollToBottom()
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gửi tệp đính kèm thất bại')
+    } finally {
+      target.value = ''
+    }
   }
 
   const handleScroll = () => {
@@ -228,9 +258,24 @@ export function useChatView() {
     if (!searchQuery.value.trim() || !selectedConversation.value) return
     const results = await searchMessages(selectedConversation.value.id, searchQuery.value)
     searchResults.value = results
+    currentSearchIndex.value = 0
     if (results.length > 0 && results[0]?.id) {
       scrollToMessage(results[0].id)
     }
+  }
+
+  const nextSearchResult = () => {
+    if (!searchResults.value.length) return
+    currentSearchIndex.value = (currentSearchIndex.value + 1) % searchResults.value.length
+    const target = searchResults.value[currentSearchIndex.value]
+    if (target?.id) scrollToMessage(target.id)
+  }
+
+  const prevSearchResult = () => {
+    if (!searchResults.value.length) return
+    currentSearchIndex.value = (currentSearchIndex.value - 1 + searchResults.value.length) % searchResults.value.length
+    const target = searchResults.value[currentSearchIndex.value]
+    if (target?.id) scrollToMessage(target.id)
   }
 
   const toggleActionMenu = (messageId: string) => {
@@ -253,19 +298,30 @@ export function useChatView() {
   }
 
   const handleRevokeMessage = async (messageId: string) => {
-    await revokeMessage(messageId)
-    activeActionMenu.value = null
+    try {
+      await revokeMessage(messageId, selectedConversation.value?.id)
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể thu hồi tin nhắn')
+    } finally {
+      activeActionMenu.value = null
+    }
   }
 
   const handlePinMessage = async (messageId: string) => {
-    await pinMessage(messageId)
-    activeActionMenu.value = null
+    try {
+      await pinMessage(messageId, selectedConversation.value?.id)
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể ghim/bỏ ghim tin nhắn')
+    } finally {
+      activeActionMenu.value = null
+    }
   }
 
   const closeSearch = () => {
     showSearchInChat.value = false
     searchQuery.value = ''
     searchResults.value = []
+    currentSearchIndex.value = 0
   }
 
   const backToConversations = () => {
@@ -336,33 +392,28 @@ export function useChatView() {
 
   const isLastOwnWithReadStatus = (msg: ChatMessage) => {
     if (!msg.isOwn || msg.status !== 'read') return false
-    
-    // Find the last own message that was read
+
     const ownReadMessages = messages.value.filter(m => m.isOwn && m.status === 'read')
     if (ownReadMessages.length === 0) return false
     const lastOwnReadMsg = ownReadMessages[ownReadMessages.length - 1]
-    
+
     if (msg.id !== lastOwnReadMsg.id) return false
-    
-    // Do not show read receipt if the other person has already replied after this message
+
     const msgIndex = messages.value.findIndex(m => m.id === msg.id)
     const hasOtherMessageAfter = messages.value.slice(msgIndex + 1).some(m => !m.isOwn)
-    
+
     return !hasOtherMessageAfter
   }
 
-  // New conversation modal
   const showNewChatModal = ref(false)
 
   const createNewConversation = async (participantIds: string[], name?: string, isGroup?: boolean) => {
     try {
       const { data } = await chatApi.createConversation({ participantIds, name, isGroup })
       const newConv = data.data
-      // Add to conversations list if not already there
       if (!conversations.value.find(c => c.id === newConv.id)) {
         conversations.value.unshift(newConv)
       }
-      // Select the new conversation
       await selectConversation(newConv)
       showNewChatModal.value = false
     } catch (err) {
@@ -391,6 +442,9 @@ export function useChatView() {
     showMembersSection,
     searchQuery,
     searchResults,
+    currentSearchIndex,
+    nextSearchResult,
+    prevSearchResult,
     replyingTo,
     activeActionMenu,
     showCallDialog,
@@ -438,6 +492,7 @@ export function useChatView() {
     muteConversation,
     deleteConversation,
     blockUser,
+    unblockUser,
     insertEmoji,
     setReplyTo,
     closeMenus,

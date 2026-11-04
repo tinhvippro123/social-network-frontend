@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { X, MapPin, CalendarDays } from '@lucide/vue'
+import { X, MapPin, CalendarDays, Ruler } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import { formatDistance } from '@/composables/core/useMapView'
 import type { Post } from '@/types'
 
 const selectedPost = defineModel<Post | null>('selectedPost')
 
 defineProps<{
+  distanceTo: (post: Post) => number | null
   getCategoryEmoji: (slug: string) => string
   formatEventTime: (start: string, end?: string) => string
 }>()
@@ -21,10 +23,14 @@ const router = useRouter()
       class="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-96 bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-surface-700 overflow-hidden z-1000"
     >
       <div class="relative">
-        <img :src="selectedPost.coverImage" class="w-full h-36 object-cover" />
+        <img v-if="selectedPost.coverImage" :src="selectedPost.coverImage" class="w-full h-36 object-cover" />
+        <div v-else class="w-full h-36 bg-linear-to-br from-primary-100 to-teal-100 dark:from-primary-900/40 dark:to-teal-900/30 flex items-center justify-center text-5xl">
+          {{ getCategoryEmoji(selectedPost.category.slug) }}
+        </div>
         <button
           @click="selectedPost = null"
           class="absolute top-2 right-2 p-1.5 rounded-lg bg-black/50 text-white hover:bg-black/70 transition-colors"
+          title="Đóng"
         >
           <X :size="14" />
         </button>
@@ -41,8 +47,12 @@ const router = useRouter()
           <span class="text-sm text-gray-600 dark:text-gray-400">{{ selectedPost.author.name }}</span>
         </div>
         <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
-          <MapPin :size="12" class="text-primary-500" />
+          <MapPin :size="12" class="text-primary-500 shrink-0" />
           <span class="truncate">{{ selectedPost.location?.address }}</span>
+        </div>
+        <div v-if="distanceTo(selectedPost) !== null" class="flex items-center gap-2 text-xs text-teal-600 dark:text-teal-400 font-semibold mb-2">
+          <Ruler :size="12" />
+          <span>Cách tâm tìm kiếm {{ formatDistance(distanceTo(selectedPost)!) }}</span>
         </div>
         <!-- Event time -->
         <div v-if="selectedPost.eventStartTime" class="flex items-center gap-2 text-xs text-purple-500 mb-3 px-2.5 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/10">

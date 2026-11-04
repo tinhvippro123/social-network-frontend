@@ -25,6 +25,9 @@ export interface CreatePostRequest {
   status: 'published' | 'draft'
   latitude?: number
   longitude?: number
+  locationAddress?: string
+  eventStartTime?: string
+  eventEndTime?: string
 }
 
 export interface TagSummary {

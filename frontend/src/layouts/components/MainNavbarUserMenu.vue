@@ -52,11 +52,11 @@ const emit = defineEmits<{
             <Settings :size="16" /> Cài đặt
           </button>
           <button
-            v-if="(user?.role || '').toLowerCase() === 'admin'"
-            @click="emit('navigate', '/admin'); emit('update:showUserMenu', false)"
+            v-if="['admin', 'moderator'].includes((user?.role || '').toLowerCase())"
+            @click="emit('navigate', (user?.role || '').toLowerCase() === 'admin' ? '/admin' : '/admin/moderation'); emit('update:showUserMenu', false)"
             class="w-full flex items-center gap-3 px-4 py-2 text-sm text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors font-medium"
           >
-            <Shield :size="16" /> Trang quản trị
+            <Shield :size="16" /> {{ (user?.role || '').toLowerCase() === 'admin' ? 'Trang quản trị' : 'Trang kiểm duyệt' }}
           </button>
         </div>
         <div class="border-t border-gray-200 dark:border-surface-700 py-2">

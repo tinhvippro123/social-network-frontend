@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { inject, ref } from 'vue'
+import { inject, ref, computed } from 'vue'
 import {
-  X as XIcon, Image as ImageIcon, FileText as FileTextIcon,
-  Users as UsersIcon, ChevronDown as ChevronDownIcon,
+  X as XIcon,
   Ban as BanIcon, Flag as FlagIcon, Trash2 as TrashIcon,
-  Search as SearchIcon, BellOff as BellOffIcon, User as UserIcon, Lock as LockIcon,
-  Pin as PinIcon, Palette as PaletteIcon, Smile as SmileIcon, Type as TypeIcon,
-  Shield as ShieldIcon, Clock as ClockIcon, Eye as EyeIcon, MinusCircle as MinusCircleIcon
+  BellOff as BellOffIcon,
+  Pin as PinIcon, Type as TypeIcon,
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import AccordionSection from '@/components/ui/AccordionSection.vue'
@@ -16,7 +14,6 @@ import ChatInfoSharedMedia from './ChatInfoSharedMedia.vue'
 import ChatInfoSharedFiles from './ChatInfoSharedFiles.vue'
 import NicknameModal from '@/components/NicknameModal.vue'
 import { useChatNicknames } from '@/composables/chat/useChatNicknames'
-
 import { useToast } from '@/composables/ui/useToast'
 
 const chatState = inject<any>('chatState')
@@ -26,12 +23,44 @@ if (!chatState) {
 
 const toast = useToast()
 const { addToast } = toast
-const isMuted = ref(false)
 const showNicknameModal = ref(false)
+const blockedUserIds = ref<Set<string>>(new Set())
 const { setNickname } = useChatNicknames()
 
+const {
+  router,
+  currentUser,
+  selectedConversation,
+  showInfoPanel,
+  rightSidebarView,
+  pinnedMessage,
+  scrollToMessage,
+  muteConversation,
+  blockUser,
+  unblockUser,
+  deleteConversation,
+} = chatState
+
+const otherParticipant = computed(() => {
+  const parts = selectedConversation?.value?.participants || []
+  const myId = currentUser?.value?.id
+  return parts.find((p: any) => p.id !== myId) || parts[0] || null
+})
+
+const isBlocked = computed(() => {
+  const targetId = otherParticipant.value?.id
+  return targetId ? blockedUserIds.value.has(targetId) : false
+})
+
 function viewPinnedMessages() {
-  toast.info('Hiện chưa có tin nhắn nào được ghim trong cuộc trò chuyện này')
+  if (pinnedMessage?.value?.id) {
+    scrollToMessage(pinnedMessage.value.id)
+    if (window.innerWidth < 1024) {
+      showInfoPanel.value = false
+    }
+  } else {
+    toast.info('Hiện chưa có tin nhắn nào được ghim trong cuộc trò chuyện này')
+  }
 }
 
 function editNickname() {
@@ -49,30 +78,44 @@ function handleSaveNickname(newNick: string) {
   showNicknameModal.value = false
 }
 
-function toggleMuteNotifications() {
-  isMuted.value = !isMuted.value
-  toast.info(isMuted.value ? 'Đã tắt thông báo cuộc trò chuyện' : 'Đã bật lại thông báo cuộc trò chuyện')
+async function toggleMuteNotifications() {
+  if (!selectedConversation?.value) return
+  try {
+    await muteConversation(selectedConversation.value.id)
+    toast.info(
+      selectedConversation.value.isMuted
+        ? 'Đã tắt thông báo cuộc trò chuyện'
+        : 'Đã bật lại thông báo cuộc trò chuyện'
+    )
+  } catch {
+    toast.error('Không thể cập nhật cài đặt thông báo')
+  }
 }
 
-const {
-  router,
-  selectedConversation,
-  showInfoPanel,
-  rightSidebarView,
-  activeMediaTab,
-  showMembersSection,
-  sharedMedia,
-  sharedFiles,
-  groupedSharedMedia,
-  groupedSharedFiles,
-  formatMessageTime,
-  openMediaView,
-  viewImage,
-  downloadFile,
-  blockUser,
-  deleteConversation,
-  imagePreview
-} = chatState
+async function handleToggleBlock() {
+  const targetId = otherParticipant.value?.id
+  if (!targetId) return
+  try {
+    if (isBlocked.value) {
+      await unblockUser(targetId)
+      blockedUserIds.value.delete(targetId)
+      toast.success(`Đã bỏ chặn ${otherParticipant.value?.name || 'người dùng'}`)
+    } else {
+      await blockUser(targetId)
+      blockedUserIds.value.add(targetId)
+      toast.info(`Đã chặn ${otherParticipant.value?.name || 'người dùng'}`)
+    }
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể thực hiện thao tác chặn')
+  }
+}
+
+function handleViewProfile() {
+  const targetId = otherParticipant.value?.id
+  if (targetId) {
+    router.push(`/profile/${targetId}`)
+  }
+}
 </script>
 
 <template>
@@ -98,14 +141,14 @@ const {
         <!-- Profile Header -->
         <ChatInfoHeader
           :conversation="selectedConversation"
-          @view-profile="router.push(`/profile/${selectedConversation.id}`)"
+          @view-profile="handleViewProfile"
         />
 
         <div class="border-t border-gray-100 dark:border-surface-700"></div>
 
         <!-- Accordion 1: Thông tin về đoạn chat -->
         <AccordionSection title="Thông tin về đoạn chat">
-          <button @click="viewPinnedMessages" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
+          <button @click="viewPinnedMessages" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50 cursor-pointer">
             <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
               <PinIcon :size="16" />
             </div>
@@ -118,7 +161,7 @@ const {
         <!-- Accordion 2: Tùy chỉnh đoạn chat -->
         <AccordionSection title="Tùy chỉnh đoạn chat">
           <div class="space-y-0.5">
-            <button @click="editNickname" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
+            <button @click="editNickname" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50 cursor-pointer">
               <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
                 <TypeIcon :size="16" />
               </div>
@@ -139,29 +182,29 @@ const {
         <!-- Accordion 4: Quyền riêng tư và hỗ trợ -->
         <AccordionSection title="Quyền riêng tư và hỗ trợ">
           <div class="space-y-0.5">
-            <button @click="toggleMuteNotifications" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
-              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0" :class="isMuted ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' : ''">
+            <button @click="toggleMuteNotifications" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50 cursor-pointer">
+              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0" :class="selectedConversation.isMuted ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' : ''">
                 <BellOffIcon :size="16" />
               </div>
               <div class="flex-1 text-left min-w-0">
-                <p class="truncate">{{ isMuted ? 'Bật thông báo' : 'Tắt thông báo' }}</p>
+                <p class="truncate">{{ selectedConversation.isMuted ? 'Bật thông báo' : 'Tắt thông báo' }}</p>
               </div>
             </button>
 
             <button
-              v-if="!selectedConversation.isGroup"
-              @click="blockUser(selectedConversation.participants[1]?.id)"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50"
+              v-if="!selectedConversation.isGroup && otherParticipant"
+              @click="handleToggleBlock"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50 cursor-pointer"
             >
-              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
+              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0" :class="isBlocked ? 'text-red-500 bg-red-50 dark:bg-red-950/30' : ''">
                 <BanIcon :size="16" />
               </div>
               <div class="flex-1 text-left min-w-0">
-                <p class="truncate">Chặn</p>
+                <p class="truncate">{{ isBlocked ? 'Bỏ chặn người dùng' : 'Chặn người dùng' }}</p>
               </div>
             </button>
 
-            <button @click="addToast({ message: 'Tính năng báo cáo đang được phát triển', type: 'info' })" class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10">
+            <button @click="addToast({ message: 'Tính năng báo cáo đang được phát triển', type: 'info' })" class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer">
               <div class="flex items-center gap-3 w-full">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-500 dark:bg-red-900/30">
                   <FlagIcon :size="16" />
@@ -176,7 +219,7 @@ const {
             <button
               v-if="selectedConversation"
               @click="deleteConversation(selectedConversation.id); selectedConversation = null; showInfoPanel = false"
-              class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10"
+              class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer"
             >
               <div class="flex items-center gap-3 w-full">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-500 dark:bg-red-900/30">

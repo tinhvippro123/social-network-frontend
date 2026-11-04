@@ -4,6 +4,7 @@ import { usePosts, mapCommentResponse } from './usePosts'
 import { useAuth } from '../auth/useAuth'
 import { COMMENT_EMOJIS } from '@/constants'
 import postsApi from '@/api/posts.api'
+import filesApi from '@/api/files.api'
 
 export function usePostDetail() {
   const router = useRouter()
@@ -406,7 +407,19 @@ export function usePostDetail() {
     return false
   }
 
-  const addComment = async (content: string, _image: File | null) => {
+  const buildCommentContentWithImage = async (rawContent: string, image: File | null): Promise<string> => {
+    let finalContent = rawContent.trim()
+    if (image) {
+      const uploadRes = await filesApi.uploadFile(image)
+      const imageUrl = uploadRes.data?.data?.fileUrl
+      if (imageUrl) {
+        finalContent = finalContent ? `${finalContent}\n[img:${imageUrl}]` : `[img:${imageUrl}]`
+      }
+    }
+    return finalContent
+  }
+
+  const addComment = async (content: string, image: File | null) => {
     if (!post.value) return
     if (!user.value) {
       router.push('/auth/login')
@@ -415,7 +428,9 @@ export function usePostDetail() {
 
     try {
       const parentId = replyingTo.value?.commentId || null
-      const res = await postsApi.addComment(post.value.id, { content, parentId })
+      const finalContent = await buildCommentContentWithImage(content, image)
+      if (!finalContent) return
+      const res = await postsApi.addComment(post.value.id, { content: finalContent, parentId })
       if (res.data?.success && res.data.data) {
         const newComment = mapCommentResponse(res.data.data)
         if (parentId) {
@@ -432,7 +447,7 @@ export function usePostDetail() {
     }
   }
 
-  const replyComment = async (parentId: string, content: string, _image: File | null) => {
+  const replyComment = async (parentId: string, content: string, image: File | null) => {
     if (!post.value) return
     if (!user.value) {
       router.push('/auth/login')
@@ -440,7 +455,9 @@ export function usePostDetail() {
     }
 
     try {
-      const res = await postsApi.addComment(post.value.id, { content, parentId })
+      const finalContent = await buildCommentContentWithImage(content, image)
+      if (!finalContent) return
+      const res = await postsApi.addComment(post.value.id, { content: finalContent, parentId })
       if (res.data?.success && res.data.data) {
         const newReply = mapCommentResponse(res.data.data)
         addReplyToTree(comments.value, parentId, newReply)

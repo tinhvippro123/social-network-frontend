@@ -54,6 +54,9 @@ const {
   showSearchInChat,
   searchQuery,
   searchResults,
+  currentSearchIndex,
+  nextSearchResult,
+  prevSearchResult,
   replyingTo,
   activeActionMenu,
   chatContainer,
@@ -109,6 +112,9 @@ const getFileIcon = (fileName: string) => {
         :show-search-in-chat="showSearchInChat"
         :search-query="searchQuery"
         :search-results="searchResults"
+        :current-search-index="currentSearchIndex"
+        @prev-result="prevSearchResult"
+        @next-result="nextSearchResult"
         @update:search-query="val => searchQuery = val"
         @perform-search="handlePerformSearch"
         @close-search="closeSearch"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { ChevronLeft, Users, FileText, Globe, Lock, Calendar, Shield, PenSquare } from '@lucide/vue'
+import { ChevronLeft, Users, FileText, Globe, Lock, Calendar, Shield, PenSquare, UserMinus } from '@lucide/vue'
 import { GROUP_DETAIL_TABS } from '@/constants/ui'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
@@ -23,7 +23,11 @@ const {
   users,
   isUsersLoading,
   activeTab,
-  handleToggleJoin
+  isGroupOwner,
+  isGroupManager,
+  handleToggleJoin,
+  handleToggleMemberRole,
+  handleRemoveMember
 } = useGroupDetail()
 
 const selectedPost = ref<any | null>(null)
@@ -175,18 +179,38 @@ const handlePostCreated = (newPost: any) => {
                   Tham gia {{ formatDate(item.joinedAt) }}
                 </p>
               </div>
-              <span
-                :class="[
-                  'text-xs font-semibold px-2.5 py-1 rounded-lg shrink-0',
-                  item.role === 'OWNER'
-                    ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'
-                    : item.role === 'ADMIN'
-                    ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400'
-                    : 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-300'
-                ]"
-              >
-                {{ item.role === 'OWNER' ? 'Trưởng nhóm' : item.role === 'ADMIN' ? 'Quản trị viên' : 'Thành viên' }}
-              </span>
+              <div class="flex items-center gap-1.5 shrink-0" @click.stop>
+                <span
+                  :class="[
+                    'text-xs font-semibold px-2.5 py-1 rounded-lg',
+                    item.role === 'OWNER'
+                      ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'
+                      : item.role === 'ADMIN'
+                      ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400'
+                      : 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-300'
+                  ]"
+                >
+                  {{ item.role === 'OWNER' ? 'Trưởng nhóm' : item.role === 'ADMIN' ? 'Quản trị viên' : 'Thành viên' }}
+                </span>
+                <button
+                  v-if="isGroupOwner && item.role !== 'OWNER'"
+                  type="button"
+                  :title="item.role === 'ADMIN' ? 'Hạ quyền quản trị' : 'Bổ nhiệm quản trị viên'"
+                  @click="handleToggleMemberRole(item)"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors cursor-pointer"
+                >
+                  <Shield :size="14" />
+                </button>
+                <button
+                  v-if="isGroupManager && item.role !== 'OWNER' && (isGroupOwner || item.role !== 'ADMIN')"
+                  type="button"
+                  title="Mời khỏi nhóm"
+                  @click="handleRemoveMember(item)"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                >
+                  <UserMinus :size="14" />
+                </button>
+              </div>
             </div>
           </div>
           <div v-else class="text-center py-12 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700">

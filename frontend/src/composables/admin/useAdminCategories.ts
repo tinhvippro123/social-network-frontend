@@ -1,6 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useCategories } from '../core/useCategories'
 import adminApi from '@/api/admin.api'
+import postsApi from '@/api/posts.api'
 import { useToast } from '../ui/useToast'
 import { useConfirm } from '../ui/useConfirm'
 
@@ -18,8 +19,33 @@ export function useAdminCategories() {
   const editCategoryName = ref('')
   const editCategoryIcon = ref('')
 
+  // Tag Management state
+  const tags = ref<{ id: string; name: string; postsCount: number }[]>([])
+  const isTagsLoading = ref(false)
+  const showRenameTagModal = ref(false)
+  const editingTagName = ref('')
+  const replacementTagName = ref('')
+
+  const fetchTags = async () => {
+    isTagsLoading.value = true
+    try {
+      const res = await postsApi.getPopularTags()
+      const list = Array.isArray(res.data?.data) ? res.data.data : []
+      tags.value = list.map((t: any, idx: number) => ({
+        id: t.id || String(idx),
+        name: t.name || String(t),
+        postsCount: Number(t.postsCount ?? t.count ?? 0)
+      }))
+    } catch {
+      tags.value = []
+    } finally {
+      isTagsLoading.value = false
+    }
+  }
+
   const initData = () => {
     fetchCategories()
+    fetchTags()
   }
 
   const handleAddCategory = async () => {
@@ -87,6 +113,47 @@ export function useAdminCategories() {
     }
   }
 
+  const openRenameTagModal = (tagName: string) => {
+    editingTagName.value = tagName
+    replacementTagName.value = tagName
+    showRenameTagModal.value = true
+  }
+
+  const handleRenameTag = async () => {
+    const oldName = editingTagName.value.trim()
+    const newName = replacementTagName.value.trim().replace(/^#/, '')
+    if (!oldName || !newName) {
+      toast.error('Vui lòng nhập tên thẻ tag mới')
+      return
+    }
+    try {
+      await adminApi.renameTag(oldName, newName)
+      toast.success(`Đã đổi thẻ #${oldName} thành #${newName}`)
+      showRenameTagModal.value = false
+      await fetchTags()
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể đổi tên thẻ tag')
+    }
+  }
+
+  const handleDeleteTag = async (tagName: string) => {
+    const ok = await confirm({
+      title: 'Xóa thẻ Tag',
+      message: `Bạn có chắc muốn gỡ bỏ thẻ "#${tagName}" khỏi toàn bộ bài viết trong hệ thống?`,
+      confirmText: 'Xóa Tag',
+      variant: 'danger'
+    })
+    if (!ok) return
+
+    try {
+      await adminApi.deleteTag(tagName)
+      toast.success(`Đã xóa thẻ #${tagName} thành công!`)
+      await fetchTags()
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Xóa thẻ tag thất bại')
+    }
+  }
+
   onMounted(async () => {
     await initData()
   })
@@ -101,10 +168,18 @@ export function useAdminCategories() {
     newCategoryIcon,
     editCategoryName,
     editCategoryIcon,
+    tags,
+    isTagsLoading,
+    showRenameTagModal,
+    editingTagName,
+    replacementTagName,
     initData,
     handleAddCategory,
     openEditModal,
     handleUpdateCategory,
-    handleDeleteCategory
+    handleDeleteCategory,
+    openRenameTagModal,
+    handleRenameTag,
+    handleDeleteTag
   }
 }

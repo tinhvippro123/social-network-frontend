@@ -5,7 +5,7 @@ import { MessageCircle, Search as SearchIcon, Edit } from '@lucide/vue'
 import type { ChatConversation } from '@/types'
 import chatApi from '@/api/chat.api'
 import { useAuthStore } from '@/stores/auth.store'
-import { mockConversations } from '@/data/mockData'
+
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatMessengerTime } from '@/utils/formatters'
 import { useChatNicknames } from '@/composables/chat/useChatNicknames'
@@ -58,9 +58,9 @@ watch(() => props.showChat, (isOpen) => {
 
 // Use live conversations if logged in and available; otherwise fallback cleanly
 const displayedConversations = computed(() => {
-  const base = authStore.isLoggedIn && liveConversations.value.length > 0
-    ? liveConversations.value
-    : (authStore.isLoggedIn ? liveConversations.value : mockConversations)
+
+
+  const base = authStore.isLoggedIn ? liveConversations.value : []
   return applyNicknamesToConversations(base)
 })
 

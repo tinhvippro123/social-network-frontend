@@ -1,26 +1,92 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import {
   X, Send, Minus, Phone, Video,
   Smile, Paperclip, Image as ImageIcon,
-  PlusCircle, ChevronDown, BellOff
+  ChevronDown, BellOff
 } from '@lucide/vue'
 import type { ChatConversation, ChatMessage } from '@/types'
-import { currentUser, mockMessages } from '@/data/mockData'
 import ChatMessageActions from '@/views/chat/components/ChatMessageActions.vue'
 import ChatPopupHeaderMenu from '@/components/ChatPopupHeaderMenu.vue'
 import NicknameModal from '@/components/NicknameModal.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { useChatNicknames } from '@/composables/chat/useChatNicknames'
+import { useWebSocket } from '@/composables/core/useWebSocket'
+import chatApi from '@/api/chat.api'
+import filesApi from '@/api/files.api'
 
 const toast = useToast()
 const { setNickname, applyNicknameToConversation } = useChatNicknames()
 const showNicknameModal = ref(false)
+const showEmojiPicker = ref(false)
+const imageInputRef = ref<HTMLInputElement | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const quickEmojis = ['😀', '😂', '🥰', '😎', '👍', '❤️', '🔥', '🎉', '🙌', '💯', '🤔', '😭']
+
+const props = defineProps<{
+  conv: ChatConversation
+}>()
+
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'minimize'): void
+}>()
+
+const messages = ref<ChatMessage[]>([])
+const newMessage = ref('')
+const isLoadingMessages = ref(false)
+const activeHeaderMenu = ref(false)
+const activeMessageAction = ref<string | null>(null)
+const messageContainer = ref<HTMLElement | null>(null)
+
+const { connect: connectWs } = useWebSocket(undefined, (event) => {
+  if (!event || event.conversationId !== props.conv.id) return
+  if (event.type === 'message.created' && event.payload) {
+    const incoming = event.payload as ChatMessage
+    if (!messages.value.some(m => m.id === incoming.id)) {
+      messages.value.push(incoming)
+      scrollToBottom()
+    }
+  } else if ((event.type === 'message.revoked' || event.type === 'message.updated') && event.payload) {
+    const updated = event.payload as ChatMessage
+    const idx = messages.value.findIndex(m => m.id === updated.id)
+    if (idx >= 0) {
+      messages.value[idx] = { ...messages.value[idx], ...updated }
+    }
+  }
+})
+
+async function loadMessages() {
+  if (!props.conv?.id || props.conv.id.startsWith('new-')) return
+  isLoadingMessages.value = true
+  try {
+    const { data } = await chatApi.getMessages(props.conv.id)
+    messages.value = [...(data.data || [])]
+      .reverse()
+      .sort((a, b) => {
+        const ta = new Date(a.createdAt || a.timestamp || '').getTime()
+        const tb = new Date(b.createdAt || b.timestamp || '').getTime()
+        if (Number.isNaN(ta) || Number.isNaN(tb)) return 0
+        return ta - tb
+      })
+    scrollToBottom()
+    chatApi.markAsRead(props.conv.id).catch(() => {})
+  } catch {
+    // ignore
+  } finally {
+    isLoadingMessages.value = false
+  }
+}
 
 onMounted(() => {
   applyNicknameToConversation(props.conv)
+  loadMessages()
+  connectWs()
+  document.addEventListener('click', handleDocumentClick)
 })
+
+onUnmounted(() => document.removeEventListener('click', handleDocumentClick))
 
 function handleSaveNickname(newNick: string) {
   setNickname(props.conv, newNick)
@@ -40,32 +106,6 @@ function startVideoCall() {
   toast.info('Tính năng gọi video đang trong lộ trình phát triển')
 }
 
-const props = defineProps<{
-  conv: ChatConversation
-}>()
-
-const emit = defineEmits<{
-  (e: 'close'): void
-  (e: 'minimize'): void
-}>()
-
-// Only text messages for the mini popup
-const textOnlyMessages = computed(() => {
-  return mockMessages.filter(m => m.type === 'text' && m.content.trim() !== '')
-})
-
-const messages = ref<ChatMessage[]>([...textOnlyMessages.value].slice(-5).map((m, idx) => ({
-  ...m,
-  createdAt: m.createdAt && (m.createdAt.includes('-') || m.createdAt.includes('T'))
-    ? m.createdAt
-    : new Date(Date.now() - (5 - idx) * 3600000).toISOString()
-})))
-const newMessage = ref('')
-const isTyping = ref(false)
-const activeHeaderMenu = ref(false)
-const activeMessageAction = ref<string | null>(null)
-const messageContainer = ref<HTMLElement | null>(null)
-
 const toggleHeaderMenu = () => {
   activeHeaderMenu.value = !activeHeaderMenu.value
 }
@@ -74,7 +114,6 @@ const toggleMessageAction = (msgId: string) => {
   activeMessageAction.value = activeMessageAction.value === msgId ? null : msgId
 }
 
-// Global click handler to close menus
 const handleDocumentClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   if (activeHeaderMenu.value && !target.closest('.header-menu-container')) {
@@ -84,9 +123,6 @@ const handleDocumentClick = (e: MouseEvent) => {
     activeMessageAction.value = null
   }
 }
-
-onMounted(() => document.addEventListener('click', handleDocumentClick))
-onUnmounted(() => document.removeEventListener('click', handleDocumentClick))
 
 const toDate = (timeStr?: string) => {
   if (!timeStr) return null
@@ -164,56 +200,70 @@ function handleKeyDown(e: KeyboardEvent) {
   }
 }
 
-function sendMessage() {
+function insertEmoji(emoji: string) {
+  newMessage.value += emoji
+  showEmojiPicker.value = false
+}
+
+async function sendMessage() {
   const content = newMessage.value.trim()
   if (!content) return
 
-  const msg: ChatMessage = {
-    id: `popup-m${Date.now()}`,
-    content,
-    sender: currentUser,
-    createdAt: new Date().toISOString(),
-    isOwn: true,
-    type: 'text',
-    status: 'sending'
-  }
-  messages.value.push(msg)
   newMessage.value = ''
-
+  showEmojiPicker.value = false
   const textarea = document.getElementById(`chat-textarea-${props.conv.id}`)
   if (textarea) {
     textarea.style.height = 'auto'
   }
 
-  scrollToBottom()
-
-  setTimeout(() => { msg.status = 'sent' }, 500)
-  setTimeout(() => { msg.status = 'delivered' }, 1500)
-  setTimeout(() => { msg.status = 'read' }, 3000)
-
-  setTimeout(() => {
-    isTyping.value = true
+  try {
+    const { data } = await chatApi.sendMessage({
+      conversationId: props.conv.id,
+      content,
+      type: 'text'
+    })
+    if (data?.data && !messages.value.some(m => m.id === data.data.id)) {
+      messages.value.push(data.data)
+    }
     scrollToBottom()
-    setTimeout(() => {
-      isTyping.value = false
-      const reply: ChatMessage = {
-        id: `popup-r${Date.now()}`,
-        content: 'OK mình hiểu rồi, cảm ơn bạn nhé! 👍',
-        sender: props.conv.participants.find(p => p.id !== currentUser.id) || props.conv.participants[0],
-        createdAt: new Date().toISOString(),
-        isOwn: false,
-        type: 'text',
-        status: 'read'
-      }
-      messages.value.push(reply)
-      scrollToBottom()
-    }, 2000)
-  }, 1500)
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Gửi tin nhắn thất bại')
+  }
 }
 
-onMounted(() => {
-  scrollToBottom()
-})
+async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  try {
+    const res = await filesApi.uploadFile(file)
+    const uploadedUrl = res.data?.data?.fileUrl
+    if (!uploadedUrl) throw new Error('Upload failed')
+
+    const size = file.size < 1024 * 1024
+      ? `${(file.size / 1024).toFixed(1)} KB`
+      : `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+
+    const { data } = await chatApi.sendMessage({
+      conversationId: props.conv.id,
+      content: type === 'image' ? '[Hình ảnh]' : file.name,
+      type,
+      imageUrl: type === 'image' ? uploadedUrl : undefined,
+      fileUrl: type === 'file' ? uploadedUrl : undefined,
+      fileName: type === 'file' ? file.name : undefined,
+      fileSize: type === 'file' ? size : undefined
+    })
+    if (data?.data && !messages.value.some(m => m.id === data.data.id)) {
+      messages.value.push(data.data)
+    }
+    scrollToBottom()
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể tải tệp đính kèm')
+  } finally {
+    input.value = ''
+  }
+}
 </script>
 
 <template>
@@ -239,15 +289,15 @@ onMounted(() => {
               <span>{{ conv.nickname || conv.name }}</span>
               <BellOff v-if="conv.isMuted" :size="13" class="text-amber-500 shrink-0" title="Đã tắt thông báo" />
             </p>
-            <p class="text-xs text-gray-400">{{ conv.isOnline ? 'Đang hoạt động' : 'Ngoại tuyến' }}</p>
+            <p class="text-xs text-gray-400">{{ conv.isOnline ? 'Đang hoạt động' : 'Trực tuyến' }}</p>
           </div>
           <ChevronDown :size="16" :class="['text-primary-500 transition-transform', activeHeaderMenu ? 'rotate-180' : '']" />
         </div>
         <div class="flex items-center gap-0.5 shrink-0">
-          <button @click="startVoiceCall" title="Gọi thoại" class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Phone :size="14" /></button>
-          <button @click="startVideoCall" title="Gọi video" class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Video :size="14" /></button>
-          <button @click="$emit('minimize')" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"><Minus :size="14" /></button>
-          <button @click="$emit('close')" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"><X :size="14" /></button>
+          <button @click="startVoiceCall" title="Gọi thoại" class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer"><Phone :size="14" /></button>
+          <button @click="startVideoCall" title="Gọi video" class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer"><Video :size="14" /></button>
+          <button @click="$emit('minimize')" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"><Minus :size="14" /></button>
+          <button @click="$emit('close')" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"><X :size="14" /></button>
         </div>
       </div>
 
@@ -270,7 +320,7 @@ onMounted(() => {
       @scroll="activeMessageAction = null"
       class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1.5 chat-messages relative z-0"
     >
-      <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center py-8">
+      <div v-if="messages.length === 0 && !isLoadingMessages" class="flex flex-col items-center justify-center h-full text-center py-8">
         <UserAvatar 
           :user="{ avatar: conv.avatar, name: conv.name }" 
           :is-group="conv.isGroup || (!conv.avatar && conv.name?.includes('Nhóm'))"
@@ -294,16 +344,27 @@ onMounted(() => {
 
         <div :class="['flex', msg.isOwn ? 'justify-end' : 'justify-start']">
           <div :class="['max-w-[calc(100%-86px)] flex gap-1.5 items-end relative group/bubble', msg.isOwn ? 'flex-row-reverse' : '']">
-            <img v-if="!msg.isOwn" :src="msg.sender.avatar" class="w-6 h-6 rounded-full object-cover shrink-0" />
+            <UserAvatar v-if="!msg.isOwn" :user="msg.sender as any" size="sm" class="w-6! h-6! shrink-0" />
             <div class="relative flex items-center min-w-0" :class="msg.isOwn ? 'flex-row-reverse' : ''">
               <div>
-                <div :class="[
-                  'px-3 py-1.5 text-[15px] leading-relaxed wrap-break-word min-w-0',
-                  msg.isOwn
-                    ? 'bg-primary-500 text-white rounded-2xl rounded-br-sm'
-                    : 'bg-gray-100 dark:bg-surface-700 text-gray-900 dark:text-white rounded-2xl rounded-bl-sm'
-                ]">
-                  {{ msg.content }}
+                <img
+                  v-if="msg.type === 'image' && msg.imageUrl"
+                  :src="msg.imageUrl"
+                  alt="Hình ảnh"
+                  class="max-h-40 rounded-xl object-cover border border-gray-200 dark:border-surface-600 mb-1"
+                />
+                <div
+                  v-else
+                  :class="[
+                    'px-3 py-1.5 text-[15px] leading-relaxed wrap-break-word min-w-0',
+                    msg.status === 'revoked'
+                      ? 'italic text-gray-400 border border-dashed border-gray-300 dark:border-surface-600 rounded-2xl'
+                      : msg.isOwn
+                        ? 'bg-primary-500 text-white rounded-2xl rounded-br-sm'
+                        : 'bg-gray-100 dark:bg-surface-700 text-gray-900 dark:text-white rounded-2xl rounded-bl-sm'
+                  ]"
+                >
+                  {{ msg.status === 'revoked' ? 'Tin nhắn đã bị thu hồi' : msg.content }}
                 </div>
                 <div :class="['flex items-center gap-1 mt-0.5 text-[10px] text-gray-400', msg.isOwn ? 'justify-end' : '']">
                   <span>{{ formatClockTime(msg.createdAt || msg.timestamp) }}</span>
@@ -311,7 +372,6 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- Hover Actions for Popup -->
               <ChatMessageActions 
                 :msg="msg"
                 :active-action-menu="activeMessageAction"
@@ -321,39 +381,46 @@ onMounted(() => {
           </div>
         </div>
       </template>
-
-      <!-- Typing -->
-      <div v-if="isTyping" class="flex justify-start">
-        <div class="flex gap-1.5 items-end">
-          <UserAvatar 
-            :user="{ avatar: conv.avatar, name: conv.name }" 
-            :is-group="conv.isGroup || (!conv.avatar && conv.name?.includes('Nhóm'))"
-            size="sm" 
-            class="w-6! h-6! shrink-0" 
-          />
-          <div class="bg-gray-100 dark:bg-surface-700 rounded-2xl rounded-bl-sm px-4 py-2.5">
-            <div class="flex gap-1">
-              <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
-              <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
-              <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Input -->
-    <div class="shrink-0 px-2 py-2.5">
+    <div class="shrink-0 px-2 py-2.5 relative">
+      <input ref="fileInputRef" type="file" class="hidden" @change="handleUploadAttachment($event, 'file')" />
+      <input ref="imageInputRef" type="file" accept="image/*" class="hidden" @change="handleUploadAttachment($event, 'image')" />
+
+      <!-- Quick Emoji Popup -->
+      <div
+        v-if="showEmojiPicker"
+        class="absolute bottom-14 right-3 z-50 bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-xl shadow-xl p-2 grid grid-cols-6 gap-1"
+      >
+        <button
+          v-for="emo in quickEmojis"
+          :key="emo"
+          type="button"
+          class="p-1.5 text-lg hover:bg-gray-100 dark:hover:bg-surface-700 rounded-lg cursor-pointer"
+          @click="insertEmoji(emo)"
+        >
+          {{ emo }}
+        </button>
+      </div>
+
       <div class="flex items-end gap-1.5">
-        <template v-if="newMessage.trim().length > 0">
-          <button class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5">
-            <PlusCircle :size="20" />
-          </button>
-        </template>
-        <template v-else>
-          <button class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5"><Paperclip :size="20" /></button>
-          <button class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5"><ImageIcon :size="20" /></button>
-        </template>
+        <button
+          type="button"
+          title="Đính kèm tệp"
+          class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5 cursor-pointer"
+          @click="fileInputRef?.click()"
+        >
+          <Paperclip :size="20" />
+        </button>
+        <button
+          type="button"
+          title="Gửi hình ảnh"
+          class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5 cursor-pointer"
+          @click="imageInputRef?.click()"
+        >
+          <ImageIcon :size="20" />
+        </button>
         
         <div class="flex-1 bg-gray-100 dark:bg-surface-700 rounded-2xl px-3 py-2 flex items-center">
           <textarea
@@ -365,9 +432,23 @@ onMounted(() => {
             rows="1"
             class="bg-transparent border-none outline-none text-[15px] leading-5 w-full text-gray-700 dark:text-gray-300 placeholder-gray-500 resize-none max-h-30 py-0 flex-1 my-auto scrollbar-thin"
           />
-          <button class="text-primary-500 hover:text-primary-600 transition-colors shrink-0 ml-1"><Smile :size="20" /></button>
+          <button
+            type="button"
+            title="Biểu tượng cảm xúc"
+            class="text-primary-500 hover:text-primary-600 transition-colors shrink-0 ml-1 cursor-pointer"
+            @click="showEmojiPicker = !showEmojiPicker"
+          >
+            <Smile :size="20" />
+          </button>
         </div>
-        <button @click="sendMessage" class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5"><Send :size="20" class="fill-current" /></button>
+        <button
+          type="button"
+          title="Gửi"
+          @click="sendMessage"
+          class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5 cursor-pointer"
+        >
+          <Send :size="20" class="fill-current" />
+        </button>
       </div>
     </div>
 
