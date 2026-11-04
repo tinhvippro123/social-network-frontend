@@ -95,6 +95,22 @@ export function useSettings() {
 
   loadPersistedPrefs()
 
+  watch(
+    [notificationSettings, privacySettings],
+    () => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          getPrefsKey(),
+          JSON.stringify({
+            notificationSettings: notificationSettings.value,
+            privacySettings: privacySettings.value,
+          })
+        )
+      }
+    },
+    { deep: true }
+  )
+
   const setSystemTheme = () => {
     themeMode.value = 'system'
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches

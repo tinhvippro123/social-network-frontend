@@ -48,7 +48,7 @@ export function useHomePosts() {
   }
 
   const initData = async () => {
-    await Promise.all([fetchPosts(), fetchCategories()])
+    await Promise.all([fetchPosts({ limit: 50 }), fetchCategories()])
   }
 
   onMounted(() => {

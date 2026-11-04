@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject } from 'vue'
-import { ArrowLeft as ArrowLeftIcon, FileText as FileTextIcon, Download as DownloadIcon } from '@lucide/vue'
+import { ArrowLeft as ArrowLeftIcon, FileText as FileTextIcon, Download as DownloadIcon, Link as LinkIcon, ExternalLink as ExternalLinkIcon } from '@lucide/vue'
 
 const chatState = inject<any>('chatState')
 if (!chatState) {
@@ -12,9 +12,10 @@ const {
   activeMediaTab,
   groupedSharedMedia,
   groupedSharedFiles,
+  groupedSharedLinks,
   formatMessageTime,
   downloadFile,
-  imagePreview
+  viewImage
 } = chatState
 </script>
 
@@ -67,7 +68,7 @@ const {
               :src="media.imageUrl"
               alt=""
               class="w-full aspect-square object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity border border-gray-100 dark:border-surface-700"
-              @click="imagePreview = media.imageUrl || null"
+              @click="media.imageUrl && viewImage(media.imageUrl)"
             />
           </div>
         </div>
@@ -102,7 +103,29 @@ const {
 
       <!-- TAB: LINKS -->
       <div v-else-if="activeMediaTab === 'links'">
-        <div class="text-center text-xs text-gray-400 py-10">Chưa có liên kết nào được chia sẻ</div>
+        <div v-if="!groupedSharedLinks || groupedSharedLinks.length === 0" class="text-center text-xs text-gray-400 py-10">Chưa có liên kết nào được chia sẻ</div>
+        <div v-for="group in groupedSharedLinks" :key="group.date" class="mb-4">
+          <p class="text-xs font-semibold text-gray-900 dark:text-white mb-2">{{ group.date }}</p>
+          <div class="space-y-2">
+            <a
+              v-for="link in group.items"
+              :key="link.id"
+              :href="link.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors cursor-pointer group border border-transparent hover:border-gray-100 dark:hover:border-surface-700"
+            >
+              <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-950/40 flex items-center justify-center shrink-0">
+                <LinkIcon :size="18" class="text-primary-500" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[13px] font-medium text-primary-600 dark:text-primary-400 truncate group-hover:underline">{{ link.title }}</p>
+                <p class="text-[11px] text-gray-500 mt-0.5">{{ formatMessageTime(link.createdAt) }}</p>
+              </div>
+              <ExternalLinkIcon :size="14" class="text-gray-400 opacity-0 group-hover:opacity-100 shrink-0" />
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>

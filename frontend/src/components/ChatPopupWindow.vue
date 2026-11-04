@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import {
   X, Send, Minus, Maximize2,
   Smile, Paperclip, Image as ImageIcon,
-  ChevronDown, BellOff
+  ChevronDown, BellOff, FileText, Download
 } from '@lucide/vue'
 import type { ChatConversation, ChatMessage } from '@/types'
 import ChatMessageActions from '@/views/chat/components/ChatMessageActions.vue'
@@ -109,8 +109,9 @@ const toggleHeaderMenu = () => {
   activeHeaderMenu.value = !activeHeaderMenu.value
 }
 
-const toggleMessageAction = (msgId: string) => {
-  activeMessageAction.value = activeMessageAction.value === msgId ? null : msgId
+const toggleMessageAction = (msgId: string | null) => {
+  const normalized = !msgId || msgId === 'null' ? null : msgId
+  activeMessageAction.value = activeMessageAction.value === normalized ? null : normalized
 }
 
 async function handleRevokeMessage(msgId: string) {
@@ -392,25 +393,59 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
           <div :class="['max-w-[calc(100%-86px)] flex gap-1.5 items-end relative group/bubble', msg.isOwn ? 'flex-row-reverse' : '']">
             <UserAvatar v-if="!msg.isOwn" :user="msg.sender as any" size="sm" class="w-6! h-6! shrink-0" />
             <div class="relative flex items-center min-w-0" :class="msg.isOwn ? 'flex-row-reverse' : ''">
-              <div>
+              <div class="relative">
                 <img
-                  v-if="msg.type === 'image' && msg.imageUrl"
+                  v-if="msg.type === 'image' && msg.imageUrl && msg.status !== 'revoked'"
                   :src="msg.imageUrl"
                   alt="Hình ảnh"
                   class="max-h-40 rounded-xl object-cover border border-gray-200 dark:border-surface-600 mb-1"
                 />
+                <a
+                  v-else-if="msg.type === 'file' && msg.fileName && msg.status !== 'revoked'"
+                  :href="msg.fileUrl || '#'"
+                  :download="msg.fileName"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  :class="[
+                    'flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs transition-colors',
+                    msg.isOwn
+                      ? 'bg-primary-500 text-white rounded-br-sm hover:bg-primary-600'
+                      : 'bg-gray-100 dark:bg-surface-700 text-gray-900 dark:text-white rounded-bl-sm hover:bg-gray-200 dark:hover:bg-surface-600'
+                  ]"
+                >
+                  <FileText :size="16" class="shrink-0" />
+                  <div class="min-w-0 flex-1">
+                    <p class="font-semibold truncate">{{ msg.fileName }}</p>
+                    <p v-if="msg.fileSize" class="text-[10px] opacity-80">{{ msg.fileSize }}</p>
+                  </div>
+                  <Download :size="14" class="shrink-0 opacity-80" />
+                </a>
                 <div
                   v-else
                   :class="[
                     'px-3 py-1.5 text-[15px] leading-relaxed wrap-break-word min-w-0',
-                    msg.status === 'revoked'
+                    msg.status === 'revoked' || msg.isRevoked
                       ? 'italic text-gray-400 border border-dashed border-gray-300 dark:border-surface-600 rounded-2xl'
                       : msg.isOwn
                         ? 'bg-primary-500 text-white rounded-2xl rounded-br-sm'
                         : 'bg-gray-100 dark:bg-surface-700 text-gray-900 dark:text-white rounded-2xl rounded-bl-sm'
                   ]"
                 >
-                  {{ msg.status === 'revoked' ? 'Tin nhắn đã bị thu hồi' : msg.content }}
+                  {{ msg.status === 'revoked' || msg.isRevoked ? 'Tin nhắn đã bị thu hồi' : msg.content }}
+                </div>
+                <div
+                  v-if="msg.reactions && msg.reactions.length > 0 && msg.status !== 'revoked' && !msg.isRevoked"
+                  :class="['flex flex-wrap gap-1 mt-1', msg.isOwn ? 'justify-end' : 'justify-start']"
+                >
+                  <button
+                    v-for="r in msg.reactions"
+                    :key="r.emoji + r.userId"
+                    type="button"
+                    @click.stop="handleAddReaction(msg.id, r.emoji)"
+                    class="px-1.5 py-0.5 text-[11px] bg-white dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-full shadow-2xs cursor-pointer hover:scale-105 transition-transform"
+                  >
+                    {{ r.emoji }}
+                  </button>
                 </div>
                 <div :class="['flex items-center gap-1 mt-0.5 text-[10px] text-gray-400', msg.isOwn ? 'justify-end' : '']">
                   <span>{{ formatClockTime(msg.createdAt || msg.timestamp) }}</span>

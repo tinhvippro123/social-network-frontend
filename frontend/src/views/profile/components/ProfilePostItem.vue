@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Clock, Eye, ArrowUp, MessageCircle } from '@lucide/vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
@@ -16,6 +16,13 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const imageFailed = ref(false)
+
+watch(
+  () => props.post?.coverImage,
+  () => {
+    imageFailed.value = false
+  }
+)
 
 const handleClick = () => {
   if (props.isDraft) {

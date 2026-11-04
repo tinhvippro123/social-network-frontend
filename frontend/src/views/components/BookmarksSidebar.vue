@@ -48,7 +48,7 @@ const router = useRouter()
               <span>{{ post.author.name }}</span>
               <span>·</span>
               <span class="flex items-center gap-0.5">
-                <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc: number, curr: any) => acc + curr.count, 0) || 0) }}
+                <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc: number, curr: any) => acc + curr.count, 0) || (post.upvotesCount || 0) + (post.commentsCount || 0)) }}
               </span>
             </div>
           </div>

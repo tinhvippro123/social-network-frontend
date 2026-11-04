@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Bell, Mail } from '@lucide/vue'
+import { Bell, Mail, Save } from '@lucide/vue'
 import SettingToggle from '@/components/ui/SettingToggle.vue'
 import { useSettings } from '@/composables/ui/useSettings'
 
-const { notificationSettings } = useSettings()
+const { notificationSettings, saveSettings } = useSettings()
 </script>
 
 <template>
@@ -57,6 +57,12 @@ const { notificationSettings } = useSettings()
           description="Thông báo khi có bài viết nổi bật trong cộng đồng"
         />
       </div>
+    </div>
+
+    <div class="mt-6 pt-6 border-t border-gray-200 dark:border-surface-700 flex justify-end">
+      <button @click="saveSettings" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 cursor-pointer">
+        <Save :size="16" /> Lưu thay đổi
+      </button>
     </div>
   </div>
 </template>

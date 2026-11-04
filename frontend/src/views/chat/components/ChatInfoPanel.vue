@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { inject, ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   X as XIcon,
   Ban as BanIcon, Flag as FlagIcon, Trash2 as TrashIcon,
@@ -29,7 +30,7 @@ const blockedUserIds = ref<Set<string>>(new Set())
 const { setNickname } = useChatNicknames()
 
 const {
-  router,
+  router: injectedRouter,
   currentUser,
   selectedConversation,
   showInfoPanel,
@@ -42,6 +43,8 @@ const {
   unblockUser,
   deleteConversation,
 } = chatState
+
+const router = injectedRouter || useRouter()
 
 const otherParticipant = computed(() => {
   const parts = selectedConversation?.value?.participants || []

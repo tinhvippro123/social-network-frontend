@@ -5,10 +5,12 @@ import {
 import { useAdmin } from './useAdmin'
 import adminApi from '@/api/admin.api'
 import { useToast } from '../ui/useToast'
+import { useConfirm } from '../ui/useConfirm'
 import { formatNumber } from '@/utils/formatters'
 
 export function useAdminDashboard() {
   const toast = useToast()
+  const { confirm } = useConfirm()
   const { stats, users, reports, isLoading, fetchStats, fetchUsers, fetchReports } = useAdmin()
   
   const activeTab = ref('overview')
@@ -102,6 +104,15 @@ export function useAdminDashboard() {
   }
 
   const resolveReport = async (reportId: string, action: 'keep' | 'delete' | 'ban') => {
+    if (action === 'delete' || action === 'ban') {
+      const ok = await confirm({
+        title: action === 'ban' ? 'Cấm tác giả & xử lý báo cáo' : 'Xóa nội dung bị báo cáo',
+        message: action === 'ban' ? 'Bạn có chắc muốn cấm tài khoản vi phạm này?' : 'Bạn có chắc muốn xóa/ẩn nội dung vi phạm này?',
+        confirmText: action === 'ban' ? 'Cấm tài khoản' : 'Xóa nội dung',
+        variant: 'danger'
+      })
+      if (!ok) return
+    }
     try {
       await adminApi.resolveReport(reportId, action)
       toast.success('Đã xử lý báo cáo thành công!')

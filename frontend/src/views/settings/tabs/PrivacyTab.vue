@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Shield, Globe, MessageCircle, Ban, UserX } from '@lucide/vue'
+import { Shield, Globe, MessageCircle, Ban, UserX, Save } from '@lucide/vue'
 import SettingToggle from '@/components/ui/SettingToggle.vue'
 import { useSettings } from '@/composables/ui/useSettings'
 
-const { privacySettings } = useSettings()
+const { privacySettings, saveSettings } = useSettings()
 </script>
 
 <template>
@@ -62,6 +62,11 @@ const { privacySettings } = useSettings()
         <UserX :size="32" class="mx-auto text-gray-300 dark:text-surface-600 mb-2" />
         <p class="text-sm text-gray-400">Bạn chưa chặn người dùng nào.</p>
         <p class="text-xs text-gray-400 mt-1">Khi bạn chặn ai đó, họ sẽ không thể xem trang cá nhân, gửi tin nhắn hoặc bình luận bài viết của bạn.</p>
+      </div>
+      <div class="mt-6 flex justify-end">
+        <button @click="saveSettings" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 cursor-pointer">
+          <Save :size="16" /> Lưu thay đổi
+        </button>
       </div>
     </div>
   </div>

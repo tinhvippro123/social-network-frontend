@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { Heart, MessageSquare, Send, Trash2, Share2, Check, Loader2 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatRelativeTime } from '@/utils/formatters'
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 }>()
 
 const authStore = useAuthStore()
+const router = useRouter()
 const toast = useToast()
 const { confirm } = useConfirm()
 
@@ -251,10 +253,10 @@ onMounted(() => {
           :key="comment.id"
           class="flex items-start gap-3 p-3.5 rounded-2xl bg-gray-50/80 dark:bg-surface-700/40 border border-gray-100 dark:border-surface-700/60 transition-colors group"
         >
-          <UserAvatar :user="{ name: comment.author?.name || 'Thành viên', avatar: comment.author?.avatar || '' }" size="sm" class="shrink-0 mt-0.5" />
+          <UserAvatar @click="comment.author?.id && router.push(`/profile/${comment.author.id}`)" :user="{ name: comment.author?.name || 'Thành viên', avatar: comment.author?.avatar || '' }" size="sm" class="shrink-0 mt-0.5 cursor-pointer" />
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-bold text-gray-900 dark:text-white">
+              <span @click="comment.author?.id && router.push(`/profile/${comment.author.id}`)" class="text-xs font-bold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 hover:underline cursor-pointer">
                 {{ comment.author?.name || 'Thành viên' }}
               </span>
               <div class="flex items-center gap-2">

@@ -235,7 +235,7 @@ function handleProseClick(e: MouseEvent) {
         <PostAuthorCard :author="post.author" />
 
         <!-- Related Posts -->
-        <RelatedPostsSidebar :posts="posts" />
+        <RelatedPostsSidebar :posts="posts.filter(p => p.id !== post?.id)" />
       </aside>
     </div>
     

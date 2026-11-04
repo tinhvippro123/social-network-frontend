@@ -1,5 +1,5 @@
 import { ref, watch, watchEffect, onMounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { useAuth } from '../auth/useAuth'
 import { useChat } from './useChat'
@@ -11,6 +11,7 @@ import filesApi from '@/api/files.api'
 
 export function useChatView() {
   const route = useRoute()
+  const router = useRouter()
   const toast = useToast()
   const { user: currentUser } = useAuth()
   const newChatInitialMode = ref<'direct' | 'group'>('direct')
@@ -112,8 +113,10 @@ export function useChatView() {
     searchChat: searchChatLogic,
     sharedMedia,
     sharedFiles,
+    sharedLinks,
     groupedSharedMedia,
     groupedSharedFiles,
+    groupedSharedLinks,
     pinnedMessage,
     filteredConversations,
     lastOwnMessage,
@@ -291,11 +294,12 @@ export function useChatView() {
     if (target?.id) scrollToMessage(target.id)
   }
 
-  const toggleActionMenu = (messageId: string) => {
-    if (activeActionMenu.value === messageId) {
+  const toggleActionMenu = (messageId: string | null) => {
+    const normalized = !messageId || messageId === 'null' ? null : messageId
+    if (activeActionMenu.value === normalized) {
       activeActionMenu.value = null
     } else {
-      activeActionMenu.value = messageId
+      activeActionMenu.value = normalized
     }
   }
 
@@ -435,6 +439,7 @@ export function useChatView() {
   }
 
   return {
+    router,
     currentUser,
     conversations,
     messages,
@@ -470,8 +475,10 @@ export function useChatView() {
     scrollToMessage,
     sharedMedia,
     sharedFiles,
+    sharedLinks,
     groupedSharedMedia,
     groupedSharedFiles,
+    groupedSharedLinks,
     pinnedMessage,
     filteredConversations,
     lastOwnMessage,

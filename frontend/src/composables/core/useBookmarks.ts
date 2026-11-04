@@ -51,7 +51,7 @@ export function useBookmarks() {
     sidebarLoading.value = true
     await Promise.all([
       fetchBookmarked(),
-      fetchPosts(),
+      fetchPosts({ limit: 50 }),
       fetchPopularTags()
     ])
     sidebarLoading.value = false

@@ -136,7 +136,7 @@ const formatCategoryIcon = (icon?: string) => {
           <td class="px-5 py-4 hidden md:table-cell">
             <div class="flex items-center gap-2">
               <UserAvatar :user="post.author || { name: post.authorName, avatar: post.authorAvatar }" size="sm" />
-              <span class="text-sm text-gray-600 dark:text-gray-400">{{ post.author?.name || post.authorName || 'Ẩn danh' }}</span>
+              <span @click="(post.author?.id || post.authorId) && openInNewTab(`/profile/${post.author?.id || post.authorId}`)" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-500 hover:underline cursor-pointer">{{ post.author?.name || post.authorName || 'Ẩn danh' }}</span>
             </div>
           </td>
           <td class="px-5 py-4 hidden sm:table-cell">

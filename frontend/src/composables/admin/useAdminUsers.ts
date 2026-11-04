@@ -1,4 +1,5 @@
 import { ref, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import adminApi from '@/api/admin.api'
 import { useToast } from '../ui/useToast'
 import { useConfirm } from '../ui/useConfirm'
@@ -19,7 +20,8 @@ export function useAdminUsers() {
   const totalItems = ref(0)
   const isLoading = ref(false)
   const busyUserId = ref<string | null>(null)
-  const searchQuery = ref('')
+  const route = useRoute()
+  const searchQuery = ref((route.query.search as string) || '')
   const filterRole = ref('all')
   const currentPage = ref(1)
 

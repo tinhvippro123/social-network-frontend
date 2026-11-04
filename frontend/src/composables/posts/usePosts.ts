@@ -120,7 +120,7 @@ export function usePosts() {
   async function fetchNearby(lat: number, lng: number, radius: number = 5) {
     await execute(async () => {
       const { data } = await postsApi.getNearby(lat, lng, radius)
-      posts.value = data.data
+      posts.value = Array.isArray(data.data) ? data.data.map(normalizePost) : []
     }, 'Không tìm thấy bài viết lân cận')
   }
 

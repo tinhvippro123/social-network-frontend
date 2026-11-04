@@ -42,9 +42,9 @@ const router = useRouter()
       <div class="p-4">
         <h4 class="font-bold text-gray-900 dark:text-white line-clamp-2 mb-2">{{ selectedPost.title }}</h4>
         <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{{ selectedPost.excerpt }}</p>
-        <div class="flex items-center gap-2 mb-2">
+        <div @click="selectedPost.author?.id && router.push(`/profile/${selectedPost.author.id}`)" class="flex items-center gap-2 mb-2 cursor-pointer group/author w-fit">
           <UserAvatar :user="selectedPost.author" size="sm" />
-          <span class="text-sm text-gray-600 dark:text-gray-400">{{ selectedPost.author.name }}</span>
+          <span class="text-sm text-gray-600 dark:text-gray-400 group-hover/author:text-primary-500 group-hover/author:underline">{{ selectedPost.author.name }}</span>
         </div>
         <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
           <MapPin :size="12" class="text-primary-500 shrink-0" />

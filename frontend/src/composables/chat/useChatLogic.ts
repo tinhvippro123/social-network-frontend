@@ -1,6 +1,13 @@
 import { ref, computed, type Ref } from 'vue'
 import type { ChatMessage, ChatConversation } from '@/types'
 
+export interface SharedLinkItem {
+  id: string
+  url: string
+  title: string
+  createdAt: string
+}
+
 export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<ChatConversation[]>) {
   const searchChat = ref('')
 
@@ -10,12 +17,31 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
   const sharedFiles = computed(() =>
     messages.value.filter(m => m.type === 'file' && m.fileName)
   )
+  const sharedLinks = computed<SharedLinkItem[]>(() => {
+    const urlRegex = /https?:\/\/[^\s<>")]+/gi
+    const items: SharedLinkItem[] = []
+    messages.value.forEach(m => {
+      if (m.isRevoked || !m.content) return
+      const matches = m.content.match(urlRegex)
+      if (matches) {
+        matches.forEach((url, idx) => {
+          items.push({
+            id: `${m.id}-link-${idx}`,
+            url,
+            title: url.replace(/^https?:\/\/(www\.)?/, ''),
+            createdAt: m.createdAt
+          })
+        })
+      }
+    })
+    return items
+  })
 
-  const groupItemsByDate = (items: ChatMessage[]) => {
-    const groups: Record<string, ChatMessage[]> = {}
+  const groupItemsByDate = <T extends { createdAt: string }>(items: T[]) => {
+    const groups: Record<string, T[]> = {}
     items.forEach(item => {
       let bucket = 'Mới nhất'
-      if (item.createdAt.includes('-')) {
+      if (item.createdAt && item.createdAt.includes('-')) {
         const d = new Date(item.createdAt)
         if (!isNaN(d.getTime())) {
           const month = d.getMonth() + 1
@@ -31,6 +57,7 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
 
   const groupedSharedMedia = computed(() => groupItemsByDate(sharedMedia.value))
   const groupedSharedFiles = computed(() => groupItemsByDate(sharedFiles.value))
+  const groupedSharedLinks = computed(() => groupItemsByDate(sharedLinks.value))
 
   const pinnedMessage = computed(() =>
     messages.value.find(m => m.isPinned)
@@ -113,8 +140,10 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
     searchChat,
     sharedMedia,
     sharedFiles,
+    sharedLinks,
     groupedSharedMedia,
     groupedSharedFiles,
+    groupedSharedLinks,
     pinnedMessage,
     filteredConversations,
     lastOwnMessage,

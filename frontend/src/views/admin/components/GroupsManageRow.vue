@@ -19,10 +19,10 @@ const openInNewTab = (path: string) => window.open(router.resolve(path).href, '_
 <template>
   <tr class="border-b border-gray-100 dark:border-surface-700 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors">
     <td class="px-5 py-4">
-      <div class="flex items-center gap-3">
-        <img :src="group.avatar" class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-surface-700 object-cover" />
+      <div @click="openInNewTab(`/groups/${group.id}`)" class="flex items-center gap-3 cursor-pointer group/grp">
+        <UserAvatar :user="{ name: group.name, avatar: group.avatar }" is-group size="md" />
         <div>
-          <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ group.name }}</p>
+          <p class="text-sm font-semibold text-gray-900 dark:text-white group-hover/grp:text-primary-500 transition-colors">{{ group.name }}</p>
           <p class="text-xs text-gray-400 line-clamp-1 max-w-xs">{{ group.description }}</p>
         </div>
       </div>
@@ -39,9 +39,9 @@ const openInNewTab = (path: string) => window.open(router.resolve(path).href, '_
     </td>
     <td class="px-5 py-4 text-sm text-gray-500 hidden md:table-cell">{{ group.postsCount }}</td>
     <td class="px-5 py-4 hidden lg:table-cell">
-      <div class="flex items-center gap-2">
+      <div @click="group.owner?.id && openInNewTab(`/profile/${group.owner.id}`)" class="flex items-center gap-2 cursor-pointer hover:text-primary-500">
         <UserAvatar :user="group.owner" size="sm" />
-        <span class="text-xs text-gray-500">{{ group.owner?.name }}</span>
+        <span class="text-xs text-gray-500 hover:underline">{{ group.owner?.name }}</span>
       </div>
     </td>
     <td class="px-5 py-4 text-right">

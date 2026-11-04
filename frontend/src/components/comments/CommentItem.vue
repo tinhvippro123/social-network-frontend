@@ -4,7 +4,7 @@
     <div class="relative">
       <div class="flex items-start gap-2.5 sm:gap-3">
         <!-- Avatar size based on level -->
-        <div class="flex flex-col items-center shrink-0">
+        <div @click="goToProfile(comment.author?.id)" class="flex flex-col items-center shrink-0 cursor-pointer" title="Xem trang cá nhân">
           <UserAvatar 
             :user="comment.author" 
             :size="level === 0 ? 'md' : 'sm'" 
@@ -24,7 +24,7 @@
           >
             <div class="flex items-center justify-between mb-0.5 gap-2">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-bold text-gray-900 dark:text-white" :class="level === 0 ? 'text-[13px]' : 'text-xs'">
+                <span @click="goToProfile(comment.author?.id)" class="font-bold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 hover:underline cursor-pointer" :class="level === 0 ? 'text-[13px]' : 'text-xs'">
                   {{ comment.author.name }}
                 </span>
                 <!-- AI Lexicon Sentiment Badge -->
@@ -238,7 +238,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watchEffect } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { SmilePlus, ChevronDown, ChevronRight } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import CommentComposer from '@/components/comments/CommentComposer.vue'
@@ -272,6 +272,13 @@ const emojiList = ['😀', '😂', '🥰', '😎', '😭', '😡', '👍', '👎
 const inlineComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
 const isCollapsed = ref(false)
 const route = useRoute()
+const router = useRouter()
+
+function goToProfile(userId?: string) {
+  if (userId && userId !== 'guest') {
+    router.push(`/profile/${userId}`)
+  }
+}
 
 const commentImageUrl = computed(() => {
   const raw = props.comment?.content || ''

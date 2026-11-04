@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ShieldAlert, Check, X, Ban } from '@lucide/vue'
+import { useRouter } from 'vue-router'
+import { ShieldAlert, Check, X, Ban, ExternalLink } from '@lucide/vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 
 defineProps<{
@@ -10,6 +11,16 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'resolve', reportId: string, action: 'keep' | 'delete' | 'ban'): void
 }>()
+
+const router = useRouter()
+function viewTarget(report: any) {
+  const path = report.type === 'post' || report.type === 'comment'
+    ? `/posts/${report.targetId}`
+    : report.type === 'group'
+    ? `/groups/${report.targetId}`
+    : `/profile/${report.targetId}`
+  window.open(router.resolve(path).href, '_blank', 'noopener')
+}
 </script>
 
 <template>
@@ -50,7 +61,7 @@ const emit = defineEmits<{
                 {{ report.status === 'pending' ? 'Đang chờ' : 'Đã xử lý' }}
               </span>
             </div>
-            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-1">{{ report.targetTitle }}</p>
+            <p @click="report.targetId && viewTarget(report)" class="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-1 hover:text-primary-500 hover:underline cursor-pointer inline-flex items-center gap-1" title="Xem đối tượng bị báo cáo">{{ report.targetTitle }} <ExternalLink v-if="report.targetId" :size="11" class="shrink-0 opacity-60" /></p>
             <p class="text-xs text-gray-400 mt-1">{{ report.reason }}</p>
           </div>
         </div>

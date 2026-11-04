@@ -69,7 +69,7 @@ const emit = defineEmits<{
           <UserAvatar v-if="user" :user="user" size="sm" class="ring-2 ring-red-500/30" />
           <div class="hidden sm:block text-left">
             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ user?.name }}</p>
-            <p class="text-[10px] text-red-500 font-medium uppercase">Administrator</p>
+            <p class="text-[10px] text-red-500 font-medium uppercase">{{ (user?.role || '').toLowerCase() === 'admin' ? 'Administrator' : 'Moderator' }}</p>
           </div>
           <ChevronDown :size="14" class="hidden sm:block text-gray-400" />
         </button>

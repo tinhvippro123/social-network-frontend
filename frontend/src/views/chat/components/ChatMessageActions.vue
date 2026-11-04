@@ -40,12 +40,14 @@ function toggleMore(e: MouseEvent) {
   if (btn) {
     const rect = btn.getBoundingClientRect()
     const menuHeight = 160
+    const menuWidth = 176
     // Center menu vertically with button, clamp within window bounds
     const idealTop = rect.top + (rect.height / 2) - 44
     const clampedTop = Math.max(16, Math.min(window.innerHeight - menuHeight - 16, idealTop))
+    const idealRight = window.innerWidth - rect.left + 8
     menuPos.value = {
       top: clampedTop,
-      right: Math.max(16, window.innerWidth - rect.left + 8)
+      right: Math.max(16, Math.min(window.innerWidth - menuWidth - 16, idealRight))
     }
   }
   emit('toggleActionMenu', props.activeActionMenu === props.msg.id ? 'null' : props.msg.id)
@@ -55,9 +57,11 @@ function toggleReact(e: MouseEvent) {
   const btn = (e.currentTarget as HTMLElement) || smileBtnRef.value
   if (btn) {
     const rect = btn.getBoundingClientRect()
+    const pickerWidth = 248
+    const idealRight = window.innerWidth - rect.right - 10
     reactPos.value = {
       top: Math.max(16, rect.top - 48),
-      right: Math.max(16, window.innerWidth - rect.right - 10)
+      right: Math.max(16, Math.min(window.innerWidth - pickerWidth - 16, idealRight))
     }
   }
   emit('toggleActionMenu', props.activeActionMenu === props.msg.id + '-react' ? 'null' : props.msg.id + '-react')
@@ -179,7 +183,7 @@ onUnmounted(() => {
         class="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-left transition-colors cursor-pointer"
       >
         <PinIcon :size="16" class="text-gray-400 shrink-0" />
-        <span>Ghim</span>
+        <span>{{ msg.isPinned ? 'Bỏ ghim' : 'Ghim' }}</span>
       </button>
 
       <button

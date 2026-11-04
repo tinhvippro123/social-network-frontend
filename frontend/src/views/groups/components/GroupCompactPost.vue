@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Calendar, MessageSquare } from '@lucide/vue'
+import { Calendar, MessageSquare, Heart } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDate } from '@/utils/formatters'
 
@@ -77,6 +77,14 @@ const goToProfile = (userId?: string) => {
         <span v-if="post.createdAt" class="flex items-center gap-1 text-gray-400">
           <Calendar :size="12" /> {{ formatDate(post.createdAt) }}
         </span>
+        <div class="ml-auto flex items-center gap-3 text-gray-400">
+          <span class="flex items-center gap-1" title="Lượt thích">
+            <Heart :size="12" :class="post.isLiked ? 'text-rose-500 fill-rose-500' : ''" /> {{ post.likesCount || 0 }}
+          </span>
+          <span class="flex items-center gap-1" title="Bình luận">
+            <MessageSquare :size="12" /> {{ post.commentsCount || 0 }}
+          </span>
+        </div>
       </div>
     </div>
   </article>

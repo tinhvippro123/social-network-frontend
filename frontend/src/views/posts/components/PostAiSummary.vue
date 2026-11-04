@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { Sparkles, Copy, Check, ChevronUp, RefreshCw, BrainCircuit, Quote, FileText, ListOrdered } from '@lucide/vue'
 import searchApi, { type PostSummary } from '@/api/search.api'
 
@@ -14,6 +14,15 @@ const viewMode = ref<'paragraph' | 'bullet'>('paragraph')
 const summaryData = ref<PostSummary | null>(null)
 const isCopied = ref(false)
 const error = ref<string | null>(null)
+
+watch(
+  () => props.postId,
+  () => {
+    summaryData.value = null
+    isExpanded.value = false
+    error.value = null
+  }
+)
 
 async function fetchSummary(targetSentences = sentencesCount.value) {
   isLoading.value = true

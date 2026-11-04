@@ -59,7 +59,7 @@ export function useTrendingPosts() {
   }
 
   const initData = async () => {
-    fetchPosts({ sort: 'trending' })
+    fetchPosts({ sort: 'trending', limit: 50 })
     sidebarLoading.value = true
     await Promise.all([fetchUsers(), fetchPopularTags()])
     sidebarLoading.value = false
