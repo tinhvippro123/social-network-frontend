@@ -73,6 +73,7 @@ const router = useRouter()
         <span
           v-for="tag in tags"
           :key="tag.id"
+          @click="router.push('/tags/' + tag.name)"
           class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700 hover:bg-gray-100 dark:hover:bg-surface-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors cursor-pointer border border-gray-200 dark:border-surface-600"
         >
           #{{ tag.name }}

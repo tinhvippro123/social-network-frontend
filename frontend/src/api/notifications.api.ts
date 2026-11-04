@@ -23,6 +23,9 @@ const notificationsApi = {
 
   markAllRead: () =>
     http.patch<ApiResponse<{ updated: number }>>('/notifications/read-all'),
+
+  delete: (id: string) =>
+    http.delete<ApiResponse<void>>(`/notifications/${id}`),
 }
 
 export default notificationsApi

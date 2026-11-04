@@ -24,7 +24,7 @@ const {
     <div class="sticky top-0 z-10 bg-white dark:bg-surface-800">
       <!-- Header -->
       <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-surface-700">
-        <button @click="rightSidebarView = 'info'" class="p-1.5 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+        <button @click="rightSidebarView = 'info'" class="p-1.5 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer">
           <ArrowLeftIcon :size="20" />
         </button>
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">File phương tiện và file</h3>
@@ -34,19 +34,19 @@ const {
       <div class="flex px-2 pt-2 border-b border-gray-100 dark:border-surface-700">
         <button 
           @click="activeMediaTab = 'media'" 
-          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', activeMediaTab === 'media' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
+          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2 cursor-pointer', activeMediaTab === 'media' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
         >
           File phương tiện
         </button>
         <button 
           @click="activeMediaTab = 'files'" 
-          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', activeMediaTab === 'files' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
+          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2 cursor-pointer', activeMediaTab === 'files' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
         >
           File
         </button>
         <button 
           @click="activeMediaTab = 'links'" 
-          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2', activeMediaTab === 'links' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
+          :class="['flex-1 pb-2 text-xs font-semibold transition-colors border-b-2 cursor-pointer', activeMediaTab === 'links' ? 'text-primary-600 border-primary-600' : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300']"
         >
           Liên kết
         </button>
@@ -82,6 +82,7 @@ const {
             <div
               v-for="file in group.items"
               :key="file.id"
+              @click="downloadFile(file.fileUrl, file.fileName)"
               class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors cursor-pointer group border border-transparent hover:border-gray-100 dark:hover:border-surface-700"
             >
               <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
@@ -91,7 +92,7 @@ const {
                 <p class="text-[13px] font-medium text-gray-900 dark:text-gray-100 truncate">{{ file.fileName }}</p>
                 <p class="text-[11px] text-gray-500 mt-0.5">{{ file.fileSize }} • {{ formatMessageTime(file.createdAt) }}</p>
               </div>
-              <button @click.stop="downloadFile(file.fileUrl, file.fileName)" class="p-1.5 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 hover:text-gray-600 hover:bg-gray-200 dark:hover:bg-surface-600 transition-all">
+              <button @click.stop="downloadFile(file.fileUrl, file.fileName)" class="p-1.5 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 hover:text-gray-600 hover:bg-gray-200 dark:hover:bg-surface-600 transition-all cursor-pointer">
                 <DownloadIcon :size="14" />
               </button>
             </div>

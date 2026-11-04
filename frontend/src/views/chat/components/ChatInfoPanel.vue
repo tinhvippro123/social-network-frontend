@@ -33,6 +33,7 @@ const {
   currentUser,
   selectedConversation,
   showInfoPanel,
+  showSearchInChat,
   rightSidebarView,
   pinnedMessage,
   scrollToMessage,
@@ -118,6 +119,15 @@ function handleViewProfile() {
   }
 }
 
+function handleOpenSearchInChat() {
+  if (showSearchInChat) {
+    showSearchInChat.value = true
+  }
+  if (window.innerWidth < 1024) {
+    showInfoPanel.value = false
+  }
+}
+
 async function handleReportConversation() {
   const targetId = otherParticipant.value?.id || selectedConversation.value?.id
   if (!targetId) return
@@ -158,6 +168,8 @@ async function handleReportConversation() {
         <ChatInfoHeader
           :conversation="selectedConversation"
           @view-profile="handleViewProfile"
+          @toggle-mute="toggleMuteNotifications"
+          @open-search="handleOpenSearchInChat"
         />
 
         <div class="border-t border-gray-100 dark:border-surface-700"></div>

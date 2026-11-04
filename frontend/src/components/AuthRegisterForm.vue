@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Check } from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
@@ -25,13 +25,19 @@ const passwordError = ref('')
 const nameError = ref('')
 const confirmPasswordError = ref('')
 
-const emit = defineProps<{
+defineProps<{
   error?: string
 }>()
 
 const emitError = defineEmits<{
   (e: 'update:error', value: string): void
 }>()
+
+function showTermsNotice(docName: string) {
+  toast.info(
+    `${docName}: Cam kết chia sẻ nội dung văn minh, tôn trọng bản quyền và bảo mật dữ liệu cá nhân trên VietBlog.`
+  )
+}
 
 function validateRegister(): boolean {
   let valid = true
@@ -206,9 +212,9 @@ async function handleRegister() {
       />
       <span class="text-sm text-gray-400">
         Tôi đồng ý với
-        <a href="#" class="text-primary-400 hover:text-primary-300">Điều khoản sử dụng</a>
+        <button type="button" @click.stop="showTermsNotice('Điều khoản sử dụng')" class="text-primary-400 hover:text-primary-300 underline">Điều khoản sử dụng</button>
         và
-        <a href="#" class="text-primary-400 hover:text-primary-300">Chính sách bảo mật</a>
+        <button type="button" @click.stop="showTermsNotice('Chính sách bảo mật')" class="text-primary-400 hover:text-primary-300 underline">Chính sách bảo mật</button>
       </span>
     </label>
 

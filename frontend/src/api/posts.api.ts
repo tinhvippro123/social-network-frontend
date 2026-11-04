@@ -91,6 +91,9 @@ const postsApi = {
   removeBookmark: (id: string) =>
     http.post<ApiResponse<boolean>>(`/posts/${id}/bookmarks`),
 
+  getBookmarkedPosts: (page = 1, limit = 50) =>
+    http.get<ApiResponse<Post[]>>('/bookmarks', { params: { page, limit } }),
+
   // ── Đặc biệt ─────────────────────────────
   getTrending: (limit = 10) =>
     http.get<ApiResponse<Post[]>>('/posts/trending', { params: { limit } }),

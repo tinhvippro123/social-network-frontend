@@ -7,7 +7,7 @@ if (!chatState) {
   throw new Error('ChatState is not provided')
 }
 
-const { sharedFiles, openMediaView } = chatState
+const { sharedFiles, openMediaView, downloadFile } = chatState
 </script>
 
 <template>
@@ -25,6 +25,7 @@ const { sharedFiles, openMediaView } = chatState
         <div
           v-for="file in sharedFiles.slice(0, 2)"
           :key="file.id"
+          @click="downloadFile(file.fileUrl, file.fileName)"
           class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-surface-700/50 transition-colors cursor-pointer group"
         >
           <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
@@ -38,7 +39,7 @@ const { sharedFiles, openMediaView } = chatState
         <button
           v-if="sharedFiles.length > 2"
           @click="openMediaView('files')"
-          class="w-full mt-1 py-1.5 text-xs text-primary-500 hover:text-primary-600 font-medium transition-colors"
+          class="w-full mt-1 py-1.5 text-xs text-primary-500 hover:text-primary-600 font-medium transition-colors cursor-pointer"
         >
           Xem tất cả ({{ sharedFiles.length }})
         </button>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import {
-  X, Send, Minus, Phone, Video,
+  X, Send, Minus, Maximize2,
   Smile, Paperclip, Image as ImageIcon,
   ChevronDown, BellOff
 } from '@lucide/vue'
@@ -16,6 +17,7 @@ import { useWebSocket } from '@/composables/core/useWebSocket'
 import chatApi from '@/api/chat.api'
 import filesApi from '@/api/files.api'
 
+const router = useRouter()
 const toast = useToast()
 const { setNickname, applyNicknameToConversation } = useChatNicknames()
 const showNicknameModal = ref(false)
@@ -98,12 +100,9 @@ function handleSaveNickname(newNick: string) {
   showNicknameModal.value = false
 }
 
-function startVoiceCall() {
-  toast.info('Tính năng gọi thoại đang trong lộ trình phát triển')
-}
-
-function startVideoCall() {
-  toast.info('Tính năng gọi video đang trong lộ trình phát triển')
+function openInFullChat() {
+  router.push(`/chat?id=${props.conv.id}`)
+  emit('close')
 }
 
 const toggleHeaderMenu = () => {
@@ -342,10 +341,9 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
           <ChevronDown :size="16" :class="['text-primary-500 transition-transform', activeHeaderMenu ? 'rotate-180' : '']" />
         </div>
         <div class="flex items-center gap-0.5 shrink-0">
-          <button @click="startVoiceCall" title="Gọi thoại" class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer"><Phone :size="14" /></button>
-          <button @click="startVideoCall" title="Gọi video" class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer"><Video :size="14" /></button>
-          <button @click="$emit('minimize')" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"><Minus :size="14" /></button>
-          <button @click="$emit('close')" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"><X :size="14" /></button>
+          <button @click="openInFullChat" title="Mở trong trang Tin nhắn" class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer"><Maximize2 :size="14" /></button>
+          <button @click="$emit('minimize')" title="Thu nhỏ" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"><Minus :size="14" /></button>
+          <button @click="$emit('close')" title="Đóng" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"><X :size="14" /></button>
         </div>
       </div>
 

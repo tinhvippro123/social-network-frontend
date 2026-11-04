@@ -82,8 +82,13 @@ export function useNotifications() {
     }
   }
 
-  const deleteNotification = (id: string) => {
+  const deleteNotification = async (id: string) => {
     notifications.value = notifications.value.filter(n => n.id !== id)
+    try {
+      await notificationsApi.delete(id)
+    } catch (err) {
+      console.error('Lỗi xóa thông báo:', err)
+    }
   }
 
   const handleClick = (notification: Notification) => {

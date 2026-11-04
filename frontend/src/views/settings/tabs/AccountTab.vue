@@ -1,36 +1,65 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { Lock, Eye, EyeOff, Save, AlertTriangle, Trash2 } from '@lucide/vue'
 import { useSettings } from '@/composables/ui/useSettings'
 import { useConfirm } from '@/composables/ui/useConfirm'
 import { useToast } from '@/composables/ui/useToast'
+import { useAuthStore } from '@/stores/auth.store'
+import http from '@/api/client'
 
 const { accountForm, showCurrentPassword, showNewPassword, showConfirmPassword, changePassword, isSaving } = useSettings()
 const { confirm } = useConfirm()
 const toast = useToast()
+const authStore = useAuthStore()
+const router = useRouter()
 
 async function handleDeactivateAccount() {
   const ok = await confirm({
     title: 'Vô hiệu hóa tài khoản?',
-    message: 'Tài khoản của bạn sẽ bị tạm ẩn và không thể đăng nhập cho đến khi liên hệ quản trị viên để mở lại. Bạn có chắc chắn không?',
+    message: 'Yêu cầu tạm khóa tài khoản của bạn sẽ được gửi đến Quản trị viên và phiên đăng nhập hiện tại sẽ kết thúc. Bạn có chắc chắn không?',
     confirmText: 'Vô hiệu hóa',
     cancelText: 'Hủy bỏ',
     variant: 'warning'
   })
   if (ok) {
-    toast.info('Yêu cầu vô hiệu hóa tài khoản đã được ghi nhận. Vui lòng liên hệ Quản trị viên để hoàn tất.')
+    try {
+      if (authStore.user?.id) {
+        await http.post('/reports', {
+          targetId: authStore.user.id,
+          type: 'USER',
+          reason: `Yêu cầu tự vô hiệu hóa tài khoản từ người dùng: ${authStore.user.email || authStore.user.name}`
+        })
+      }
+    } catch {
+      // ignore if report already exists
+    }
+    authStore.clearAuth()
+    toast.info('Đã gửi yêu cầu vô hiệu hóa tài khoản và đăng xuất khỏi phiên làm việc.')
+    router.push('/login')
   }
 }
 
 async function handleDeleteAccount() {
   const ok = await confirm({
     title: 'Xóa tài khoản vĩnh viễn?',
-    message: 'Toàn bộ bài viết, bình luận và dữ liệu cá nhân của bạn sẽ bị xóa vĩnh viễn và KHÔNG THỂ KHÔI PHỤC. Bạn có chắc chắn muốn tiếp tục?',
-    confirmText: 'Xóa vĩnh viễn',
+    message: 'Yêu cầu xóa vĩnh viễn tài khoản và dữ liệu cá nhân sẽ được gửi tới Quản trị viên hệ thống để phê duyệt. Bạn có chắc chắn muốn tiếp tục?',
+    confirmText: 'Gửi yêu cầu xóa',
     cancelText: 'Giữ lại tài khoản',
     variant: 'danger'
   })
   if (ok) {
-    toast.warning('Để bảo vệ an toàn dữ liệu, tính năng tự xóa vĩnh viễn cần được duyệt bởi Quản trị viên hệ thống.')
+    try {
+      if (authStore.user?.id) {
+        await http.post('/reports', {
+          targetId: authStore.user.id,
+          type: 'USER',
+          reason: `Yêu cầu xóa vĩnh viễn tài khoản từ chính chủ: ${authStore.user.email || authStore.user.name}`
+        })
+      }
+      toast.success('Đã gửi yêu cầu xóa tài khoản tới Quản trị viên hệ thống.')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể gửi yêu cầu lúc này.')
+    }
   }
 }
 </script>
@@ -48,7 +77,7 @@ async function handleDeleteAccount() {
         <div class="relative">
           <input v-model="accountForm.currentPassword" :type="showCurrentPassword ? 'text' : 'password'"
             class="w-full px-4 py-2.5 pr-10 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all" />
-          <button @click="showCurrentPassword = !showCurrentPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+          <button @click="showCurrentPassword = !showCurrentPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
             <EyeOff v-if="showCurrentPassword" :size="16" />
             <Eye v-else :size="16" />
           </button>
@@ -59,7 +88,7 @@ async function handleDeleteAccount() {
         <div class="relative">
           <input v-model="accountForm.newPassword" :type="showNewPassword ? 'text' : 'password'"
             class="w-full px-4 py-2.5 pr-10 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all" />
-          <button @click="showNewPassword = !showNewPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+          <button @click="showNewPassword = !showNewPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
             <EyeOff v-if="showNewPassword" :size="16" />
             <Eye v-else :size="16" />
           </button>
@@ -70,7 +99,7 @@ async function handleDeleteAccount() {
         <div class="relative">
           <input v-model="accountForm.confirmPassword" :type="showConfirmPassword ? 'text' : 'password'"
             class="w-full px-4 py-2.5 pr-10 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all" />
-          <button @click="showConfirmPassword = !showConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+          <button @click="showConfirmPassword = !showConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
             <EyeOff v-if="showConfirmPassword" :size="16" />
             <Eye v-else :size="16" />
           </button>
@@ -82,7 +111,7 @@ async function handleDeleteAccount() {
       <button 
         @click="changePassword"
         :disabled="isSaving"
-        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
         <Save :size="16" v-if="!isSaving" />
         <span v-else class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
         {{ isSaving ? 'Đang cập nhật...' : 'Cập nhật mật khẩu' }}

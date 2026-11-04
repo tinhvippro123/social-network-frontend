@@ -10,6 +10,10 @@ const props = defineProps<{
   isDraft?: boolean
 }>()
 
+const emit = defineEmits<{
+  (e: 'delete', postId: string): void
+}>()
+
 const router = useRouter()
 const imageFailed = ref(false)
 
@@ -79,10 +83,10 @@ const handleClick = () => {
       </p>
 
       <div v-if="isDraft" class="flex items-center gap-2">
-        <button @click.stop="router.push(`/posts/${post.id}/edit`)" class="px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors">
+        <button @click.stop="router.push(`/posts/${post.id}/edit`)" class="px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors cursor-pointer">
           ✏️ Tiếp tục viết
         </button>
-        <button @click.stop class="px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+        <button @click.stop="emit('delete', post.id)" class="px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer">
           🗑️ Xóa nháp
         </button>
       </div>

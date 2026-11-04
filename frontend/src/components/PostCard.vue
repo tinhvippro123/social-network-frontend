@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { getCurrentInstance } from 'vue'
 import {
-  Eye, MessageCircle, SmilePlus, Bookmark,
+  Eye, MessageCircle, Bookmark,
   BookmarkCheck, Clock, ChevronUp
 } from '@lucide/vue'
 import type { Post } from '@/types'
@@ -8,8 +9,12 @@ import type { Post } from '@/types'
 import { useRouter } from 'vue-router'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatRelativeTime, formatNumber } from '@/utils/formatters'
+import postsApi from '@/api/posts.api'
+import { useToast } from '@/composables/ui/useToast'
 
 const router = useRouter()
+const toast = useToast()
+const instance = getCurrentInstance()
 
 const props = defineProps<{
   post: Post
@@ -27,11 +32,30 @@ const handleClick = () => {
   router.push(`/posts/${props.post.id}`)
 }
 
-const handleBookmark = (e: Event) => {
+const handleBookmark = async (e: Event) => {
   e.stopPropagation()
-  emit('bookmark', props.post.id)
-  emit('toggleBookmark', props.post.id)
-  emit('toggle-bookmark', props.post.id)
+  const vnodeProps = instance?.vnode.props || {}
+  const hasParentListener = Boolean(
+    vnodeProps.onBookmark ||
+    vnodeProps.onToggleBookmark ||
+    vnodeProps['onToggle-bookmark']
+  )
+
+  if (hasParentListener) {
+    emit('bookmark', props.post.id)
+    emit('toggleBookmark', props.post.id)
+    emit('toggle-bookmark', props.post.id)
+    return
+  }
+
+  try {
+    const res = await postsApi.toggleBookmark(props.post.id)
+    const nextState = typeof res.data?.data === 'boolean' ? res.data.data : !props.post.bookmarked
+    props.post.bookmarked = nextState
+    toast.success(nextState ? 'Đã lưu bài viết' : 'Đã bỏ lưu bài viết')
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Vui lòng đăng nhập để lưu bài viết')
+  }
 }
 </script>
 
@@ -63,7 +87,7 @@ const handleBookmark = (e: Event) => {
       <!-- Bookmark -->
       <button
         @click.stop="handleBookmark"
-        class="absolute top-3 right-3 p-2 rounded-lg bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors"
+        class="absolute top-3 right-3 p-2 rounded-lg bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors cursor-pointer"
       >
         <BookmarkCheck v-if="post.bookmarked" :size="16" class="text-primary-500" />
         <Bookmark v-else :size="16" />

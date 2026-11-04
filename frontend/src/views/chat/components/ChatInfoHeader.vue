@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { User as UserIcon, BellOff as BellOffIcon, Search as SearchIcon } from '@lucide/vue'
+import { User as UserIcon, Bell as BellIcon, BellOff as BellOffIcon, Search as SearchIcon } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ChatInfoQuickAction from './ChatInfoQuickAction.vue'
 
@@ -9,11 +9,14 @@ defineProps<{
     name: string
     avatar: string
     isOnline: boolean
+    isMuted?: boolean
   }
 }>()
 
 defineEmits<{
   (e: 'viewProfile'): void
+  (e: 'toggleMute'): void
+  (e: 'openSearch'): void
 }>()
 </script>
 
@@ -22,7 +25,7 @@ defineEmits<{
     <UserAvatar :user="{ name: conversation.name, avatar: conversation.avatar }" size="xl" class="mb-3" />
     <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ conversation.name }}</h2>
     <p v-if="conversation.isOnline" class="text-sm text-green-500 font-medium mb-2">Đang hoạt động</p>
-    <p v-else class="text-sm text-gray-500 mb-2">Hoạt động 15 phút trước</p>
+    <p v-else class="text-sm text-gray-500 mb-2">Hoạt động gần đây</p>
 
     <!-- Quick Actions -->
     <div class="flex gap-6 mt-4">
@@ -32,12 +35,14 @@ defineEmits<{
         @click="$emit('viewProfile')"
       />
       <ChatInfoQuickAction
-        label="Tắt thông báo"
-        :icon="BellOffIcon"
+        :label="conversation.isMuted ? 'Bật thông báo' : 'Tắt thông báo'"
+        :icon="conversation.isMuted ? BellIcon : BellOffIcon"
+        @click="$emit('toggleMute')"
       />
       <ChatInfoQuickAction
         label="Tìm kiếm"
         :icon="SearchIcon"
+        @click="$emit('openSearch')"
       />
     </div>
   </div>

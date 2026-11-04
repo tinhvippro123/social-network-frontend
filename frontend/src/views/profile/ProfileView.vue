@@ -2,20 +2,23 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
-  FileText, Lock, UserX
+  FileText, Lock, UserX, Bookmark, Users
 } from '@lucide/vue'
 import { useProfileTabs } from '@/composables/ui/useProfileTabs'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import ProfileHeader from './components/ProfileHeader.vue'
 import ProfilePostItem from './components/ProfilePostItem.vue'
 import ProfilePostSkeleton from './components/ProfilePostSkeleton.vue'
+import GroupCard from '@/components/groups/GroupCard.vue'
 import { useAuth } from '@/composables/auth/useAuth'
+import { useToast } from '@/composables/ui/useToast'
 import usersApi from '@/api/users.api'
 import type { UserProfile } from '@/types'
 
 const router = useRouter()
 const route = useRoute()
 const { user: authUser } = useAuth()
+const toast = useToast()
 
 const profileUserId = computed(() => route.params.id as string | undefined)
 const isOwnProfile = computed(() => !profileUserId.value || profileUserId.value === authUser.value?.id)
@@ -23,7 +26,17 @@ const isOwnProfile = computed(() => !profileUserId.value || profileUserId.value 
 const profileUser = ref<UserProfile | null>(null)
 const isProfileLoading = ref(true)
 
-const { activeTab, tabs, posts, isLoading, fetchPosts } = useProfileTabs(isOwnProfile.value, profileUser)
+const {
+  activeTab,
+  tabs,
+  posts,
+  drafts,
+  bookmarkedPosts,
+  joinedGroups,
+  isLoading,
+  fetchPosts,
+  deleteDraft
+} = useProfileTabs(isOwnProfile.value, profileUser)
 
 // Privacy setting
 const privacySetting = ref<'public' | 'followers' | 'private'>('public')
@@ -49,6 +62,15 @@ async function loadProfile() {
     profileUser.value = null
   } finally {
     isProfileLoading.value = false
+  }
+}
+
+async function handleDeleteDraft(postId: string) {
+  try {
+    await deleteDraft(postId)
+    toast.success('Đã xóa bản nháp thành công')
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể xóa bản nháp')
   }
 }
 
@@ -101,7 +123,7 @@ watch(() => [route.params.id, authUser.value?.id], () => {
           :key="tab.key"
           @click="activeTab = tab.key"
           :class="[
-            'flex items-center justify-center gap-1.5 px-2 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm font-medium transition-all duration-200 sm:flex-1',
+            'flex items-center justify-center gap-1.5 px-2 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm font-medium transition-all duration-200 sm:flex-1 cursor-pointer',
             activeTab === tab.key
               ? 'bg-primary-500 text-white shadow-md shadow-primary-500/25'
               : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700'
@@ -137,24 +159,52 @@ watch(() => [route.params.id, authUser.value?.id], () => {
       <!-- Drafts List (tab: drafts) -->
       <div v-else-if="activeTab === 'drafts'" class="space-y-4 stagger-children">
         <ProfilePostItem
-          v-for="post in posts"
+          v-for="post in drafts"
           :key="'draft-' + post.id"
           :post="post"
           :is-draft="true"
+          @delete="handleDeleteDraft"
         />
 
-        <div v-if="posts.length === 0" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-12 text-center">
+        <div v-if="drafts.length === 0" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-12 text-center">
           <FileText class="w-12 h-12 text-gray-300 dark:text-surface-600 mx-auto mb-4" />
           <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Không có bài nháp</h3>
           <p class="text-gray-500 dark:text-gray-400 text-sm">Khi bạn lưu nháp, chúng sẽ xuất hiện ở đây.</p>
         </div>
       </div>
 
-      <!-- Bookmarks / Groups placeholder -->
-      <div v-else class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-12 text-center">
-        <FileText class="w-12 h-12 text-gray-300 dark:text-surface-600 mx-auto mb-4" />
-        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">{{ tabs.find(t => t.key === activeTab)?.label }}</h3>
-        <p class="text-gray-500 dark:text-gray-400 text-sm">Nội dung sẽ xuất hiện ở đây.</p>
+      <!-- Bookmarks List (tab: bookmarks) -->
+      <div v-else-if="activeTab === 'bookmarks'" class="space-y-4 stagger-children">
+        <ProfilePostItem
+          v-for="post in bookmarkedPosts"
+          :key="'bm-' + post.id"
+          :post="post"
+        />
+
+        <div v-if="bookmarkedPosts.length === 0" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-12 text-center">
+          <Bookmark class="w-12 h-12 text-gray-300 dark:text-surface-600 mx-auto mb-4" />
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Chưa có bài viết đã lưu</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm">Các bài viết bạn đánh dấu lưu sẽ xuất hiện tại đây.</p>
+        </div>
+      </div>
+
+      <!-- Groups List (tab: groups) -->
+      <div v-else-if="activeTab === 'groups'">
+        <div v-if="joinedGroups.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <GroupCard
+            v-for="group in joinedGroups"
+            :key="group.id"
+            :group="group"
+          />
+        </div>
+        <div v-else class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-12 text-center">
+          <Users class="w-12 h-12 text-gray-300 dark:text-surface-600 mx-auto mb-4" />
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Chưa tham gia nhóm nào</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Hãy khám phá và tham gia các nhóm cộng đồng trên VietBlog.</p>
+          <button @click="router.push('/groups')" class="px-5 py-2 rounded-xl text-sm font-medium bg-primary-500 text-white hover:bg-primary-600 transition-colors cursor-pointer">
+            Khám phá nhóm
+          </button>
+        </div>
       </div>
     </template>
   </div>

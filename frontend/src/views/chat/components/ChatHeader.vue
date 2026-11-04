@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   ChevronLeft as ChevronLeftIcon,
-  Phone as PhoneIcon,
-  Video as VideoIcon,
+  Search as SearchIcon,
   Info as InfoIcon
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -16,17 +15,31 @@ if (!chatState) {
 }
 
 const {
+  currentUser,
   showMobileChat,
   selectedConversation,
   isInitialLoading,
   isTyping,
   typingUser,
   showInfoPanel,
-  handlePerformSearch,
-  startCall
+  showSearchInChat
 } = chatState
 
 const router = useRouter()
+
+const otherParticipantId = computed(() => {
+  const conv = selectedConversation?.value
+  if (!conv) return undefined
+  const myId = currentUser?.value?.id
+  const other = conv.participants?.find((p: any) => p.id && p.id !== myId)
+  return other?.id || conv.participants?.[0]?.id
+})
+
+function handleOpenProfile() {
+  if (otherParticipantId.value) {
+    router.push(`/profile/${otherParticipantId.value}`)
+  }
+}
 </script>
 
 <template>
@@ -34,11 +47,11 @@ const router = useRouter()
     <div class="flex items-center gap-3">
       <button
         @click="showMobileChat = false"
-        class="sm:hidden p-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 mr-1"
+        class="sm:hidden p-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 mr-1 cursor-pointer"
       >
         <ChevronLeftIcon :size="20" />
       </button>
-      <div class="cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-3" @click="router.push(`/profile/${selectedConversation?.id}`)">
+      <div class="cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-3" @click="handleOpenProfile">
         <div class="relative">
           <UserAvatar v-if="selectedConversation && !isInitialLoading" :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="sm" />
           <Skeleton v-else type="avatar" class="w-8 h-8" rounded="rounded-full" />
@@ -49,7 +62,7 @@ const router = useRouter()
             <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedConversation.name }}</p>
             <p class="text-xs text-green-500" v-if="isTyping">{{ typingUser }} đang nhập...</p>
             <p class="text-xs text-green-500" v-else-if="selectedConversation.isOnline">Đang hoạt động</p>
-            <p class="text-xs text-gray-400" v-else>Hoạt động 15 phút trước</p>
+            <p class="text-xs text-gray-400" v-else>Hoạt động gần đây</p>
           </template>
           <template v-else>
             <Skeleton type="text" class="w-24 h-4 mb-1" />
@@ -59,13 +72,18 @@ const router = useRouter()
       </div>
     </div>
     <div class="flex items-center gap-1">
-      <button @click="handlePerformSearch" class="p-2 text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-colors">
-        <PhoneIcon :size="18" />
+      <button
+        @click="showSearchInChat = !showSearchInChat"
+        title="Tìm kiếm trong cuộc trò chuyện"
+        :class="['p-2 rounded-xl transition-colors cursor-pointer', showSearchInChat ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700']"
+      >
+        <SearchIcon :size="18" />
       </button>
-      <button @click="startCall('video')" class="p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-surface-700 rounded-xl transition-colors">
-        <VideoIcon :size="18" />
-      </button>
-      <button @click="showInfoPanel = !showInfoPanel" :class="['p-2 rounded-xl transition-colors', showInfoPanel ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700']">
+      <button
+        @click="showInfoPanel = !showInfoPanel"
+        title="Thông tin cuộc trò chuyện"
+        :class="['p-2 rounded-xl transition-colors cursor-pointer', showInfoPanel ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700']"
+      >
         <InfoIcon :size="18" />
       </button>
     </div>
