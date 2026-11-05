@@ -2,9 +2,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePosts } from './usePosts'
 import { useCategories } from '../core/useCategories'
+import { useAuthStore } from '@/stores/auth.store'
 
 export function useHomePosts() {
   const route = useRoute()
+  const authStore = useAuthStore()
   const { posts, isLoading, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
   const { categories, fetchCategories } = useCategories()
 
@@ -23,13 +25,13 @@ export function useHomePosts() {
   const filteredPosts = computed(() => {
     const all = selectedCategory.value === 'all'
       ? posts.value
-      : posts.value.filter(p => p.category.slug === selectedCategory.value || p.category.name === selectedCategory.value)
+      : posts.value.filter(p => p.category?.slug === selectedCategory.value || p.category?.name === selectedCategory.value)
     return all.slice(0, visibleCount.value)
   })
 
   const totalFiltered = computed(() => {
     if (selectedCategory.value === 'all') return posts.value.length
-    return posts.value.filter(p => p.category.slug === selectedCategory.value || p.category.name === selectedCategory.value).length
+    return posts.value.filter(p => p.category?.slug === selectedCategory.value || p.category?.name === selectedCategory.value).length
   })
 
   const hasMore = computed(() => visibleCount.value < totalFiltered.value)
@@ -59,6 +61,10 @@ export function useHomePosts() {
   const initData = async () => {
     await Promise.all([fetchPosts({ limit: 50 }), fetchCategories()])
   }
+
+  watch(() => authStore.user?.id, () => {
+    fetchPosts({ limit: 50 })
+  })
 
   onMounted(() => {
     initData()

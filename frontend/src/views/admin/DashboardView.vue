@@ -78,7 +78,7 @@ ChartJS.register(
           :label="stat.label"
           :value="stat.value"
           :change="stat.change"
-          :trend="stat.color.includes('green') ? 'up' : stat.color.includes('red') ? 'down' : 'neutral'"
+          :trend="stat.trend || (stat.color.includes('green') ? 'up' : stat.color.includes('red') ? 'down' : 'neutral')"
           :icon="stat.icon"
           :icon-color="stat.color"
           :icon-bg="stat.bg"

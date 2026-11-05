@@ -45,6 +45,7 @@ const editCoverInputRef = ref<HTMLInputElement | null>(null)
 const editGroupForm = ref({
   name: '',
   description: '',
+  avatar: '',
   coverImage: '',
   isPublic: true
 })
@@ -54,6 +55,7 @@ const openEditGroupModal = () => {
   editGroupForm.value = {
     name: group.value.name || '',
     description: group.value.description || '',
+    avatar: group.value.avatar || '',
     coverImage: group.value.coverImage || '',
     isPublic: group.value.isPublic !== false
   }
@@ -87,6 +89,7 @@ const submitEditGroup = async () => {
     const ok = await handleUpdateGroup({
       name: editGroupForm.value.name.trim(),
       description: editGroupForm.value.description.trim() || undefined,
+      avatar: editGroupForm.value.avatar.trim() || group.value?.avatar || undefined,
       coverImage: editGroupForm.value.coverImage.trim() || undefined,
       isPublic: editGroupForm.value.isPublic
     })

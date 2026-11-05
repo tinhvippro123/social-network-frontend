@@ -286,7 +286,9 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
 
   // Kéo thanh bán kính → gọi lại API (debounce để không spam request khi đang kéo)
   watch(searchRadius, () => {
-    if (!searchCenter.value) return
+    if (!searchCenter.value) {
+      searchCenter.value = HCMUNRE_CENTER
+    }
     renderRadius()
     if (radiusTimer) clearTimeout(radiusTimer)
     radiusTimer = setTimeout(() => {
@@ -304,7 +306,6 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
 
   const initMap = async () => {
     if (!mapContainer.value) return
-    await fetchPosts({ limit: 100 })
 
     map = L.map(mapContainer.value, {
       zoomControl: false
@@ -319,6 +320,9 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
     map.on('click', (e: L.LeafletMouseEvent) => {
       searchNearby({ lat: e.latlng.lat, lng: e.latlng.lng, label: 'điểm đã chọn' }, false)
     })
+
+    await fetchPosts({ limit: 100 })
+    if (!map) return
 
     renderMarkers()
 

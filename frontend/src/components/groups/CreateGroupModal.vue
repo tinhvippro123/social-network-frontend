@@ -59,6 +59,15 @@ const close = () => {
   emit('update:modelValue', false)
 }
 
+const categoryLabels: Record<string, string> = {
+  programming: 'Lập trình',
+  design: 'Thiết kế',
+  devops: 'DevOps',
+  ai: 'AI / Machine Learning',
+  career: 'Sự nghiệp',
+  other: 'Khác'
+}
+
 async function handleCreate() {
   if (!name.value.trim()) {
     toast.warning('Vui lòng nhập tên nhóm')
@@ -67,7 +76,12 @@ async function handleCreate() {
 
   isSubmitting.value = true
   try {
-    const combinedDesc = [description.value.trim(), rules.value.trim() ? `Nội quy: ${rules.value.trim()}` : ''].filter(Boolean).join('\n\n')
+    const topicLabel = category.value ? categoryLabels[category.value] || category.value : ''
+    const combinedDesc = [
+      description.value.trim(),
+      topicLabel ? `Chủ đề: ${topicLabel}` : '',
+      rules.value.trim() ? `Nội quy: ${rules.value.trim()}` : ''
+    ].filter(Boolean).join('\n\n')
     const newGroup = await createGroup({
       name: name.value.trim(),
       description: combinedDesc || undefined,

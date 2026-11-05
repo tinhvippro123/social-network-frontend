@@ -2,9 +2,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePosts } from './usePosts'
 import { useUsers } from '../core/useUsers'
+import { useAuthStore } from '@/stores/auth.store'
 
 export function useTrendingPosts() {
   const route = useRoute()
+  const authStore = useAuthStore()
   const { posts, isLoading, fetchPosts, tags, fetchPopularTags, toggleBookmark: apiToggleBookmark } = usePosts()
   const { users, fetchUsers } = useUsers()
   
@@ -26,7 +28,7 @@ export function useTrendingPosts() {
     let list = [...posts.value]
 
     if (selectedCategory.value !== 'all') {
-      list = list.filter(p => p.category.slug === selectedCategory.value || p.category.name === selectedCategory.value)
+      list = list.filter(p => p.category?.slug === selectedCategory.value || p.category?.name === selectedCategory.value)
     }
     return list
   })
@@ -70,6 +72,10 @@ export function useTrendingPosts() {
     await Promise.all([fetchUsers(), fetchPopularTags()])
     sidebarLoading.value = false
   }
+
+  watch(() => authStore.user?.id, () => {
+    initData()
+  })
 
   onMounted(() => {
     initData()

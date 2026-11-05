@@ -22,7 +22,7 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     if (!event || typeof event !== 'object' || !event.type) return
 
     const convId: string | undefined = event.conversationId
-    const payload = event.payload
+    const payload = event.data ?? event.payload
 
     if (event.type === 'message.created' && payload) {
       const incoming = payload as ChatMessage
@@ -36,6 +36,9 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
         if (!incoming.isOwn && activeConversationId.value !== convId) {
           conv.unreadCount = (conv.unreadCount || 0) + 1
         }
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
       }
 
       // Nếu đang mở đúng hội thoại này thì đẩy vào danh sách tin nhắn
@@ -82,12 +85,18 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
       if (!conversations.value.some(c => c.id === newConv.id)) {
         conversations.value.unshift(...applyNicknamesToConversations([newConv]))
       }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+      }
       return
     }
 
     if (event.type === 'conversation.nickname' && convId && payload) {
       const conv = conversations.value.find(c => c.id === convId && !c.isGroup)
       if (conv) {
+        if (!(conv as any).originalName) {
+          (conv as any).originalName = conv.name
+        }
         conv.nickname = payload.nickname || ''
         if (payload.nickname) {
           conv.name = payload.nickname
@@ -180,6 +189,9 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
           (msg.type === 'image' ? '[Hình ảnh]' : msg.type === 'file' ? `[Tệp] ${msg.fileName || ''}` : '')
         conv.lastMessageTime = msg.createdAt || new Date().toISOString()
       }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+      }
 
       return msg
     } catch (err) {
@@ -200,6 +212,9 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
       await chatApi.markAsRead(conversationId)
       const conv = conversations.value.find(c => c.id === conversationId)
       if (conv) conv.unreadCount = 0
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+      }
     } catch {
       // ignore read receipt error
     }
@@ -237,6 +252,9 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     try {
       await chatApi.deleteConversation(conversationId)
       conversations.value = conversations.value.filter(c => c.id !== conversationId)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+      }
       toast.info('Đã xóa cuộc trò chuyện')
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Không thể xóa cuộc trò chuyện')
@@ -261,6 +279,9 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     }
     try {
       await chatApi.blockUser(targetUserId)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('chat-block-updated'))
+      }
       toast.info('Đã chặn người dùng')
       return true
     } catch (err: any) {
@@ -274,6 +295,9 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     if (!targetUserId) return false
     try {
       await chatApi.unblockUser(targetUserId)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('chat-block-updated'))
+      }
       toast.success('Đã bỏ chặn người dùng')
       return true
     } catch (err: any) {

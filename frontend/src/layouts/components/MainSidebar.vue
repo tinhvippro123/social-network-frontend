@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth.store'
 
 const authStore = useAuthStore()
 
-defineProps<{
+const props = defineProps<{
   isMobile: boolean
   isMobileSidebarOpen: boolean
   isSidebarOpen: boolean
@@ -17,6 +17,11 @@ const emit = defineEmits<{
   (e: 'navigate', path: string): void
   (e: 'toggleTheme'): void
 }>()
+
+function isItemActive(to: string) {
+  if (to === '/') return props.currentPath === '/'
+  return props.currentPath === to || props.currentPath.startsWith(`${to}/`)
+}
 </script>
 
 <template>
@@ -52,7 +57,7 @@ const emit = defineEmits<{
         @click="emit('navigate', item.to)"
         :class="[
           'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group cursor-pointer',
-          currentPath === item.to
+          isItemActive(item.to)
             ? 'bg-primary-500/10 text-primary-500 dark:text-primary-400 shadow-sm'
             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-900 dark:hover:text-gray-200'
         ]"
@@ -62,7 +67,7 @@ const emit = defineEmits<{
           :size="20"
           :class="[
             'shrink-0 transition-transform duration-200 group-hover:scale-110',
-            currentPath === item.to ? 'text-primary-500' : ''
+            isItemActive(item.to) ? 'text-primary-500' : ''
           ]"
         />
         <transition name="fade">
@@ -71,7 +76,7 @@ const emit = defineEmits<{
 
         <!-- Active indicator -->
         <div
-          v-if="currentPath === item.to"
+          v-if="isItemActive(item.to)"
           class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse-glow"
         />
       </button>

@@ -52,8 +52,8 @@ watch(() => props.currentUser?.id, async (targetId) => {
   }
   try {
     const res = await chatApi.getBlockedUsers()
-    const blockedIds = res.data?.data || []
-    isBlockedUser.value = Array.isArray(blockedIds) && blockedIds.includes(targetId)
+    const blockedList = res.data?.data || []
+    isBlockedUser.value = Array.isArray(blockedList) && blockedList.some((u: any) => String(typeof u === 'string' ? u : u?.id) === String(targetId))
   } catch {
     isBlockedUser.value = false
   }
@@ -149,14 +149,22 @@ async function toggleFollow() {
     const res = await usersApi.toggleFollow(props.currentUser.id)
     const newStatus = res.data.data
     isFollowing.value = newStatus
+    props.currentUser.isFollowing = newStatus
+    props.currentUser.following = newStatus
     if (newStatus) {
       if (typeof props.currentUser.followersCount === 'number') {
         props.currentUser.followersCount += 1
+      }
+      if (authStore.user && typeof authStore.user.followingCount === 'number') {
+        authStore.user.followingCount += 1
       }
       addToast({ message: 'Đã theo dõi người dùng', type: 'success' })
     } else {
       if (typeof props.currentUser.followersCount === 'number') {
         props.currentUser.followersCount = Math.max(0, props.currentUser.followersCount - 1)
+      }
+      if (authStore.user && typeof authStore.user.followingCount === 'number') {
+        authStore.user.followingCount = Math.max(0, authStore.user.followingCount - 1)
       }
       addToast({ message: 'Đã hủy theo dõi', type: 'info' })
     }

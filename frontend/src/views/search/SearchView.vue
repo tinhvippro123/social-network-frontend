@@ -116,13 +116,27 @@ watch(() => uiStore.pendingSearchFile, (newFile) => {
   }
 })
 
-// Watch query in URL
+// Watch query & type in URL
 watch(() => route.query.q, (newQ) => {
   if (newQ && newQ !== query.value) {
     query.value = newQ as string
     executeSearch()
   }
 })
+
+watch(() => route.query.type, (newType) => {
+  if ((newType === 'semantic' || newType === 'keyword') && newType !== textMode.value) {
+    textMode.value = newType
+  }
+})
+
+function handleUpdateQuery(val: string) {
+  query.value = val
+  if (!val.trim() && !selectedFile.value) {
+    clearSearch()
+    router.replace({ query: textMode.value === 'semantic' ? { type: 'semantic' } : {} })
+  }
+}
 
 // Re-search when switching text mode if query exists
 watch(textMode, () => {
@@ -245,7 +259,7 @@ const tabs = [
       :is-searching="isSearching"
       :active-tab="activeTab"
       :tabs="tabs"
-      @update:query="val => query = val"
+      @update:query="handleUpdateQuery"
       @update:text-mode="val => textMode = val"
       @update:active-tab="val => activeTab = val as 'posts' | 'users' | 'tags'"
       @select-file="handleSelectFile"
@@ -301,7 +315,7 @@ const tabs = [
       class="mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-sm flex items-center justify-between"
     >
       <span>{{ error }}</span>
-      <button @click="clearSearch" class="text-xs font-semibold hover:underline cursor-pointer">
+      <button @click="executeSearch" class="text-xs font-semibold hover:underline cursor-pointer">
         Thử lại
       </button>
     </div>

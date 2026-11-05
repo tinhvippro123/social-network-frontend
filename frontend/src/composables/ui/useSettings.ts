@@ -148,14 +148,23 @@ export function useSettings() {
   }
 
   const saveProfile = async () => {
-    if (!profileForm.value.name.trim()) {
+    const trimmedName = profileForm.value.name.trim()
+    if (!trimmedName) {
       toast.error('Tên hiển thị không được để trống!')
+      return
+    }
+    if (trimmedName.length < 2 || trimmedName.length > 50) {
+      toast.error('Tên hiển thị phải từ 2 đến 50 ký tự!')
+      return
+    }
+    if (profileForm.value.bio && profileForm.value.bio.length > 250) {
+      toast.error('Giới thiệu bản thân không được vượt quá 250 ký tự!')
       return
     }
     isSaving.value = true
     try {
       const { data } = await usersApi.updateProfile({
-        name: profileForm.value.name.trim(),
+        name: trimmedName,
         bio: profileForm.value.bio,
         avatar: profileForm.value.avatar
       })

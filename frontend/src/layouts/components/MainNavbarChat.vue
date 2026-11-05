@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatMessengerTime } from '@/utils/formatters'
 import { useChatNicknames } from '@/composables/chat/useChatNicknames'
+import { useWebSocket } from '@/composables/core/useWebSocket'
 
 const props = defineProps<{
   showChat: boolean
@@ -44,6 +45,17 @@ async function loadConversations() {
   }
 }
 
+const { connect: connectWs } = useWebSocket(undefined, (event) => {
+  if (!event || !event.type) return
+  if (
+    event.type === 'message.created' ||
+    event.type === 'conversation.created' ||
+    event.type === 'conversation.nickname'
+  ) {
+    loadConversations()
+  }
+})
+
 function handleOutsideClick(e: MouseEvent) {
   if (!props.showChat) return
   const target = e.target as Node
@@ -61,16 +73,16 @@ function onNicknameChanged() {
 
 onMounted(() => {
   loadConversations()
+  connectWs()
   document.addEventListener('click', handleOutsideClick)
   window.addEventListener('chat-nickname-changed', onNicknameChanged)
-  if (false) window.addEventListener('chat-nickname-changed', () => {
-    liveConversations.value = [...liveConversations.value]
-  })
+  window.addEventListener('chat-conversations-sync', loadConversations)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleOutsideClick)
   window.removeEventListener('chat-nickname-changed', onNicknameChanged)
+  window.removeEventListener('chat-conversations-sync', loadConversations)
 })
 
 watch(() => props.showChat, (isOpen) => {

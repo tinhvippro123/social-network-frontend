@@ -53,6 +53,10 @@ export function useAdminPosts() {
   }
 
   async function togglePostStatus(post: any) {
+    if ((post.status || '').toLowerCase() === 'draft') {
+      toast.info('Không thể thay đổi trạng thái công khai của bản nháp cá nhân')
+      return
+    }
     const isCurrentlyHidden = (post.status || '').toLowerCase() === 'hidden'
     const newStatus = isCurrentlyHidden ? 'PUBLISHED' : 'HIDDEN'
     const actionLabel = isCurrentlyHidden ? 'Hiện bài viết' : 'Ẩn bài viết'
@@ -73,6 +77,9 @@ export function useAdminPosts() {
       toast.success(`Đã ${actionLabel.toLowerCase()} thành công!`)
       if (filterStatus.value !== 'all') {
         await fetchPosts()
+        if (posts.value.length === 0 && currentPage.value > 1) {
+          currentPage.value -= 1
+        }
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || `Thao tác ${actionLabel.toLowerCase()} thất bại`)

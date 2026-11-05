@@ -233,6 +233,7 @@ onBeforeUnmount(() => {
 
             <div class="flex items-center gap-2">
               <button
+                v-if="(detailedPost.status || '').toLowerCase() !== 'draft'"
                 type="button"
                 @click="emit('toggle-status', detailedPost)"
                 :class="[

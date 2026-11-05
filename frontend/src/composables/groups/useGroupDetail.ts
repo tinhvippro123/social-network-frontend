@@ -2,6 +2,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGroups } from './useGroups'
 import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 import { useToast } from '../ui/useToast'
 import { useConfirm } from '../ui/useConfirm'
 import groupsApi from '@/api/groups.api'
@@ -10,6 +11,7 @@ export function useGroupDetail() {
   const router = useRouter()
   const route = useRoute()
   const authStore = useAuthStore()
+  const uiStore = useUiStore()
   const toast = useToast()
   const { confirm } = useConfirm()
   const {
@@ -79,7 +81,7 @@ export function useGroupDetail() {
     if (!group.value?.id) return
     if (!authStore.isLoggedIn) {
       toast.info('Vui lòng đăng nhập để tham gia nhóm')
-      router.push('/login')
+      uiStore.openAuthModal('login')
       return
     }
     try {

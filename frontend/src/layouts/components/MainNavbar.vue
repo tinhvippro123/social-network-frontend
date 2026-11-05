@@ -41,6 +41,15 @@ function handleSearchSubmit() {
   }
 }
 
+function handleAiSearchClick() {
+  const q = props.uiStore.searchQuery?.trim()
+  if (q) {
+    emit('navigate', `/search?q=${encodeURIComponent(q)}&type=semantic`)
+  } else {
+    emit('navigate', '/search?type=semantic')
+  }
+}
+
 function onNavbarImagePicked(event: Event) {
   const target = event.target as HTMLInputElement
   if (target.files && target.files[0]) {
@@ -103,7 +112,7 @@ function onNavbarImagePicked(event: Event) {
         <!-- AI Badge button -->
         <button
           type="button"
-          @click="emit('navigate', '/search')"
+          @click="handleAiSearchClick"
           class="hidden lg:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors shrink-0"
           title="Mở trang tìm kiếm AI"
         >

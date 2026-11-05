@@ -36,6 +36,10 @@ export function usePostDetail() {
     const postId = route.params.id as string || '1'
     userVote.value = null
     currentUserReaction.value = null
+    isBookmarked.value = false
+    replyingTo.value = null
+    activeEmojiPicker.value = null
+    showReportModal.value = false
     await Promise.all([
       fetchPost(postId),
       fetchPosts({ limit: 4 })
@@ -208,10 +212,20 @@ export function usePostDetail() {
     }
   })
 
-  // Refresh user-specific interaction state if user logs in via AuthModal on this page
+  // Refresh user-specific interaction state if user logs in or out on this page
   watch(user, (newUser, oldUser) => {
     if (newUser && !oldUser && post.value) {
       initData()
+    } else if (!newUser && oldUser) {
+      userVote.value = null
+      currentUserReaction.value = null
+      isBookmarked.value = false
+      if (post.value) {
+        post.value.bookmarked = false
+        if (Array.isArray(post.value.reactions)) {
+          post.value.reactions.forEach((r: any) => { r.reacted = false })
+        }
+      }
     }
   })
 

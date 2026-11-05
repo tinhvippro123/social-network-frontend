@@ -60,7 +60,7 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
   const groupedSharedLinks = computed(() => groupItemsByDate(sharedLinks.value))
 
   const pinnedMessage = computed(() =>
-    messages.value.find(m => m.isPinned)
+    [...messages.value].reverse().find(m => m.isPinned)
   )
 
   const filteredConversations = computed(() => {

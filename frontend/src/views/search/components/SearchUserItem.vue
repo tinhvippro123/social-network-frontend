@@ -51,7 +51,13 @@ async function handleToggleFollow(e: Event) {
   isToggling.value = true
   try {
     const res = await usersApi.toggleFollow(props.user.id)
-    isFollowing.value = res.data?.data ?? !isFollowing.value
+    const nextState = typeof res.data?.data === 'boolean' ? res.data.data : !isFollowing.value
+    isFollowing.value = nextState
+    props.user.isFollowing = nextState
+    props.user.following = nextState
+    if (typeof props.user.followersCount === 'number') {
+      props.user.followersCount = Math.max(0, props.user.followersCount + (nextState ? 1 : -1))
+    }
     toast.success(isFollowing.value ? `Đã theo dõi ${props.user.name}` : `Đã bỏ theo dõi ${props.user.name}`)
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Không thể thực hiện thao tác')

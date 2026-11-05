@@ -12,7 +12,8 @@ const authStore = useAuthStore()
 const uiStore = useUiStore()
 const toast = useToast()
 
-const email = ref('')
+const savedRememberedEmail = typeof window !== 'undefined' ? localStorage.getItem('vb_remember_email') || '' : ''
+const email = ref(savedRememberedEmail)
 const password = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
@@ -20,6 +21,9 @@ const emailError = ref('')
 const passwordError = ref('')
 
 function fillDemo(role: 'admin' | 'user') {
+  emailError.value = ''
+  passwordError.value = ''
+  emitError('update:error', '')
   if (role === 'admin') {
     email.value = 'admin@vietblog.com'
     password.value = 'Password123!'
@@ -53,8 +57,8 @@ function validateLogin(): boolean {
   if (!password.value) {
     passwordError.value = 'Vui lòng nhập mật khẩu'
     valid = false
-  } else if (password.value.length < 6) {
-    passwordError.value = 'Mật khẩu phải có ít nhất 6 ký tự'
+  } else if (password.value.length < 8) {
+    passwordError.value = 'Mật khẩu phải có ít nhất 8 ký tự'
     valid = false
   }
 

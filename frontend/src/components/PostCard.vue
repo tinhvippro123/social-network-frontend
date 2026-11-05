@@ -53,15 +53,15 @@ const handleBookmark = async (e: Event) => {
     return
   }
   const vnodeProps = instance?.vnode.props || {}
-  const hasParentListener = Boolean(
-    vnodeProps.onBookmark ||
-    vnodeProps.onToggleBookmark ||
-    vnodeProps['onToggle-bookmark']
-  )
-
-  if (hasParentListener) {
+  if (vnodeProps.onBookmark) {
     emit('bookmark', props.post.id)
+    return
+  }
+  if (vnodeProps.onToggleBookmark) {
     emit('toggleBookmark', props.post.id)
+    return
+  }
+  if (vnodeProps['onToggle-bookmark']) {
     emit('toggle-bookmark', props.post.id)
     return
   }
@@ -101,11 +101,12 @@ const handleBookmark = async (e: Event) => {
       <div class="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
       <!-- Category badge -->
       <span
+        v-if="post.category"
         @click.stop="post.category?.slug && router.push('/?category=' + post.category.slug)"
         class="absolute top-3 left-3 px-3 py-1 rounded-lg text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-surface-700 hover:text-primary-600 transition-colors cursor-pointer"
         title="Lọc theo danh mục này"
       >
-        {{ post.category.icon }} {{ post.category.name }}
+        {{ post.category?.icon }} {{ post.category?.name }}
       </span>
       <!-- Location badge -->
       <span

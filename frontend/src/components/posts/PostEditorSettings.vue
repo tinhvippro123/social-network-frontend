@@ -36,16 +36,36 @@ const emit = defineEmits<{
 }>()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const isDraggingCover = ref(false)
 
 const triggerFileInput = () => {
   fileInputRef.value?.click()
+}
+
+const handleCoverDrop = (e: DragEvent) => {
+  isDraggingCover.value = false
+  const file = e.dataTransfer?.files?.[0]
+  if (!file) return
+  emit('coverImageChange', { target: { files: [file], value: '' } } as unknown as Event)
 }
 </script>
 
 <template>
   <div class="flex flex-col gap-6 bg-white dark:bg-surface-800 p-6 rounded-2xl border border-gray-200 dark:border-surface-700 shadow-sm">
     <!-- Cover Image Upload -->
-    <div v-if="!coverImagePreview" @click="triggerFileInput" class="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 dark:border-surface-600 rounded-xl bg-gray-50 dark:bg-surface-800/50 hover:bg-gray-100 dark:hover:bg-surface-700/50 transition-colors cursor-pointer group">
+    <div
+      v-if="!coverImagePreview"
+      @click="triggerFileInput"
+      @dragover.prevent="isDraggingCover = true"
+      @dragleave.prevent="isDraggingCover = false"
+      @drop.prevent="handleCoverDrop"
+      :class="[
+        'flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl transition-colors cursor-pointer group',
+        isDraggingCover
+          ? 'border-primary-500 bg-primary-50/40 dark:bg-primary-900/20'
+          : 'border-gray-300 dark:border-surface-600 bg-gray-50 dark:bg-surface-800/50 hover:bg-gray-100 dark:hover:bg-surface-700/50'
+      ]"
+    >
       <ImageIcon :size="32" class="text-gray-300 dark:text-surface-600 mb-3 group-hover:text-primary-500 transition-colors" />
       <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Kéo thả ảnh hoặc click để tải ảnh bìa lên</p>
       <p class="text-xs text-gray-400 mt-1">PNG, JPG tối đa 5MB</p>

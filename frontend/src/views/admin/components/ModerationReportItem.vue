@@ -61,8 +61,11 @@ function viewTarget() {
         </div>
 
         <h3 class="font-semibold text-gray-900 dark:text-white mb-1">{{ report.targetTitle }}</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
           <span class="font-medium">Lý do:</span> {{ report.reason }}
+        </p>
+        <p v-if="(report as any).description" class="text-xs text-gray-500 dark:text-gray-400 italic mb-2 bg-gray-50 dark:bg-surface-700/50 px-3 py-1.5 rounded-lg">
+          "{{ (report as any).description }}"
         </p>
         <div class="flex items-center gap-3">
           <UserAvatar :user="report.reporter as any" size="sm" />
@@ -92,7 +95,7 @@ function viewTarget() {
           <Check :size="12" /> Giữ lại
         </button>
         <button
-          v-if="report.type !== 'group' || authStore.isAdmin"
+          v-if="report.type !== 'user' && (report.type !== 'group' || authStore.isAdmin)"
           type="button"
           @click="emit('resolve', report.id, 'delete')"
           class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer"

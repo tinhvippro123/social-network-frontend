@@ -28,6 +28,7 @@ async function handleUnblock(user: { id: string; name: string }) {
   try {
     await chatApi.unblockUser(user.id)
     blockedUsers.value = blockedUsers.value.filter(u => u.id !== user.id)
+    window.dispatchEvent(new CustomEvent('chat-block-updated', { detail: { userId: user.id, blocked: false } }))
     toast.success(`Đã bỏ chặn ${user.name}`)
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Không thể bỏ chặn người dùng')
@@ -91,7 +92,11 @@ onMounted(() => {
       <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
         <Ban :size="16" class="text-red-400" /> Người dùng đã chặn ({{ blockedUsers.length }})
       </h3>
-      <div v-if="blockedUsers.length > 0" class="space-y-2.5">
+      <div v-if="isLoadingBlocked" class="p-6 rounded-xl border border-gray-200 dark:border-surface-700 text-center">
+        <div class="w-5 h-5 border-2 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mx-auto mb-2"></div>
+        <p class="text-xs text-gray-400">Đang tải danh sách người dùng đã chặn...</p>
+      </div>
+      <div v-else-if="blockedUsers.length > 0" class="space-y-2.5">
         <div
           v-for="u in blockedUsers"
           :key="u.id"

@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ShieldAlert, Check, X, Ban, ExternalLink } from '@lucide/vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { useAuthStore } from '@/stores/auth.store'
 
-defineProps<{
+const props = defineProps<{
   reports: any[]
   isLoading: boolean
 }>()
@@ -15,6 +16,10 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const pendingReports = computed(() =>
+  (props.reports || []).filter((r: any) => (r.status || 'pending').toLowerCase() === 'pending').slice(0, 6)
+)
 
 function viewTarget(report: any) {
   const type = (report.type || '').toLowerCase()
@@ -36,9 +41,9 @@ function viewTarget(report: any) {
     <div v-if="isLoading" class="space-y-3">
       <Skeleton v-for="i in 4" :key="i" class="h-24 w-full rounded-xl" />
     </div>
-    <div v-else-if="reports.length" class="space-y-3">
+    <div v-else-if="pendingReports.length" class="space-y-3">
       <div
-        v-for="report in reports"
+        v-for="report in pendingReports"
         :key="report.id"
         :class="[
           'p-3 rounded-xl border transition-all',
@@ -82,7 +87,7 @@ function viewTarget(report: any) {
             <Check :size="12" /> Giữ lại
           </button>
           <button
-            v-if="report.type !== 'group' || authStore.isAdmin"
+            v-if="report.type !== 'user' && (report.type !== 'group' || authStore.isAdmin)"
             type="button"
             @click="emit('resolve', report.id, 'delete')"
             class="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer"

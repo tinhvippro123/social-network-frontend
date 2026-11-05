@@ -41,6 +41,7 @@ const { confirm } = useConfirm()
 async function onRoleSelected(user: any, event: Event) {
   const role = (event.target as HTMLSelectElement).value
   editingRoleId.value = null
+  if (role === user.role) return
   if (role === 'admin' && !(await confirm({
     title: 'Cấp quyền Admin',
     message: `Cấp quyền Admin cho "${user.name}"? Tài khoản Admin không thể bị hạ quyền sau đó.`,
@@ -126,7 +127,7 @@ async function onRoleSelected(user: any, event: Event) {
                 <ShieldCheck :size="16" class="text-gray-300 dark:text-surface-500" />
               </div>
               <div v-else class="flex items-center justify-end gap-1">
-                <button type="button" @click="editingRoleId = editingRoleId === user.id ? null : user.id"
+                <button type="button" @mousedown.prevent @click="editingRoleId = editingRoleId === user.id ? null : user.id"
                   class="p-1.5 rounded-lg text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:text-blue-500 transition-colors" title="Phân quyền">
                   <UserCheck :size="14" />
                 </button>

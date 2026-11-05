@@ -77,7 +77,11 @@ export function useAdminCategories() {
   }
 
   const handleUpdateCategory = async () => {
-    if (!editingCategory.value || !editCategoryName.value.trim()) return
+    if (!editingCategory.value) return
+    if (!editCategoryName.value.trim()) {
+      toast.error('Vui lòng nhập tên danh mục')
+      return
+    }
 
     try {
       const targetId = editingCategory.value.id || editingCategory.value.slug
@@ -124,6 +128,10 @@ export function useAdminCategories() {
     const newName = replacementTagName.value.trim().replace(/^#/, '')
     if (!oldName || !newName) {
       toast.error('Vui lòng nhập tên thẻ tag mới')
+      return
+    }
+    if (oldName === newName) {
+      showRenameTagModal.value = false
       return
     }
     try {

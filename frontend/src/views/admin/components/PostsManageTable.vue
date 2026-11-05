@@ -186,6 +186,7 @@ const formatCategoryIcon = (icon?: string) => {
                 <ExternalLink :size="14" />
               </button>
               <button
+                v-if="(post.status || '').toLowerCase() !== 'draft'"
                 type="button"
                 @click="emit('toggle-status', post)"
                 :class="[

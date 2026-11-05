@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { useGroups } from './useGroups'
 import { useGroupFilter } from './useGroupFilter'
 import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 import { useToast } from '../ui/useToast'
 import { useConfirm } from '../ui/useConfirm'
 
@@ -10,6 +11,7 @@ export function useGroupsView() {
   const { groups, isLoading, fetchGroups, joinGroup, leaveGroup } = useGroups()
   const router = useRouter()
   const authStore = useAuthStore()
+  const uiStore = useUiStore()
   const toast = useToast()
   const { confirm } = useConfirm()
   const showCreateModal = ref(false)
@@ -22,7 +24,7 @@ export function useGroupsView() {
   const openCreateModal = () => {
     if (!authStore.isLoggedIn) {
       toast.info('Vui lòng đăng nhập để tạo nhóm mới')
-      router.push('/login')
+      uiStore.openAuthModal('login')
       return
     }
     showCreateModal.value = true
@@ -32,7 +34,7 @@ export function useGroupsView() {
     if (!targetGroup?.id) return
     if (!authStore.isLoggedIn) {
       toast.info('Vui lòng đăng nhập để tham gia nhóm')
-      router.push('/login')
+      uiStore.openAuthModal('login')
       return
     }
     const myId = authStore.user?.id

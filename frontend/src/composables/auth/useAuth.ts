@@ -56,14 +56,17 @@ export function useAuth() {
 
       const redirectUrl = route.query.redirect as string
       const userRole = (data.data.user.role || '').toLowerCase()
+      const isAuthPage = Boolean(route.meta?.guestOnly) || ['/login', '/register', '/forgot-password'].includes(route.path)
       if (redirectUrl) {
         router.push(redirectUrl)
-      } else if (userRole === 'admin') {
-        router.push('/admin')
-      } else if (userRole === 'moderator') {
-        router.push('/admin/moderation')
-      } else {
-        router.push('/')
+      } else if (isAuthPage) {
+        if (userRole === 'admin') {
+          router.push('/admin')
+        } else if (userRole === 'moderator') {
+          router.push('/admin/moderation')
+        } else {
+          router.push('/')
+        }
       }
     }, 'Đăng nhập Google thất bại')
   }

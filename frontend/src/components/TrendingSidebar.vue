@@ -23,9 +23,12 @@ const {
   isLoading
 } = useTrendingSidebar()
 
-watch(users, (list) => {
-  if (!Array.isArray(list)) return
-  const next = new Set<string>(followedUserIds.value)
+watch([users, () => authStore.user?.id], ([list]) => {
+  if (!authStore.isLoggedIn || !Array.isArray(list)) {
+    followedUserIds.value = new Set()
+    return
+  }
+  const next = new Set<string>()
   for (const u of list as any[]) {
     if (u?.isFollowing || u?.following) {
       next.add(u.id)
@@ -123,7 +126,7 @@ async function toggleFollowUser(u: any) {
         <span
           v-for="tag in tags"
           :key="tag.id"
-          @click="router.push('/tags/' + tag.name)"
+          @click="router.push('/tags/' + encodeURIComponent(tag.name))"
           class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700 hover:bg-primary-50 dark:hover:bg-primary-950/40 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-200 dark:hover:border-primary-800 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors cursor-pointer border border-gray-200 dark:border-surface-600"
         >
           #{{ tag.name }}

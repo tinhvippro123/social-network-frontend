@@ -68,8 +68,12 @@ async function toggleFollow(user: UserSummary) {
     const res = await usersApi.toggleFollow(user.id)
     const newFollowing = Boolean(res.data.data)
     user.isFollowing = newFollowing
+    const delta = newFollowing ? 1 : -1
     if (props.user?.id === authStore.user?.id && typeof props.user.followingCount === 'number') {
-      props.user.followingCount = Math.max(0, props.user.followingCount + (newFollowing ? 1 : -1))
+      props.user.followingCount = Math.max(0, props.user.followingCount + delta)
+    }
+    if (authStore.user && typeof authStore.user.followingCount === 'number') {
+      authStore.user.followingCount = Math.max(0, authStore.user.followingCount + delta)
     }
     toast.success(user.isFollowing ? `Đã theo dõi ${user.name}` : `Đã bỏ theo dõi ${user.name}`)
   } catch (err: any) {

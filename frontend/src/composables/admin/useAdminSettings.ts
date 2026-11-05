@@ -41,14 +41,20 @@ export function useAdminSettings() {
   }
 
   const saveSettings = async () => {
+    if (!siteName.value.trim()) {
+      toast.error('Tên trang web không được để trống')
+      return
+    }
+    const clampedThreshold = Math.min(100, Math.max(1, Number(autoHideReportThreshold.value) || 10))
+    autoHideReportThreshold.value = clampedThreshold
     isSaving.value = true
     try {
       const payload = {
-        siteName: siteName.value,
-        siteDescription: siteDescription.value,
+        siteName: siteName.value.trim(),
+        siteDescription: siteDescription.value.trim(),
         allowRegistration: allowRegistration.value,
         requireEmailVerification: requireEmailVerification.value,
-        autoHideReportThreshold: autoHideReportThreshold.value,
+        autoHideReportThreshold: clampedThreshold,
         enableRealTimeChat: enableRealTimeChat.value,
         enableLocationPosts: enableLocationPosts.value,
         enableSemanticSearch: enableSemanticSearch.value,

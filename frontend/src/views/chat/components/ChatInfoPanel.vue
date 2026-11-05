@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref, computed, onMounted } from 'vue'
+import { inject, ref, computed, onMounted, onUnmounted } from 'vue'
 import chatApi from '@/api/chat.api'
 import { useRouter } from 'vue-router'
 import {
@@ -30,14 +30,23 @@ const { confirm } = useConfirm()
 const showNicknameModal = ref(false)
 const blockedUserIds = ref<Set<string>>(new Set())
 
-onMounted(async () => {
+async function loadBlockedUsers() {
   try {
     const res = await chatApi.getBlockedUsers()
     const list = res.data?.data || []
-    blockedUserIds.value = new Set(list.map((u: any) => u.id))
+    blockedUserIds.value = new Set(list.map((u: any) => typeof u === 'string' ? u : u.id))
   } catch {
     // ignore
   }
+}
+
+onMounted(() => {
+  loadBlockedUsers()
+  window.addEventListener('chat-block-updated', loadBlockedUsers)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('chat-block-updated', loadBlockedUsers)
 })
 const { setNickname } = useChatNicknames()
 

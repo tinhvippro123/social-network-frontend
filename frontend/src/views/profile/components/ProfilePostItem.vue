@@ -76,7 +76,7 @@ const handleClick = () => {
     <div class="flex-1 min-w-0">
       <div v-if="isDraft" class="flex items-center gap-2 mb-2">
         <span class="px-2 py-0.5 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full">Nháp</span>
-        <span class="text-xs text-gray-400">Lần cuối chỉnh sửa: {{ formatDate(post.createdAt) }}</span>
+        <span class="text-xs text-gray-400">Lần cuối chỉnh sửa: {{ formatDate(post.updatedAt || post.createdAt) }}</span>
       </div>
 
       <h3 :class="[

@@ -116,7 +116,7 @@
             </button>
             <button
               v-if="user && (user.id === comment.author?.id || user.id === comment.authorId || ['admin', 'moderator'].includes((user.role || '').toLowerCase()))"
-              @click="$emit('delete', comment.id)"
+              @click="handleDeleteComment"
               class="font-semibold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
             >
               Xóa
@@ -193,7 +193,7 @@
             :inline-reply-id="inlineReplyId"
             :active-emoji-picker="activeEmojiPicker"
             :user="user"
-            @reply="(tid, rid, aname) => $emit('reply', tid, comment.id, aname)"
+            @reply="(tid, rid, aname) => $emit('reply', tid, rid, aname)"
             @submit-reply="(content, image) => $emit('submit-reply', content, image)"
             @cancel-reply="$emit('cancel-reply')"
             @toggle-emoji="(cid) => $emit('toggle-emoji', cid)"
@@ -414,6 +414,17 @@ function toggleReaction(emoji: string) {
   }
 
   toggleReactionInner(emoji)
+}
+
+async function handleDeleteComment() {
+  const ok = await confirm({
+    title: 'Xóa bình luận',
+    message: 'Bạn có chắc chắn muốn xóa bình luận này không?',
+    confirmText: 'Xóa',
+    variant: 'danger'
+  })
+  if (!ok) return
+  emit('delete', props.comment.id)
 }
 
 async function handleReportComment() {

@@ -23,6 +23,7 @@ const emit = defineEmits<{
 
 const commentInputRef = ref<HTMLTextAreaElement | null>(null)
 const inlineReplyId = ref<string | null>(null)
+const inlineReplyParentId = ref<string | null>(null)
 const inlineReplyContent = ref('')
 const mainComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
 
@@ -68,16 +69,18 @@ const sentimentStats = computed(() => {
   }
 })
 
-const handleReplyClick = (targetId: string, rootCommentId: string, authorName: string) => {
+const handleReplyClick = (targetId: string, replyItemId: string, authorName: string) => {
   if (window.innerWidth < 640) {
     emit('setReplyingTo', targetId, authorName)
     inlineReplyId.value = null
+    inlineReplyParentId.value = null
     setTimeout(() => {
       mainComposerRef.value?.focus()
     }, 50)
   } else {
     emit('clearReplyingTo')
-    inlineReplyId.value = targetId
+    inlineReplyId.value = replyItemId || targetId
+    inlineReplyParentId.value = targetId
     inlineReplyContent.value = ''
   }
 }
@@ -95,14 +98,17 @@ const handleMainSubmit = (content: string, image: File | null) => {
 }
 
 const handleInlineSubmit = (content: string, image: File | null) => {
-  if (inlineReplyId.value) {
-    emit('replyComment', inlineReplyId.value, content, image)
+  const parentId = inlineReplyParentId.value || inlineReplyId.value
+  if (parentId) {
+    emit('replyComment', parentId, content, image)
   }
   inlineReplyId.value = null
+  inlineReplyParentId.value = null
 }
 
 const cancelInlineReply = () => {
   inlineReplyId.value = null
+  inlineReplyParentId.value = null
 }
 </script>
 

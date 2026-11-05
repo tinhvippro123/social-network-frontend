@@ -30,8 +30,20 @@ const styles = computed(() => {
 
 function onKeydown(e: KeyboardEvent) {
   if (!state.value.open) return
-  if (e.key === 'Escape') close(false)
-  if (e.key === 'Enter') close(true)
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    close(false)
+    return
+  }
+  if (e.key === 'Enter') {
+    if (document.activeElement?.id === 'confirm-dialog-cancel') {
+      e.preventDefault()
+      close(false)
+      return
+    }
+    e.preventDefault()
+    close(true)
+  }
 }
 
 watch(() => state.value.open, (open) => {

@@ -21,9 +21,12 @@ const authStore = useAuthStore()
 const uiStore = useUiStore()
 const followedUserIds = ref<Set<string>>(new Set())
 
-watch(() => props.users, (list) => {
-  if (!Array.isArray(list)) return
-  const next = new Set<string>(followedUserIds.value)
+watch([() => props.users, () => authStore.user?.id], ([list]) => {
+  if (!authStore.isLoggedIn || !Array.isArray(list)) {
+    followedUserIds.value = new Set()
+    return
+  }
+  const next = new Set<string>()
   for (const u of list) {
     if (u?.isFollowing || u?.following) {
       next.add(u.id)

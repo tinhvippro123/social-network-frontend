@@ -272,6 +272,10 @@ export function useCreatePost() {
       return
     }
 
+    if (isEventCategory.value && eventEndTime.value && !eventStartTime.value) {
+      error('Vui lòng chọn thời gian bắt đầu sự kiện')
+      return
+    }
     if (isEventCategory.value && eventStartTime.value && eventEndTime.value) {
       if (new Date(eventEndTime.value).getTime() <= new Date(eventStartTime.value).getTime()) {
         error('Thời gian kết thúc sự kiện phải sau thời gian bắt đầu')

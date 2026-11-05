@@ -57,8 +57,10 @@ function distanceLabel(post: Post) {
 
 <template>
   <!-- Desktop Sidebar (hidden on mobile) -->
-  <div class="hidden sm:flex w-80 lg:w-96 shrink-0 flex-col bg-white dark:bg-surface-800 border-r border-gray-200 dark:border-surface-700 z-10"
-    :class="selectedPost ? 'hidden lg:flex' : ''">
+  <div
+    class="w-80 lg:w-96 shrink-0 flex-col bg-white dark:bg-surface-800 border-r border-gray-200 dark:border-surface-700 z-10"
+    :class="selectedPost ? 'hidden lg:flex' : 'hidden sm:flex'"
+  >
     <!-- Header -->
     <div class="p-4 border-b border-gray-200 dark:border-surface-700">
       <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-3">

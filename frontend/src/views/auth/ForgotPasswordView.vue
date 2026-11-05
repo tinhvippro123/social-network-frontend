@@ -10,6 +10,7 @@ const toast = useToast()
 
 const step = ref<1 | 2 | 3>(1)
 const email = ref('')
+const issuedOtp = ref('')
 const otpOrToken = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
@@ -34,8 +35,10 @@ async function handleSendOtp() {
     const res = await authApi.forgotPassword({ email: email.value.trim() })
     const data = res.data?.data
     if (data?.otp) {
+      issuedOtp.value = data.otp
       otpOrToken.value = data.otp
     } else if (data?.resetToken) {
+      issuedOtp.value = data.resetToken
       otpOrToken.value = data.resetToken
     }
     toast.success('Mã xác nhận đã được tạo thành công!')
@@ -133,7 +136,7 @@ async function handleResetPassword() {
 
       <!-- Demo helper badge -->
       <div class="mb-5 p-3 rounded-xl bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800/40 text-xs text-primary-700 dark:text-primary-300 flex items-center justify-between">
-        <span>💡 Mã xác thực (OTP): <strong class="font-mono text-sm">{{ otpOrToken }}</strong></span>
+        <span>💡 Mã xác thực (OTP): <strong class="font-mono text-sm">{{ issuedOtp || otpOrToken }}</strong></span>
         <span class="text-[11px] opacity-75">Hiệu lực 15 phút</span>
       </div>
 

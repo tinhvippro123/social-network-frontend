@@ -14,6 +14,10 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 async function handleDeactivateAccount() {
+  if ((authStore.user?.role || '').toLowerCase() === 'admin') {
+    toast.warning('Tài khoản Quản trị viên (Admin) được bảo vệ và không thể tự khóa hoặc xóa')
+    return
+  }
   const ok = await confirm({
     title: 'Vô hiệu hóa tài khoản?',
     message: 'Yêu cầu tạm khóa tài khoản của bạn sẽ được gửi đến Quản trị viên và phiên đăng nhập hiện tại sẽ kết thúc. Bạn có chắc chắn không?',
@@ -40,6 +44,10 @@ async function handleDeactivateAccount() {
 }
 
 async function handleDeleteAccount() {
+  if ((authStore.user?.role || '').toLowerCase() === 'admin') {
+    toast.warning('Tài khoản Quản trị viên (Admin) được bảo vệ và không thể tự khóa hoặc xóa')
+    return
+  }
   const ok = await confirm({
     title: 'Xóa tài khoản vĩnh viễn?',
     message: 'Yêu cầu xóa vĩnh viễn tài khoản và dữ liệu cá nhân sẽ được gửi tới Quản trị viên hệ thống để phê duyệt. Bạn có chắc chắn muốn tiếp tục?',
@@ -77,7 +85,7 @@ async function handleDeleteAccount() {
         <div class="relative">
           <input v-model="accountForm.currentPassword" :type="showCurrentPassword ? 'text' : 'password'"
             class="w-full px-4 py-2.5 pr-10 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all" />
-          <button @click="showCurrentPassword = !showCurrentPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+          <button type="button" @click="showCurrentPassword = !showCurrentPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
             <EyeOff v-if="showCurrentPassword" :size="16" />
             <Eye v-else :size="16" />
           </button>
@@ -88,7 +96,7 @@ async function handleDeleteAccount() {
         <div class="relative">
           <input v-model="accountForm.newPassword" :type="showNewPassword ? 'text' : 'password'"
             class="w-full px-4 py-2.5 pr-10 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all" />
-          <button @click="showNewPassword = !showNewPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+          <button type="button" @click="showNewPassword = !showNewPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
             <EyeOff v-if="showNewPassword" :size="16" />
             <Eye v-else :size="16" />
           </button>
@@ -99,7 +107,7 @@ async function handleDeleteAccount() {
         <div class="relative">
           <input v-model="accountForm.confirmPassword" :type="showConfirmPassword ? 'text' : 'password'"
             class="w-full px-4 py-2.5 pr-10 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all" />
-          <button @click="showConfirmPassword = !showConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+          <button type="button" @click="showConfirmPassword = !showConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
             <EyeOff v-if="showConfirmPassword" :size="16" />
             <Eye v-else :size="16" />
           </button>

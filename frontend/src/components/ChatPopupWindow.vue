@@ -45,18 +45,35 @@ const messageContainer = ref<HTMLElement | null>(null)
 
 const { connect: connectWs } = useWebSocket(undefined, (event) => {
   if (!event || event.conversationId !== props.conv.id) return
-  if (event.type === 'message.created' && event.payload) {
-    const incoming = event.payload as ChatMessage
+  const payload = event.data ?? event.payload
+  if (event.type === 'message.created' && payload) {
+    const incoming = payload as ChatMessage
     if (!messages.value.some(m => m.id === incoming.id)) {
       messages.value.push(incoming)
       scrollToBottom()
     }
-  } else if ((event.type === 'message.revoked' || event.type === 'message.updated') && event.payload) {
-    const updated = event.payload as ChatMessage
+    if (!incoming.isOwn) {
+      chatApi.markAsRead(props.conv.id).catch(() => {})
+    }
+    window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+  } else if ((event.type === 'message.revoked' || event.type === 'message.updated') && payload) {
+    const updated = payload as ChatMessage
     const idx = messages.value.findIndex(m => m.id === updated.id)
     if (idx >= 0) {
       messages.value[idx] = { ...messages.value[idx], ...updated }
     }
+  } else if (event.type === 'conversation.read') {
+    messages.value.forEach(m => {
+      if (m.isOwn && m.status !== 'revoked') {
+        m.status = 'read'
+      }
+    })
+  } else if (event.type === 'conversation.nickname' && payload) {
+    if (!props.conv.originalName) {
+      props.conv.originalName = props.conv.name
+    }
+    props.conv.nickname = payload.nickname || ''
+    props.conv.name = payload.nickname || props.conv.originalName || props.conv.name
   }
 })
 
@@ -74,7 +91,9 @@ async function loadMessages() {
         return ta - tb
       })
     scrollToBottom()
-    chatApi.markAsRead(props.conv.id).catch(() => {})
+    chatApi.markAsRead(props.conv.id).then(() => {
+      window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+    }).catch(() => {})
   } catch {
     // ignore
   } finally {
@@ -296,6 +315,7 @@ async function sendMessage() {
     if (data?.data && !messages.value.some(m => m.id === data.data.id)) {
       messages.value.push(data.data)
     }
+    window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
     scrollToBottom()
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Gửi tin nhắn thất bại')
@@ -335,6 +355,7 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
     if (data?.data && !messages.value.some(m => m.id === data.data.id)) {
       messages.value.push(data.data)
     }
+    window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
     scrollToBottom()
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Không thể tải tệp đính kèm')

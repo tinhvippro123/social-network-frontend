@@ -81,6 +81,15 @@ const router = useRouter()
       </h1>
       <div class="flex items-center gap-3">
         <button
+          type="button"
+          @click="isPreview = !isPreview"
+          class="xl:hidden flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium border transition-all cursor-pointer"
+          :class="isPreview ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-primary-300 dark:border-primary-700' : 'text-gray-600 dark:text-gray-400 border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700'"
+        >
+          <Eye :size="16" />
+          <span class="hidden sm:inline">{{ isPreview ? 'Soạn thảo' : 'Xem trước' }}</span>
+        </button>
+        <button
           :disabled="isLoading"
           @click="onSaveDraft"
           class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all disabled:opacity-50"
@@ -125,7 +134,12 @@ const router = useRouter()
     <!-- BOTTOM SECTION: Split Editor & Preview -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
       <!-- LEFT: EDITOR -->
-      <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden flex flex-col shadow-sm h-[calc(100vh-12rem)]">
+      <div
+        :class="[
+          isPreview ? 'hidden xl:flex' : 'flex',
+          'bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden flex-col shadow-sm h-[calc(100vh-12rem)]'
+        ]"
+      >
         <div class="flex items-center gap-0.5 px-3 py-2 border-b border-gray-200 dark:border-surface-700 overflow-x-auto bg-gray-50 dark:bg-surface-800/80">
           <template v-for="(item, i) in toolbarItems" :key="i">
             <div v-if="item.label === 'divider'" class="w-px h-5 bg-gray-200 dark:bg-surface-700 mx-1" />
@@ -151,7 +165,12 @@ const router = useRouter()
       </div>
 
       <!-- RIGHT: LIVE PREVIEW -->
-      <div class="hidden xl:flex flex-col bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 shadow-sm h-[calc(100vh-12rem)] overflow-hidden">
+      <div
+        :class="[
+          isPreview ? 'flex' : 'hidden xl:flex',
+          'flex-col bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 shadow-sm h-[calc(100vh-12rem)] overflow-hidden'
+        ]"
+      >
         <div class="px-5 py-3 border-b border-gray-200 dark:border-surface-700 flex items-center gap-2 bg-gray-50 dark:bg-surface-800/80">
           <Eye :size="16" class="text-primary-500" />
           <span class="font-semibold text-sm text-gray-700 dark:text-gray-300">Xem trước văn bản</span>

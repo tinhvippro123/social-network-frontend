@@ -134,7 +134,7 @@ const handleDeletePost = async () => {
       <!-- Actions (for own posts or admin/moderator) -->
       <div v-if="user && (user.id === post.author?.id || ['admin', 'moderator'].includes((user.role || '').toLowerCase()))" class="flex items-center gap-2">
         <button
-          v-if="user.id === post.author?.id"
+          v-if="user.id === post.author?.id && (post.status || '').toLowerCase() !== 'hidden'"
           @click="router.push(`/posts/${post.id}/edit`)"
           class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 border border-gray-200 dark:border-surface-700 transition-all cursor-pointer"
         >

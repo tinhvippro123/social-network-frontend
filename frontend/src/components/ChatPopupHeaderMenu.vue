@@ -127,6 +127,7 @@ const handleAction = async (action: string) => {
       if (ok && resolvedUserId) {
         try {
           await chatApi.blockUser(resolvedUserId)
+          window.dispatchEvent(new CustomEvent('chat-block-updated'))
           toast.success(`Đã chặn ${props.conv.name}`)
           emit('close-window')
         } catch {
@@ -141,6 +142,7 @@ const handleAction = async (action: string) => {
         if (!props.conv.id.startsWith('new-')) {
           await chatApi.hideConversation(props.conv.id)
         }
+        window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
         toast.success('Đã lưu trữ và ẩn đoạn chat khỏi màn hình')
         emit('close-window')
       } catch {
@@ -161,6 +163,7 @@ const handleAction = async (action: string) => {
           if (!props.conv.id.startsWith('new-')) {
             await chatApi.deleteConversation(props.conv.id)
           }
+          window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
           emit('clear-chat')
           toast.success('Đã xóa đoạn chat')
           emit('close-window')

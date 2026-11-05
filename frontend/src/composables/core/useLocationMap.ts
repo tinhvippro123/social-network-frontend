@@ -110,7 +110,7 @@ export function useLocationMap(mapContainer: Ref<HTMLElement | null>) {
     )
   }
 
-  const initMap = async (initialLat?: number, initialLng?: number) => {
+  const initMap = async (initialLat?: number, initialLng?: number, initialAddr?: string) => {
     await nextTick()
     if (!mapContainer.value || map) return
 
@@ -129,8 +129,15 @@ export function useLocationMap(mapContainer: Ref<HTMLElement | null>) {
       selectedLat.value = initialLat
       selectedLng.value = initialLng
       setMapMarker(initialLat, initialLng)
-      await reverseGeocode(initialLat, initialLng)
+      if (initialAddr) {
+        selectedAddress.value = initialAddr
+      } else {
+        await reverseGeocode(initialLat, initialLng)
+      }
     } else {
+      selectedLat.value = null
+      selectedLng.value = null
+      selectedAddress.value = ''
       map.setView(MAP_CONFIG.DEFAULT_CENTER as [number, number], MAP_CONFIG.DEFAULT_ZOOM)
       getCurrentLocation()
     }

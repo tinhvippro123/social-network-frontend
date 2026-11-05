@@ -198,15 +198,20 @@ watch(() => [route.params.id, authUser.value?.id], () => {
 
       <!-- Drafts List (tab: drafts) -->
       <div v-else-if="activeTab === 'drafts'" class="space-y-4 stagger-children">
-        <ProfilePostItem
-          v-for="post in drafts"
-          :key="'draft-' + post.id"
-          :post="post"
-          :is-draft="true"
-          @delete="handleDeleteDraft"
-        />
+        <template v-if="isLoading">
+          <ProfilePostSkeleton v-for="i in 2" :key="'draft-skel-' + i" />
+        </template>
+        <template v-else-if="drafts.length > 0">
+          <ProfilePostItem
+            v-for="post in drafts"
+            :key="'draft-' + post.id"
+            :post="post"
+            :is-draft="true"
+            @delete="handleDeleteDraft"
+          />
+        </template>
 
-        <div v-if="drafts.length === 0" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-12 text-center">
+        <div v-else class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-12 text-center">
           <FileText class="w-12 h-12 text-gray-300 dark:text-surface-600 mx-auto mb-4" />
           <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Không có bài nháp</h3>
           <p class="text-gray-500 dark:text-gray-400 text-sm">Khi bạn lưu nháp, chúng sẽ xuất hiện ở đây.</p>
@@ -215,13 +220,18 @@ watch(() => [route.params.id, authUser.value?.id], () => {
 
       <!-- Bookmarks List (tab: bookmarks) -->
       <div v-else-if="activeTab === 'bookmarks'" class="space-y-4 stagger-children">
-        <ProfilePostItem
-          v-for="post in bookmarkedPosts"
-          :key="'bm-' + post.id"
-          :post="post"
-        />
+        <template v-if="isLoading">
+          <ProfilePostSkeleton v-for="i in 2" :key="'bm-skel-' + i" />
+        </template>
+        <template v-else-if="bookmarkedPosts.length > 0">
+          <ProfilePostItem
+            v-for="post in bookmarkedPosts"
+            :key="'bm-' + post.id"
+            :post="post"
+          />
+        </template>
 
-        <div v-if="bookmarkedPosts.length === 0" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-12 text-center">
+        <div v-else class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-12 text-center">
           <Bookmark class="w-12 h-12 text-gray-300 dark:text-surface-600 mx-auto mb-4" />
           <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Chưa có bài viết đã lưu</h3>
           <p class="text-gray-500 dark:text-gray-400 text-sm">Các bài viết bạn đánh dấu lưu sẽ xuất hiện tại đây.</p>
@@ -230,7 +240,10 @@ watch(() => [route.params.id, authUser.value?.id], () => {
 
       <!-- Groups List (tab: groups) -->
       <div v-else-if="activeTab === 'groups'">
-        <div v-if="joinedGroups.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Skeleton v-for="i in 3" :key="'grp-skel-' + i" type="card" class="h-48 rounded-2xl" />
+        </div>
+        <div v-else-if="joinedGroups.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <GroupCard
             v-for="group in joinedGroups"
             :key="group.id"

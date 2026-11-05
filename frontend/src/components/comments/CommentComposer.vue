@@ -42,7 +42,7 @@
           :class="compact ? 'text-xs leading-relaxed' : 'text-sm leading-relaxed'"
           :style="{ textIndent: replyToName ? `${tagWidth}px` : '0px' }"
           @input="adjustHeight"
-          @keydown.enter.prevent="handleSubmit"
+          @keydown.enter.exact.prevent="handleSubmit"
           @keydown.delete="handleBackspace"
         ></textarea>
       </div>
@@ -215,6 +215,9 @@ defineExpose({
 
 onUnmounted(() => {
   document.removeEventListener('click', handleOutsideEmojiClick)
+  if (attachedImagePreview.value) {
+    URL.revokeObjectURL(attachedImagePreview.value)
+  }
 })
 onMounted(() => {
   document.addEventListener('click', handleOutsideEmojiClick)
