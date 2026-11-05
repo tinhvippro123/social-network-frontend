@@ -4,7 +4,10 @@ import { X, Search, MessageCirclePlus, Users } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import UserSelectionItem from './UserSelectionItem.vue'
 import usersApi from '@/api/users.api'
+import { useAuthStore } from '@/stores/auth.store'
 import type { User } from '@/types'
+
+const authStore = useAuthStore()
 
 const props = withDefaults(defineProps<{
   show: boolean
@@ -33,7 +36,7 @@ const loadUsers = async () => {
   isLoading.value = true
   try {
     const { data } = await usersApi.getAll()
-    allUsers.value = data.data
+    allUsers.value = (data.data || []).filter((u: User) => u.id !== authStore.user?.id)
   } catch {
     allUsers.value = []
   }

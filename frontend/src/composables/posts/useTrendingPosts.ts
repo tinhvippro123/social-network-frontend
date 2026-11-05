@@ -1,15 +1,25 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { usePosts } from './usePosts'
 import { useUsers } from '../core/useUsers'
 
 export function useTrendingPosts() {
+  const route = useRoute()
   const { posts, isLoading, fetchPosts, tags, fetchPopularTags, toggleBookmark: apiToggleBookmark } = usePosts()
   const { users, fetchUsers } = useUsers()
   
-  const selectedCategory = ref('all')
+  const selectedCategory = ref((route.query.category as string) || 'all')
   const visibleCount = ref(4)
   const loadingMore = ref(false)
   const sidebarLoading = ref(true)
+
+  watch(() => route.query.category, (newCat) => {
+    selectedCategory.value = (newCat as string) || 'all'
+  })
+
+  watch(selectedCategory, () => {
+    visibleCount.value = 4
+  })
 
   const allTrendingPosts = computed(() => {
     let sorted = posts.value

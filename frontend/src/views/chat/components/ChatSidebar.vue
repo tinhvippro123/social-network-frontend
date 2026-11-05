@@ -73,6 +73,11 @@ const {
           <p class="text-gray-500 dark:text-gray-400">Chưa có tin nhắn nào</p>
         </div>
 
+        <div v-else-if="!isInitialLoading && filteredConversations.length === 0" class="flex flex-col items-center justify-center h-full p-4 text-center opacity-60">
+          <SearchIcon :size="36" class="mb-3 text-gray-400" />
+          <p class="text-sm text-gray-500 dark:text-gray-400">Không tìm thấy cuộc trò chuyện phù hợp</p>
+        </div>
+
         <ChatConversationItem
           v-else
           v-for="conv in filteredConversations"

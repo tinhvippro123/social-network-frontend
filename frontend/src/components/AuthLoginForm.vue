@@ -4,11 +4,13 @@ import { useRouter } from 'vue-router'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, User } from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
+import { useToast } from '@/composables/ui/useToast'
 import authApi from '@/api/auth.api'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const uiStore = useUiStore()
+const toast = useToast()
 
 const email = ref('')
 const password = ref('')
@@ -27,7 +29,7 @@ function fillDemo(role: 'admin' | 'user') {
   }
 }
 
-const emit = defineProps<{
+defineProps<{
   error?: string
 }>()
 
@@ -73,6 +75,7 @@ async function handleLogin() {
     authStore.setToken(data.data.accessToken)
     authStore.setUser(data.data.user)
     uiStore.closeAuthModal()
+    toast.success(`Chào mừng trở lại, ${data.data.user?.name || 'bạn'}!`)
     const role = (data.data.user?.role || '').toLowerCase()
     if (role === 'admin') {
       router.push('/admin')
@@ -122,7 +125,7 @@ async function handleLogin() {
         <button
           type="button"
           @click="showPassword = !showPassword"
-          class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
+          class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors cursor-pointer"
         >
           <EyeOff v-if="showPassword" :size="18" />
           <Eye v-else :size="18" />
@@ -136,7 +139,7 @@ async function handleLogin() {
       <button
         type="button"
         @click="uiStore.closeAuthModal(); router.push('/forgot-password')"
-        class="text-xs text-primary-400 hover:text-primary-300 transition-colors font-medium"
+        class="text-xs text-primary-400 hover:text-primary-300 transition-colors font-medium cursor-pointer"
       >
         Quên mật khẩu?
       </button>
@@ -149,7 +152,7 @@ async function handleLogin() {
         <button
           type="button"
           @click="fillDemo('admin')"
-          class="p-2 rounded-xl text-left border border-purple-500/30 bg-purple-950/30 hover:bg-purple-900/40 transition-colors"
+          class="p-2 rounded-xl text-left border border-purple-500/30 bg-purple-950/30 hover:bg-purple-900/40 transition-colors cursor-pointer"
         >
           <div class="font-semibold text-xs text-purple-300 flex items-center gap-1">
             <ShieldCheck :size="12" />
@@ -161,7 +164,7 @@ async function handleLogin() {
         <button
           type="button"
           @click="fillDemo('user')"
-          class="p-2 rounded-xl text-left border border-blue-500/30 bg-blue-950/30 hover:bg-blue-900/40 transition-colors"
+          class="p-2 rounded-xl text-left border border-blue-500/30 bg-blue-950/30 hover:bg-blue-900/40 transition-colors cursor-pointer"
         >
           <div class="font-semibold text-xs text-blue-300 flex items-center gap-1">
             <User :size="12" />
@@ -176,7 +179,7 @@ async function handleLogin() {
     <button
       type="submit"
       :disabled="isLoading"
-      class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50"
+      class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 cursor-pointer"
     >
       <span v-if="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
       <template v-else>

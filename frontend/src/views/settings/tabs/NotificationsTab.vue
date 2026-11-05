@@ -52,6 +52,10 @@ const { notificationSettings, saveSettings } = useSettings()
           title="Bình luận mới"
         />
         <SettingToggle
+          v-model="notificationSettings.pushNewMessage"
+          title="Tin nhắn mới"
+        />
+        <SettingToggle
           v-model="notificationSettings.pushTrending"
           title="Bài viết thịnh hành"
           description="Thông báo khi có bài viết nổi bật trong cộng đồng"

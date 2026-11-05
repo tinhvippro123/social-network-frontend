@@ -1,4 +1,4 @@
-import { onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useGroups } from '../groups/useGroups'
 import groupsApi from '@/api/groups.api'
 import { useToast } from '../ui/useToast'
@@ -8,6 +8,23 @@ export function useAdminGroups() {
   const { groups, isLoading, fetchGroups } = useGroups()
   const toast = useToast()
   const { confirm } = useConfirm()
+
+  const searchQuery = ref('')
+  const privacyFilter = ref<'all' | 'public' | 'private'>('all')
+
+  const filteredGroups = computed(() => {
+    return (groups.value || []).filter((g: any) => {
+      const q = searchQuery.value.trim().toLowerCase()
+      const matchesSearch = !q ||
+        (g.name || '').toLowerCase().includes(q) ||
+        (g.description || '').toLowerCase().includes(q)
+      const isPublic = g.isPublic !== false && g.privacy !== 'private'
+      const matchesPrivacy = privacyFilter.value === 'all' ||
+        (privacyFilter.value === 'public' && isPublic) ||
+        (privacyFilter.value === 'private' && !isPublic)
+      return matchesSearch && matchesPrivacy
+    })
+  })
 
   const initData = () => {
     fetchGroups()
@@ -36,7 +53,9 @@ export function useAdminGroups() {
   })
 
   return {
-    groups,
+    groups: filteredGroups,
+    searchQuery,
+    privacyFilter,
     isLoading,
     initData,
     deleteGroup

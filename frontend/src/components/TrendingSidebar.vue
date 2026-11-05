@@ -7,10 +7,12 @@ import { formatNumber } from '@/utils/formatters'
 import { useTrendingSidebar } from '@/composables/ui/useTrendingSidebar'
 import { useToast } from '@/composables/ui/useToast'
 import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 import usersApi from '@/api/users.api'
 
 const toast = useToast()
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const followedUserIds = ref<Set<string>>(new Set())
 
 const {
@@ -35,7 +37,7 @@ watch(users, (list) => {
 async function toggleFollowUser(u: any) {
   if (!authStore.isLoggedIn) {
     toast.info('Vui lòng đăng nhập để theo dõi tác giả')
-    router.push('/login')
+    uiStore.openAuthModal('login')
     return
   }
   try {
@@ -74,7 +76,7 @@ async function toggleFollowUser(u: any) {
           </div>
         </div>
       </div>
-      <div v-else class="space-y-4">
+      <div v-else-if="posts.length > 0" class="space-y-4">
         <div
           v-for="(post, i) in posts.slice(0, 5)"
           :key="post.id"
@@ -103,6 +105,7 @@ async function toggleFollowUser(u: any) {
           </div>
         </div>
       </div>
+      <p v-else class="text-xs text-gray-400 text-center py-4">Chưa có bài viết thịnh hành</p>
     </div>
 
     <!-- Popular Tags -->
@@ -114,7 +117,7 @@ async function toggleFollowUser(u: any) {
       <div v-if="isLoading" class="flex flex-wrap gap-2">
         <Skeleton v-for="i in 6" :key="i" type="button" class="w-20 h-8 rounded-xl" />
       </div>
-      <div v-else class="flex flex-wrap gap-2">
+      <div v-else-if="tags.length > 0" class="flex flex-wrap gap-2">
         <span
           v-for="tag in tags"
           :key="tag.id"
@@ -124,6 +127,7 @@ async function toggleFollowUser(u: any) {
           #{{ tag.name }}
         </span>
       </div>
+      <p v-else class="text-xs text-gray-400 text-center py-4">Chưa có chủ đề phổ biến</p>
     </div>
 
     <!-- Top Authors -->
@@ -142,7 +146,7 @@ async function toggleFollowUser(u: any) {
           <Skeleton type="button" class="w-20 h-7 rounded-lg" />
         </div>
       </div>
-      <div v-else class="space-y-4">
+      <div v-else-if="users.length > 0" class="space-y-4">
         <div v-for="user in users.slice(0, 3)" :key="user.id" class="flex items-center gap-3 group">
           <UserAvatar :user="user" size="md" class="ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all cursor-pointer" @click="router.push(`/profile/${user.id}`)" />
           <div class="flex-1 min-w-0 cursor-pointer" @click="router.push(`/profile/${user.id}`)">
@@ -166,6 +170,7 @@ async function toggleFollowUser(u: any) {
           </button>
         </div>
       </div>
+      <p v-else class="text-xs text-gray-400 text-center py-4">Chưa có tác giả nổi bật</p>
     </div>
   </aside>
 </template>

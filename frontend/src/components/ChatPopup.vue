@@ -67,26 +67,34 @@ const handleDocumentClick = (e: MouseEvent) => {
   if (showMoreMenu.value && !target.closest('.more-menu-container')) {
     showMoreMenu.value = false
   }
+  if (showCompose.value && !target.closest('.compose-menu-container')) {
+    showCompose.value = false
+  }
+}
+
+const handleNicknameChanged = (e: any) => {
+  const detail = e.detail
+  if (!detail) return
+  const findAndApply = (list: ChatConversation[]) => {
+    const match = list.find(c => c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
+    if (match) {
+      match.nickname = detail.nickname
+      match.name = detail.name
+      if (detail.originalName) match.originalName = detail.originalName
+    }
+  }
+  findAndApply(openWindows.value)
+  findAndApply(minimizedChats.value)
 }
 
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
-  window.addEventListener('chat-nickname-changed', (e: any) => {
-    const detail = e.detail
-    if (!detail) return
-    const findAndApply = (list: ChatConversation[]) => {
-      const match = list.find(c => c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
-      if (match) {
-        match.nickname = detail.nickname
-        match.name = detail.name
-        if (detail.originalName) match.originalName = detail.originalName
-      }
-    }
-    findAndApply(openWindows.value)
-    findAndApply(minimizedChats.value)
-  })
+  window.addEventListener('chat-nickname-changed', handleNicknameChanged)
 })
-onUnmounted(() => document.removeEventListener('click', handleDocumentClick))
+onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick)
+  window.removeEventListener('chat-nickname-changed', handleNicknameChanged)
+})
 
 const MAX_WINDOWS = 2
 
@@ -271,7 +279,7 @@ defineExpose({ openChatWindow })
         </TransitionGroup>
 
         <!-- Compose Button (✏️) -->
-        <div class="relative">
+        <div class="relative compose-menu-container">
           <Transition name="compose">
             <div
               v-if="showCompose"

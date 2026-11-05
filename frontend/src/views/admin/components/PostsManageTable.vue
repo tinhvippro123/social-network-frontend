@@ -190,13 +190,13 @@ const formatCategoryIcon = (icon?: string) => {
                 @click="emit('toggle-status', post)"
                 :class="[
                   'p-1.5 rounded-lg transition-colors cursor-pointer',
-                  post.status === 'hidden'
+                  (post.status || '').toLowerCase() === 'hidden'
                     ? 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
                     : 'text-gray-400 hover:bg-amber-50 dark:hover:bg-amber-900/10 hover:text-amber-500'
                 ]"
-                :title="post.status === 'hidden' ? 'Mở lại (Hiện bài)' : 'Ẩn bài viết'"
+                :title="(post.status || '').toLowerCase() === 'hidden' ? 'Mở lại (Hiện bài)' : 'Ẩn bài viết'"
               >
-                <CheckCircle2 v-if="post.status === 'hidden'" :size="14" />
+                <CheckCircle2 v-if="(post.status || '').toLowerCase() === 'hidden'" :size="14" />
                 <EyeOff v-else :size="14" />
               </button>
               <button

@@ -41,7 +41,7 @@ const {
       
       <!-- Lược giản: Chỉ hiển thị page hiện tại vì đây là admin tĩnh -->
       <button class="px-3 py-1 rounded-lg text-xs font-medium bg-red-500 text-white">
-        {{ currentPage }}
+        {{ currentPage }} / {{ Math.max(1, totalPages) }}
       </button>
       
       <button 

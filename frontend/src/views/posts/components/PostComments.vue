@@ -150,6 +150,9 @@ const cancelInlineReply = () => {
     </div>
 
     <!-- Comments List -->
+    <div v-if="comments.length === 0" class="text-center py-8 text-sm text-gray-400 dark:text-gray-500 italic">
+      Chưa có bình luận nào. Hãy là người đầu tiên chia sẻ suy nghĩ của bạn!
+    </div>
     <div class="space-y-5">
       <CommentItem
         v-for="comment in comments"

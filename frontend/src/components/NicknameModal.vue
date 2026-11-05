@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
-import { Edit, X, User as UserIcon } from '@lucide/vue'
+import { Edit, X } from '@lucide/vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 
 const props = defineProps<{
   show: boolean
@@ -69,10 +70,7 @@ function handleReset() {
 
           <!-- User Preview -->
           <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-surface-700/50 border border-gray-100 dark:border-surface-700 mb-4">
-            <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-surface-600 shrink-0 flex items-center justify-center">
-              <img v-if="userAvatar" :src="userAvatar" :alt="userName" class="w-full h-full object-cover" />
-              <UserIcon v-else :size="20" class="text-gray-400" />
-            </div>
+            <UserAvatar :user="{ name: userName, avatar: userAvatar || '' }" size="md" class="shrink-0" />
             <div class="min-w-0 flex-1">
               <p class="text-xs text-gray-400">Tên người dùng</p>
               <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ userName }}</p>

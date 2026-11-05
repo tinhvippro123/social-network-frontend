@@ -5,6 +5,7 @@ import { Heart, MessageSquare, Send, Trash2, Share2, Check, Loader2 } from '@luc
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatRelativeTime } from '@/utils/formatters'
 import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 import { useToast } from '@/composables/ui/useToast'
 import { useConfirm } from '@/composables/ui/useConfirm'
 import groupsApi from '@/api/groups.api'
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const router = useRouter()
 const toast = useToast()
 const { confirm } = useConfirm()
@@ -60,6 +62,7 @@ const fetchComments = async () => {
 const toggleLike = async () => {
   if (!authStore.isLoggedIn) {
     toast.info('Vui lòng đăng nhập để thích bài viết')
+    uiStore.openAuthModal('login')
     return
   }
   if (isLiking.value) return
@@ -93,6 +96,7 @@ const submitComment = async () => {
   if (!content) return
   if (!authStore.isLoggedIn) {
     toast.info('Vui lòng đăng nhập để bình luận')
+    uiStore.openAuthModal('login')
     return
   }
 
@@ -233,7 +237,7 @@ onMounted(() => {
         v-else
         class="p-4 rounded-2xl bg-gray-50 dark:bg-surface-700/50 border border-gray-100 dark:border-surface-700 text-center text-sm text-gray-500 dark:text-gray-400"
       >
-        Vui lòng đăng nhập để tham gia thảo luận trong nhóm.
+        Vui lòng <button type="button" @click="uiStore.openAuthModal('login')" class="text-primary-600 dark:text-primary-400 font-semibold hover:underline cursor-pointer">đăng nhập</button> để tham gia thảo luận trong nhóm.
       </div>
 
       <!-- Comments List -->
@@ -264,9 +268,9 @@ onMounted(() => {
                   {{ formatRelativeTime(comment.createdAt) }}
                 </span>
                 <button
-                  v-if="authStore.user?.id === comment.author?.id"
+                  v-if="authStore.user?.id === comment.author?.id || ['admin', 'moderator'].includes((authStore.user?.role || '').toLowerCase())"
                   @click="deleteComment(comment.id)"
-                  class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-rose-500 transition-opacity p-1 rounded-lg"
+                  class="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-gray-400 hover:text-rose-500 transition-opacity p-1 rounded-lg cursor-pointer"
                   title="Xóa bình luận"
                 >
                   <Trash2 :size="13" />

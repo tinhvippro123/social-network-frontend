@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { Users } from '@lucide/vue'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import GroupsManageRow from './components/GroupsManageRow.vue'
 import GroupsManageSkeletonRow from './components/GroupsManageSkeletonRow.vue'
 import { useAdminGroups } from '@/composables/admin/useAdminGroups'
 
-const { groups, isLoading, deleteGroup } = useAdminGroups()
+const { groups, searchQuery, privacyFilter, isLoading, deleteGroup } = useAdminGroups()
 </script>
 
 <template>
@@ -14,7 +13,28 @@ const { groups, isLoading, deleteGroup } = useAdminGroups()
     <AdminPageHeader
       title="Quản lý nhóm"
       subtitle="Giám sát và quản lý các nhóm cộng đồng"
-    />
+      search-placeholder="Tìm nhóm theo tên hoặc mô tả..."
+      v-model="searchQuery"
+    >
+      <template #filters>
+        <div class="flex items-center gap-1 bg-white dark:bg-surface-800 rounded-xl p-1 border border-gray-200 dark:border-surface-700">
+          <button
+            v-for="opt in ([{ key: 'all', label: 'Tất cả' }, { key: 'public', label: 'Công khai' }, { key: 'private', label: 'Riêng tư' }] as const)"
+            :key="opt.key"
+            type="button"
+            @click="privacyFilter = opt.key"
+            :class="[
+              'px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer',
+              privacyFilter === opt.key
+                ? 'bg-red-500 text-white'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700'
+            ]"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </template>
+    </AdminPageHeader>
 
     <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden">
       <div class="overflow-x-auto">

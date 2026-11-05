@@ -68,6 +68,8 @@ export function useAdminPosts() {
     try {
       await adminApi.updatePostStatus(post.id, newStatus)
       post.status = newStatus.toLowerCase()
+      const idx = posts.value.findIndex(p => p.id === post.id)
+      if (idx !== -1) posts.value[idx].status = newStatus.toLowerCase()
       toast.success(`Đã ${actionLabel.toLowerCase()} thành công!`)
     } catch (err: any) {
       toast.error(err.response?.data?.message || `Thao tác ${actionLabel.toLowerCase()} thất bại`)

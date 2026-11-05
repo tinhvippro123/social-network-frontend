@@ -16,6 +16,10 @@ export function useHomePosts() {
     selectedCategory.value = (newCat as string) || 'all'
   })
 
+  watch(selectedCategory, () => {
+    visibleCount.value = 4
+  })
+
   const filteredPosts = computed(() => {
     const all = selectedCategory.value === 'all'
       ? posts.value

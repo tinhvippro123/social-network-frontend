@@ -164,12 +164,16 @@ function handleSetReplyTo(msg: ChatMessage) {
 
 function handleDeleteMessage(msgId: string) {
   messages.value = messages.value.filter(m => m.id !== msgId)
+  toast.info('Đã xóa tin nhắn khỏi phía bạn')
 }
 
 const handleDocumentClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   if (activeHeaderMenu.value && !target.closest('.header-menu-container')) {
     activeHeaderMenu.value = false
+  }
+  if (showEmojiPicker.value && !target.closest('.popup-emoji-container')) {
+    showEmojiPicker.value = false
   }
   if (activeMessageAction.value && !target.closest('.message-action-menu')) {
     activeMessageAction.value = null
@@ -269,6 +273,13 @@ async function sendMessage() {
   }
 
   try {
+    if (props.conv.id.startsWith('new-')) {
+      const targetUserId = props.conv.id.replace('new-', '')
+      const createdRes = await chatApi.createConversation({ participantIds: [targetUserId], isGroup: false })
+      if (createdRes.data?.data?.id) {
+        props.conv.id = createdRes.data.data.id
+      }
+    }
     const { data } = await chatApi.sendMessage({
       conversationId: props.conv.id,
       content,
@@ -297,6 +308,13 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
       ? `${(file.size / 1024).toFixed(1)} KB`
       : `${(file.size / (1024 * 1024)).toFixed(1)} MB`
 
+    if (props.conv.id.startsWith('new-')) {
+      const targetUserId = props.conv.id.replace('new-', '')
+      const createdRes = await chatApi.createConversation({ participantIds: [targetUserId], isGroup: false })
+      if (createdRes.data?.data?.id) {
+        props.conv.id = createdRes.data.data.id
+      }
+    }
     const { data } = await chatApi.sendMessage({
       conversationId: props.conv.id,
       content: type === 'image' ? '[Hình ảnh]' : file.name,
@@ -488,7 +506,7 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
       <!-- Quick Emoji Popup -->
       <div
         v-if="showEmojiPicker"
-        class="absolute bottom-14 right-3 z-50 bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-xl shadow-xl p-2 grid grid-cols-6 gap-1"
+        class="popup-emoji-container absolute bottom-14 right-3 z-50 bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-xl shadow-xl p-2 grid grid-cols-6 gap-1"
       >
         <button
           v-for="emo in quickEmojis"
@@ -533,7 +551,7 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
             type="button"
             title="Biểu tượng cảm xúc"
             class="text-primary-500 hover:text-primary-600 transition-colors shrink-0 ml-1 cursor-pointer"
-            @click="showEmojiPicker = !showEmojiPicker"
+            @click.stop="showEmojiPicker = !showEmojiPicker"
           >
             <Smile :size="20" />
           </button>

@@ -86,7 +86,7 @@
             <!-- Add Reaction Button -->
             <div class="relative">
               <button
-                @click="$emit('toggle-emoji', comment.id)"
+                @click.stop="$emit('toggle-emoji', comment.id)"
                 class="text-gray-400 hover:text-primary-500 transition-colors p-0.5 cursor-pointer"
                 title="Thả cảm xúc"
               >
@@ -94,7 +94,7 @@
               </button>
               
               <!-- Emoji Picker Popup -->
-              <div v-if="activeEmojiPicker === comment.id" class="absolute left-0 bottom-6 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 flex gap-1">
+              <div v-if="activeEmojiPicker === comment.id" @click.stop class="absolute left-0 bottom-6 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 flex gap-1">
                 <button
                   v-for="emoji in emojiList"
                   :key="emoji"
@@ -237,7 +237,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watchEffect, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { SmilePlus, ChevronDown, ChevronRight } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -335,8 +335,8 @@ watchEffect(() => {
   }
 })
 
-if (typeof window !== 'undefined') {
-  window.addEventListener('jump-to-comment', (e: any) => {
+const handleJumpToComment = (e: any) => {
+  if (e) {
     if (displayReplies.value.length === 0) return
     const detail = e.detail
     const targetHash = typeof detail === 'string' ? detail : detail?.targetHash || ''
@@ -349,8 +349,24 @@ if (typeof window !== 'undefined') {
     if (authorName && displayReplies.value.some(r => r.author?.name?.toLowerCase().includes(authorName))) {
       isCollapsed.value = false
     }
-  })
+  }
 }
+
+const handleOutsideCommentEmojiClick = () => {
+  if (props.activeEmojiPicker === props.comment.id) {
+    emit('toggle-emoji', null)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('jump-to-comment', handleJumpToComment)
+  document.addEventListener('click', handleOutsideCommentEmojiClick)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('jump-to-comment', handleJumpToComment)
+  document.removeEventListener('click', handleOutsideCommentEmojiClick)
+})
 
 const handleReplyClick = () => {
   emit('reply', props.comment.id, props.comment.id, props.comment.author.name)

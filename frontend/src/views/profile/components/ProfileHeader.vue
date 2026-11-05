@@ -7,6 +7,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import FollowersModal from './FollowersModal.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 import usersApi from '@/api/users.api'
 import chatApi from '@/api/chat.api'
 import http from '@/api/client'
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const { addToast } = useToast()
 
 // Follow state
@@ -64,7 +66,7 @@ async function handleToggleBlockUser() {
   showMoreMenu.value = false
   if (!authStore.isLoggedIn) {
     addToast({ message: 'Vui lòng đăng nhập để thực hiện thao tác này', type: 'info' })
-    router.push('/login')
+    uiStore.openAuthModal('login')
     return
   }
   if (!props.currentUser?.id) return
@@ -87,7 +89,7 @@ async function handleReportUser() {
   showMoreMenu.value = false
   if (!authStore.isLoggedIn) {
     addToast({ message: 'Vui lòng đăng nhập để gửi báo cáo', type: 'info' })
-    router.push('/login')
+    uiStore.openAuthModal('login')
     return
   }
   if (!props.currentUser?.id) return
@@ -106,7 +108,7 @@ async function handleReportUser() {
 async function toggleFollow() {
   if (!authStore.isLoggedIn) {
     addToast({ message: 'Vui lòng đăng nhập để theo dõi người dùng', type: 'info' })
-    router.push('/login')
+    uiStore.openAuthModal('login')
     return
   }
   if (!props.currentUser?.id) return
@@ -136,7 +138,7 @@ async function toggleFollow() {
 function handleMessage() {
   if (!authStore.isLoggedIn) {
     addToast({ message: 'Vui lòng đăng nhập để nhắn tin', type: 'info' })
-    router.push('/login')
+    uiStore.openAuthModal('login')
     return
   }
   emit('message', props.currentUser.id)

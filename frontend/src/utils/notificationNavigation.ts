@@ -32,12 +32,17 @@ export function parseNotificationLink(link?: string, message?: string): ParsedNo
   return { targetPath, targetHash, authorName }
 }
 
-export function navigateToNotificationLink(router: Router, notif: { link?: string; message?: string }) {
+export function navigateToNotificationLink(
+  router: Router,
+  notif: { link?: string; message?: string; type?: string }
+) {
   if (!notif.link) return
 
   const { targetPath, targetHash, authorName } = parseNotificationLink(notif.link, notif.message)
   const isPostPage = targetPath.startsWith('/posts/')
   const currentPath = router.currentRoute.value.path
+  const notifType = (notif.type || '').toLowerCase()
+  const isCommentRelated = Boolean(targetHash) || ['comment', 'reply', 'mention'].includes(notifType)
 
   const eventPayload = {
     targetHash,
@@ -46,7 +51,7 @@ export function navigateToNotificationLink(router: Router, notif: { link?: strin
 
   // If already on the target page
   if (currentPath === targetPath) {
-    if (typeof window !== 'undefined') {
+    if (isCommentRelated && typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('jump-to-comment', { detail: eventPayload }))
     }
     // Update hash or query if not already present
@@ -64,8 +69,8 @@ export function navigateToNotificationLink(router: Router, notif: { link?: strin
   if (isPostPage) {
     router.push({
       path: targetPath,
-      query: authorName ? { highlightAuthor: authorName } : undefined,
-      hash: targetHash || '#comments-section'
+      query: isCommentRelated && authorName ? { highlightAuthor: authorName } : undefined,
+      hash: isCommentRelated ? (targetHash || '#comments-section') : undefined
     })
   } else {
     router.push(notif.link)

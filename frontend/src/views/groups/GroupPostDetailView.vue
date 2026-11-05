@@ -139,6 +139,16 @@ watch([groupId, postId], ([newGroupId, newPostId], [oldGroupId, oldPostId]) => {
     </div>
 
     <!-- Main Content Layout -->
+    <div v-else-if="!isLoading && !post" class="text-center py-20 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-8">
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Không tìm thấy bài thảo luận</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Bài thảo luận này không tồn tại hoặc đã bị xóa khỏi nhóm.</p>
+      <button
+        @click="router.push(`/groups/${groupId}`)"
+        class="px-5 py-2.5 rounded-xl gradient-primary text-white text-sm font-semibold shadow-md shadow-primary-500/20 hover:opacity-90 transition-opacity cursor-pointer"
+      >
+        Quay lại nhóm
+      </button>
+    </div>
     <div v-else-if="post" class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       <!-- Article Section -->
       <article class="lg:col-span-2 space-y-6">

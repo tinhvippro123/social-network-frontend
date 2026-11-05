@@ -130,6 +130,10 @@ const getFileIcon = (fileName: string) => {
         <ChatMessageSkeleton v-if="isLoading" />
 
         <template v-else>
+          <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center text-gray-400 dark:text-gray-500 py-12">
+            <p class="text-sm font-medium">Chưa có tin nhắn nào trong cuộc trò chuyện này</p>
+            <p class="text-xs mt-1">Hãy gửi lời chào đầu tiên để bắt đầu trò chuyện!</p>
+          </div>
           <div v-for="(msg, index) in messages" :key="msg.id">
             <template v-if="Number(index) === 0 || !isSameDay(msg.timestamp || msg.createdAt, messages[Number(index) - 1].timestamp || messages[Number(index) - 1].createdAt)">
               <div class="flex justify-center my-6">

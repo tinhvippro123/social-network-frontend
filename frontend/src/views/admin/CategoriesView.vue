@@ -116,7 +116,7 @@ const {
           :key="tag.name"
           class="group inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-surface-700/70 border border-gray-200 dark:border-surface-600 hover:border-red-300 dark:hover:border-red-800 transition-all"
         >
-          <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">#{{ tag.name }}</span>
+          <RouterLink :to="`/tags/${tag.name}`" class="text-sm font-semibold text-gray-800 dark:text-gray-200 hover:text-red-500 hover:underline">#{{ tag.name }}</RouterLink>
           <span class="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-gray-200/70 dark:bg-surface-600 text-gray-600 dark:text-gray-300">
             {{ tag.postsCount }} bài
           </span>
@@ -154,7 +154,7 @@ const {
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tên danh mục</label>
-              <input v-model="newCategoryName" type="text" placeholder="Nhập tên danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
+              <input v-model="newCategoryName" @keydown.enter="handleAddCategory" type="text" placeholder="Nhập tên danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
             </div>
           </div>
           <div class="flex gap-3 mt-6">
@@ -177,7 +177,7 @@ const {
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tên danh mục</label>
-              <input v-model="editCategoryName" type="text" placeholder="Nhập tên danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
+              <input v-model="editCategoryName" @keydown.enter="handleUpdateCategory" type="text" placeholder="Nhập tên danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
             </div>
           </div>
           <div class="flex gap-3 mt-6">

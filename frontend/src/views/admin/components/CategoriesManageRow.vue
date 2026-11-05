@@ -20,13 +20,13 @@ const emit = defineEmits<{
 <template>
   <tr class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors group">
     <td class="px-3 py-4 text-center">
-      <GripVertical :size="16" class="text-gray-300 dark:text-surface-600 cursor-grab mx-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+      <GripVertical :size="16" class="text-gray-300 dark:text-surface-600 mx-auto opacity-0 group-hover:opacity-100 transition-opacity" />
     </td>
     <td class="px-5 py-4">
       <span class="text-2xl">{{ category.icon }}</span>
     </td>
     <td class="px-5 py-4">
-      <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ category.name }}</p>
+      <RouterLink :to="`/?category=${encodeURIComponent(category.name)}`" class="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-500 hover:underline">{{ category.name }}</RouterLink>
     </td>
     <td class="px-5 py-4">
       <code class="text-xs bg-gray-100 dark:bg-surface-700 px-2 py-1 rounded text-gray-500">{{ category.slug }}</code>

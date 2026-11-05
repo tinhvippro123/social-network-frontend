@@ -7,6 +7,9 @@ import postsApi from '@/api/posts.api'
 import type { PostsQuery } from '@/api/posts.api'
 import type { Post } from '@/types'
 import { useAsyncState } from '../core/useAsyncState'
+import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
+import { useToast } from '../ui/useToast'
 
 export function mapCommentResponse(dto: any): any {
   if (!dto) return null
@@ -51,6 +54,9 @@ export function normalizePost(dto: any): any {
 }
 
 export function usePosts() {
+  const authStore = useAuthStore()
+  const uiStore = useUiStore()
+  const toast = useToast()
   const posts = ref<Post[]>([])
   const currentPost = ref<Post | null>(null)
   const comments = ref<any[]>([])
@@ -133,11 +139,19 @@ export function usePosts() {
   }
 
   async function toggleBookmark(postId: string, _isBookmarked?: boolean) {
+    if (!authStore.isLoggedIn) {
+      toast.info('Vui lòng đăng nhập để lưu bài viết')
+      uiStore.openAuthModal('login')
+      throw new Error('UNAUTHENTICATED')
+    }
     try {
       const { data } = await postsApi.toggleBookmark(postId)
-      return data.data as boolean
-    } catch (err) {
+      const saved = Boolean(data.data)
+      toast.success(saved ? 'Đã lưu bài viết' : 'Đã bỏ lưu bài viết')
+      return saved
+    } catch (err: any) {
       console.error('Lỗi toggle bookmark', err)
+      toast.error(err.response?.data?.message || 'Không thể lưu bài viết')
       throw err
     }
   }

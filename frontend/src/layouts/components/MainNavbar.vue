@@ -171,16 +171,16 @@ function onNavbarImagePicked(event: Event) {
       </template>
 
       <!-- Login/Register Buttons (Guest) -->
-      <div v-else class="flex items-center gap-2 sm:gap-3">
+      <div v-else class="flex items-center gap-1.5 sm:gap-3">
         <button
           @click="uiStore.openAuthModal('login')"
-          class="hidden sm:flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+          class="flex items-center px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"
         >
           Đăng nhập
         </button>
         <button
           @click="uiStore.openAuthModal('register')"
-          class="flex items-center px-4 py-2 rounded-xl text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 shadow-lg shadow-primary-500/25 transition-all"
+          class="flex items-center px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 shadow-lg shadow-primary-500/25 transition-all cursor-pointer"
         >
           Đăng ký
         </button>
@@ -188,5 +188,3 @@ function onNavbarImagePicked(event: Event) {
     </div>
   </header>
 </template>
-
-

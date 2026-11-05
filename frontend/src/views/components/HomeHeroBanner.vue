@@ -1,9 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Flame } from '@lucide/vue'
 
 defineProps<{
   userName: string
 }>()
+
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Chào buổi sáng'
+  if (hour < 18) return 'Chào buổi chiều'
+  return 'Chào buổi tối'
+})
 </script>
 
 <template>
@@ -14,7 +22,7 @@ defineProps<{
         <span class="text-primary-100 text-sm font-medium">Chào mừng đến VietBlog</span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">
-        Chào buổi sáng, {{ userName }} 👋
+        {{ greeting }}, {{ userName }} 👋
       </h1>
       <p class="text-primary-100 text-sm sm:text-base max-w-lg">
         Hôm nay có gì mới để khám phá?

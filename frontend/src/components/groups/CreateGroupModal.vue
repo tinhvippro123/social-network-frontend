@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { Users, Globe, Lock, Loader2 } from '@lucide/vue'
 import { useGroups } from '@/composables/groups/useGroups'
 import { useToast } from '@/composables/ui/useToast'
+import filesApi from '@/api/files.api'
 
 defineProps<{
   modelValue: boolean
@@ -29,13 +30,23 @@ function triggerFileInput() {
   fileInput.value?.click()
 }
 
-function handleFileChange(event: Event) {
+async function handleFileChange(event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     const file = input.files[0]
     if (file.size > 2 * 1024 * 1024) {
       toast.warning('Ảnh không được vượt quá 2MB')
       return
+    }
+    try {
+      const res = await filesApi.uploadFile(file)
+      if (res.data?.data?.fileUrl) {
+        avatarUrl.value = res.data.data.fileUrl
+        toast.success('Đã tải lên ảnh đại diện nhóm')
+        return
+      }
+    } catch {
+      // Fallback to local data URL preview if upload fails
     }
     const reader = new FileReader()
     reader.onload = (e) => {

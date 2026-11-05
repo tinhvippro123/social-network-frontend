@@ -145,7 +145,7 @@ const router = useRouter()
         </div>
         
         <div class="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-surface-700 bg-gray-50 dark:bg-surface-800/50">
-          <p class="text-xs text-gray-400">{{ content.length }} ký tự</p>
+          <p class="text-xs text-gray-400">{{ content.replace(/<[^>]*>?/gm, '').trim().length }} ký tự</p>
           <p class="text-xs text-gray-400">Tự động lưu</p>
         </div>
       </div>

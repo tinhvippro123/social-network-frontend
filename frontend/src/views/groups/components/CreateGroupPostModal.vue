@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { X, Send, Image as ImageIcon } from '@lucide/vue'
+import { X, Send, Image as ImageIcon, Upload } from '@lucide/vue'
 import groupsApi from '@/api/groups.api'
+import filesApi from '@/api/files.api'
 import { useToast } from '@/composables/ui/useToast'
 
 const props = defineProps<{
@@ -22,6 +23,24 @@ const content = ref('')
 const excerpt = ref('')
 const coverImage = ref('')
 const isSubmitting = ref(false)
+const coverInputRef = ref<HTMLInputElement | null>(null)
+
+const handleCoverUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  try {
+    const res = await filesApi.uploadFile(file)
+    if (res.data?.data?.fileUrl) {
+      coverImage.value = res.data.data.fileUrl
+      toast.success('Đã tải ảnh bìa lên thành công')
+    }
+  } catch {
+    toast.error('Không thể tải ảnh lên')
+  } finally {
+    input.value = ''
+  }
+}
 
 const handleSubmit = async () => {
   if (!title.value.trim()) {
@@ -121,6 +140,14 @@ const handleSubmit = async () => {
               class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-surface-700 bg-gray-50 dark:bg-surface-900 text-gray-900 dark:text-white text-sm focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-all outline-none"
             />
             <ImageIcon :size="16" class="absolute left-3.5 top-3.5 text-gray-400" />
+            <input ref="coverInputRef" type="file" accept="image/*" class="hidden" @change="handleCoverUpload" />
+            <button
+              type="button"
+              @click="coverInputRef?.click()"
+              class="absolute right-2 top-1.5 px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/50 text-primary-600 dark:text-primary-400 text-xs font-semibold hover:bg-primary-100 dark:hover:bg-primary-900/60 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <Upload :size="12" /> Tải ảnh
+            </button>
           </div>
         </div>
 

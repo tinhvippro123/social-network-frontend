@@ -50,7 +50,7 @@
     
     <!-- Toolbar -->
     <div class="flex items-center justify-between px-2 pb-1.5 pt-0.5" :class="{ 'border-t border-gray-100 dark:border-surface-600/50': !compact }">
-      <div class="flex items-center gap-0.5 relative">
+      <div ref="emojiContainerRef" class="flex items-center gap-0.5 relative">
         <input type="file" ref="fileInputRef" @change="handleImageSelected" accept="image/*" class="hidden" />
         <button @click="fileInputRef?.click()" :class="['text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-all rounded-md', compact ? 'p-1' : 'p-1.5']" title="Đính kèm ảnh">
           <ImageIcon :size="compact ? 14 : 18" />
@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { Image as ImageIcon, Smile, X, Send } from '@lucide/vue'
 
 const props = defineProps({
@@ -125,6 +125,12 @@ const attachedImage = ref<File | null>(null)
 const attachedImagePreview = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const showEmojiPicker = ref(false)
+const emojiContainerRef = ref<HTMLElement | null>(null)
+const handleOutsideEmojiClick = (e: MouseEvent) => {
+  if (showEmojiPicker.value && emojiContainerRef.value && !emojiContainerRef.value.contains(e.target as Node)) {
+    showEmojiPicker.value = false
+  }
+}
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 const tagRef = ref<HTMLElement | null>(null)
 const tagWidth = ref(0)
@@ -207,7 +213,11 @@ defineExpose({
   focus
 })
 
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideEmojiClick)
+})
 onMounted(() => {
+  document.addEventListener('click', handleOutsideEmojiClick)
   if (props.autoFocus) {
     setTimeout(() => {
       inputRef.value?.focus()

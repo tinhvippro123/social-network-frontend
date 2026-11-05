@@ -27,21 +27,13 @@ const reasons = [
 
 const handleSubmit = async () => {
   if (!selectedReason.value) return
-  isSubmitting.value = true
-  emit('submit', selectedReason.value, description.value)
-  
-  // Simulate success
-  setTimeout(() => {
-    isSubmitting.value = false
-    isSubmitted.value = true
-    // Auto close after showing success
-    setTimeout(() => {
-      isSubmitted.value = false
-      selectedReason.value = ''
-      description.value = ''
-      emit('close')
-    }, 2000)
-  }, 800)
+  const reason = selectedReason.value
+  const desc = description.value
+  selectedReason.value = ''
+  description.value = ''
+  isSubmitting.value = false
+  isSubmitted.value = false
+  emit('submit', reason, desc)
 }
 
 const handleClose = () => {

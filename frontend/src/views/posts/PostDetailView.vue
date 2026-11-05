@@ -239,8 +239,15 @@ function handleProseClick(e: MouseEvent) {
       </aside>
     </div>
     
-    <div v-else class="text-center py-20 text-gray-500">
-      Đang tải bài viết...
+    <div v-else class="text-center py-20 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-8">
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Không tìm thấy bài viết</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Bài viết này không tồn tại hoặc đã bị xóa khỏi hệ thống.</p>
+      <button
+        @click="router.push('/')"
+        class="px-5 py-2.5 rounded-xl gradient-primary text-white text-sm font-semibold shadow-md shadow-primary-500/20 hover:opacity-90 transition-opacity cursor-pointer"
+      >
+        Về trang chủ
+      </button>
     </div>
 
     <!-- Report Modal -->

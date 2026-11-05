@@ -205,6 +205,7 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
       const newState = !conv.isPinned
       await chatApi.pinConversation(conversationId, newState)
       conv.isPinned = newState
+      toast.success(newState ? 'Đã ghim cuộc trò chuyện' : 'Đã bỏ ghim cuộc trò chuyện')
     }
   }
 
@@ -214,12 +215,14 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
       const newState = !conv.isMuted
       await chatApi.muteConversation(conversationId, newState)
       conv.isMuted = newState
+      toast.info(newState ? 'Đã tắt thông báo cuộc trò chuyện' : 'Đã bật thông báo cuộc trò chuyện')
     }
   }
 
   async function deleteConversation(conversationId: string) {
     await chatApi.deleteConversation(conversationId)
     conversations.value = conversations.value.filter(c => c.id !== conversationId)
+    toast.info('Đã xóa cuộc trò chuyện')
   }
 
   function resolveTargetUserId(userIdOrConvId: string): string | null {
@@ -272,6 +275,7 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
 
   async function deleteMessage(messageId: string) {
     messages.value = messages.value.filter(m => m.id !== messageId)
+    toast.info('Đã xóa tin nhắn khỏi phía bạn')
   }
 
   async function revokeMessage(messageId: string, conversationId?: string) {
@@ -289,6 +293,7 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     msg.fileUrl = undefined
     msg.fileName = undefined
     msg.fileSize = undefined
+    toast.info('Đã thu hồi tin nhắn')
   }
 
   async function pinMessage(messageId: string, conversationId?: string) {
@@ -299,6 +304,7 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     const nextPinned = !msg.isPinned
     const { data } = await chatApi.pinMessage(targetConvId, messageId, nextPinned)
     msg.isPinned = data?.data?.isPinned ?? nextPinned
+    toast.success(msg.isPinned ? 'Đã ghim tin nhắn' : 'Đã bỏ ghim tin nhắn')
   }
 
   return {

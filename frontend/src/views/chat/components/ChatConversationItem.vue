@@ -98,7 +98,7 @@ onUnmounted(() => {
           <span
             :class="[
               'text-xs text-gray-500 transition-opacity',
-              showMenu ? 'hidden' : 'group-hover:hidden'
+              showMenu ? 'hidden' : 'hidden sm:inline sm:group-hover:hidden'
             ]"
           >
             {{ formatMessageTime(conv.lastMessageTime) }}
@@ -110,7 +110,7 @@ onUnmounted(() => {
             @click="toggleMenu"
             :class="[
               'p-1 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-surface-600 transition-colors',
-              showMenu ? 'block bg-gray-200 dark:bg-surface-600 text-gray-700 dark:text-gray-200' : 'hidden group-hover:block'
+              showMenu ? 'block bg-gray-200 dark:bg-surface-600 text-gray-700 dark:text-gray-200' : 'block sm:hidden sm:group-hover:block'
             ]"
             title="Tùy chọn"
           >

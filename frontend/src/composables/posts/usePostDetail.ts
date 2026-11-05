@@ -1,8 +1,9 @@
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePosts, mapCommentResponse } from './usePosts'
 import { useAuth } from '../auth/useAuth'
 import { useToast } from '../ui/useToast'
+import { useUiStore } from '@/stores/ui.store'
 import { COMMENT_EMOJIS } from '@/constants'
 import postsApi from '@/api/posts.api'
 import filesApi from '@/api/files.api'
@@ -10,6 +11,7 @@ import filesApi from '@/api/files.api'
 export function usePostDetail() {
   const router = useRouter()
   const { user } = useAuth()
+  const uiStore = useUiStore()
   const toast = useToast()
   const route = useRoute()
   const { currentPost: post, posts, comments, isLoading, fetchPost, fetchComments, fetchPosts } = usePosts()
@@ -24,6 +26,11 @@ export function usePostDetail() {
 
   // Report modal state
   const showReportModal = ref(false)
+
+  const promptGuestLogin = (msg = 'Vui lòng đăng nhập để thực hiện thao tác này') => {
+    toast.info(msg)
+    uiStore.openAuthModal('login')
+  }
 
   const initData = async () => {
     const postId = route.params.id as string || '1'
@@ -166,10 +173,33 @@ export function usePostDetail() {
     tryScroll()
   }
 
+  const onJumpToComment = (e: any) => {
+    const detail = e?.detail
+    if (detail) {
+      highlightAndScrollToComment(detail)
+    }
+  }
+
   onMounted(async () => {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('jump-to-comment', onJumpToComment)
+    }
     await initData()
     if (route.hash || route.query.highlightAuthor) {
       highlightAndScrollToComment()
+    }
+  })
+
+  onUnmounted(() => {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('jump-to-comment', onJumpToComment)
+    }
+  })
+
+  // Refresh user-specific interaction state if user logs in via AuthModal on this page
+  watch(user, (newUser, oldUser) => {
+    if (newUser && !oldUser && post.value) {
+      initData()
     }
   })
 
@@ -201,20 +231,10 @@ export function usePostDetail() {
     }
   })
 
-  // Listen to custom jump-to-comment event from navbar or notification lists
-  if (typeof window !== 'undefined') {
-    window.addEventListener('jump-to-comment', (e: any) => {
-      const detail = e.detail
-      if (detail) {
-        highlightAndScrollToComment(detail)
-      }
-    })
-  }
-
   const toggleBookmark = async () => {
     if (!post.value) return
     if (!user.value) {
-      router.push('/login')
+      promptGuestLogin('Vui lòng đăng nhập để lưu bài viết')
       return
     }
 
@@ -231,6 +251,7 @@ export function usePostDetail() {
         if (post.value) {
           post.value.bookmarked = res.data.data
         }
+        toast.success(isBookmarked.value ? 'Đã lưu bài viết' : 'Đã bỏ lưu bài viết')
       }
     } catch (e) {
       isBookmarked.value = previousState
@@ -253,7 +274,7 @@ export function usePostDetail() {
   const toggleReaction = async (emoji: string) => {
     if (!post.value) return
     if (!user.value) {
-      router.push('/login')
+      promptGuestLogin('Vui lòng đăng nhập để thả cảm xúc')
       return
     }
 
@@ -316,7 +337,7 @@ export function usePostDetail() {
   const handleUpvote = async () => {
     if (!post.value) return
     if (!user.value) {
-      router.push('/login')
+      promptGuestLogin('Vui lòng đăng nhập để bình chọn bài viết')
       return
     }
 
@@ -354,7 +375,7 @@ export function usePostDetail() {
   const handleDownvote = async () => {
     if (!post.value) return
     if (!user.value) {
-      router.push('/login')
+      promptGuestLogin('Vui lòng đăng nhập để bình chọn bài viết')
       return
     }
 
@@ -392,8 +413,7 @@ export function usePostDetail() {
   const reportPost = async (reason: string, description?: string) => {
     if (!post.value) return
     if (!user.value) {
-      toast.info('Vui lòng đăng nhập để gửi báo cáo')
-      router.push('/login')
+      promptGuestLogin('Vui lòng đăng nhập để gửi báo cáo')
       return
     }
     try {
@@ -451,7 +471,7 @@ export function usePostDetail() {
   const addComment = async (content: string, image: File | null) => {
     if (!post.value) return
     if (!user.value) {
-      router.push('/login')
+      promptGuestLogin('Vui lòng đăng nhập để bình luận')
       return
     }
 
@@ -479,7 +499,7 @@ export function usePostDetail() {
   const replyComment = async (parentId: string, content: string, image: File | null) => {
     if (!post.value) return
     if (!user.value) {
-      router.push('/login')
+      promptGuestLogin('Vui lòng đăng nhập để trả lời bình luận')
       return
     }
 

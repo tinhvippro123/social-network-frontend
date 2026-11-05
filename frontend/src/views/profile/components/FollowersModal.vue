@@ -5,6 +5,7 @@ import { X, UserPlus, UserMinus, Search as SearchIcon } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import usersApi from '@/api/users.api'
 import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 import { useToast } from '@/composables/ui/useToast'
 import type { UserSummary } from '@/types'
 
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const toast = useToast()
 const searchQuery = ref('')
 const isLoading = ref(false)
@@ -59,7 +61,7 @@ async function toggleFollow(user: UserSummary) {
   if (!authStore.isLoggedIn) {
     toast.info('Vui lòng đăng nhập để theo dõi người dùng')
     emit('close')
-    router.push('/login')
+    uiStore.openAuthModal('login')
     return
   }
   try {
@@ -117,7 +119,10 @@ watch(() => [props.show, props.type], ([show]) => {
 
           <!-- Users List -->
           <div class="flex-1 overflow-y-auto px-2 pb-4">
-            <div v-if="currentList.length === 0" class="py-12 text-center">
+            <div v-if="isLoading" class="py-12 text-center text-sm text-gray-400">
+              Đang tải danh sách...
+            </div>
+            <div v-if="!isLoading && currentList.length === 0" class="py-12 text-center">
               <p class="text-sm text-gray-400">Không tìm thấy người dùng nào</p>
             </div>
 

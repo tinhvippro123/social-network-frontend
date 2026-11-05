@@ -288,7 +288,7 @@ const tabs = [
 
       <!-- Result count -->
       <span v-if="!isSearching" class="text-xs text-gray-500 dark:text-gray-400 font-medium">
-        {{ results.length }} bài viết tìm thấy
+        {{ activeTab === 'posts' ? `${results.length} bài viết tìm thấy` : activeTab === 'users' ? `${filteredUsers.length} tác giả tìm thấy` : `${filteredTags.length} chủ đề tìm thấy` }}
       </span>
     </div>
 

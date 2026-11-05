@@ -46,7 +46,7 @@ const privacySetting = ref<'public' | 'followers' | 'private'>('public')
 const isAllowedToView = computed(() => {
   if (isOwnProfile.value) return true
   if (privacySetting.value === 'public') return true
-  if (privacySetting.value === 'followers') return true
+  if (privacySetting.value === 'followers') return Boolean(profileUser.value?.isFollowing ?? (profileUser.value as any)?.following)
   return false
 })
 
@@ -57,6 +57,17 @@ async function loadProfile() {
     if (!targetId) {
       profileUser.value = null
       return
+    }
+    try {
+      const rawPrefs = localStorage.getItem(`vb_user_prefs_${targetId}`)
+      if (rawPrefs) {
+        const parsed = JSON.parse(rawPrefs)
+        if (parsed?.privacySetting) privacySetting.value = parsed.privacySetting
+      } else {
+        privacySetting.value = 'public'
+      }
+    } catch {
+      privacySetting.value = 'public'
     }
     const res = await usersApi.getProfile(targetId)
     profileUser.value = res.data.data

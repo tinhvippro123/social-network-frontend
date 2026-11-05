@@ -2,7 +2,7 @@
 import { getCurrentInstance } from 'vue'
 import {
   Eye, MessageCircle, Bookmark,
-  BookmarkCheck, Clock, ChevronUp
+  BookmarkCheck, Clock, ChevronUp, MapPin
 } from '@lucide/vue'
 import type { Post } from '@/types'
 
@@ -81,8 +81,22 @@ const handleBookmark = async (e: Event) => {
       </div>
       <div class="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
       <!-- Category badge -->
-      <span class="absolute top-3 left-3 px-3 py-1 rounded-lg text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300">
+      <span
+        @click.stop="post.category?.slug && router.push('/?category=' + post.category.slug)"
+        class="absolute top-3 left-3 px-3 py-1 rounded-lg text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-surface-700 hover:text-primary-600 transition-colors cursor-pointer"
+        title="Lọc theo danh mục này"
+      >
         {{ post.category.icon }} {{ post.category.name }}
+      </span>
+      <!-- Location badge -->
+      <span
+        v-if="post.location?.address"
+        @click.stop="router.push('/map?postId=' + post.id)"
+        class="absolute bottom-3 left-3 max-w-[75%] truncate px-2.5 py-1 rounded-lg text-[11px] font-medium bg-black/60 text-white backdrop-blur-sm hover:bg-primary-600/90 transition-colors flex items-center gap-1 cursor-pointer"
+        :title="`Xem trên bản đồ: ${post.location.address}`"
+      >
+        <MapPin :size="11" class="shrink-0" />
+        <span class="truncate">{{ post.location.address }}</span>
       </span>
       <!-- Bookmark -->
       <button
