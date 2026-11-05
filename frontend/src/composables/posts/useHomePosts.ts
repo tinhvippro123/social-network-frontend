@@ -23,13 +23,13 @@ export function useHomePosts() {
   const filteredPosts = computed(() => {
     const all = selectedCategory.value === 'all'
       ? posts.value
-      : posts.value.filter(p => p.category.slug === selectedCategory.value)
+      : posts.value.filter(p => p.category.slug === selectedCategory.value || p.category.name === selectedCategory.value)
     return all.slice(0, visibleCount.value)
   })
 
   const totalFiltered = computed(() => {
     if (selectedCategory.value === 'all') return posts.value.length
-    return posts.value.filter(p => p.category.slug === selectedCategory.value).length
+    return posts.value.filter(p => p.category.slug === selectedCategory.value || p.category.name === selectedCategory.value).length
   })
 
   const hasMore = computed(() => visibleCount.value < totalFiltered.value)

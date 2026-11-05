@@ -24,6 +24,8 @@ export const useUiStore = defineStore('ui', () => {
     document.documentElement.classList.toggle('dark', isDark.value)
   }
 
+  initTheme()
+
   // ── Sidebar ────────────────────────────────
   const isSidebarOpen = ref(true)
   const isMobileSidebarOpen = ref(false)

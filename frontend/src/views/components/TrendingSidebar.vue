@@ -41,6 +41,8 @@ async function toggleFollowUser(u: any) {
   try {
     const res = await usersApi.toggleFollow(u.id)
     const isNowFollowing = typeof res.data?.data === 'boolean' ? res.data.data : !followedUserIds.value.has(u.id)
+    u.isFollowing = isNowFollowing
+    u.following = isNowFollowing
     const next = new Set<string>(followedUserIds.value)
     if (isNowFollowing) {
       next.add(u.id)

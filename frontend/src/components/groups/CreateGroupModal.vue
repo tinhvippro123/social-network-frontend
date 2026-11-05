@@ -69,12 +69,17 @@ async function handleCreate() {
 
   isSubmitting.value = true
   try {
+    const combinedDesc = [description.value.trim(), rules.value.trim() ? `Nội quy: ${rules.value.trim()}` : ''].filter(Boolean).join('\n\n')
     const newGroup = await createGroup({
       name: name.value.trim(),
-      description: description.value.trim() || undefined,
+      description: combinedDesc || undefined,
       avatar: avatarUrl.value || undefined,
       isPublic: isPublic.value
     })
+    if (!newGroup) {
+      toast.error('Không thể tạo nhóm mới. Vui lòng thử lại.')
+      return
+    }
     toast.success(`Đã tạo thành công nhóm "${name.value}"`)
     emit('created', newGroup)
     close()

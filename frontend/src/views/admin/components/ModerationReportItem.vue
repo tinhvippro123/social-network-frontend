@@ -8,6 +8,7 @@ import type { Report } from '@/types'
 const props = defineProps<{
   report: Report & {
     targetTitle: string
+    targetPostId?: string | null
     reporter: {
       name: string
       avatar: string
@@ -26,6 +27,7 @@ function viewTarget() {
   const type = (props.report.type || '').toLowerCase()
   let path = '/'
   if (type === 'post') path = `/posts/${props.report.targetId}`
+  else if (type === 'comment') path = (props.report as any).targetPostId ? `/posts/${(props.report as any).targetPostId}#comment-${props.report.targetId}` : '/'
   else if (type === 'user') path = `/profile/${props.report.targetId}`
   else if (type === 'group') path = `/groups/${props.report.targetId}`
   // Mở tab mới để admin không bị rời khỏi hàng đợi kiểm duyệt
@@ -99,6 +101,13 @@ function viewTarget() {
           class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all cursor-pointer"
         >
           <Ban :size="12" /> Cấm người đăng
+        </button>
+        <button
+          type="button"
+          @click="emit('dismiss', report.id)"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-gray-500/10 text-gray-500 hover:bg-gray-500 hover:text-white transition-all cursor-pointer"
+        >
+          <X :size="12" /> Bỏ qua
         </button>
       </div>
     </div>

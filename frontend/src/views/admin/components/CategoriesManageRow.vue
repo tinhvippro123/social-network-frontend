@@ -26,7 +26,7 @@ const emit = defineEmits<{
       <span class="text-2xl">{{ category.icon }}</span>
     </td>
     <td class="px-5 py-4">
-      <RouterLink :to="`/?category=${encodeURIComponent(category.name)}`" class="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-500 hover:underline">{{ category.name }}</RouterLink>
+      <RouterLink :to="`/?category=${encodeURIComponent(category.slug || category.name)}`" class="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-500 hover:underline">{{ category.name }}</RouterLink>
     </td>
     <td class="px-5 py-4">
       <code class="text-xs bg-gray-100 dark:bg-surface-700 px-2 py-1 rounded text-gray-500">{{ category.slug }}</code>

@@ -55,16 +55,22 @@ function handleOutsideClick(e: MouseEvent) {
   }
 }
 
+function onNicknameChanged() {
+  liveConversations.value = [...liveConversations.value]
+}
+
 onMounted(() => {
   loadConversations()
   document.addEventListener('click', handleOutsideClick)
-  window.addEventListener('chat-nickname-changed', () => {
+  window.addEventListener('chat-nickname-changed', onNicknameChanged)
+  if (false) window.addEventListener('chat-nickname-changed', () => {
     liveConversations.value = [...liveConversations.value]
   })
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleOutsideClick)
+  window.removeEventListener('chat-nickname-changed', onNicknameChanged)
 })
 
 watch(() => props.showChat, (isOpen) => {
@@ -113,7 +119,7 @@ function handleChatClick() {
 function selectConversation(conv: ChatConversation) {
   conv.unreadCount = 0
   if (window.innerWidth < 640) {
-    router.push('/chat')
+    router.push(`/chat?id=${conv.id}`)
   } else {
     emit('openChatWindow', conv)
   }

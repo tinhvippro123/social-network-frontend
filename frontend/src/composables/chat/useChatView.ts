@@ -1,4 +1,5 @@
-import { ref, watch, watchEffect, onMounted, nextTick } from 'vue'
+import { ref, watch, watchEffect, onMounted, onUnmounted, nextTick } from 'vue'
+import { useConfirm } from '../ui/useConfirm'
 import { useRoute, useRouter } from 'vue-router'
 
 import { useAuth } from '../auth/useAuth'
@@ -14,6 +15,7 @@ export function useChatView() {
   const route = useRoute()
   const router = useRouter()
   const toast = useToast()
+  const { confirm } = useConfirm()
   const { user: currentUser } = useAuth()
   const { applyNicknameToConversation } = useChatNicknames()
   const newChatInitialMode = ref<'direct' | 'group'>('direct')
@@ -55,6 +57,24 @@ export function useChatView() {
   })
 
   if (typeof window !== 'undefined') {
+  const onNicknameChanged = (e: any) => {
+      const detail = e.detail
+      if (!detail || !selectedConversation.value) return
+      if (
+        selectedConversation.value.id === detail.convId ||
+        selectedConversation.value.participants?.some((p: any) => p.id === detail.otherId)
+      ) {
+        selectedConversation.value.nickname = detail.nickname
+        selectedConversation.value.name = detail.name
+        if (detail.originalName) selectedConversation.value.originalName = detail.originalName
+      }
+    }
+    window.addEventListener('chat-nickname-changed', onNicknameChanged)
+    onUnmounted(() => {
+      window.removeEventListener('chat-nickname-changed', onNicknameChanged)
+    })
+  }
+  if (false) {
     window.addEventListener('chat-nickname-changed', (e: any) => {
       const detail = e.detail
       if (!detail || !selectedConversation.value) return
@@ -450,6 +470,13 @@ export function useChatView() {
   const showNewChatModal = ref(false)
 
   const handleDeleteConversation = async (conversationId: string) => {
+    const ok = await confirm({
+      title: 'Xóa cuộc trò chuyện',
+      message: 'Bạn có chắc chắn muốn xóa cuộc trò chuyện này khỏi danh sách?',
+      confirmText: 'Xóa',
+      variant: 'danger'
+    })
+    if (!ok) return
     try {
       await deleteConversation(conversationId)
       if (selectedConversation.value?.id === conversationId) {
@@ -462,7 +489,7 @@ export function useChatView() {
           messages.value = []
         }
       }
-      toast.info('Đã xóa cuộc trò chuyện')
+      // Toast is already triggered inside deleteConversation(conversationId)
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể xóa cuộc trò chuyện')
     }

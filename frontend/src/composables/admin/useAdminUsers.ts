@@ -22,6 +22,10 @@ export function useAdminUsers() {
   const busyUserId = ref<string | null>(null)
   const route = useRoute()
   const searchQuery = ref((route.query.search as string) || '')
+  watch(() => route.query.search, (q) => {
+    const val = typeof q === 'string' ? q : ''
+    if (val !== searchQuery.value) searchQuery.value = val
+  })
   const filterRole = ref('all')
   const currentPage = ref(1)
 

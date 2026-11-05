@@ -62,6 +62,9 @@ const chatApi = {
   searchMessages: (conversationId: string, q: string) =>
     http.get<ApiResponse<ChatMessage[]>>(`/chat/conversations/${conversationId}/messages`, { params: { q } }),
 
+  getBlockedUsers: () =>
+    http.get<ApiResponse<Array<{ id: string; name: string; avatar?: string }>>>('/chat/blocks'),
+
   blockUser: (userId: string) =>
     http.post<ApiResponse<void>>(`/chat/blocks/${userId}`),
 

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import chatApi from '@/api/chat.api'
 import type { ChatConversation, ChatMessage, MessageStatus } from '@/types'
 import { useAsyncState } from '../core/useAsyncState'
@@ -102,6 +102,22 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
 
   if (typeof window !== 'undefined') {
     connectWs()
+    const onNicknameChanged = (e: any) => {
+      const detail = e.detail
+      if (!detail) return
+      const target = conversations.value.find(c => c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
+      if (target) {
+        target.nickname = detail.nickname
+        target.name = detail.name
+        if (detail.originalName) target.originalName = detail.originalName
+      }
+    }
+    window.addEventListener('chat-nickname-changed', onNicknameChanged)
+    onUnmounted(() => {
+      window.removeEventListener('chat-nickname-changed', onNicknameChanged)
+    })
+  }
+  if (false) {
     window.addEventListener('chat-nickname-changed', (e: any) => {
       const detail = e.detail
       if (!detail) return

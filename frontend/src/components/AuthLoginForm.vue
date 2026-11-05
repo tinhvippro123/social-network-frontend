@@ -79,6 +79,8 @@ async function handleLogin() {
     const role = (data.data.user?.role || '').toLowerCase()
     if (role === 'admin') {
       router.push('/admin')
+    } else if (role === 'moderator') {
+      router.push('/admin/moderation')
     }
   } catch (err: any) {
     emitError('update:error', err.response?.data?.message || 'Email hoặc mật khẩu không chính xác')

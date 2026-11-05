@@ -28,6 +28,7 @@ export function useAdminLayout() {
 
   const initEvents = () => {
     checkMobile()
+    uiStore.fetchNotifications()
     window.addEventListener('resize', checkMobile)
     document.addEventListener('click', handleClickOutside)
   }

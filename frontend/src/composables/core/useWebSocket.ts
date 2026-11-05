@@ -9,7 +9,7 @@ function resolveDefaultWsUrl(): string {
   if (import.meta.env.VITE_WS_URL) {
     return import.meta.env.VITE_WS_URL
   }
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
   try {
     const u = new URL(apiBase, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8080')
     const wsProtocol = u.protocol === 'https:' ? 'wss:' : 'ws:'

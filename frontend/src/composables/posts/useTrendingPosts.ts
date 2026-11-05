@@ -30,7 +30,7 @@ export function useTrendingPosts() {
       .sort((a, b) => b.score - a.score)
 
     if (selectedCategory.value !== 'all') {
-      sorted = sorted.filter(p => p.category.slug === selectedCategory.value)
+      sorted = sorted.filter(p => p.category.slug === selectedCategory.value || p.category.name === selectedCategory.value)
     }
     return sorted
   })

@@ -106,7 +106,14 @@
               </div>
             </div>
 
-            <!-- Delete Button (Only for author) -->
+            <!-- Report / Delete Buttons -->
+            <button
+              v-if="!user || (user.id !== comment.author?.id && user.id !== comment.authorId)"
+              @click="handleReportComment"
+              class="font-medium text-gray-400 hover:text-rose-500 hover:underline cursor-pointer"
+            >
+              Báo cáo
+            </button>
             <button
               v-if="user && (user.id === comment.author?.id || user.id === comment.authorId || ['admin', 'moderator'].includes((user.role || '').toLowerCase()))"
               @click="$emit('delete', comment.id)"
@@ -243,6 +250,10 @@ import { SmilePlus, ChevronDown, ChevronRight } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import CommentComposer from '@/components/comments/CommentComposer.vue'
 import { formatDate } from '@/utils/formatters'
+import { useUiStore } from '@/stores/ui.store'
+import { useToast } from '@/composables/ui/useToast'
+import { useConfirm } from '@/composables/ui/useConfirm'
+import http from '@/api/client'
 
 interface Props {
   comment: any
@@ -273,6 +284,9 @@ const inlineComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
 const isCollapsed = ref(false)
 const route = useRoute()
 const router = useRouter()
+const uiStore = useUiStore()
+const toast = useToast()
+const { confirm } = useConfirm()
 
 function goToProfile(userId?: string) {
   if (userId && userId !== 'guest') {
@@ -369,6 +383,11 @@ onUnmounted(() => {
 })
 
 const handleReplyClick = () => {
+  if (!props.user) {
+    toast.info('Vui lòng đăng nhập để phản hồi bình luận')
+    uiStore.openAuthModal('login')
+    return
+  }
   emit('reply', props.comment.id, props.comment.id, props.comment.author.name)
 }
 
@@ -378,6 +397,41 @@ const handleSubmitReply = (content: string, image: File | null) => {
 }
 
 function toggleReaction(emoji: string) {
+  if (!props.user) {
+    toast.info('Vui lòng đăng nhập để thả cảm xúc')
+    uiStore.openAuthModal('login')
+    return
+  }
+
+  toggleReactionInner(emoji)
+}
+
+async function handleReportComment() {
+  if (!props.user) {
+    toast.info('Vui lòng đăng nhập để báo cáo bình luận')
+    uiStore.openAuthModal('login')
+    return
+  }
+  const ok = await confirm({
+    title: 'Báo cáo bình luận',
+    message: 'Bạn có muốn báo cáo bình luận này vi phạm tiêu chuẩn cộng đồng không?',
+    confirmText: 'Gửi báo cáo',
+    variant: 'warning'
+  })
+  if (!ok) return
+  try {
+    await http.post('/reports', {
+      targetId: props.comment.id,
+      type: 'COMMENT',
+      reason: 'Bình luận vi phạm tiêu chuẩn cộng đồng'
+    })
+    toast.success('Đã gửi báo cáo bình luận thành công')
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể gửi báo cáo lúc này')
+  }
+}
+
+function toggleReactionInner(emoji: string) {
   if (!props.comment.reactions) {
     props.comment.reactions = []
   }

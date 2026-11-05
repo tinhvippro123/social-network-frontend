@@ -61,7 +61,7 @@ function handleOpenProfile() {
           <Skeleton v-else type="avatar" class="w-8 h-8" rounded="rounded-full" />
           <div v-if="selectedConversation?.isOnline && !isInitialLoading" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800" />
         </div>
-        <div class="text-left hidden sm:block">
+        <div class="text-left min-w-0">
           <template v-if="selectedConversation && !isInitialLoading">
             <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedConversation.name }}</p>
             <p class="text-xs text-green-500" v-if="isTyping">{{ typingUser }} đang nhập...</p>

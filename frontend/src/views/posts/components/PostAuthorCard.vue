@@ -7,6 +7,7 @@ import type { User } from '@/types'
 import { useAuth } from '@/composables/auth/useAuth'
 import usersApi from '@/api/users.api'
 import { useToast } from '@/composables/ui/useToast'
+import { useUiStore } from '@/stores/ui.store'
 
 const props = defineProps<{
   author: User | any
@@ -15,6 +16,7 @@ const props = defineProps<{
 const router = useRouter()
 const { user } = useAuth()
 const toast = useToast()
+const uiStore = useUiStore()
 const isFollowing = ref(false)
 const isFollowLoading = ref(false)
 const authorPostsCount = ref<number | null>(null)
@@ -47,7 +49,8 @@ watch(() => props.author?.id, (newId) => {
 
 async function toggleFollow() {
   if (!user.value) {
-    router.push('/login')
+    toast.info('Vui lòng đăng nhập để theo dõi tác giả')
+    uiStore.openAuthModal('login')
     return
   }
   if (!props.author?.id) return

@@ -26,7 +26,7 @@ function handleNotificationClick(notif: any) {
   <div class="relative">
     <button
       class="notification-trigger relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"
-      @click.stop="emit('update:showNotifications', !showNotifications)"
+      @click.stop="if (!showNotifications) uiStore.fetchNotifications(); emit('update:showNotifications', !showNotifications)"
     >
       <Bell :size="20" />
       <span
@@ -70,6 +70,7 @@ function handleNotificationClick(notif: any) {
             <img
               v-if="notif.avatar"
               :src="notif.avatar"
+              @error="notif.avatar = ''"
               class="w-9 h-9 rounded-full shrink-0"
             />
             <div v-else class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">

@@ -246,6 +246,9 @@ router.beforeEach((to, from, next) => {
       if (authStore.isAdmin) {
         return next({ name: 'admin-dashboard' })
       }
+      if (authStore.isModerator) {
+        return next({ name: 'admin-moderation' })
+      }
       return next({ name: 'home' })
     }
     return next()

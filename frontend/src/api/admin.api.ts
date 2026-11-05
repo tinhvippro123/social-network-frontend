@@ -4,6 +4,7 @@
 import http from './client'
 import type { ApiResponse } from './client'
 import type { AdminStats, Report, User } from '@/types'
+import { slugify } from '@/utils/formatters'
 
 const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
@@ -92,14 +93,14 @@ const adminApi = {
     http.post<ApiResponse<any>>('/categories', {
       name: data.name,
       icon: data.icon || '📁',
-      slug: data.name.toLowerCase().trim().replace(/[\s\W-]+/g, '-'),
+      slug: slugify(data.name),
     }),
 
   updateCategory: (id: string, data: { name: string; icon?: string }) =>
     http.put<ApiResponse<any>>(`/categories/${id}`, {
       name: data.name,
       icon: data.icon || '📁',
-      slug: data.name.toLowerCase().trim().replace(/[\s\W-]+/g, '-'),
+      slug: slugify(data.name),
     }),
 
   deleteCategory: (id: string) =>

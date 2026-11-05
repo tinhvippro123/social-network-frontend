@@ -119,7 +119,7 @@ onUnmounted(() => {
     :class="[
       'message-action-menu absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 transition-opacity select-none',
       msg.isOwn ? 'right-full mr-1 flex-row' : 'left-full ml-1 flex-row-reverse',
-      activeActionMenu === msg.id || activeActionMenu === msg.id + '-react' ? 'opacity-100 z-30' : 'opacity-0 group-hover/bubble:opacity-100 z-10'
+      activeActionMenu === msg.id || activeActionMenu === msg.id + '-react' ? 'opacity-100 z-30' : 'opacity-100 sm:opacity-0 sm:group-hover/bubble:opacity-100 z-10'
     ]"
   >
     <!-- More Button (...) - furthest from bubble -->

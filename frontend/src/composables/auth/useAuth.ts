@@ -36,6 +36,8 @@ export function useAuth() {
         router.push(redirectUrl)
       } else if (userRole === 'admin') {
         router.push('/admin')
+      } else if (userRole === 'moderator') {
+        router.push('/admin/moderation')
       } else {
         router.push('/')
       }
@@ -55,6 +57,8 @@ export function useAuth() {
         router.push(redirectUrl)
       } else if (userRole === 'admin') {
         router.push('/admin')
+      } else if (userRole === 'moderator') {
+        router.push('/admin/moderation')
       } else {
         router.push('/')
       }

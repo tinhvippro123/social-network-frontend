@@ -18,6 +18,8 @@ import ReportPostModal from './components/ReportPostModal.vue'
 import ImageLightboxModal from '@/components/ui/ImageLightboxModal.vue'
 import { formatContentWithGalleries } from '@/utils/proseGallery'
 import { usePostDetail } from '@/composables/posts/usePostDetail'
+import { useUiStore } from '@/stores/ui.store'
+import { useToast } from '@/composables/ui/useToast'
 import { useCodeHighlight } from '@/composables/core/useCodeHighlight'
 import 'highlight.js/styles/github-dark.css'
 
@@ -51,6 +53,17 @@ const {
 } = usePostDetail()
 
 const isFollowing = ref(false)
+const uiStore = useUiStore()
+const toast = useToast()
+
+function handleOpenReport() {
+  if (!user.value) {
+    toast.info('Vui lòng đăng nhập để báo cáo bài viết')
+    uiStore.openAuthModal('login')
+    return
+  }
+  showReportModal.value = true
+}
 // Code syntax highlighting for post content
 const postContent = computed(() => post.value?.content || null)
 useCodeHighlight(postContent)
@@ -208,7 +221,7 @@ function handleProseClick(e: MouseEvent) {
           @toggleBookmark="toggleBookmark"
           @toggleEmojiPicker="toggleEmojiPicker"
           @toggleReaction="toggleReaction"
-          @report="showReportModal = true"
+          @report="handleOpenReport"
           @scrollToComments="scrollToComments"
         />
 

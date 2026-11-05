@@ -25,7 +25,7 @@ const emit = defineEmits<{
     <!-- Left -->
     <div class="flex items-center gap-3">
       <button 
-        @click="emit('update:mobileSidebarOpen', true)"
+        @click="emit('update:mobileSidebarOpen', !mobileSidebarOpen)"
         class="p-2 -ml-2 mr-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors lg:hidden"
       >
         <MenuIcon v-if="!mobileSidebarOpen" :size="22" />

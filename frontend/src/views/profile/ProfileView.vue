@@ -62,7 +62,8 @@ async function loadProfile() {
       const rawPrefs = localStorage.getItem(`vb_user_prefs_${targetId}`)
       if (rawPrefs) {
         const parsed = JSON.parse(rawPrefs)
-        if (parsed?.privacySetting) privacySetting.value = parsed.privacySetting
+        const vis = parsed?.privacySettings?.profileVisibility || parsed?.privacySetting
+        privacySetting.value = vis || 'public'
       } else {
         privacySetting.value = 'public'
       }

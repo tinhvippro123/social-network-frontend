@@ -5,6 +5,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import usersApi from '@/api/users.api'
 import { useAuthStore } from '@/stores/auth.store'
 import { useToast } from '@/composables/ui/useToast'
+import { useUiStore } from '@/stores/ui.store'
 
 const props = defineProps<{
   user: {
@@ -26,6 +27,7 @@ defineEmits<{
 const router = useRouter()
 const authStore = useAuthStore()
 const toast = useToast()
+const uiStore = useUiStore()
 const isFollowing = ref(Boolean(props.user.isFollowing ?? props.user.following))
 const isToggling = ref(false)
 
@@ -42,7 +44,7 @@ async function handleToggleFollow(e: Event) {
   e.stopPropagation()
   if (!authStore.isLoggedIn) {
     toast.info('Vui lòng đăng nhập để theo dõi tác giả')
-    router.push('/login')
+    uiStore.openAuthModal('login')
     return
   }
   if (isToggling.value) return

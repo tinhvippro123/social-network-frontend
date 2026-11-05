@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { inject, ref, computed } from 'vue'
+import { inject, ref, computed, onMounted } from 'vue'
+import chatApi from '@/api/chat.api'
 import { useRouter } from 'vue-router'
 import {
   X as XIcon,
@@ -27,6 +28,16 @@ const toast = useToast()
 const { addToast } = toast
 const showNicknameModal = ref(false)
 const blockedUserIds = ref<Set<string>>(new Set())
+
+onMounted(async () => {
+  try {
+    const res = await chatApi.getBlockedUsers()
+    const list = res.data?.data || []
+    blockedUserIds.value = new Set(list.map((u: any) => u.id))
+  } catch {
+    // ignore
+  }
+})
 const { setNickname } = useChatNicknames()
 
 const {
@@ -64,6 +75,7 @@ function viewPinnedMessages() {
       showInfoPanel.value = false
     }
   } else {
+    // Toast is already triggered inside muteConversation(id)
     toast.info('Hiện chưa có tin nhắn nào được ghim trong cuộc trò chuyện này')
   }
 }
@@ -78,6 +90,7 @@ function handleSaveNickname(newNick: string) {
   if (newNick.trim()) {
     toast.success(`Đã đổi biệt danh thành "${newNick.trim()}"`)
   } else {
+    // Toast is already triggered inside muteConversation(id)
     toast.info('Đã gỡ bỏ biệt danh')
   }
   showNicknameModal.value = false
@@ -87,7 +100,8 @@ async function toggleMuteNotifications() {
   if (!selectedConversation?.value) return
   try {
     await muteConversation(selectedConversation.value.id)
-    toast.info(
+    // Toast is already triggered inside muteConversation(id)
+    void (
       selectedConversation.value.isMuted
         ? 'Đã tắt thông báo cuộc trò chuyện'
         : 'Đã bật lại thông báo cuộc trò chuyện'

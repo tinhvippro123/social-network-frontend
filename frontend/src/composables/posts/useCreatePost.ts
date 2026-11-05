@@ -222,7 +222,7 @@ export function useCreatePost() {
     }
   }
 
-  const { execute, isLoading } = useAsyncState()
+  const { execute, isLoading, error: publishError } = useAsyncState()
 
   const handlePublish = async (mode: 'create' | 'edit' = 'create', postId?: string) => {
     // Tự động lưu tag đang gõ dở trong ô input nếu chưa nhấn Enter
@@ -259,6 +259,7 @@ export function useCreatePost() {
           const uploadRes = await filesApi.uploadFile(coverImageFile.value)
           coverImageUrl = uploadRes.data?.data?.fileUrl || uploadRes.data?.fileUrl || ''
         } catch (err) {
+          error('Không thể tải ảnh bìa lên Cloudinary. Vui lòng thử lại sau.')
           throw new Error('Không thể tải ảnh bìa lên Cloudinary. Vui lòng thử lại sau.')
         }
       }
@@ -300,6 +301,9 @@ export function useCreatePost() {
         }, 800)
       }
     }, mode === 'edit' ? 'Cập nhật bài viết thất bại' : 'Đăng bài viết thất bại')
+    if (publishError.value) {
+      error(publishError.value)
+    }
   }
 
   return {

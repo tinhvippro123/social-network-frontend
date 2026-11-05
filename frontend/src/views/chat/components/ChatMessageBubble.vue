@@ -124,10 +124,10 @@ function openSenderProfile() {
 
         <!-- Reactions -->
         <div v-if="groupedReactions.length > 0" class="absolute -bottom-3 flex flex-wrap gap-1" :class="msg.isOwn ? 'right-2' : 'left-2'">
-          <div v-for="(reaction, rIdx) in groupedReactions" :key="rIdx" class="px-1.5 py-0.5 rounded-full bg-white dark:bg-surface-700 border border-gray-100 dark:border-surface-600 shadow-sm text-[11px] flex items-center gap-1">
+          <button type="button" v-for="(reaction, rIdx) in groupedReactions" :key="rIdx" @click.stop="handleAddReaction(msg.id, reaction.emoji)" class="px-1.5 py-0.5 rounded-full bg-white dark:bg-surface-700 border border-gray-100 dark:border-surface-600 shadow-sm text-[11px] flex items-center gap-1 cursor-pointer hover:scale-105 transition-transform">
             <span>{{ reaction.emoji }}</span>
             <span v-if="reaction.users.length > 1" class="font-medium text-gray-500">{{ reaction.users.length }}</span>
-          </div>
+          </button>
         </div>
       </div>
 

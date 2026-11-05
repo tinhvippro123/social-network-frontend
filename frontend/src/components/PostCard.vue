@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { getCurrentInstance } from 'vue'
+import { ref, watch, getCurrentInstance } from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 import {
   Eye, MessageCircle, Bookmark,
   BookmarkCheck, Clock, ChevronUp, MapPin
@@ -15,10 +17,17 @@ import { useToast } from '@/composables/ui/useToast'
 const router = useRouter()
 const toast = useToast()
 const instance = getCurrentInstance()
+const authStore = useAuthStore()
+const uiStore = useUiStore()
+const coverError = ref(false)
 
 const props = defineProps<{
   post: Post
 }>()
+
+watch(() => props.post?.coverImage, () => {
+  coverError.value = false
+})
 
 const emit = defineEmits<{
   (e: 'click', postId: string): void
@@ -29,11 +38,20 @@ const emit = defineEmits<{
 
 const handleClick = () => {
   emit('click', props.post.id)
+  const vnodeProps = instance?.vnode.props || {}
+  if (vnodeProps.onClick) {
+    return
+  }
   router.push(`/posts/${props.post.id}`)
 }
 
 const handleBookmark = async (e: Event) => {
   e.stopPropagation()
+  if (!authStore.isLoggedIn) {
+    toast.info('Vui lòng đăng nhập để lưu bài viết')
+    uiStore.openAuthModal('login')
+    return
+  }
   const vnodeProps = instance?.vnode.props || {}
   const hasParentListener = Boolean(
     vnodeProps.onBookmark ||
@@ -67,7 +85,8 @@ const handleBookmark = async (e: Event) => {
     <!-- Cover Image -->
     <div class="relative overflow-hidden h-48">
       <img
-        v-if="post.coverImage"
+        v-if="post.coverImage && !coverError"
+        @error="coverError = true"
         :src="post.coverImage"
         :alt="post.title"
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
