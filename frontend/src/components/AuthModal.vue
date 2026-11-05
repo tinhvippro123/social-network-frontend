@@ -11,9 +11,13 @@ const uiStore = useUiStore()
 const isLoading = ref(false)
 const error = ref('')
 
-// Reset error when switching tabs
+// Reset error when switching tabs or reopening modal
 watch(() => uiStore.authModalTab, () => {
   error.value = ''
+})
+
+watch(() => uiStore.showAuthModal, (open) => {
+  if (open) error.value = ''
 })
 
 function close() {

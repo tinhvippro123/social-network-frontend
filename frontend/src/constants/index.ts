@@ -25,6 +25,7 @@ export const REPORT_TYPE = {
   POST: 'post',
   COMMENT: 'comment',
   USER: 'user',
+  GROUP: 'group',
 } as const
 
 /** Trạng thái report */
@@ -75,11 +76,18 @@ export const STORAGE_KEYS = {
 export const COMMENT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'] as const
 
 /** Danh mục hỗ trợ gắn thẻ địa điểm */
-export const LOCATION_SUPPORTED_CATEGORIES = ['tim-tro', 'pass-do', 'review-dia-diem', 'su-kien'] as const
+export const LOCATION_SUPPORTED_CATEGORIES = [
+  'du-lich',
+  'am-thuc',
+  'su-kien',
+  'doi-song',
+  'tim-tro',
+  'pass-do',
+  'review-dia-diem',
+] as const
 
 /** Cấu hình kiểm tra độ mạnh mật khẩu */
 export const PASSWORD_STRENGTH = {
   COLORS: ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'],
   LABELS: ['Yếu', 'Trung bình', 'Khá', 'Mạnh']
 } as const
-

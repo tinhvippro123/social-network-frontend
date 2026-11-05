@@ -21,8 +21,6 @@ export interface AuthTokens {
   accessToken: string
 }
 
-
-
 export interface GoogleLoginPayload {
   accessToken?: string
   idToken?: string
@@ -42,7 +40,7 @@ const authApi = {
     http.post<ApiResponse>('/auth/logout'),
 
   refreshToken: (refreshToken: string) =>
-    http.post<ApiResponse<AuthTokens>>('/auth/refresh', { refreshToken }),
+    http.post<ApiResponse<AuthTokens>>('/auth/refresh', { token: refreshToken, refreshToken }),
 
   getProfile: () =>
     http.get<ApiResponse<User>>('/auth/me'),

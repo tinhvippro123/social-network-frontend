@@ -9,6 +9,7 @@ import type { LoginRequest, RegisterRequest, GoogleLoginPayload } from '@/api/au
 import { STORAGE_KEYS } from '@/constants'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAsyncState } from '../core/useAsyncState'
+import { useToast } from '../ui/useToast'
 
 // Shared state (singleton across components)
 const { isLoading, error, execute } = useAsyncState()
@@ -17,6 +18,7 @@ export function useAuth() {
   const router = useRouter()
   const route = useRoute()
   const authStore = useAuthStore()
+  const toast = useToast()
 
   const user = computed(() => authStore.user)
   const isLoggedIn = computed(() => authStore.isLoggedIn)
@@ -29,6 +31,7 @@ export function useAuth() {
       const { data } = await authApi.login(credentials)
       authStore.setToken(data.data.accessToken)
       authStore.setUser(data.data.user)
+      toast.success(`Chào mừng ${data.data.user.name || 'bạn'} quay trở lại!`)
 
       const redirectUrl = route.query.redirect as string
       const userRole = (data.data.user.role || '').toLowerCase()
@@ -69,6 +72,7 @@ export function useAuth() {
   async function register(data: RegisterRequest) {
     await execute(async () => {
       await authApi.register(data)
+      toast.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập.')
       router.push('/login')
     }, 'Đăng ký thất bại')
   }

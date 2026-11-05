@@ -31,9 +31,9 @@ function handleNotificationClick(notif: any) {
       <Bell :size="20" />
       <span
         v-if="uiStore.unreadCount > 0"
-        class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium animate-pulse"
+        class="absolute -top-0.5 -right-0.5 min-w-5 h-5 px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium animate-pulse"
       >
-        {{ uiStore.unreadCount }}
+        {{ uiStore.unreadCount > 99 ? '99+' : uiStore.unreadCount }}
       </span>
     </button>
 
@@ -46,6 +46,7 @@ function handleNotificationClick(notif: any) {
         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-surface-700">
           <h3 class="font-semibold text-sm">Thông báo</h3>
           <button
+            v-if="uiStore.unreadCount > 0"
             @click="uiStore.markAllRead"
             class="text-xs text-primary-500 hover:text-primary-600 font-medium cursor-pointer"
           >
@@ -71,13 +72,16 @@ function handleNotificationClick(notif: any) {
               v-if="notif.avatar"
               :src="notif.avatar"
               @error="notif.avatar = ''"
-              class="w-9 h-9 rounded-full shrink-0"
+              class="w-9 h-9 rounded-full shrink-0 object-cover"
             />
             <div v-else class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
               <Bell :size="16" class="text-primary-500" />
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{{ notif.message }}</p>
+              <p v-if="notif.title && notif.title !== notif.message" class="text-xs font-semibold text-gray-900 dark:text-white truncate mb-0.5">
+                {{ notif.title }}
+              </p>
+              <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{{ notif.message || notif.title }}</p>
               <p class="text-xs text-gray-400 mt-1">{{ formatRelativeTime(notif.createdAt) }}</p>
             </div>
             <div v-if="!notif.isRead" class="w-2 h-2 rounded-full bg-primary-500 shrink-0 mt-2" />

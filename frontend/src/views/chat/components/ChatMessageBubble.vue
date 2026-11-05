@@ -44,6 +44,10 @@ const getFileIcon = (_fileName: string) => {
   return PaperclipIcon
 }
 
+const hasImageCaption = computed(() => {
+  return Boolean(props.msg.content && props.msg.content !== '[Hình ảnh]')
+})
+
 const groupedReactions = computed(() => {
   if (!props.msg.reactions) return []
   const groups = new Map<string, any[]>()
@@ -76,8 +80,8 @@ function openSenderProfile() {
       <div class="relative group/bubble flex items-center gap-2 min-w-0">
         <div :class="[
         'relative rounded-2xl text-[15px] leading-relaxed min-w-0 transition-all duration-300',
-        (msg.type === 'image' && !msg.content) ? '' : 'px-4 py-2.5 shadow-sm border',
-        (msg.type === 'image' && !msg.content) ? '' : (msg.isRevoked ? 'bg-gray-100 dark:bg-surface-800 text-gray-500 italic border-gray-200 dark:border-surface-700' :
+        (msg.type === 'image' && !hasImageCaption) ? '' : 'px-4 py-2.5 shadow-sm border',
+        (msg.type === 'image' && !hasImageCaption) ? '' : (msg.isRevoked ? 'bg-gray-100 dark:bg-surface-800 text-gray-500 italic border-gray-200 dark:border-surface-700' :
         msg.isOwn ? 'bg-primary-500 text-white border-primary-600 rounded-br-sm' : 'bg-white dark:bg-surface-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-surface-700 rounded-bl-sm'),
         highlightedMessageId === msg.id ? 'ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-surface-900 shadow-md shadow-primary-500/25 scale-[1.01]' : searchResults.find((r: any) => r.id === msg.id) ? 'ring-2 ring-yellow-400 ring-offset-2 dark:ring-offset-surface-900' : ''
       ]">
@@ -93,8 +97,8 @@ function openSenderProfile() {
 
           <!-- Image message -->
           <div v-else-if="msg.type === 'image'" class="space-y-1">
-            <img :src="msg.imageUrl" alt="Attachment" class="max-w-full sm:max-w-xs cursor-pointer hover:opacity-95 transition-opacity object-cover border border-black/5" :class="[msg.isOwn ? (msg.content ? 'rounded-xl' : 'rounded-2xl rounded-br-sm') : (msg.content ? 'rounded-xl' : 'rounded-2xl rounded-bl-sm')]" @click="viewImage(msg.imageUrl!)" />
-            <p v-if="msg.content" class="text-sm px-1.5 pb-1 pt-1 wrap-break-word whitespace-pre-wrap min-w-0">{{ msg.content }}</p>
+            <img :src="msg.imageUrl" alt="Attachment" class="max-w-full sm:max-w-xs cursor-pointer hover:opacity-95 transition-opacity object-cover border border-black/5" :class="[msg.isOwn ? (hasImageCaption ? 'rounded-xl' : 'rounded-2xl rounded-br-sm') : (hasImageCaption ? 'rounded-xl' : 'rounded-2xl rounded-bl-sm')]" @click="viewImage(msg.imageUrl!)" />
+            <p v-if="hasImageCaption" class="text-sm px-1.5 pb-1 pt-1 wrap-break-word whitespace-pre-wrap min-w-0">{{ msg.content }}</p>
           </div>
 
           <!-- File message -->
@@ -113,9 +117,8 @@ function openSenderProfile() {
         </template>
 
         <!-- Time + Status -->
-        <div class="flex items-center justify-end gap-1.5 mt-1" :class="[msg.type === 'image' && !msg.content ? 'px-1 opacity-60 text-gray-500 dark:text-gray-400' : 'opacity-70']">
+        <div class="flex items-center justify-end gap-1.5 mt-1" :class="[msg.type === 'image' && !hasImageCaption ? 'px-1 opacity-60 text-gray-500 dark:text-gray-400' : 'opacity-70']">
           <span class="text-[10px] whitespace-nowrap">{{ formatClockTime(msg.timestamp || msg.createdAt) }}</span>
-          <!-- Message status for own messages -->
           <template v-if="msg.isOwn">
             <CheckIcon v-if="msg.status === 'sent' || msg.status === 'delivered'" :size="12" />
             <CheckCheckIcon v-if="msg.status === 'read'" :size="12" class="text-blue-300" />

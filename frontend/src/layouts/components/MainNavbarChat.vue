@@ -118,7 +118,7 @@ function handleChatClick() {
 
 function selectConversation(conv: ChatConversation) {
   conv.unreadCount = 0
-  if (window.innerWidth < 640) {
+  if (window.innerWidth < 640 || router.currentRoute.value.path.startsWith('/chat')) {
     router.push(`/chat?id=${conv.id}`)
   } else {
     emit('openChatWindow', conv)

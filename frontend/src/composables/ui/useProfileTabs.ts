@@ -27,7 +27,7 @@ export function useProfileTabs(
   })
 
   const tabs = computed(() => {
-    const postCount = posts.value.length || targetUserRef?.value?.postsCount || 0
+    const postCount = targetUserRef?.value?.postsCount ?? posts.value.length ?? 0
     const baseTabs = [
       { key: 'posts', label: 'Bài viết', icon: FileText, count: postCount },
     ]

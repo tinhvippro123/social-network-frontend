@@ -10,7 +10,8 @@ import {
   MessageSquare,
   ArrowRight,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Trash2
 } from '@lucide/vue'
 import groupsApi from '@/api/groups.api'
 import type { GroupPostItem } from '@/api/groups.api'
@@ -20,10 +21,14 @@ import GroupPostDiscussion from './components/GroupPostDiscussion.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatDate } from '@/utils/formatters'
 import { useToast } from '@/composables/ui/useToast'
+import { useConfirm } from '@/composables/ui/useConfirm'
+import { useAuthStore } from '@/stores/auth.store'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const { confirm } = useConfirm()
+const authStore = useAuthStore()
 
 const groupId = computed(() => route.params.id as string)
 const postId = computed(() => route.params.postId as string)
@@ -33,6 +38,37 @@ const group = ref<Group | null>(null)
 const relatedPosts = ref<GroupPostItem[]>([])
 const isLoading = ref(true)
 const copied = ref(false)
+
+const isGroupManager = computed(() => {
+  const myId = authStore.user?.id
+  if (!myId || !group.value) return false
+  const role = (group.value as any).memberRole || (group.value as any).myRole
+  const sysRole = (authStore.user?.role || '').toLowerCase()
+  return role === 'OWNER' || role === 'ADMIN' || group.value.owner?.id === myId || sysRole === 'admin' || sysRole === 'moderator'
+})
+
+const canDeletePost = computed(() => {
+  if (!post.value || !authStore.user) return false
+  return isGroupManager.value || post.value.author?.id === authStore.user.id
+})
+
+const handleDeletePost = async () => {
+  if (!post.value || !groupId.value) return
+  const ok = await confirm({
+    title: 'Xóa bài thảo luận',
+    message: 'Bạn có chắc chắn muốn xóa bài thảo luận này khỏi nhóm?',
+    confirmText: 'Xóa bài viết',
+    variant: 'danger'
+  })
+  if (!ok) return
+  try {
+    await groupsApi.deletePost(groupId.value, post.value.id)
+    toast.success('Đã xóa bài thảo luận khỏi nhóm')
+    router.replace(`/groups/${groupId.value}`)
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể xóa bài thảo luận')
+  }
+}
 
 const loadData = async () => {
   if (!groupId.value || !postId.value) return
@@ -107,19 +143,31 @@ watch([groupId, postId], ([newGroupId, newPostId], [oldGroupId, oldPostId]) => {
         <span>Quay lại nhóm {{ group?.name ? `(${group.name})` : '' }}</span>
       </button>
 
-      <button
-        @click="copyLink"
-        :class="[
-          'inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border transition-all cursor-pointer',
-          copied
-            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
-            : 'bg-white dark:bg-surface-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-surface-700 hover:border-primary-500/40'
-        ]"
-      >
-        <Check v-if="copied" :size="16" class="stroke-2" />
-        <Share2 v-else :size="16" />
-        <span>{{ copied ? 'Đã sao chép liên kết' : 'Chia sẻ bài viết' }}</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          v-if="canDeletePost"
+          type="button"
+          @click="handleDeletePost"
+          class="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all cursor-pointer"
+        >
+          <Trash2 :size="16" />
+          <span>Xóa bài viết</span>
+        </button>
+
+        <button
+          @click="copyLink"
+          :class="[
+            'inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border transition-all cursor-pointer',
+            copied
+              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
+              : 'bg-white dark:bg-surface-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-surface-700 hover:border-primary-500/40'
+          ]"
+        >
+          <Check v-if="copied" :size="16" class="stroke-2" />
+          <Share2 v-else :size="16" />
+          <span>{{ copied ? 'Đã sao chép liên kết' : 'Chia sẻ bài viết' }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- Loading Skeleton -->
@@ -219,6 +267,7 @@ watch([groupId, postId], ([newGroupId, newPostId], [oldGroupId, oldPostId]) => {
             <GroupPostDiscussion
               :group-id="groupId"
               :post="post"
+              :can-manage="isGroupManager"
               @update:post="Object.assign(post, $event)"
             />
 

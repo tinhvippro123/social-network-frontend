@@ -216,6 +216,10 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
       `
       marker.bindPopup(popupContent, { className: 'custom-popup' })
 
+      if (selectedPost.value?.id === post.id) {
+        setTimeout(() => marker.openPopup(), 0)
+      }
+
       marker.on('click', () => {
         selectedPost.value = post
         map?.setView(position, Math.max(map.getZoom(), 15), { animate: true })

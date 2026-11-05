@@ -7,6 +7,7 @@ export interface Toast {
   type: ToastType
   message: string
   duration?: number
+  createdAt?: number
 }
 
 // Global state để lưu danh sách các toast
@@ -15,12 +16,19 @@ const toasts = ref<Toast[]>([])
 export function useToast() {
   const addToast = (toast: Omit<Toast, 'id'>) => {
     if (!toast.message) return
-    // Tránh hiển thị trùng lặp 2 toast giống hệt nhau cùng lúc (ví dụ từ axios interceptor và catch block)
-    if (toasts.value.some(t => t.type === toast.type && t.message === toast.message)) {
+    const now = Date.now()
+    // Tránh hiển thị trùng lặp 2 toast giống nhau hoặc 2 error toast liên tiếp trong 250ms (từ interceptor + catch block)
+    if (
+      toasts.value.some(
+        t =>
+          (t.type === toast.type && t.message === toast.message) ||
+          (toast.type === 'error' && t.type === 'error' && t.createdAt && now - t.createdAt < 250)
+      )
+    ) {
       return
     }
-    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
-    const newToast = { ...toast, id }
+    const id = now.toString() + Math.random().toString(36).slice(2, 11)
+    const newToast: Toast = { ...toast, id, createdAt: now }
     toasts.value.push(newToast)
 
     const duration = toast.duration || 3000

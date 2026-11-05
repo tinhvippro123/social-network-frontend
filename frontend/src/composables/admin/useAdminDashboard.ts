@@ -116,17 +116,19 @@ export function useAdminDashboard() {
     try {
       await adminApi.resolveReport(reportId, action)
       toast.success('Đã xử lý báo cáo thành công!')
-      await Promise.all([fetchStats(), fetchReports()])
+      const days = selectedPeriod.value === '90d' ? 90 : selectedPeriod.value === '30d' ? 30 : 7
+      await Promise.all([fetchStats(days), fetchReports({ limit: 100 })])
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể xử lý báo cáo')
     }
   }
 
   const initData = async () => {
+    const days = selectedPeriod.value === '90d' ? 90 : selectedPeriod.value === '30d' ? 30 : 7
     await Promise.all([
-      fetchStats(),
+      fetchStats(days),
       fetchUsers(),
-      fetchReports()
+      fetchReports({ limit: 100 })
     ])
   }
 

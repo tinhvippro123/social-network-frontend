@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import {
-  Plus as PlusIcon, Search as SearchIcon, MessageCircle as MessageCircleIcon,
-  Pin as PinIcon, BellOff as BellOffIcon, Trash2 as TrashIcon, Ban as BanIcon
+  Plus as PlusIcon, Search as SearchIcon, MessageCircle as MessageCircleIcon
 } from '@lucide/vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import UserAvatar from '@/components/UserAvatar.vue'
 import ChatConversationItem from './ChatConversationItem.vue'
 import ChatSidebarSkeletonItem from './ChatSidebarSkeletonItem.vue'
 
@@ -31,8 +28,15 @@ const {
   deleteConversation,
   blockUser,
   showNewChatModal,
-  createNewConversation
+  newChatInitialMode,
+  newChatPreselectedUserId
 } = chatState
+
+function openNewDirectChat() {
+  if (newChatInitialMode) newChatInitialMode.value = 'direct'
+  if (newChatPreselectedUserId) newChatPreselectedUserId.value = null
+  showNewChatModal.value = true
+}
 </script>
 
 <template>
@@ -47,7 +51,7 @@ const {
       <div class="px-4 py-4 border-b border-gray-200 dark:border-surface-700">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold text-gray-900 dark:text-white">Tin nhắn</h2>
-          <button @click="showNewChatModal = true" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+          <button @click="openNewDirectChat" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer" title="Tin nhắn mới">
             <PlusIcon :size="20" />
           </button>
         </div>

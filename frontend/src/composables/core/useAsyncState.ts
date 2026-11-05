@@ -1,14 +1,20 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 export function useAsyncState() {
-  const isLoading = ref(false)
+  const pendingCount = ref(0)
+  const isLoading = computed({
+    get: () => pendingCount.value > 0,
+    set: (val: boolean) => {
+      pendingCount.value = val ? Math.max(1, pendingCount.value) : 0
+    }
+  })
   const error = ref<string | null>(null)
 
   const execute = async <T>(
     asyncFn: () => Promise<T>,
     errorMessage: string = 'Có lỗi xảy ra, vui lòng thử lại!'
   ): Promise<T | undefined> => {
-    isLoading.value = true
+    pendingCount.value++
     error.value = null
     try {
       return await asyncFn()
@@ -16,7 +22,7 @@ export function useAsyncState() {
       error.value = err.response?.data?.message || err.message || errorMessage
       return undefined
     } finally {
-      isLoading.value = false
+      pendingCount.value = Math.max(0, pendingCount.value - 1)
     }
   }
 

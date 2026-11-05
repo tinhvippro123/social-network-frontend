@@ -57,9 +57,9 @@ export function useChatView() {
   })
 
   if (typeof window !== 'undefined') {
-  const onNicknameChanged = (e: any) => {
+    const onNicknameChanged = (e: any) => {
       const detail = e.detail
-      if (!detail || !selectedConversation.value) return
+      if (!detail || !selectedConversation.value || selectedConversation.value.isGroup) return
       if (
         selectedConversation.value.id === detail.convId ||
         selectedConversation.value.participants?.some((p: any) => p.id === detail.otherId)
@@ -72,20 +72,6 @@ export function useChatView() {
     window.addEventListener('chat-nickname-changed', onNicknameChanged)
     onUnmounted(() => {
       window.removeEventListener('chat-nickname-changed', onNicknameChanged)
-    })
-  }
-  if (false) {
-    window.addEventListener('chat-nickname-changed', (e: any) => {
-      const detail = e.detail
-      if (!detail || !selectedConversation.value) return
-      if (
-        selectedConversation.value.id === detail.convId ||
-        selectedConversation.value.participants?.some((p: any) => p.id === detail.otherId)
-      ) {
-        selectedConversation.value.nickname = detail.nickname
-        selectedConversation.value.name = detail.name
-        if (detail.originalName) selectedConversation.value.originalName = detail.originalName
-      }
     })
   }
 
@@ -156,7 +142,13 @@ export function useChatView() {
   onMounted(async () => {
     isInitialLoading.value = true
     await fetchConversations()
-    const targetUserId = route.query.userId ? String(route.query.userId) : null
+    const rawId = route.query.id ? String(route.query.id) : null
+    const targetUserId = route.query.userId
+      ? String(route.query.userId)
+      : rawId && rawId.startsWith('new-')
+        ? rawId.replace(/^new-/, '')
+        : null
+
     if (targetUserId) {
       const existingDirect = conversations.value.find(
         c => !c.isGroup && c.participants?.some((p: any) => p.id === targetUserId)
@@ -168,11 +160,17 @@ export function useChatView() {
         markAsRead(existingDirect.id)
       } else {
         await createNewConversation([targetUserId])
+        if (!selectedConversation.value && conversations.value.length > 0) {
+          selectedConversation.value = conversations.value[0]
+          await fetchMessages(selectedConversation.value.id)
+          markAsRead(selectedConversation.value.id)
+        }
       }
-    } else if (route.query.id) {
-      const match = conversations.value.find(c => c.id === route.query.id)
+    } else if (rawId) {
+      const match = conversations.value.find(c => c.id === rawId)
       if (match) {
         selectedConversation.value = match
+        showMobileChat.value = true
         await fetchMessages(match.id)
         markAsRead(match.id)
       } else if (conversations.value.length > 0) {
@@ -198,11 +196,23 @@ export function useChatView() {
   })
 
   watch(
-    () => [route.query.id, route.query.userId],
-    async ([newId, newUserId]) => {
+    () => [route.query.id, route.query.userId, route.query.createGroup, route.query.memberId],
+    async ([newId, newUserId, newCreateGroup, newMemberId]) => {
       if (isInitialLoading.value) return
-      if (newUserId) {
-        const targetUserId = String(newUserId)
+      if (newCreateGroup === 'true') {
+        newChatInitialMode.value = 'group'
+        newChatPreselectedUserId.value = (newMemberId as string) || null
+        showNewChatModal.value = true
+      }
+
+      const rawId = newId ? String(newId) : null
+      const targetUserId = newUserId
+        ? String(newUserId)
+        : rawId && rawId.startsWith('new-')
+          ? rawId.replace(/^new-/, '')
+          : null
+
+      if (targetUserId) {
         const existingDirect = conversations.value.find(
           c => !c.isGroup && c.participants?.some((p: any) => p.id === targetUserId)
         )
@@ -211,8 +221,12 @@ export function useChatView() {
         } else if (!existingDirect) {
           await createNewConversation([targetUserId])
         }
-      } else if (newId && selectedConversation.value?.id !== newId) {
-        const match = conversations.value.find(c => c.id === newId)
+      } else if (rawId && selectedConversation.value?.id !== rawId) {
+        let match = conversations.value.find(c => c.id === rawId)
+        if (!match) {
+          await fetchConversations()
+          match = conversations.value.find(c => c.id === rawId)
+        }
         if (match) {
           await selectConversation(match)
         }
@@ -489,10 +503,20 @@ export function useChatView() {
           messages.value = []
         }
       }
-      // Toast is already triggered inside deleteConversation(conversationId)
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Không thể xóa cuộc trò chuyện')
+    } catch {
+      // Error toast is already handled inside deleteConversation
     }
+  }
+
+  const handleBlockUser = async (userIdOrConvId: string): Promise<boolean> => {
+    const ok = await confirm({
+      title: 'Chặn người dùng',
+      message: 'Bạn có chắc chắn muốn chặn người dùng này? Họ sẽ không thể gửi tin nhắn cho bạn.',
+      confirmText: 'Chặn',
+      variant: 'danger'
+    })
+    if (!ok) return false
+    return await blockUser(userIdOrConvId)
   }
 
   const createNewConversation = async (participantIds: string[], name?: string, isGroup?: boolean) => {
@@ -582,7 +606,7 @@ export function useChatView() {
     pinConversation,
     muteConversation,
     deleteConversation: handleDeleteConversation,
-    blockUser,
+    blockUser: handleBlockUser,
     unblockUser,
     insertEmoji,
     setReplyTo,

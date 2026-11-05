@@ -296,13 +296,13 @@ function goToProfile(userId?: string) {
 
 const commentImageUrl = computed(() => {
   const raw = props.comment?.content || ''
-  const match = raw.match(/\[img:(https?:\/\/[^\]]+)\]/)
+  const match = raw.match(/\[img:([^\]]+)\]/)
   return match ? match[1] : null
 })
 
 const cleanCommentText = computed(() => {
   const raw = props.comment?.content || ''
-  return raw.replace(/\[img:https?:\/\/[^\]]+\]/g, '').trim()
+  return raw.replace(/\[img:[^\]]+\]/g, '').trim()
 })
 
 const containerClass = computed(() => {
@@ -311,26 +311,34 @@ const containerClass = computed(() => {
 })
 
 /**
- * Facebook / YouTube pattern: Flatten nested replies to a single clean 1-level thread
+ * Facebook / YouTube pattern: Flatten nested replies to a single clean 1-level thread.
+ * Also preserves parent author name as `replyTo` and caps `_replyParentId` at depth 2 so
+ * replying to a depth-3 comment never exceeds backend's max depth of 3.
  */
-function flattenReplies(replies: any[]): any[] {
+function flattenReplies(replies: any[], rootAuthorName?: string, rootId?: string): any[] {
   if (!replies || !Array.isArray(replies)) return []
   const result: any[] = []
-  function traverse(list: any[]) {
+  function traverse(list: any[], parentAuthorName?: string, safeParentId?: string, depth = 1) {
     for (const item of list) {
+      if (parentAuthorName && !item.replyTo && item.author?.name !== parentAuthorName) {
+        item.replyTo = parentAuthorName
+      }
+      // Backend allows max depth 3 (root=1, reply=2, sub-reply=3). Any reply to depth >= 3 attaches to safeParentId (depth 2).
+      const nextSafeParentId = depth >= 2 ? (safeParentId || item.id) : item.id
+      item._replyParentId = nextSafeParentId
       result.push(item)
       if (item.replies && item.replies.length > 0) {
-        traverse(item.replies)
+        traverse(item.replies, item.author?.name, nextSafeParentId, depth + 1)
       }
     }
   }
-  traverse(replies)
+  traverse(replies, rootAuthorName, rootId, 1)
   return result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 }
 
 const displayReplies = computed(() => {
   if (props.level === 0) {
-    return flattenReplies(props.comment.replies || [])
+    return flattenReplies(props.comment.replies || [], props.comment.author?.name, props.comment.id)
   }
   return []
 })
@@ -388,10 +396,12 @@ const handleReplyClick = () => {
     uiStore.openAuthModal('login')
     return
   }
-  emit('reply', props.comment.id, props.comment.id, props.comment.author.name)
+  const targetParentId = props.comment._replyParentId || props.comment.id
+  emit('reply', targetParentId, props.comment.id, props.comment.author.name)
 }
 
 const handleSubmitReply = (content: string, image: File | null) => {
+  isCollapsed.value = false
   emit('submit-reply', content, image)
   inlineComposerRef.value?.clear()
 }
@@ -523,4 +533,3 @@ function toggleReactionInner(emoji: string) {
   border-color: #475569;
 }
 </style>
-

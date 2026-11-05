@@ -116,7 +116,7 @@ function onNavbarImagePicked(event: Event) {
       <input
         ref="navbarImageInput"
         type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif"
+        accept="image/png,image/jpeg"
         class="hidden"
         @change="onNavbarImagePicked"
       />

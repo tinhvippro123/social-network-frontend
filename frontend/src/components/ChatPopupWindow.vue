@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import {
   X, Send, Minus, Maximize2,
   Smile, Paperclip, Image as ImageIcon,
-  ChevronDown, BellOff, FileText, Download
+  ChevronDown, BellOff, FileText, Download, Reply
 } from '@lucide/vue'
 import type { ChatConversation, ChatMessage } from '@/types'
 import ChatMessageActions from '@/views/chat/components/ChatMessageActions.vue'
@@ -37,6 +37,7 @@ const emit = defineEmits<{
 
 const messages = ref<ChatMessage[]>([])
 const newMessage = ref('')
+const replyingTo = ref<ChatMessage | null>(null)
 const isLoadingMessages = ref(false)
 const activeHeaderMenu = ref(false)
 const activeMessageAction = ref<string | null>(null)
@@ -101,7 +102,11 @@ function handleSaveNickname(newNick: string) {
 }
 
 function openInFullChat() {
-  router.push(`/chat?id=${props.conv.id}`)
+  if (props.conv.id.startsWith('new-')) {
+    router.push(`/chat?userId=${props.conv.id.replace(/^new-/, '')}`)
+  } else {
+    router.push(`/chat?id=${props.conv.id}`)
+  }
   emit('close')
 }
 
@@ -157,8 +162,8 @@ function handleAddReaction(msgId: string, emoji: string) {
 }
 
 function handleSetReplyTo(msg: ChatMessage) {
-  newMessage.value = `> ${msg.sender?.name || ''}: ${(msg.content || '').slice(0, 40)}\n`
-  const textarea = document.getElementById(`chat-textarea-${props.conv.id}`)
+  replyingTo.value = msg
+  const textarea = document.getElementById(`chat-textarea-${(props.conv as any)._popupKey || props.conv.id}`)
   textarea?.focus()
 }
 
@@ -265,9 +270,11 @@ async function sendMessage() {
   const content = newMessage.value.trim()
   if (!content) return
 
+  const replyTarget = replyingTo.value
   newMessage.value = ''
+  replyingTo.value = null
   showEmojiPicker.value = false
-  const textarea = document.getElementById(`chat-textarea-${props.conv.id}`)
+  const textarea = document.getElementById(`chat-textarea-${(props.conv as any)._popupKey || props.conv.id}`)
   if (textarea) {
     textarea.style.height = 'auto'
   }
@@ -283,7 +290,8 @@ async function sendMessage() {
     const { data } = await chatApi.sendMessage({
       conversationId: props.conv.id,
       content,
-      type: 'text'
+      type: 'text',
+      replyToId: replyTarget?.id
     })
     if (data?.data && !messages.value.some(m => m.id === data.data.id)) {
       messages.value.push(data.data)
@@ -359,7 +367,9 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
               <span>{{ conv.nickname || conv.name }}</span>
               <BellOff v-if="conv.isMuted" :size="13" class="text-amber-500 shrink-0" title="Đã tắt thông báo" />
             </p>
-            <p class="text-xs text-gray-400">{{ conv.isOnline ? 'Đang hoạt động' : 'Trực tuyến' }}</p>
+            <p class="text-xs" :class="conv.isOnline ? 'text-green-500' : 'text-gray-400'">
+              {{ conv.isGroup ? `${conv.participants?.length || 0} thành viên` : (conv.isOnline ? 'Đang hoạt động' : 'Hoạt động gần đây') }}
+            </p>
           </div>
           <ChevronDown :size="16" :class="['text-primary-500 transition-transform', activeHeaderMenu ? 'rotate-180' : '']" />
         </div>
@@ -423,6 +433,17 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
             />
             <div class="relative flex items-center min-w-0" :class="msg.isOwn ? 'flex-row-reverse' : ''">
               <div class="relative">
+                <!-- Reply reference -->
+                <div
+                  v-if="msg.replyTo && msg.status !== 'revoked' && !msg.isRevoked"
+                  :class="[
+                    'mb-1 px-2.5 py-1 rounded-xl text-[11px] bg-gray-100/80 dark:bg-surface-700/60 border-l-2 border-primary-400 text-gray-500 dark:text-gray-400 max-w-full truncate',
+                    msg.isOwn ? 'ml-auto' : ''
+                  ]"
+                >
+                  <span class="font-semibold">{{ msg.replyTo.senderName }}:</span> {{ msg.replyTo.content }}
+                </div>
+
                 <img
                   v-if="msg.type === 'image' && msg.imageUrl && msg.status !== 'revoked'"
                   :src="msg.imageUrl"
@@ -498,6 +519,20 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
       </template>
     </div>
 
+    <!-- Reply Preview Bar -->
+    <div
+      v-if="replyingTo"
+      class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700/70 border-t border-gray-200 dark:border-surface-700 flex items-center justify-between gap-2 text-xs"
+    >
+      <div class="flex items-center gap-1.5 min-w-0 text-gray-600 dark:text-gray-300">
+        <Reply :size="13" class="text-primary-500 shrink-0" />
+        <span class="truncate">Đang trả lời <strong>{{ replyingTo.sender?.name || 'tin nhắn' }}</strong>: {{ replyingTo.content }}</span>
+      </div>
+      <button type="button" @click="replyingTo = null" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer shrink-0">
+        <X :size="14" />
+      </button>
+    </div>
+
     <!-- Input -->
     <div class="shrink-0 px-2 py-2.5 relative">
       <input ref="fileInputRef" type="file" class="hidden" @change="handleUploadAttachment($event, 'file')" />
@@ -539,7 +574,7 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
         
         <div class="flex-1 bg-gray-100 dark:bg-surface-700 rounded-2xl px-3 py-2 flex items-center">
           <textarea
-            :id="`chat-textarea-${conv.id}`"
+            :id="`chat-textarea-${(conv as any)._popupKey || conv.id}`"
             :value="newMessage"
             @input="handleInput"
             @keydown="handleKeyDown"

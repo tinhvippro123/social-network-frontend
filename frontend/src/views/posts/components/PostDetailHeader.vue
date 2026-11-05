@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Clock, Eye, MapPin, Edit3, Trash2, ZoomIn } from '@lucide/vue'
+import { Clock, Eye, MapPin, Edit3, Trash2, ZoomIn, Calendar } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
 import { useRouter } from 'vue-router'
@@ -19,6 +19,16 @@ const emit = defineEmits<{
 const router = useRouter()
 const { success, error } = useToast()
 const { confirm } = useConfirm()
+
+const formatEventTimeRange = (start?: string, end?: string) => {
+  if (!start) return ''
+  const s = new Date(start)
+  const e = end ? new Date(end) : null
+  const dateStr = s.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const startTime = s.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+  const endTime = e ? e.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''
+  return `${dateStr} · ${startTime}${endTime ? ' - ' + endTime : ''}`
+}
 
 const handleDeletePost = async () => {
   const ok = await confirm({
@@ -58,13 +68,27 @@ const handleDeletePost = async () => {
           </svg>
         </span>
       </div>
-      <!-- Category Badge -->
-      <span
-        @click.stop="post.category?.slug && router.push(`/?category=${post.category.slug}`)"
-        class="absolute top-4 left-4 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 shadow-sm hover:bg-white dark:hover:bg-surface-700 transition-colors cursor-pointer"
-      >
-        {{ post.category?.icon }} {{ post.category?.name }}
-      </span>
+      <!-- Category & Status Badges -->
+      <div class="absolute top-4 left-4 flex items-center gap-2">
+        <span
+          @click.stop="post.category?.slug && router.push(`/?category=${post.category.slug}`)"
+          class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 shadow-sm hover:bg-white dark:hover:bg-surface-700 transition-colors cursor-pointer"
+        >
+          {{ post.category?.icon }} {{ post.category?.name }}
+        </span>
+        <span
+          v-if="(post.status || '').toLowerCase() === 'draft'"
+          class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/90 text-white backdrop-blur-sm shadow-sm"
+        >
+          📝 Bản nháp
+        </span>
+        <span
+          v-else-if="(post.status || '').toLowerCase() === 'hidden'"
+          class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-500/90 text-white backdrop-blur-sm shadow-sm"
+        >
+          🔒 Đã ẩn
+        </span>
+      </div>
 
       <!-- Expand button badge on hover -->
       <div
@@ -90,6 +114,12 @@ const handleDeletePost = async () => {
           <div class="flex flex-wrap items-center gap-3 text-xs text-gray-400 mt-1">
             <span class="flex items-center gap-1"><Clock :size="12" /> {{ formatDate(post.createdAt) }}</span>
             <span class="flex items-center gap-1"><Eye :size="12" /> {{ formatNumber(post.viewsCount) }} lượt xem</span>
+            <span
+              v-if="post.eventStartTime"
+              class="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-medium"
+            >
+              <Calendar :size="12" /> {{ formatEventTimeRange(post.eventStartTime, post.eventEndTime) }}
+            </span>
             <span
               v-if="post.location"
               @click="router.push(`/map?postId=${post.id}`)"

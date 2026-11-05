@@ -160,7 +160,7 @@ const handleBookmark = async (e: Event) => {
         <span
           v-for="tag in post.tags.slice(0, 3)"
           :key="tag"
-          @click.stop="router.push('/tags/' + tag)"
+          @click.stop="router.push('/tags/' + encodeURIComponent(tag))"
           class="px-2 py-0.5 rounded-md text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors cursor-pointer"
         >
           #{{ tag }}

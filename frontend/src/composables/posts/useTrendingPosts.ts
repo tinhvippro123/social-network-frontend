@@ -21,18 +21,14 @@ export function useTrendingPosts() {
     visibleCount.value = 4
   })
 
+  // Preserve backend's Wilson Score + Gravity trending order from GET /api/posts?sort=trending
   const allTrendingPosts = computed(() => {
-    let sorted = posts.value
-      .map(p => ({
-        ...p,
-        score: (p.upvotesCount ?? 0) * 3 + p.viewsCount + p.commentsCount * 2
-      }))
-      .sort((a, b) => b.score - a.score)
+    let list = [...posts.value]
 
     if (selectedCategory.value !== 'all') {
-      sorted = sorted.filter(p => p.category.slug === selectedCategory.value || p.category.name === selectedCategory.value)
+      list = list.filter(p => p.category.slug === selectedCategory.value || p.category.name === selectedCategory.value)
     }
-    return sorted
+    return list
   })
 
   const trendingPosts = computed(() => allTrendingPosts.value.slice(0, visibleCount.value))

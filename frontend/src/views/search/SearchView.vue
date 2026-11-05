@@ -148,6 +148,8 @@ function handleSelectFile(file: File, type: 'image' | 'document') {
   selectedFile.value = file
   fileType.value = type
   activeTab.value = 'posts'
+  query.value = ''
+  router.replace({ query: {} })
   executeSearch()
 }
 
@@ -156,6 +158,7 @@ function handleRemoveFile() {
   selectedFile.value = null
   fileType.value = null
   clearSearch()
+  router.replace({ query: {} })
 }
 
 // Quick click on search suggestion chip
@@ -418,7 +421,7 @@ const tabs = [
         <button
           v-for="tag in filteredTags"
           :key="tag"
-          @click="router.push(`/tags/${tag}`)"
+          @click="router.push(`/tags/${encodeURIComponent(tag)}`)"
           class="flex items-center gap-2 px-5 py-3 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-all cursor-pointer"
         >
           <Tag :size="16" class="text-primary-500" />

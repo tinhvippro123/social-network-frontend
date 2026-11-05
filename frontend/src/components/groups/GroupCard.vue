@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { Globe, Lock, Users } from '@lucide/vue'
+import { computed } from 'vue'
+import { Globe, Lock, Users, Shield } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { formatNumber } from '@/utils/formatters'
+import { useAuthStore } from '@/stores/auth.store'
 import type { Group } from '@/types'
 
 const props = defineProps<{
@@ -13,8 +15,20 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const authStore = useAuthStore()
+
+const isOwner = computed(() => {
+  const myId = authStore.user?.id
+  if (!myId || !props.group) return false
+  const role = props.group.memberRole || props.group.myRole
+  return role === 'OWNER' || props.group.owner?.id === myId
+})
 
 function toggleJoin() {
+  if (isOwner.value) {
+    router.push(`/groups/${props.group.id}`)
+    return
+  }
   emit('toggleJoin', props.group)
 }
 </script>
@@ -70,7 +84,14 @@ function toggleJoin() {
           <span>•</span>
           <span>{{ group.postsCount || 0 }} bài viết</span>
         </div>
+        <span
+          v-if="isOwner"
+          class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
+        >
+          <Shield :size="12" /> Trưởng nhóm
+        </span>
         <button
+          v-else
           type="button"
           @click.stop="toggleJoin"
           :class="[

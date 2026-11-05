@@ -57,7 +57,12 @@ function handleOpenProfile() {
       </button>
       <div class="cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-3" @click="handleOpenProfile">
         <div class="relative">
-          <UserAvatar v-if="selectedConversation && !isInitialLoading" :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }" size="sm" />
+          <UserAvatar
+            v-if="selectedConversation && !isInitialLoading"
+            :user="{ name: selectedConversation.name, avatar: selectedConversation.avatar }"
+            :is-group="selectedConversation.isGroup"
+            size="sm"
+          />
           <Skeleton v-else type="avatar" class="w-8 h-8" rounded="rounded-full" />
           <div v-if="selectedConversation?.isOnline && !isInitialLoading" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800" />
         </div>
@@ -65,6 +70,7 @@ function handleOpenProfile() {
           <template v-if="selectedConversation && !isInitialLoading">
             <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedConversation.name }}</p>
             <p class="text-xs text-green-500" v-if="isTyping">{{ typingUser }} đang nhập...</p>
+            <p class="text-xs text-gray-400" v-else-if="selectedConversation.isGroup">{{ selectedConversation.participants?.length || 0 }} thành viên</p>
             <p class="text-xs text-green-500" v-else-if="selectedConversation.isOnline">Đang hoạt động</p>
             <p class="text-xs text-gray-400" v-else>Hoạt động gần đây</p>
           </template>

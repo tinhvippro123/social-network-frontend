@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { ChevronLeft, Users, FileText, Globe, Lock, Calendar, Shield, PenSquare, UserMinus } from '@lucide/vue'
+import { ChevronLeft, Users, FileText, Globe, Lock, Calendar, Shield, PenSquare, UserMinus, X, Upload, Loader2 } from '@lucide/vue'
 import { GROUP_DETAIL_TABS } from '@/constants/ui'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
@@ -12,8 +12,11 @@ import GroupPostModal from './components/GroupPostModal.vue'
 import CreateGroupPostModal from './components/CreateGroupPostModal.vue'
 import { formatDate } from '@/utils/formatters'
 import { useGroupDetail } from '@/composables/groups/useGroupDetail'
+import filesApi from '@/api/files.api'
+import { useToast } from '@/composables/ui/useToast'
 
 const route = useRoute()
+const toast = useToast()
 const {
   router,
   group,
@@ -25,13 +28,75 @@ const {
   activeTab,
   isGroupOwner,
   isGroupManager,
+  canViewContent,
   handleToggleJoin,
+  handleUpdateGroup,
+  handleDeleteGroup,
+  handleDeleteGroupPost,
   handleToggleMemberRole,
   handleRemoveMember
 } = useGroupDetail()
 
 const selectedPost = ref<any | null>(null)
 const isCreatePostModalOpen = ref(false)
+const isEditGroupModalOpen = ref(false)
+const isUpdatingGroup = ref(false)
+const editCoverInputRef = ref<HTMLInputElement | null>(null)
+const editGroupForm = ref({
+  name: '',
+  description: '',
+  coverImage: '',
+  isPublic: true
+})
+
+const openEditGroupModal = () => {
+  if (!group.value) return
+  editGroupForm.value = {
+    name: group.value.name || '',
+    description: group.value.description || '',
+    coverImage: group.value.coverImage || '',
+    isPublic: group.value.isPublic !== false
+  }
+  isEditGroupModalOpen.value = true
+}
+
+const handleEditCoverUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  try {
+    const res = await filesApi.uploadFile(file)
+    if (res.data?.data?.fileUrl) {
+      editGroupForm.value.coverImage = res.data.data.fileUrl
+      toast.success('Đã tải ảnh bìa nhóm lên')
+    }
+  } catch {
+    toast.error('Không thể tải ảnh bìa lên')
+  } finally {
+    input.value = ''
+  }
+}
+
+const submitEditGroup = async () => {
+  if (!editGroupForm.value.name.trim()) {
+    toast.warning('Vui lòng nhập tên nhóm')
+    return
+  }
+  isUpdatingGroup.value = true
+  try {
+    const ok = await handleUpdateGroup({
+      name: editGroupForm.value.name.trim(),
+      description: editGroupForm.value.description.trim() || undefined,
+      coverImage: editGroupForm.value.coverImage.trim() || undefined,
+      isPublic: editGroupForm.value.isPublic
+    })
+    if (ok) {
+      isEditGroupModalOpen.value = false
+    }
+  } finally {
+    isUpdatingGroup.value = false
+  }
+}
 
 const openPostModal = (post: any) => {
   selectedPost.value = post
@@ -45,6 +110,13 @@ const closePostModal = () => {
   const q = { ...route.query }
   delete q.post
   router.replace({ query: q })
+}
+
+const onDeleteModalPost = async (postId: string) => {
+  const deleted = await handleDeleteGroupPost(postId)
+  if (deleted) {
+    closePostModal()
+  }
 }
 
 // Check if route query has ?post=postId to auto open modal
@@ -98,8 +170,12 @@ const handlePostCreated = (newPost: any) => {
         <!-- Group Header -->
         <GroupHeader
           :group="group"
+          :is-owner="isGroupOwner"
+          :is-manager="isGroupManager"
           @toggle-join="handleToggleJoin"
           @switch-tab="activeTab = $event"
+          @edit-group="openEditGroupModal"
+          @delete-group="handleDeleteGroup"
         />
 
         <!-- Tabs & Create Post Button -->
@@ -130,8 +206,26 @@ const handlePostCreated = (newPost: any) => {
           </button>
         </div>
 
+        <!-- Private Group Lock State -->
+        <div
+          v-if="!canViewContent && activeTab !== 'about'"
+          class="text-center py-14 px-6 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700"
+        >
+          <Lock :size="48" class="mx-auto text-amber-500 mb-4" />
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Nhóm riêng tư</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-5">
+            Chỉ thành viên của nhóm mới có thể xem các bài thảo luận và danh sách thành viên. Hãy tham gia nhóm để kết nối cùng mọi người!
+          </p>
+          <button
+            @click="handleToggleJoin"
+            class="px-5 py-2.5 text-sm font-semibold text-white gradient-primary rounded-xl cursor-pointer shadow-md shadow-primary-500/20 hover:opacity-90 transition-opacity"
+          >
+            Tham gia nhóm ngay
+          </button>
+        </div>
+
         <!-- Tab Content: Bài viết -->
-        <div v-if="activeTab === 'posts'">
+        <div v-else-if="activeTab === 'posts'">
           <div v-if="isPostsLoading" class="space-y-4">
             <Skeleton v-for="i in 3" :key="i" class="h-32 w-full rounded-2xl" />
           </div>
@@ -158,7 +252,7 @@ const handlePostCreated = (newPost: any) => {
         </div>
 
         <!-- Tab Content: Thành viên -->
-        <div v-if="activeTab === 'members'">
+        <div v-else-if="activeTab === 'members'">
           <div v-if="isUsersLoading" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Skeleton v-for="i in 6" :key="i" class="h-16 w-full rounded-xl" />
           </div>
@@ -232,7 +326,7 @@ const handlePostCreated = (newPost: any) => {
             <div class="flex items-center gap-3 text-sm text-gray-500">
               <Globe v-if="group.isPublic" :size="16" class="text-green-500" />
               <Lock v-else :size="16" class="text-amber-500" />
-              <span>{{ group.isPublic ? 'Nhóm công khai — Bất kỳ ai cũng có thể xem và tham gia' : 'Nhóm riêng tư — Cần được duyệt để tham gia' }}</span>
+              <span>{{ group.isPublic ? 'Nhóm công khai — Bất kỳ ai cũng có thể xem và tham gia' : 'Nhóm riêng tư — Cần tham gia để xem thảo luận' }}</span>
             </div>
             <div
               @click="goToProfile(group.owner?.id)"
@@ -269,7 +363,9 @@ const handlePostCreated = (newPost: any) => {
     <GroupPostModal
       :post="selectedPost"
       :group-name="group?.name"
+      :can-manage="isGroupManager"
       @close="closePostModal"
+      @delete="onDeleteModalPost"
     />
 
     <CreateGroupPostModal
@@ -280,5 +376,100 @@ const handlePostCreated = (newPost: any) => {
       @close="isCreatePostModalOpen = false"
       @created="handlePostCreated"
     />
+
+    <!-- Edit Group Modal -->
+    <div
+      v-if="isEditGroupModalOpen && group"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      @click.self="isEditGroupModalOpen = false"
+    >
+      <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 shadow-2xl max-w-md w-full p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Chỉnh sửa thông tin nhóm</h3>
+          <button
+            type="button"
+            @click="isEditGroupModalOpen = false"
+            class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 cursor-pointer"
+          >
+            <X :size="18" />
+          </button>
+        </div>
+
+        <div class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Tên nhóm *</label>
+            <input
+              v-model="editGroupForm.name"
+              type="text"
+              class="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-surface-600 bg-gray-50 dark:bg-surface-700 text-sm text-gray-900 dark:text-white outline-none focus:border-primary-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Mô tả nhóm</label>
+            <textarea
+              v-model="editGroupForm.description"
+              rows="3"
+              class="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-surface-600 bg-gray-50 dark:bg-surface-700 text-sm text-gray-900 dark:text-white outline-none focus:border-primary-500 resize-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Ảnh bìa nhóm (URL)</label>
+            <div class="relative">
+              <input
+                v-model="editGroupForm.coverImage"
+                type="text"
+                placeholder="https://... hoặc tải ảnh lên"
+                class="w-full pr-24 pl-3.5 py-2 rounded-xl border border-gray-200 dark:border-surface-600 bg-gray-50 dark:bg-surface-700 text-sm text-gray-900 dark:text-white outline-none focus:border-primary-500"
+              />
+              <input ref="editCoverInputRef" type="file" accept="image/*" class="hidden" @change="handleEditCoverUpload" />
+              <button
+                type="button"
+                @click="editCoverInputRef?.click()"
+                class="absolute right-1.5 top-1.5 px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/50 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+              >
+                <Upload :size="12" /> Tải ảnh
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Quyền riêng tư</label>
+            <div class="flex gap-3">
+              <label class="flex-1 flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer" :class="editGroupForm.isPublic ? 'border-primary-500 bg-primary-50/20 dark:bg-primary-950/20' : 'border-gray-200 dark:border-surface-600'">
+                <input type="radio" :value="true" v-model="editGroupForm.isPublic" />
+                <Globe :size="15" class="text-green-500" />
+                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Công khai</span>
+              </label>
+              <label class="flex-1 flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer" :class="!editGroupForm.isPublic ? 'border-primary-500 bg-primary-50/20 dark:bg-primary-950/20' : 'border-gray-200 dark:border-surface-600'">
+                <input type="radio" :value="false" v-model="editGroupForm.isPublic" />
+                <Lock :size="15" class="text-amber-500" />
+                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Riêng tư</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            @click="isEditGroupModalOpen = false"
+            class="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 cursor-pointer"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            :disabled="isUpdatingGroup"
+            @click="submitEditGroup"
+            class="px-4 py-2 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+          >
+            <Loader2 v-if="isUpdatingGroup" :size="15" class="animate-spin" />
+            <span>Lưu thay đổi</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

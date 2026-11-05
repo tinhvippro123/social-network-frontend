@@ -17,6 +17,7 @@ import ChatInfoSharedFiles from './ChatInfoSharedFiles.vue'
 import NicknameModal from '@/components/NicknameModal.vue'
 import { useChatNicknames } from '@/composables/chat/useChatNicknames'
 import { useToast } from '@/composables/ui/useToast'
+import { useConfirm } from '@/composables/ui/useConfirm'
 import http from '@/api/client'
 
 const chatState = inject<any>('chatState')
@@ -25,7 +26,7 @@ if (!chatState) {
 }
 
 const toast = useToast()
-const { addToast } = toast
+const { confirm } = useConfirm()
 const showNicknameModal = ref(false)
 const blockedUserIds = ref<Set<string>>(new Set())
 
@@ -75,7 +76,6 @@ function viewPinnedMessages() {
       showInfoPanel.value = false
     }
   } else {
-    // Toast is already triggered inside muteConversation(id)
     toast.info('Hiện chưa có tin nhắn nào được ghim trong cuộc trò chuyện này')
   }
 }
@@ -90,7 +90,6 @@ function handleSaveNickname(newNick: string) {
   if (newNick.trim()) {
     toast.success(`Đã đổi biệt danh thành "${newNick.trim()}"`)
   } else {
-    // Toast is already triggered inside muteConversation(id)
     toast.info('Đã gỡ bỏ biệt danh')
   }
   showNicknameModal.value = false
@@ -100,12 +99,6 @@ async function toggleMuteNotifications() {
   if (!selectedConversation?.value) return
   try {
     await muteConversation(selectedConversation.value.id)
-    // Toast is already triggered inside muteConversation(id)
-    void (
-      selectedConversation.value.isMuted
-        ? 'Đã tắt thông báo cuộc trò chuyện'
-        : 'Đã bật lại thông báo cuộc trò chuyện'
-    )
   } catch {
     toast.error('Không thể cập nhật cài đặt thông báo')
   }
@@ -116,15 +109,19 @@ async function handleToggleBlock() {
   if (!targetId) return
   try {
     if (isBlocked.value) {
-      await unblockUser(targetId)
-      const next = new Set(blockedUserIds.value)
-      next.delete(targetId)
-      blockedUserIds.value = next
+      const ok = await unblockUser(targetId)
+      if (ok !== false) {
+        const next = new Set(blockedUserIds.value)
+        next.delete(targetId)
+        blockedUserIds.value = next
+      }
     } else {
-      await blockUser(targetId)
-      const next = new Set(blockedUserIds.value)
-      next.add(targetId)
-      blockedUserIds.value = next
+      const ok = await blockUser(targetId)
+      if (ok !== false) {
+        const next = new Set(blockedUserIds.value)
+        next.add(targetId)
+        blockedUserIds.value = next
+      }
     }
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Không thể thực hiện thao tác chặn')
@@ -150,6 +147,13 @@ function handleOpenSearchInChat() {
 async function handleReportConversation() {
   const targetId = otherParticipant.value?.id || selectedConversation.value?.id
   if (!targetId) return
+  const ok = await confirm({
+    title: 'Báo cáo cuộc trò chuyện',
+    message: `Bạn có chắc chắn muốn gửi báo cáo cuộc trò chuyện "${selectedConversation.value?.name || ''}" tới bộ phận kiểm duyệt?`,
+    confirmText: 'Gửi báo cáo',
+    variant: 'danger'
+  })
+  if (!ok) return
   try {
     await http.post('/reports', {
       targetId,
@@ -205,8 +209,8 @@ async function handleReportConversation() {
           </button>
         </AccordionSection>
 
-        <!-- Accordion 2: Tùy chỉnh đoạn chat -->
-        <AccordionSection title="Tùy chỉnh đoạn chat">
+        <!-- Accordion 2: Tùy chỉnh đoạn chat (Chỉ dành cho chat 1-1) -->
+        <AccordionSection v-if="!selectedConversation.isGroup" title="Tùy chỉnh đoạn chat">
           <div class="space-y-0.5">
             <button @click="editNickname" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50 cursor-pointer">
               <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
@@ -306,7 +310,7 @@ async function handleReportConversation() {
 
   <!-- Nickname Modal -->
   <NicknameModal
-    v-if="selectedConversation"
+    v-if="selectedConversation && !selectedConversation.isGroup"
     :show="showNicknameModal"
     :user-name="selectedConversation.originalName || selectedConversation.name"
     :user-avatar="selectedConversation.avatar"

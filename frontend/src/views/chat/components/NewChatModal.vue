@@ -69,28 +69,20 @@ const removeSelectedUser = (user: User) => {
   selectedUsers.value = selectedUsers.value.filter(u => u.id !== user.id)
 }
 
-const handleCreate = async () => {
+const handleCreate = () => {
   if (selectedUsers.value.length === 0) return
   isCreating.value = true
-  
+
   const participantIds = selectedUsers.value.map(u => u.id)
   const isGroup = chatMode.value === 'group'
   const fallbackGroupName = 'Nhóm: ' + selectedUsers.value.map(u => u.name).join(', ').slice(0, 80)
   const name = isGroup ? (groupName.value.trim() || fallbackGroupName) : undefined
-  
-  emit('create', participantIds, name, isGroup)
 
-  // Reset state
-  setTimeout(() => {
-    isCreating.value = false
-    selectedUsers.value = []
-    searchQuery.value = ''
-    groupName.value = ''
-    emit('close')
-  }, 500)
+  emit('create', participantIds, name, isGroup)
 }
 
 const handleClose = () => {
+  isCreating.value = false
   selectedUsers.value = []
   searchQuery.value = ''
   groupName.value = ''
@@ -99,9 +91,11 @@ const handleClose = () => {
 
 watch(() => props.show, async (val) => {
   if (val) {
-    if (props.initialMode) {
-      chatMode.value = props.initialMode
-    }
+    isCreating.value = false
+    selectedUsers.value = []
+    searchQuery.value = ''
+    groupName.value = ''
+    chatMode.value = props.initialMode || 'direct'
     await loadUsers()
     if (props.preselectedUserId && allUsers.value.length > 0) {
       const match = allUsers.value.find(u => u.id === props.preselectedUserId)
@@ -109,6 +103,11 @@ watch(() => props.show, async (val) => {
         selectedUsers.value = [match]
       }
     }
+  } else {
+    isCreating.value = false
+    selectedUsers.value = []
+    searchQuery.value = ''
+    groupName.value = ''
   }
 })
 </script>

@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { ShieldAlert, Check, X, Ban, ExternalLink } from '@lucide/vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useAuthStore } from '@/stores/auth.store'
 
 defineProps<{
   reports: any[]
@@ -13,12 +14,15 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const authStore = useAuthStore()
+
 function viewTarget(report: any) {
-  const path = report.type === 'post' || report.type === 'comment'
-    ? `/posts/${report.targetId}`
-    : report.type === 'group'
-    ? `/groups/${report.targetId}`
-    : `/profile/${report.targetId}`
+  const type = (report.type || '').toLowerCase()
+  let path = '/'
+  if (type === 'post') path = `/posts/${report.targetId}`
+  else if (type === 'comment') path = report.targetPostId ? `/posts/${report.targetPostId}#comment-${report.targetId}` : '/'
+  else if (type === 'group') path = `/groups/${report.targetId}`
+  else if (type === 'user') path = `/profile/${report.targetId}`
   window.open(router.resolve(path).href, '_blank', 'noopener')
 }
 </script>
@@ -50,15 +54,18 @@ function viewTarget(report: any) {
                 'text-xs font-medium px-2 py-0.5 rounded-md',
                 report.type === 'post' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600' :
                 report.type === 'comment' ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-600' :
+                report.type === 'group' ? 'bg-teal-100 dark:bg-teal-900/20 text-teal-600' :
                 'bg-purple-100 dark:bg-purple-900/20 text-purple-600'
               ]">
-                {{ report.type === 'post' ? 'Bài viết' : report.type === 'comment' ? 'Bình luận' : 'Người dùng' }}
+                {{ report.type === 'post' ? 'Bài viết' : report.type === 'comment' ? 'Bình luận' : report.type === 'group' ? 'Nhóm' : 'Người dùng' }}
               </span>
               <span :class="[
                 'text-xs font-medium px-2 py-0.5 rounded-md',
-                report.status === 'pending' ? 'bg-red-100 dark:bg-red-900/20 text-red-600' : 'bg-green-100 dark:bg-green-900/20 text-green-600'
+                report.status === 'pending' ? 'bg-red-100 dark:bg-red-900/20 text-red-600' :
+                report.status === 'resolved' ? 'bg-green-100 dark:bg-green-900/20 text-green-600' :
+                'bg-gray-100 dark:bg-surface-700 text-gray-500'
               ]">
-                {{ report.status === 'pending' ? 'Đang chờ' : 'Đã xử lý' }}
+                {{ report.status === 'pending' ? 'Đang chờ' : report.status === 'resolved' ? 'Đã xử lý' : 'Đã bỏ qua' }}
               </span>
             </div>
             <p @click="report.targetId && viewTarget(report)" class="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-1 hover:text-primary-500 hover:underline cursor-pointer inline-flex items-center gap-1" title="Xem đối tượng bị báo cáo">{{ report.targetTitle }} <ExternalLink v-if="report.targetId" :size="11" class="shrink-0 opacity-60" /></p>
@@ -75,6 +82,7 @@ function viewTarget(report: any) {
             <Check :size="12" /> Giữ lại
           </button>
           <button
+            v-if="report.type !== 'group' || authStore.isAdmin"
             type="button"
             @click="emit('resolve', report.id, 'delete')"
             class="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer"

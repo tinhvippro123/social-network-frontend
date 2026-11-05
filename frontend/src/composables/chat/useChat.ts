@@ -86,7 +86,7 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     }
 
     if (event.type === 'conversation.nickname' && convId && payload) {
-      const conv = conversations.value.find(c => c.id === convId)
+      const conv = conversations.value.find(c => c.id === convId && !c.isGroup)
       if (conv) {
         conv.nickname = payload.nickname || ''
         if (payload.nickname) {
@@ -105,7 +105,9 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     const onNicknameChanged = (e: any) => {
       const detail = e.detail
       if (!detail) return
-      const target = conversations.value.find(c => c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
+      const target = conversations.value.find(
+        c => !c.isGroup && (c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
+      )
       if (target) {
         target.nickname = detail.nickname
         target.name = detail.name
@@ -115,18 +117,6 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     window.addEventListener('chat-nickname-changed', onNicknameChanged)
     onUnmounted(() => {
       window.removeEventListener('chat-nickname-changed', onNicknameChanged)
-    })
-  }
-  if (false) {
-    window.addEventListener('chat-nickname-changed', (e: any) => {
-      const detail = e.detail
-      if (!detail) return
-      const target = conversations.value.find(c => c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
-      if (target) {
-        target.nickname = detail.nickname
-        target.name = detail.name
-        if (detail.originalName) target.originalName = detail.originalName
-      }
     })
   }
 
@@ -219,9 +209,13 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     const conv = conversations.value.find(c => c.id === conversationId)
     if (conv) {
       const newState = !conv.isPinned
-      await chatApi.pinConversation(conversationId, newState)
-      conv.isPinned = newState
-      toast.success(newState ? 'Đã ghim cuộc trò chuyện' : 'Đã bỏ ghim cuộc trò chuyện')
+      try {
+        await chatApi.pinConversation(conversationId, newState)
+        conv.isPinned = newState
+        toast.success(newState ? 'Đã ghim cuộc trò chuyện' : 'Đã bỏ ghim cuộc trò chuyện')
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || 'Không thể ghim cuộc trò chuyện')
+      }
     }
   }
 
@@ -229,16 +223,25 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     const conv = conversations.value.find(c => c.id === conversationId)
     if (conv) {
       const newState = !conv.isMuted
-      await chatApi.muteConversation(conversationId, newState)
-      conv.isMuted = newState
-      toast.info(newState ? 'Đã tắt thông báo cuộc trò chuyện' : 'Đã bật thông báo cuộc trò chuyện')
+      try {
+        await chatApi.muteConversation(conversationId, newState)
+        conv.isMuted = newState
+        toast.info(newState ? 'Đã tắt thông báo cuộc trò chuyện' : 'Đã bật thông báo cuộc trò chuyện')
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || 'Không thể cập nhật cài đặt thông báo')
+      }
     }
   }
 
   async function deleteConversation(conversationId: string) {
-    await chatApi.deleteConversation(conversationId)
-    conversations.value = conversations.value.filter(c => c.id !== conversationId)
-    toast.info('Đã xóa cuộc trò chuyện')
+    try {
+      await chatApi.deleteConversation(conversationId)
+      conversations.value = conversations.value.filter(c => c.id !== conversationId)
+      toast.info('Đã xóa cuộc trò chuyện')
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Không thể xóa cuộc trò chuyện')
+      throw err
+    }
   }
 
   function resolveTargetUserId(userIdOrConvId: string): string | null {
@@ -250,21 +253,33 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     return other?.id || conv.participants?.[0]?.id || null
   }
 
-  async function blockUser(userIdOrConvId: string) {
+  async function blockUser(userIdOrConvId: string): Promise<boolean> {
     const targetUserId = resolveTargetUserId(userIdOrConvId)
     if (!targetUserId) {
       toast.info('Không thể chặn cuộc trò chuyện nhóm')
-      return
+      return false
     }
-    await chatApi.blockUser(targetUserId)
-    toast.info('Đã chặn người dùng')
+    try {
+      await chatApi.blockUser(targetUserId)
+      toast.info('Đã chặn người dùng')
+      return true
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Không thể chặn người dùng')
+      return false
+    }
   }
 
-  async function unblockUser(userIdOrConvId: string) {
+  async function unblockUser(userIdOrConvId: string): Promise<boolean> {
     const targetUserId = resolveTargetUserId(userIdOrConvId)
-    if (!targetUserId) return
-    await chatApi.unblockUser(targetUserId)
-    toast.success('Đã bỏ chặn người dùng')
+    if (!targetUserId) return false
+    try {
+      await chatApi.unblockUser(targetUserId)
+      toast.success('Đã bỏ chặn người dùng')
+      return true
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Không thể bỏ chặn người dùng')
+      return false
+    }
   }
 
   async function searchMessages(conversationId: string, query: string) {

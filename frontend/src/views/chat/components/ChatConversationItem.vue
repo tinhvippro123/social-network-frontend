@@ -66,7 +66,7 @@ onUnmounted(() => {
   >
     <!-- Avatar -->
     <div class="relative shrink-0">
-      <UserAvatar :user="{ avatar: conv.avatar, name: conv.name }" size="md" />
+      <UserAvatar :user="{ avatar: conv.avatar, name: conv.name }" :is-group="conv.isGroup" size="md" />
       <div
         v-if="conv.isOnline"
         class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white dark:ring-surface-800"
@@ -94,7 +94,6 @@ onUnmounted(() => {
 
         <!-- Right Action: Time / 3-dots Menu Button -->
         <div class="relative shrink-0 flex items-center" ref="menuRef">
-          <!-- Timestamp: displayed normally, hidden on hover if menu closed -->
           <span
             :class="[
               'text-xs text-gray-500 transition-opacity',
@@ -104,12 +103,11 @@ onUnmounted(() => {
             {{ formatMessageTime(conv.lastMessageTime) }}
           </span>
 
-          <!-- 3-Dots Button: visible on hover or when dropdown is open -->
           <button
             type="button"
             @click="toggleMenu"
             :class="[
-              'p-1 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-surface-600 transition-colors',
+              'p-1 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-surface-600 transition-colors cursor-pointer',
               showMenu ? 'block bg-gray-200 dark:bg-surface-600 text-gray-700 dark:text-gray-200' : 'block sm:hidden sm:group-hover:block'
             ]"
             title="Tùy chọn"
@@ -117,7 +115,6 @@ onUnmounted(() => {
             <MoreHorizontal :size="16" />
           </button>
 
-          <!-- Dropdown Menu -->
           <transition name="fade">
             <div
               v-if="showMenu"
@@ -126,7 +123,7 @@ onUnmounted(() => {
               <button
                 type="button"
                 @click="handleAction('pin', $event)"
-                class="w-full flex items-center gap-2.5 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+                class="w-full flex items-center gap-2.5 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"
               >
                 <PinIcon :size="14" class="text-gray-400 shrink-0" />
                 <span>{{ conv.isPinned ? 'Bỏ ghim' : 'Ghim cuộc trò chuyện' }}</span>
@@ -134,7 +131,7 @@ onUnmounted(() => {
               <button
                 type="button"
                 @click="handleAction('mute', $event)"
-                class="w-full flex items-center gap-2.5 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+                class="w-full flex items-center gap-2.5 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"
               >
                 <BellOffIcon :size="14" class="text-gray-400 shrink-0" />
                 <span>{{ conv.isMuted ? 'Bật thông báo' : 'Tắt thông báo' }}</span>
@@ -143,15 +140,16 @@ onUnmounted(() => {
               <button
                 type="button"
                 @click="handleAction('delete', $event)"
-                class="w-full flex items-center gap-2.5 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                class="w-full flex items-center gap-2.5 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
               >
                 <TrashIcon :size="14" class="shrink-0" />
                 <span>Xóa đoạn chat</span>
               </button>
               <button
+                v-if="!conv.isGroup"
                 type="button"
                 @click="handleAction('block', $event)"
-                class="w-full flex items-center gap-2.5 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                class="w-full flex items-center gap-2.5 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
               >
                 <BanIcon :size="14" class="shrink-0" />
                 <span>Chặn người này</span>

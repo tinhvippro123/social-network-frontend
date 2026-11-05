@@ -100,6 +100,12 @@ watch(
   () => props.show,
   (isOpen) => {
     if (isOpen) {
+      if (props.initialIndex >= 0 && props.initialIndex < props.images.length) {
+        currentIndex.value = props.initialIndex
+      } else {
+        currentIndex.value = 0
+      }
+      isZoomed.value = false
       document.body.style.overflow = 'hidden'
       window.addEventListener('keydown', handleKeydown)
     } else {

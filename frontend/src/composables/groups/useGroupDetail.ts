@@ -28,6 +28,10 @@ export function useGroupDetail() {
   const isUsersLoading = ref(false)
   const activeTab = ref('posts')
 
+  const isSystemMod = computed(() =>
+    ['admin', 'moderator'].includes((authStore.user?.role || '').toLowerCase())
+  )
+
   const isGroupOwner = computed(() => {
     const myId = authStore.user?.id
     if (!myId || !group.value) return false
@@ -37,7 +41,12 @@ export function useGroupDetail() {
 
   const isGroupManager = computed(() => {
     const role = (group.value as any)?.memberRole || (group.value as any)?.myRole
-    return isGroupOwner.value || role === 'ADMIN'
+    return isGroupOwner.value || role === 'ADMIN' || isSystemMod.value
+  })
+
+  const canViewContent = computed(() => {
+    if (!group.value) return false
+    return Boolean(group.value.isPublic || group.value.isJoined || isGroupManager.value)
   })
 
   const initData = async () => {
@@ -49,11 +58,20 @@ export function useGroupDetail() {
 
     try {
       await fetchGroup(groupId)
-    } finally {
-      Promise.all([
-        fetchGroupPosts(groupId).finally(() => { isPostsLoading.value = false }),
-        fetchGroupMembers(groupId).finally(() => { isUsersLoading.value = false })
-      ])
+      if (canViewContent.value) {
+        await Promise.all([
+          fetchGroupPosts(groupId).finally(() => { isPostsLoading.value = false }),
+          fetchGroupMembers(groupId).finally(() => { isUsersLoading.value = false })
+        ])
+      } else {
+        posts.value = []
+        users.value = []
+        isPostsLoading.value = false
+        isUsersLoading.value = false
+      }
+    } catch {
+      isPostsLoading.value = false
+      isUsersLoading.value = false
     }
   }
 
@@ -66,15 +84,100 @@ export function useGroupDetail() {
     }
     try {
       if (group.value.isJoined) {
+        if (isGroupOwner.value) {
+          toast.info('Trưởng nhóm không thể rời nhóm. Bạn có thể giải tán nhóm nếu muốn.')
+          return
+        }
+        const ok = await confirm({
+          title: 'Rời khỏi nhóm',
+          message: `Bạn có chắc chắn muốn rời khỏi nhóm "${group.value.name}"?`,
+          confirmText: 'Rời nhóm',
+          variant: 'danger'
+        })
+        if (!ok) return
+
         await leaveGroup(group.value.id)
         toast.info(`Đã rời khỏi nhóm "${group.value.name}"`)
+        if (canViewContent.value) {
+          await fetchGroupMembers(group.value.id)
+        } else {
+          posts.value = []
+          users.value = []
+        }
       } else {
         await joinGroup(group.value.id)
         toast.success(`Đã tham gia nhóm "${group.value.name}"`)
+        await Promise.all([
+          fetchGroupPosts(group.value.id),
+          fetchGroupMembers(group.value.id)
+        ])
       }
-      fetchGroupMembers(group.value.id)
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể cập nhật trạng thái tham gia nhóm')
+    }
+  }
+
+  async function handleUpdateGroup(payload: {
+    name: string
+    description?: string
+    avatar?: string
+    coverImage?: string
+    isPublic?: boolean
+  }) {
+    if (!group.value?.id || !isGroupManager.value) return false
+    try {
+      const res = await groupsApi.update(group.value.id, payload)
+      if (res.data?.data) {
+        group.value = { ...group.value, ...res.data.data }
+      }
+      toast.success('Đã cập nhật thông tin nhóm')
+      return true
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể cập nhật thông tin nhóm')
+      return false
+    }
+  }
+
+  async function handleDeleteGroup() {
+    if (!group.value?.id || (!isGroupOwner.value && !isSystemMod.value)) return
+    const ok = await confirm({
+      title: 'Giải tán nhóm',
+      message: `Bạn có chắc chắn muốn giải tán nhóm "${group.value.name}"? Toàn bộ bài thảo luận và thành viên trong nhóm sẽ bị xóa vĩnh viễn.`,
+      confirmText: 'Giải tán nhóm',
+      variant: 'danger'
+    })
+    if (!ok) return
+
+    try {
+      await groupsApi.delete(group.value.id)
+      toast.success(`Đã giải tán nhóm "${group.value.name}"`)
+      router.push('/groups')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể giải tán nhóm')
+    }
+  }
+
+  async function handleDeleteGroupPost(postId: string) {
+    if (!group.value?.id || !postId) return false
+    const ok = await confirm({
+      title: 'Xóa bài thảo luận',
+      message: 'Bạn có chắc chắn muốn xóa bài thảo luận này khỏi nhóm?',
+      confirmText: 'Xóa bài viết',
+      variant: 'danger'
+    })
+    if (!ok) return false
+
+    try {
+      await groupsApi.deletePost(group.value.id, postId)
+      posts.value = posts.value.filter((p: any) => p.id !== postId)
+      if (group.value.postsCount > 0) {
+        group.value.postsCount -= 1
+      }
+      toast.success('Đã xóa bài thảo luận khỏi nhóm')
+      return true
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể xóa bài thảo luận')
+      return false
     }
   }
 
@@ -139,8 +242,12 @@ export function useGroupDetail() {
     activeTab,
     isGroupOwner,
     isGroupManager,
+    canViewContent,
     initData,
     handleToggleJoin,
+    handleUpdateGroup,
+    handleDeleteGroup,
+    handleDeleteGroupPost,
     handleToggleMemberRole,
     handleRemoveMember
   }

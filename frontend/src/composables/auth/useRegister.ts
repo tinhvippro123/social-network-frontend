@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue'
 
 import { useAuth } from './useAuth'
+import { useToast } from '../ui/useToast'
 import { PASSWORD_STRENGTH } from '@/constants'
 import { useForm, useField } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -8,6 +9,7 @@ import * as z from 'zod'
 
 export function useRegister() {
   const { register } = useAuth()
+  const toast = useToast()
 
   const showPassword = ref(false)
   const isLoading = ref(false)
@@ -51,6 +53,10 @@ export function useRegister() {
   const strengthLabels = PASSWORD_STRENGTH.LABELS
 
   const handleRegister = handleSubmit(async (values) => {
+    if (!agreeTerms.value) {
+      toast.warning('Vui lòng đồng ý với điều khoản dịch vụ và chính sách bảo mật')
+      return
+    }
     isLoading.value = true
     try {
       await register({ 

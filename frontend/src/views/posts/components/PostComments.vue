@@ -88,8 +88,10 @@ const cancelReply = () => {
 
 const handleMainSubmit = (content: string, image: File | null) => {
   emit('addComment', content, image)
-  mainComposerRef.value?.clear()
-  emit('clearReplyingTo')
+  if (props.user) {
+    mainComposerRef.value?.clear()
+    emit('clearReplyingTo')
+  }
 }
 
 const handleInlineSubmit = (content: string, image: File | null) => {

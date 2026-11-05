@@ -46,6 +46,7 @@ export function useChatNicknames() {
   }
 
   async function setNickname(conv: ChatConversation, newNick: string): Promise<void> {
+    if (!conv || conv.isGroup) return
     const map = loadNicknames()
     const trimmed = newNick.trim()
     const otherId = getOtherParticipantId(conv)
@@ -76,7 +77,6 @@ export function useChatNicknames() {
 
     saveNicknames(map)
 
-    // Sync to Backend Database if real conversation ID (UUID)
     const isRealDbConversation = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(conv.id)
     if (isRealDbConversation) {
       try {
@@ -86,7 +86,6 @@ export function useChatNicknames() {
       }
     }
 
-    // Notify other components across the window
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('chat-nickname-changed', {
@@ -103,10 +102,9 @@ export function useChatNicknames() {
   }
 
   function applyNicknameToConversation(conv: ChatConversation): ChatConversation {
-    if (!conv) return conv
+    if (!conv || conv.isGroup) return conv
     const otherId = getOtherParticipantId(conv)
 
-    // If backend already returned nickname, take priority and cache it
     if (conv.nickname) {
       if (!conv.originalName) {
         conv.originalName = conv.name

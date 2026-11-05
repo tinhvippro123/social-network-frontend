@@ -34,8 +34,9 @@ async function handleFileChange(event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     const file = input.files[0]
-    if (file.size > 2 * 1024 * 1024) {
-      toast.warning('Ảnh không được vượt quá 2MB')
+    if (file.size > 5 * 1024 * 1024) {
+      toast.warning('Ảnh không được vượt quá 5MB')
+      input.value = ''
       return
     }
     try {
@@ -43,17 +44,14 @@ async function handleFileChange(event: Event) {
       if (res.data?.data?.fileUrl) {
         avatarUrl.value = res.data.data.fileUrl
         toast.success('Đã tải lên ảnh đại diện nhóm')
-        return
+      } else {
+        toast.error('Không thể tải ảnh đại diện nhóm lên')
       }
     } catch {
-      // Fallback to local data URL preview if upload fails
+      toast.error('Không thể tải ảnh đại diện nhóm lên')
+    } finally {
+      input.value = ''
     }
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      avatarUrl.value = e.target?.result as string
-      toast.success('Đã chọn ảnh đại diện nhóm')
-    }
-    reader.readAsDataURL(file)
   }
 }
 
@@ -117,7 +115,7 @@ async function handleCreate() {
             </div>
             <div>
               <p class="text-sm font-medium text-gray-900 dark:text-white">Ảnh đại diện nhóm</p>
-              <p class="text-xs text-gray-400 mt-0.5">JPG, PNG. Tối đa 2MB</p>
+              <p class="text-xs text-gray-400 mt-0.5">JPG, PNG. Tối đa 5MB</p>
               <button
                 type="button"
                 @click="triggerFileInput"

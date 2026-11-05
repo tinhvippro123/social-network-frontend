@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '../ui/useToast'
 import { useCategories } from '../core/useCategories'
@@ -44,18 +44,27 @@ export function useCreatePost() {
   const isEventCategory = computed(() => selectedCategory.value === 'su-kien')
 
   const handleCoverImageChange = (e: Event) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
+    const input = e.target as HTMLInputElement
+    const file = input.files?.[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         error('Kích thước ảnh tối đa là 5MB')
+        input.value = ''
         return
+      }
+      if (coverImagePreview.value && coverImagePreview.value.startsWith('blob:')) {
+        URL.revokeObjectURL(coverImagePreview.value)
       }
       coverImageFile.value = file
       coverImagePreview.value = URL.createObjectURL(file)
     }
+    input.value = ''
   }
 
   const removeCoverImage = () => {
+    if (coverImagePreview.value && coverImagePreview.value.startsWith('blob:')) {
+      URL.revokeObjectURL(coverImagePreview.value)
+    }
     coverImageFile.value = null
     coverImagePreview.value = ''
   }
@@ -117,6 +126,13 @@ export function useCreatePost() {
     }
   })
 
+  // Ensure initial content is synced into Tiptap once editor instance mounts
+  watch(editor, (ed) => {
+    if (ed && content.value && ed.getHTML() !== content.value) {
+      ed.commands.setContent(content.value)
+    }
+  })
+
   // Load existing post data for Edit mode
   const loadInitialData = (post: any) => {
     if (!post) return
@@ -136,11 +152,17 @@ export function useCreatePost() {
     if (post.coverImage) {
       coverImagePreview.value = post.coverImage
     }
-    if (post.latitude && post.longitude) {
+    if (post.latitude != null && post.longitude != null) {
       postLocation.value = {
         lat: post.latitude,
         lng: post.longitude,
-        address: post.locationAddress || ''
+        address: post.locationAddress || post.location?.address || ''
+      }
+    } else if (post.location && post.location.lat != null && post.location.lng != null) {
+      postLocation.value = {
+        lat: post.location.lat,
+        lng: post.location.lng,
+        address: post.location.address || ''
       }
     }
   }
@@ -153,7 +175,7 @@ export function useCreatePost() {
     if (editor.value) {
       editor.value.destroy()
     }
-    if (coverImagePreview.value && coverImageFile.value) {
+    if (coverImagePreview.value && coverImagePreview.value.startsWith('blob:')) {
       URL.revokeObjectURL(coverImagePreview.value)
     }
   })
@@ -248,6 +270,13 @@ export function useCreatePost() {
     if (plainTextContent.length < 50) {
       error('Nội dung bài viết quá ngắn (yêu cầu ít nhất 50 ký tự)')
       return
+    }
+
+    if (isEventCategory.value && eventStartTime.value && eventEndTime.value) {
+      if (new Date(eventEndTime.value).getTime() <= new Date(eventStartTime.value).getTime()) {
+        error('Thời gian kết thúc sự kiện phải sau thời gian bắt đầu')
+        return
+      }
     }
     
     await execute(async () => {

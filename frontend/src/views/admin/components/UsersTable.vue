@@ -23,6 +23,9 @@ const emit = defineEmits<{
 const router = useRouter()
 const openInNewTab = (path: string) => window.open(router.resolve(path).href, '_blank', 'noopener')
 const editingRoleId = ref<string | null>(null)
+const vFocus = {
+  mounted: (el: HTMLElement) => el.focus()
+}
 
 const ROLE_OPTIONS = [
   { value: 'user', label: 'Thành viên' },
@@ -85,11 +88,11 @@ async function onRoleSelected(user: any, event: Event) {
             <td class="px-5 py-4">
               <select
                 v-if="editingRoleId === user.id"
+                v-focus
                 :value="user.role"
                 @change="onRoleSelected(user, $event)"
                 @blur="editingRoleId = null"
                 class="w-full px-2 py-1 text-xs rounded-lg border border-gray-200 dark:border-surface-600 bg-white dark:bg-surface-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500/40"
-                autofocus
               >
                 <option v-for="opt in ROLE_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
               </select>

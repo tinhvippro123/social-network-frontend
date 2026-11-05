@@ -1,24 +1,36 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { X, Calendar, Share2, ExternalLink, Check } from '@lucide/vue'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { X, Calendar, Share2, ExternalLink, Check, Trash2 } from '@lucide/vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import GroupPostDiscussion from './GroupPostDiscussion.vue'
 import { formatDate } from '@/utils/formatters'
 import { useToast } from '@/composables/ui/useToast'
+import { useAuthStore } from '@/stores/auth.store'
 
 const props = defineProps<{
   post: any | null
   groupName?: string
+  canManage?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'delete', postId: string): void
 }>()
 
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
 const copied = ref(false)
+
+const canDeletePost = computed(() => {
+  if (!props.post || !authStore.user) return false
+  if (props.canManage) return true
+  if (props.post.author?.id === authStore.user.id) return true
+  const sysRole = (authStore.user.role || '').toLowerCase()
+  return sysRole === 'admin' || sysRole === 'moderator'
+})
 
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.post) {
@@ -80,6 +92,17 @@ const copyPostLink = async () => {
         </div>
         
         <div class="flex items-center gap-1.5">
+          <!-- Delete Post Button -->
+          <button
+            v-if="canDeletePost"
+            type="button"
+            @click="emit('delete', post.id)"
+            class="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+            title="Xóa bài thảo luận"
+          >
+            <Trash2 :size="18" />
+          </button>
+
           <!-- Copy Link Button -->
           <button
             @click="copyPostLink"
@@ -161,6 +184,7 @@ const copyPostLink = async () => {
         <GroupPostDiscussion
           :group-id="post.groupId"
           :post="post"
+          :can-manage="canManage"
           @update:post="Object.assign(post, $event)"
         />
       </div>

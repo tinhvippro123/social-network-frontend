@@ -135,9 +135,9 @@ const handleSubmit = async () => {
           <div class="relative">
             <input
               v-model="coverImage"
-              type="url"
-              placeholder="https://images.unsplash.com/photo-..."
-              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-surface-700 bg-gray-50 dark:bg-surface-900 text-gray-900 dark:text-white text-sm focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-all outline-none"
+              type="text"
+              placeholder="https://images.unsplash.com/photo-... hoặc tải ảnh lên"
+              class="w-full pl-10 pr-24 py-2.5 rounded-xl border border-gray-200 dark:border-surface-700 bg-gray-50 dark:bg-surface-900 text-gray-900 dark:text-white text-sm focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-all outline-none"
             />
             <ImageIcon :size="16" class="absolute left-3.5 top-3.5 text-gray-400" />
             <input ref="coverInputRef" type="file" accept="image/*" class="hidden" @change="handleCoverUpload" />

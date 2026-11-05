@@ -6,6 +6,7 @@ import { formatDate, formatNumber } from '@/utils/formatters'
 import UserAvatar from '@/components/UserAvatar.vue'
 import FollowersModal from './FollowersModal.vue'
 import { useToast } from '@/composables/ui/useToast'
+import { useConfirm } from '@/composables/ui/useConfirm'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
 import usersApi from '@/api/users.api'
@@ -25,6 +26,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const uiStore = useUiStore()
 const { addToast } = useToast()
+const { confirm } = useConfirm()
 
 // Follow state
 const isFollowing = ref(false)
@@ -42,6 +44,20 @@ const followersModalType = ref<'followers' | 'following'>('followers')
 const showMoreMenu = ref(false)
 const isBlockedUser = ref(false)
 const moreMenuRef = ref<HTMLElement | null>(null)
+
+watch(() => props.currentUser?.id, async (targetId) => {
+  if (!targetId || props.isOwnProfile || !authStore.isLoggedIn) {
+    isBlockedUser.value = false
+    return
+  }
+  try {
+    const res = await chatApi.getBlockedUsers()
+    const blockedIds = res.data?.data || []
+    isBlockedUser.value = Array.isArray(blockedIds) && blockedIds.includes(targetId)
+  } catch {
+    isBlockedUser.value = false
+  }
+}, { immediate: true })
 
 function handleOutsideClick(e: MouseEvent) {
   if (showMoreMenu.value && moreMenuRef.value && !moreMenuRef.value.contains(e.target as Node)) {
@@ -70,6 +86,15 @@ async function handleToggleBlockUser() {
     return
   }
   if (!props.currentUser?.id) return
+  if (!isBlockedUser.value) {
+    const ok = await confirm({
+      title: 'Chặn người dùng',
+      message: `Bạn có chắc chắn muốn chặn "${props.currentUser.name || 'người dùng này'}"? Họ sẽ không thể nhắn tin cho bạn.`,
+      confirmText: 'Chặn',
+      variant: 'danger'
+    })
+    if (!ok) return
+  }
   try {
     if (isBlockedUser.value) {
       await chatApi.unblockUser(props.currentUser.id)
@@ -93,6 +118,13 @@ async function handleReportUser() {
     return
   }
   if (!props.currentUser?.id) return
+  const ok = await confirm({
+    title: 'Báo cáo người dùng',
+    message: `Bạn muốn gửi báo cáo vi phạm đối với tài khoản "${props.currentUser.name || 'người dùng này'}"?`,
+    confirmText: 'Gửi báo cáo',
+    variant: 'warning'
+  })
+  if (!ok) return
   try {
     await http.post('/reports', {
       targetId: props.currentUser.id,

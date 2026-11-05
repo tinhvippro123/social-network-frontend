@@ -71,6 +71,9 @@ export function useAdminPosts() {
       const idx = posts.value.findIndex(p => p.id === post.id)
       if (idx !== -1) posts.value[idx].status = newStatus.toLowerCase()
       toast.success(`Đã ${actionLabel.toLowerCase()} thành công!`)
+      if (filterStatus.value !== 'all') {
+        await fetchPosts()
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || `Thao tác ${actionLabel.toLowerCase()} thất bại`)
     }
@@ -89,6 +92,11 @@ export function useAdminPosts() {
       await postsApi.delete(post.id)
       posts.value = posts.value.filter(p => p.id !== post.id)
       totalItems.value = Math.max(0, totalItems.value - 1)
+      if (posts.value.length === 0 && currentPage.value > 1) {
+        currentPage.value -= 1
+      } else {
+        await fetchPosts()
+      }
       toast.success('Đã xóa bài viết thành công!')
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Xóa bài viết thất bại')

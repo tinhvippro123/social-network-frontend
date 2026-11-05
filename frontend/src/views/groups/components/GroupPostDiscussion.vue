@@ -14,6 +14,7 @@ import type { GroupPostItem, GroupCommentItem } from '@/api/groups.api'
 const props = defineProps<{
   groupId: string
   post: GroupPostItem
+  canManage?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -268,7 +269,7 @@ onMounted(() => {
                   {{ formatRelativeTime(comment.createdAt) }}
                 </span>
                 <button
-                  v-if="authStore.user?.id === comment.author?.id || ['admin', 'moderator'].includes((authStore.user?.role || '').toLowerCase())"
+                  v-if="canManage || authStore.user?.id === comment.author?.id || ['admin', 'moderator'].includes((authStore.user?.role || '').toLowerCase())"
                   @click="deleteComment(comment.id)"
                   class="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-gray-400 hover:text-rose-500 transition-opacity p-1 rounded-lg cursor-pointer"
                   title="Xóa bình luận"

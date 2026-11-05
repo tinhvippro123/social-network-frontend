@@ -52,7 +52,6 @@ http.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 )
 
-
 const ERROR_TRANSLATIONS: Record<string, string> = {
   'Email already in use': 'Email này đã được sử dụng',
   'Bad credentials': 'Email hoặc mật khẩu không chính xác',
@@ -60,15 +59,19 @@ const ERROR_TRANSLATIONS: Record<string, string> = {
   'Post not found': 'Bài viết không tồn tại',
   'Comment not found': 'Bình luận không tồn tại',
   'Invalid input': 'Dữ liệu đầu vào không hợp lệ',
+  'Invalid request': 'Dữ liệu yêu cầu không hợp lệ',
+  'Uploaded file exceeds the size limit': 'Kích thước tệp tải lên vượt quá giới hạn cho phép (tối đa 5MB)',
   'Internal server error': 'Đã xảy ra lỗi hệ thống',
   'Unauthorized': 'Vui lòng đăng nhập để tiếp tục',
   'Authentication required': 'Vui lòng đăng nhập để tiếp tục',
   'Forbidden': 'Bạn không có quyền thực hiện hành động này',
   'Current password does not match': 'Mật khẩu hiện tại không chính xác',
-  'Parent comment does not belong to this post': 'Bình luận cha không thuộc bài viết này'
+  'Parent comment does not belong to this post': 'Bình luận cha không thuộc bài viết này',
+  'Event end time must be after start time': 'Thời gian kết thúc sự kiện phải sau thời gian bắt đầu',
+  'Latitude and longitude must be provided together': 'Vĩ độ và kinh độ phải được cung cấp cùng nhau'
 }
 
-function translateErrorMessage(msg: string): string {
+export function translateErrorMessage(msg: string): string {
   if (!msg) return 'Có lỗi kết nối đến máy chủ!'
   const trimmed = msg.trim()
   for (const [key, val] of Object.entries(ERROR_TRANSLATIONS)) {
@@ -88,9 +91,15 @@ http.interceptors.response.use(
     const url = error.config?.url || ''
     const rawMessage = error.response?.data?.message || 'Có lỗi kết nối đến máy chủ!'
     const errorMessage = translateErrorMessage(rawMessage)
+    if (error.response?.data) {
+      error.response.data.message = errorMessage
+    }
 
     if (status === 401) {
-      const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register')
+      const isAuthEndpoint =
+        url.includes('/auth/login') ||
+        url.includes('/auth/register') ||
+        url.includes('/auth/google')
       const hadToken = !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
 
       const { useAuthStore } = await import('@/stores/auth.store')
@@ -133,24 +142,19 @@ http.interceptors.response.use(
       const { useToast } = await import('@/composables/ui/useToast')
       useToast().error('Bạn không có quyền thực hiện hành động này!')
     } else if (status) {
-      // Log errors to console if they exist in data
       if (error.response?.data?.data && typeof error.response.data.data === 'object') {
-        console.error('Validation Errors:', error.response.data.data);
+        console.error('Validation Errors:', error.response.data.data)
       }
-      // Hiển thị toast cho tất cả các lỗi có status khác (400, 404, 500...)
       const { useToast } = await import('@/composables/ui/useToast')
-      
-      // Hiển thị message tổng quát
       useToast().error(errorMessage)
-      
-      // Nếu có field errors, hiển thị thêm toast cho từng lỗi
-      const fieldErrors = error.response?.data?.data as Record<string, string>;
+
+      const fieldErrors = error.response?.data?.data as Record<string, string>
       if (fieldErrors && typeof fieldErrors === 'object') {
         Object.values(fieldErrors).forEach(msg => {
           if (typeof msg === 'string') {
-            useToast().error(translateErrorMessage(msg));
+            useToast().error(translateErrorMessage(msg))
           }
-        });
+        })
       }
     }
 

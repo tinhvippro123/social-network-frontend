@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { Users, FileText, Globe, Lock, Check } from '@lucide/vue'
+import { Users, FileText, Globe, Lock, Check, Shield, Settings, Trash2 } from '@lucide/vue'
 
 defineProps<{
   group: any
+  isOwner?: boolean
+  isManager?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'toggleJoin'): void
   (e: 'switchTab', tab: 'posts' | 'members' | 'about'): void
+  (e: 'editGroup'): void
+  (e: 'deleteGroup'): void
 }>()
 </script>
 
@@ -76,9 +80,17 @@ const emit = defineEmits<{
           </div>
         </div>
 
-        <!-- Join/Leave Action Button -->
-        <div class="shrink-0 flex items-center gap-3">
+        <!-- Join/Leave & Management Action Buttons -->
+        <div class="shrink-0 flex flex-wrap items-center gap-2.5">
+          <span
+            v-if="isOwner"
+            class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40"
+          >
+            <Shield :size="16" />
+            <span>Trưởng nhóm</span>
+          </span>
           <button
+            v-else
             @click="emit('toggleJoin')"
             :class="[
               'flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer',
@@ -89,6 +101,28 @@ const emit = defineEmits<{
           >
             <Check v-if="group.isJoined" :size="16" class="stroke-3" />
             <span>{{ group.isJoined ? 'Đã tham gia' : 'Tham gia nhóm' }}</span>
+          </button>
+
+          <button
+            v-if="isManager"
+            type="button"
+            @click="emit('editGroup')"
+            title="Chỉnh sửa thông tin nhóm"
+            class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 border border-gray-200 dark:border-surface-600 transition-colors cursor-pointer"
+          >
+            <Settings :size="16" />
+            <span class="hidden sm:inline">Chỉnh sửa</span>
+          </button>
+
+          <button
+            v-if="isOwner"
+            type="button"
+            @click="emit('deleteGroup')"
+            title="Giải tán nhóm"
+            class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200/60 dark:border-red-900/40 transition-colors cursor-pointer"
+          >
+            <Trash2 :size="16" />
+            <span class="hidden sm:inline">Giải tán</span>
           </button>
         </div>
       </div>

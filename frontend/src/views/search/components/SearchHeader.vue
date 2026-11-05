@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Search as SearchIcon,
@@ -10,6 +10,7 @@ import {
   FileText,
   FileType
 } from '@lucide/vue'
+import { useToast } from '@/composables/ui/useToast'
 
 const props = defineProps<{
   query: string
@@ -31,15 +32,29 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const toast = useToast()
 const imageInputRef = ref<HTMLInputElement | null>(null)
 const documentInputRef = ref<HTMLInputElement | null>(null)
+const imagePreviewUrl = ref<string | null>(null)
 
-// Preview URL for selected image
-const imagePreviewUrl = computed(() => {
-  if (props.selectedFile && props.fileType === 'image') {
-    return URL.createObjectURL(props.selectedFile)
+watch(
+  () => [props.selectedFile, props.fileType],
+  ([file, type]) => {
+    if (imagePreviewUrl.value) {
+      URL.revokeObjectURL(imagePreviewUrl.value)
+      imagePreviewUrl.value = null
+    }
+    if (file && type === 'image') {
+      imagePreviewUrl.value = URL.createObjectURL(file as File)
+    }
+  },
+  { immediate: true }
+)
+
+onBeforeUnmount(() => {
+  if (imagePreviewUrl.value) {
+    URL.revokeObjectURL(imagePreviewUrl.value)
   }
-  return null
 })
 
 // Format file size
@@ -59,16 +74,30 @@ function triggerDocumentPicker() {
 
 function handleImageSelected(event: Event) {
   const target = event.target as HTMLInputElement
-  if (target.files && target.files[0]) {
-    emit('selectFile', target.files[0], 'image')
+  const file = target.files?.[0]
+  if (file) {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.warning('Kích thước ảnh tìm kiếm không được vượt quá 5MB')
+      target.value = ''
+      return
+    }
+    emit('selectFile', file, 'image')
   }
+  target.value = ''
 }
 
 function handleDocumentSelected(event: Event) {
   const target = event.target as HTMLInputElement
-  if (target.files && target.files[0]) {
-    emit('selectFile', target.files[0], 'document')
+  const file = target.files?.[0]
+  if (file) {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.warning('Kích thước tài liệu tìm kiếm không được vượt quá 5MB')
+      target.value = ''
+      return
+    }
+    emit('selectFile', file, 'document')
   }
+  target.value = ''
 }
 
 function handleKeyDown(event: KeyboardEvent) {
@@ -97,14 +126,14 @@ function toggleAiMode() {
     <input
       ref="imageInputRef"
       type="file"
-      accept="image/png,image/jpeg,image/webp,image/gif"
+      accept="image/png,image/jpeg"
       class="hidden"
       @change="handleImageSelected"
     />
     <input
       ref="documentInputRef"
       type="file"
-      accept=".pdf,.docx,.doc,.txt"
+      accept=".pdf,.docx"
       class="hidden"
       @change="handleDocumentSelected"
     />
@@ -153,7 +182,7 @@ function toggleAiMode() {
             type="button"
             @click="triggerImagePicker"
             class="p-2.5 rounded-2xl text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/40 transition-all relative group cursor-pointer"
-            title="Tìm bằng hình ảnh"
+            title="Tìm bằng hình ảnh (PNG, JPG)"
           >
             <Camera :size="20" />
             <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-[11px] px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
@@ -166,7 +195,7 @@ function toggleAiMode() {
             type="button"
             @click="triggerDocumentPicker"
             class="p-2.5 rounded-2xl text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-all relative group cursor-pointer"
-            title="Tìm bằng tài liệu (PDF, Word)"
+            title="Tìm bằng tài liệu (PDF, DOCX)"
           >
             <FileText :size="20" />
             <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-[11px] px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">

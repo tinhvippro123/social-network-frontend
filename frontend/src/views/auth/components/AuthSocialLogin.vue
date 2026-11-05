@@ -4,7 +4,7 @@ import { useAuth } from '@/composables/auth/useAuth'
 import { useToast } from '@/composables/ui/useToast'
 import { useUiStore } from '@/stores/ui.store'
 
-const { loginWithGoogle } = useAuth()
+const { loginWithGoogle, isLoggedIn, error: authError } = useAuth()
 const toast = useToast()
 const uiStore = useUiStore()
 const isGoogleLoading = ref(false)
@@ -33,8 +33,12 @@ function handleGoogleLogin() {
             isGoogleLoading.value = true
             try {
               await loginWithGoogle({ accessToken: response.access_token })
-              uiStore.closeAuthModal()
-              toast.success('Đăng nhập bằng Google thành công!')
+              if (isLoggedIn.value) {
+                uiStore.closeAuthModal()
+                toast.success('Đăng nhập bằng Google thành công!')
+              } else {
+                toast.error(authError.value || 'Đăng nhập Google không thành công')
+              }
             } catch (err: any) {
               toast.error(err?.response?.data?.message || 'Đăng nhập Google không thành công')
             } finally {

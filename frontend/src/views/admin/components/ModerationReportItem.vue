@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { Eye, Check, X, Ban, Clock } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDateTime } from '@/utils/formatters'
+import { useAuthStore } from '@/stores/auth.store'
 import type { Report } from '@/types'
 
 const props = defineProps<{
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 function viewTarget() {
   const type = (props.report.type || '').toLowerCase()
@@ -46,14 +48,15 @@ function viewTarget() {
           <span :class="['px-2.5 py-1 rounded-lg text-xs font-semibold',
             report.type === 'post' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600' :
             report.type === 'comment' ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-600' :
+            report.type === 'group' ? 'bg-teal-100 dark:bg-teal-900/20 text-teal-600' :
             'bg-purple-100 dark:bg-purple-900/20 text-purple-600']">
-            {{ report.type === 'post' ? '📄 Bài viết' : report.type === 'comment' ? '💬 Bình luận' : '👤 Người dùng' }}
+            {{ report.type === 'post' ? '📄 Bài viết' : report.type === 'comment' ? '💬 Bình luận' : report.type === 'group' ? '👥 Nhóm' : '👤 Người dùng' }}
           </span>
           <span :class="['px-2.5 py-1 rounded-lg text-xs font-semibold',
             report.status === 'pending' ? 'bg-red-100 dark:bg-red-900/20 text-red-600' :
             report.status === 'resolved' ? 'bg-green-100 dark:bg-green-900/20 text-green-600' :
             'bg-gray-100 dark:bg-surface-700 text-gray-500']">
-            {{ report.status === 'pending' ? '⏳ Đang chờ' : report.status === 'resolved' ? '✅ Đã xử lý' : '❌ Bỏ qua' }}
+            {{ report.status === 'pending' ? '⏳ Đang chờ' : report.status === 'resolved' ? '✅ Đã xử lý' : '❌ Đã bỏ qua' }}
           </span>
         </div>
 
@@ -89,6 +92,7 @@ function viewTarget() {
           <Check :size="12" /> Giữ lại
         </button>
         <button
+          v-if="report.type !== 'group' || authStore.isAdmin"
           type="button"
           @click="emit('resolve', report.id, 'delete')"
           class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer"

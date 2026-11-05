@@ -38,13 +38,25 @@ export function usePostDetail() {
     currentUserReaction.value = null
     await Promise.all([
       fetchPost(postId),
-      fetchComments(postId),
       fetchPosts({ limit: 4 })
     ])
 
-    if (post.value?.bookmarked != null) {
+    if (!post.value) {
+      comments.value = []
+      return
+    }
+
+    if (post.value.bookmarked != null) {
       isBookmarked.value = Boolean(post.value.bookmarked)
     }
+
+    const isPublished = (post.value.status || 'published').toLowerCase() === 'published'
+    if (!isPublished) {
+      comments.value = []
+      return
+    }
+
+    await fetchComments(postId)
 
     // Load user vote, current reaction, and bookmark status from backend if user is authenticated
     if (user.value) {
@@ -270,7 +282,7 @@ export function usePostDetail() {
     }
   }
 
-  /** Toggle reaction on the current post (Single reaction rule) */
+  /** Toggle reaction on the current post (Single reaction rule — mutually exclusive with Upvote/Downvote in backend) */
   const toggleReaction = async (emoji: string) => {
     if (!post.value) return
     if (!user.value) {
@@ -284,6 +296,9 @@ export function usePostDetail() {
 
     const prevUserReaction = currentUserReaction.value
     const prevReactions = JSON.parse(JSON.stringify(post.value.reactions))
+    const prevVote = userVote.value
+    const prevUp = Number(post.value.upvotesCount) || 0
+    const prevDown = Number(post.value.downvotesCount) || 0
 
     if (currentUserReaction.value === emoji) {
       // Toggle OFF: Clicked the same emoji again -> remove reaction
@@ -298,6 +313,15 @@ export function usePostDetail() {
       }
     } else {
       // Switching or new reaction:
+      // 0. If user previously had an upvote/downvote, backend replaces it with this emoji reaction
+      if (userVote.value === 'UPVOTE') {
+        userVote.value = null
+        post.value.upvotesCount = Math.max(0, prevUp - 1)
+      } else if (userVote.value === 'DOWNVOTE') {
+        userVote.value = null
+        post.value.downvotesCount = Math.max(0, prevDown - 1)
+      }
+
       // 1. If previously had another emoji, decrement and unmark old one
       if (currentUserReaction.value) {
         const oldEmoji = currentUserReaction.value
@@ -329,6 +353,9 @@ export function usePostDetail() {
       // Rollback on failure
       currentUserReaction.value = prevUserReaction
       post.value.reactions = prevReactions
+      userVote.value = prevVote
+      post.value.upvotesCount = prevUp
+      post.value.downvotesCount = prevDown
       console.error('Failed to toggle reaction', e)
     }
   }
@@ -344,6 +371,21 @@ export function usePostDetail() {
     const prevVote = userVote.value
     const prevUp = Number(post.value.upvotesCount) || 0
     const prevDown = Number(post.value.downvotesCount) || 0
+    const prevUserReaction = currentUserReaction.value
+    const prevReactions = Array.isArray(post.value.reactions) ? JSON.parse(JSON.stringify(post.value.reactions)) : []
+
+    if (currentUserReaction.value && Array.isArray(post.value.reactions)) {
+      const oldEmoji = currentUserReaction.value
+      const oldTarget = post.value.reactions.find((r: any) => r.emoji === oldEmoji)
+      if (oldTarget) {
+        oldTarget.count = Math.max(0, oldTarget.count - 1)
+        oldTarget.reacted = false
+        if (oldTarget.count === 0) {
+          post.value.reactions = post.value.reactions.filter((r: any) => r.emoji !== oldEmoji)
+        }
+      }
+      currentUserReaction.value = null
+    }
 
     if (userVote.value === 'UPVOTE') {
       // Toggle off
@@ -367,6 +409,8 @@ export function usePostDetail() {
       userVote.value = prevVote
       post.value.upvotesCount = prevUp
       post.value.downvotesCount = prevDown
+      currentUserReaction.value = prevUserReaction
+      post.value.reactions = prevReactions
       console.error('Failed to upvote', e)
     }
   }
@@ -382,6 +426,21 @@ export function usePostDetail() {
     const prevVote = userVote.value
     const prevUp = Number(post.value.upvotesCount) || 0
     const prevDown = Number(post.value.downvotesCount) || 0
+    const prevUserReaction = currentUserReaction.value
+    const prevReactions = Array.isArray(post.value.reactions) ? JSON.parse(JSON.stringify(post.value.reactions)) : []
+
+    if (currentUserReaction.value && Array.isArray(post.value.reactions)) {
+      const oldEmoji = currentUserReaction.value
+      const oldTarget = post.value.reactions.find((r: any) => r.emoji === oldEmoji)
+      if (oldTarget) {
+        oldTarget.count = Math.max(0, oldTarget.count - 1)
+        oldTarget.reacted = false
+        if (oldTarget.count === 0) {
+          post.value.reactions = post.value.reactions.filter((r: any) => r.emoji !== oldEmoji)
+        }
+      }
+      currentUserReaction.value = null
+    }
 
     if (userVote.value === 'DOWNVOTE') {
       // Toggle off
@@ -405,6 +464,8 @@ export function usePostDetail() {
       userVote.value = prevVote
       post.value.upvotesCount = prevUp
       post.value.downvotesCount = prevDown
+      currentUserReaction.value = prevUserReaction
+      post.value.reactions = prevReactions
       console.error('Failed to downvote', e)
     }
   }
@@ -519,13 +580,26 @@ export function usePostDetail() {
     }
   }
 
+  const countCommentBranch = (node: any): number => {
+    if (!node) return 0
+    let count = 1
+    if (Array.isArray(node.replies)) {
+      for (const child of node.replies) {
+        count += countCommentBranch(child)
+      }
+    }
+    return count
+  }
+
   const deleteComment = async (commentId: string) => {
     if (!post.value) return
     try {
       await postsApi.deleteComment(post.value.id, commentId)
+      let removedTotal = 1
       const removeFromTree = (list: any[]): boolean => {
         const idx = list.findIndex(c => c.id === commentId)
         if (idx !== -1) {
+          removedTotal = countCommentBranch(list[idx])
           list.splice(idx, 1)
           return true
         }
@@ -538,7 +612,7 @@ export function usePostDetail() {
       }
       removeFromTree(comments.value)
       if (post.value.commentsCount !== undefined && post.value.commentsCount > 0) {
-        post.value.commentsCount -= 1
+        post.value.commentsCount = Math.max(0, post.value.commentsCount - removedTotal)
       }
       toast.info('Đã xóa bình luận')
     } catch (e: any) {

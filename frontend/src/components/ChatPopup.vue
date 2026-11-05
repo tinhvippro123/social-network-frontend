@@ -76,7 +76,7 @@ const handleNicknameChanged = (e: any) => {
   const detail = e.detail
   if (!detail) return
   const findAndApply = (list: ChatConversation[]) => {
-    const match = list.find(c => c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
+    const match = list.find(c => !c.isGroup && (c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId)))
     if (match) {
       match.nickname = detail.nickname
       match.name = detail.name
@@ -149,11 +149,14 @@ async function selectComposeUser(user: User) {
 }
 
 function openChatWindow(conv: ChatConversation) {
+  if (!(conv as any)._popupKey) {
+    ;(conv as any)._popupKey = conv.id
+  }
   applyNicknameToConversation(conv)
-  const existingIdx = openWindows.value.findIndex(w => w.id === conv.id)
+  const existingIdx = openWindows.value.findIndex(w => w.id === conv.id || (w as any)._popupKey === (conv as any)._popupKey)
   if (existingIdx >= 0) return
 
-  const minIdx = minimizedChats.value.findIndex(m => m.id === conv.id)
+  const minIdx = minimizedChats.value.findIndex(m => m.id === conv.id || (m as any)._popupKey === (conv as any)._popupKey)
   if (minIdx >= 0) {
     minimizedChats.value.splice(minIdx, 1)
   }
@@ -167,12 +170,12 @@ function openChatWindow(conv: ChatConversation) {
 }
 
 function closeWindow(convId: string) {
-  openWindows.value = openWindows.value.filter(w => w.id !== convId)
-  minimizedChats.value = minimizedChats.value.filter(m => m.id !== convId)
+  openWindows.value = openWindows.value.filter(w => w.id !== convId && (w as any)._popupKey !== convId)
+  minimizedChats.value = minimizedChats.value.filter(m => m.id !== convId && (m as any)._popupKey !== convId)
 }
 
 function minimizeWindow(convId: string) {
-  const idx = openWindows.value.findIndex(w => w.id === convId)
+  const idx = openWindows.value.findIndex(w => w.id === convId || (w as any)._popupKey === convId)
   if (idx >= 0) {
     const conv = openWindows.value.splice(idx, 1)[0]
     minimizedChats.value.push(conv)
@@ -180,7 +183,7 @@ function minimizeWindow(convId: string) {
 }
 
 function restoreWindow(conv: ChatConversation) {
-  minimizedChats.value = minimizedChats.value.filter(m => m.id !== conv.id)
+  minimizedChats.value = minimizedChats.value.filter(m => m.id !== conv.id && (m as any)._popupKey !== (conv as any)._popupKey)
   openChatWindow(conv)
 }
 
@@ -209,10 +212,10 @@ defineExpose({ openChatWindow })
       <TransitionGroup name="chat-window">
         <ChatPopupWindow
           v-for="conv in openWindows"
-          :key="conv.id"
+          :key="(conv as any)._popupKey || conv.id"
           :conv="conv"
-          @minimize="minimizeWindow(conv.id)"
-          @close="closeWindow(conv.id)"
+          @minimize="minimizeWindow((conv as any)._popupKey || conv.id)"
+          @close="closeWindow((conv as any)._popupKey || conv.id)"
         />
       </TransitionGroup>
 
@@ -255,7 +258,7 @@ defineExpose({ openChatWindow })
         <TransitionGroup name="bubble">
           <div
             v-for="conv in minimizedChats"
-            :key="'min-' + conv.id"
+            :key="'min-' + ((conv as any)._popupKey || conv.id)"
             @click="restoreWindow(conv)"
             class="relative cursor-pointer group"
           >
@@ -267,7 +270,7 @@ defineExpose({ openChatWindow })
             />
             <div v-if="conv.isOnline" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-surface-800" />
             <button
-              @click.stop="closeWindow(conv.id)"
+              @click.stop="closeWindow((conv as any)._popupKey || conv.id)"
               class="absolute -top-1 -right-1 w-5 h-5 bg-gray-200 dark:bg-surface-600 text-gray-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 hover:text-red-500 cursor-pointer"
             >
               <X :size="10" />

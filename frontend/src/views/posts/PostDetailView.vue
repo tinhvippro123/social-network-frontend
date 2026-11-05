@@ -177,7 +177,7 @@ function handleProseClick(e: MouseEvent) {
         <PostDetailHeader :post="post" :user="user" @open-lightbox="handleOpenLightbox" />
 
         <!-- AI TextRank Summarization Block -->
-        <PostAiSummary :postId="post.id" />
+        <PostAiSummary v-if="(post.status || 'published').toLowerCase() === 'published'" :postId="post.id" />
 
         <!-- Content -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-8 mb-6 overflow-hidden">
@@ -200,7 +200,7 @@ function handleProseClick(e: MouseEvent) {
             <span
               v-for="tag in post.tags"
               :key="tag"
-              @click="router.push(`/tags/${tag}`)"
+              @click="router.push(`/tags/${encodeURIComponent(tag)}`)"
               class="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/30 cursor-pointer transition-colors"
             >
               #{{ tag }}

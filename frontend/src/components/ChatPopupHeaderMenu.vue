@@ -30,45 +30,57 @@ const { confirm } = useConfirm()
 
 const isMuted = computed(() => !!props.conv.isMuted)
 
-const menuGroups = computed(() => [
-  [
-    { icon: MessageCircle, label: 'Mở trong tab Tin nhắn', action: 'open-tab' },
-    { icon: UserIcon, label: 'Xem trang cá nhân', action: 'profile' },
-  ],
-  [
-    { icon: Edit, label: 'Biệt danh', action: 'nickname' },
-  ],
-  [
-    { icon: Users, label: 'Tạo nhóm với người này', action: 'create-group' },
+const menuGroups = computed(() => {
+  const isGroup = !!props.conv.isGroup
+  const groups: Array<Array<{ icon: any; label: string; action: string; active?: boolean; danger?: boolean }>> = [
+    [
+      { icon: MessageCircle, label: 'Mở trong tab Tin nhắn', action: 'open-tab' },
+      ...(!isGroup ? [{ icon: UserIcon, label: 'Xem trang cá nhân', action: 'profile' }] : []),
+    ],
+  ]
+
+  if (!isGroup) {
+    groups.push([{ icon: Edit, label: 'Biệt danh', action: 'nickname' }])
+  }
+
+  groups.push([
+    ...(!isGroup ? [{ icon: Users, label: 'Tạo nhóm với người này', action: 'create-group' }] : []),
     {
       icon: isMuted.value ? Bell : BellOff,
       label: isMuted.value ? 'Bật thông báo' : 'Tắt thông báo',
       action: 'mute',
       active: isMuted.value
     },
-    { icon: Ban, label: 'Chặn', action: 'block', danger: true },
-  ],
-  [
+    ...(!isGroup ? [{ icon: Ban, label: 'Chặn', action: 'block', danger: true }] : []),
+  ])
+
+  groups.push([
     { icon: Archive, label: 'Lưu trữ đoạn chat', action: 'archive' },
     { icon: Trash2, label: 'Xóa đoạn chat', action: 'delete', danger: true },
     { icon: AlertTriangle, label: 'Báo cáo', action: 'report', danger: true },
-  ]
-])
+  ])
+
+  return groups
+})
 
 const handleAction = async (action: string) => {
   emit('close')
   const other = props.conv.participants?.find(p => p.id !== authStore.user?.id) || props.conv
+  const resolvedUserId = other?.id?.startsWith('new-') ? other.id.replace(/^new-/, '') : other?.id
 
   switch (action) {
     case 'open-tab':
-      router.push(`/chat?id=${props.conv.id}`)
+      if (props.conv.id.startsWith('new-')) {
+        router.push(`/chat?userId=${props.conv.id.replace(/^new-/, '')}`)
+      } else {
+        router.push(`/chat?id=${props.conv.id}`)
+      }
+      emit('close-window')
       break
 
     case 'profile': {
-      if (other?.id) {
-        window.open(router.resolve(`/profile/${other.id}`).href, '_blank', 'noopener')
-      } else {
-        toast.info('Đang mở trang cá nhân...')
+      if (resolvedUserId) {
+        window.open(router.resolve(`/profile/${resolvedUserId}`).href, '_blank', 'noopener')
       }
       break
     }
@@ -84,9 +96,10 @@ const handleAction = async (action: string) => {
         path: '/chat',
         query: {
           createGroup: 'true',
-          memberId: other?.id || undefined
+          memberId: resolvedUserId || undefined
         }
       })
+      emit('close-window')
       break
     }
 
@@ -94,14 +107,12 @@ const handleAction = async (action: string) => {
       const nextState = !props.conv.isMuted
       props.conv.isMuted = nextState
       try {
-        await chatApi.muteConversation(props.conv.id, nextState)
+        if (!props.conv.id.startsWith('new-')) {
+          await chatApi.muteConversation(props.conv.id, nextState)
+        }
+        toast.success(nextState ? 'Đã tắt thông báo cuộc trò chuyện' : 'Đã bật lại thông báo cuộc trò chuyện')
       } catch {
-        // Mock fallback
-      }
-      if (nextState) {
-        toast.success('Đã tắt thông báo cuộc trò chuyện')
-      } else {
-        toast.success('Đã bật lại thông báo cuộc trò chuyện')
+        props.conv.isMuted = !nextState
       }
       break
     }
@@ -113,15 +124,13 @@ const handleAction = async (action: string) => {
         confirmText: 'Chặn',
         variant: 'danger'
       })
-      if (ok) {
-        if (other?.id) {
-          try {
-            await chatApi.blockUser(other.id)
-          } catch {
-            // Mock fallback
-          }
+      if (ok && resolvedUserId) {
+        try {
+          await chatApi.blockUser(resolvedUserId)
           toast.success(`Đã chặn ${props.conv.name}`)
           emit('close-window')
+        } catch {
+          // Handled by axios error interceptor
         }
       }
       break
@@ -129,12 +138,14 @@ const handleAction = async (action: string) => {
 
     case 'archive': {
       try {
-        await chatApi.hideConversation(props.conv.id)
+        if (!props.conv.id.startsWith('new-')) {
+          await chatApi.hideConversation(props.conv.id)
+        }
+        toast.success('Đã lưu trữ và ẩn đoạn chat khỏi màn hình')
+        emit('close-window')
       } catch {
-        // Mock fallback
+        // Handled by axios error interceptor
       }
-      toast.success('Đã lưu trữ và ẩn đoạn chat khỏi màn hình')
-      emit('close-window')
       break
     }
 
@@ -147,19 +158,28 @@ const handleAction = async (action: string) => {
       })
       if (ok) {
         try {
-          await chatApi.deleteConversation(props.conv.id)
+          if (!props.conv.id.startsWith('new-')) {
+            await chatApi.deleteConversation(props.conv.id)
+          }
+          emit('clear-chat')
+          toast.success('Đã xóa đoạn chat')
+          emit('close-window')
         } catch {
-          // Mock fallback
+          // Handled by axios error interceptor
         }
-        emit('clear-chat')
-        toast.success('Đã xóa đoạn chat')
-        emit('close-window')
       }
       break
     }
 
     case 'report': {
-      const targetId = other?.id || props.conv.id
+      const ok = await confirm({
+        title: 'Báo cáo cuộc trò chuyện',
+        message: `Bạn có muốn báo cáo cuộc trò chuyện với ${props.conv.name} vì nội dung không phù hợp không?`,
+        confirmText: 'Gửi báo cáo',
+        variant: 'warning'
+      })
+      if (!ok) break
+      const targetId = resolvedUserId || props.conv.id.replace(/^new-/, '')
       try {
         await http.post('/reports', {
           targetId,
@@ -169,7 +189,7 @@ const handleAction = async (action: string) => {
         })
         toast.success('Đã gửi báo cáo vi phạm tới Ban Quản trị hệ thống')
       } catch {
-        toast.success('Đã ghi nhận báo cáo đoạn chat')
+        // Handled by axios error interceptor
       }
       break
     }

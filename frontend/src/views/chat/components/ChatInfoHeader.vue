@@ -11,6 +11,7 @@ defineProps<{
     isOnline: boolean
     isMuted?: boolean
     isGroup?: boolean
+    participants?: any[]
   }
 }>()
 
@@ -23,9 +24,15 @@ defineEmits<{
 
 <template>
   <div class="flex flex-col items-center p-6 text-center">
-    <UserAvatar :user="{ name: conversation.name, avatar: conversation.avatar }" size="xl" class="mb-3" />
+    <UserAvatar
+      :user="{ name: conversation.name, avatar: conversation.avatar }"
+      :is-group="conversation.isGroup"
+      size="xl"
+      class="mb-3"
+    />
     <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ conversation.name }}</h2>
-    <p v-if="conversation.isOnline" class="text-sm text-green-500 font-medium mb-2">Đang hoạt động</p>
+    <p v-if="conversation.isGroup" class="text-sm text-gray-500 mb-2">{{ conversation.participants?.length || 0 }} thành viên</p>
+    <p v-else-if="conversation.isOnline" class="text-sm text-green-500 font-medium mb-2">Đang hoạt động</p>
     <p v-else class="text-sm text-gray-500 mb-2">Hoạt động gần đây</p>
 
     <!-- Quick Actions -->

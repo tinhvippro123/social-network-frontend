@@ -4,12 +4,14 @@ import { useGroups } from './useGroups'
 import { useGroupFilter } from './useGroupFilter'
 import { useAuthStore } from '@/stores/auth.store'
 import { useToast } from '../ui/useToast'
+import { useConfirm } from '../ui/useConfirm'
 
 export function useGroupsView() {
   const { groups, isLoading, fetchGroups, joinGroup, leaveGroup } = useGroups()
   const router = useRouter()
   const authStore = useAuthStore()
   const toast = useToast()
+  const { confirm } = useConfirm()
   const showCreateModal = ref(false)
   const { searchGroup, filterType, filteredGroups } = useGroupFilter(groups)
 
@@ -33,8 +35,24 @@ export function useGroupsView() {
       router.push('/login')
       return
     }
+    const myId = authStore.user?.id
+    const role = targetGroup.memberRole || targetGroup.myRole
+    const isOwner = myId && (role === 'OWNER' || targetGroup.owner?.id === myId)
+
     try {
       if (targetGroup.isJoined) {
+        if (isOwner) {
+          router.push(`/groups/${targetGroup.id}`)
+          return
+        }
+        const ok = await confirm({
+          title: 'Rời khỏi nhóm',
+          message: `Bạn có chắc chắn muốn rời khỏi nhóm "${targetGroup.name}"?`,
+          confirmText: 'Rời nhóm',
+          variant: 'danger'
+        })
+        if (!ok) return
+
         await leaveGroup(targetGroup.id)
         toast.info(`Đã rời khỏi nhóm "${targetGroup.name}"`)
       } else {

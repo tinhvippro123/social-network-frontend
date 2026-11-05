@@ -18,11 +18,13 @@ export function useSettings() {
   const isUploadingAvatar = ref(false)
 
   const activeTab = ref('profile')
-  const themeMode = ref<'light' | 'dark' | 'system'>(uiStore.isDark ? 'dark' : 'light')
+  const savedThemeMode = typeof window !== 'undefined' ? localStorage.getItem('vb_theme_mode') as 'light' | 'dark' | 'system' | null : null
+  const themeMode = ref<'light' | 'dark' | 'system'>(savedThemeMode || (uiStore.isDark ? 'dark' : 'light'))
 
   watch(() => uiStore.isDark, (isDark) => {
     if (themeMode.value !== 'system') {
       themeMode.value = isDark ? 'dark' : 'light'
+      if (typeof window !== 'undefined') localStorage.setItem('vb_theme_mode', themeMode.value)
     }
   })
   const tabs = SETTINGS_TABS
@@ -113,12 +115,14 @@ export function useSettings() {
 
   const setSystemTheme = () => {
     themeMode.value = 'system'
+    if (typeof window !== 'undefined') localStorage.setItem('vb_theme_mode', 'system')
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     if (prefersDark !== uiStore.isDark) uiStore.toggleTheme()
   }
 
   const setTheme = (mode: 'light' | 'dark') => {
     themeMode.value = mode
+    if (typeof window !== 'undefined') localStorage.setItem('vb_theme_mode', mode)
     if (mode === 'light' && uiStore.isDark) uiStore.toggleTheme()
     if (mode === 'dark' && !uiStore.isDark) uiStore.toggleTheme()
   }
@@ -165,6 +169,10 @@ export function useSettings() {
   }
 
   const changePassword = async () => {
+    if (!accountForm.value.currentPassword) {
+      toast.error('Vui lòng nhập mật khẩu hiện tại!')
+      return
+    }
     if (accountForm.value.newPassword.length < 8) {
       toast.error('Mật khẩu mới phải có ít nhất 8 ký tự!')
       return
