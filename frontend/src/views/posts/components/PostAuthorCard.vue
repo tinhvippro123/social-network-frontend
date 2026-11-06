@@ -41,8 +41,11 @@ onMounted(() => {
   fetchAuthorProfile()
 })
 
-watch(() => props.author?.id, (newId) => {
-  if (newId) {
+watch(() => [props.author?.id, user.value?.id], ([newAuthorId, newUserId]) => {
+  if (!newUserId) {
+    isFollowing.value = false
+  }
+  if (newAuthorId) {
     fetchAuthorProfile()
   }
 })
@@ -61,8 +64,9 @@ async function toggleFollow() {
 
   isFollowLoading.value = true
   try {
-    await usersApi.toggleFollow(props.author.id)
-    isFollowing.value = !isFollowing.value
+    const res = await usersApi.toggleFollow(props.author.id)
+    const nextState = typeof res.data?.data === 'boolean' ? res.data.data : !isFollowing.value
+    isFollowing.value = nextState
     if (authorFollowersCount.value !== null) {
       authorFollowersCount.value = Math.max(0, authorFollowersCount.value + (isFollowing.value ? 1 : -1))
     } else if (typeof props.author.followersCount === 'number') {

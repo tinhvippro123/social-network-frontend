@@ -1,9 +1,11 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { usePosts, normalizePost } from '../posts/usePosts'
 import postsApi from '@/api/posts.api'
+import { useAuthStore } from '@/stores/auth.store'
 import type { Post } from '@/types'
 
 export function useBookmarks() {
+  const authStore = useAuthStore()
   const { posts, fetchPosts, tags, fetchPopularTags, toggleBookmark: apiToggleBookmark } = usePosts()
   const bookmarkedPosts = ref<Post[]>([])
   const isLoading = ref(true)
@@ -58,6 +60,10 @@ export function useBookmarks() {
   }
 
   onMounted(() => {
+    initData()
+  })
+
+  watch(() => authStore.user?.id, () => {
     initData()
   })
 

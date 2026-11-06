@@ -15,6 +15,29 @@ const emit = defineEmits<{
   (e: 'edit', category: any): void
   (e: 'delete', category: any): void
 }>()
+
+const ICON_MAP: Record<string, string> = {
+  laptop: '💻',
+  code: '💻',
+  utensils: '🍜',
+  plane: '✈️',
+  camera: '📷',
+  'book-open': '📚',
+  'gamepad-2': '🎮',
+  music: '🎵',
+  film: '🎬',
+  heart: '❤️',
+  briefcase: '💼',
+  'graduation-cap': '🎓'
+}
+
+function formatCategoryIcon(icon?: string): string {
+  if (!icon) return '📁'
+  const key = icon.trim().toLowerCase()
+  if (ICON_MAP[key]) return ICON_MAP[key]
+  if (/^[a-z0-9_-]+$/i.test(key)) return '📁'
+  return icon
+}
 </script>
 
 <template>
@@ -23,7 +46,7 @@ const emit = defineEmits<{
       <GripVertical :size="16" class="text-gray-300 dark:text-surface-600 mx-auto opacity-0 group-hover:opacity-100 transition-opacity" />
     </td>
     <td class="px-5 py-4">
-      <span class="text-2xl">{{ category.icon }}</span>
+      <span class="text-2xl">{{ formatCategoryIcon(category.icon) }}</span>
     </td>
     <td class="px-5 py-4">
       <RouterLink :to="`/?category=${encodeURIComponent(category.slug || category.name)}`" class="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-500 hover:underline">{{ category.name }}</RouterLink>

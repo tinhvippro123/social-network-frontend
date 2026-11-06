@@ -35,7 +35,7 @@ const ACTIVITY_DOT: Record<string, string> = {
 
     <!-- Quick Stats -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <template v-if="isLoading">
+      <template v-if="isLoading && !stats">
         <AdminStatCardSkeleton v-for="i in 4" :key="i" />
       </template>
       <template v-else-if="stats">

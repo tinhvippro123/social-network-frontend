@@ -11,9 +11,11 @@ import {
 } from '@lucide/vue'
 import type { ChatMessage } from '@/types'
 import { useToast } from '@/composables/ui/useToast'
+import { useConfirm } from '@/composables/ui/useConfirm'
 import http from '@/api/client'
 
 const toast = useToast()
+const { confirm } = useConfirm()
 
 const props = defineProps<{
   msg: ChatMessage
@@ -91,9 +93,22 @@ async function handleCopyOrForward() {
 }
 
 async function handleReportMessage() {
+  emit('toggleActionMenu', 'null')
+  const targetUserId = props.msg.sender?.id
+  if (!targetUserId) {
+    toast.error('Không xác định được người gửi để báo cáo')
+    return
+  }
+  const ok = await confirm({
+    title: 'Báo cáo tin nhắn',
+    message: 'Bạn có chắc chắn muốn gửi báo cáo tin nhắn này tới bộ phận kiểm duyệt?',
+    confirmText: 'Gửi báo cáo',
+    variant: 'danger'
+  })
+  if (!ok) return
   try {
     await http.post('/reports', {
-      targetId: props.msg.sender?.id || props.msg.id,
+      targetId: targetUserId,
       type: 'USER',
       reason: `Báo cáo tin nhắn vi phạm: "${(props.msg.content || '').slice(0, 80)}"`
     })
@@ -101,7 +116,6 @@ async function handleReportMessage() {
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Không thể gửi báo cáo lúc này')
   }
-  emit('toggleActionMenu', 'null')
 }
 
 onMounted(() => {

@@ -76,9 +76,12 @@ export function useAdminPosts() {
       if (idx !== -1) posts.value[idx].status = newStatus.toLowerCase()
       toast.success(`Đã ${actionLabel.toLowerCase()} thành công!`)
       if (filterStatus.value !== 'all') {
-        await fetchPosts()
+        posts.value = posts.value.filter(p => p.id !== post.id)
+        totalItems.value = Math.max(0, totalItems.value - 1)
         if (posts.value.length === 0 && currentPage.value > 1) {
           currentPage.value -= 1
+        } else {
+          await fetchPosts()
         }
       }
     } catch (err: any) {

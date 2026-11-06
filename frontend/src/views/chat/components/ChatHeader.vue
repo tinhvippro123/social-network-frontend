@@ -22,7 +22,8 @@ const {
   isTyping,
   typingUser,
   showInfoPanel,
-  showSearchInChat
+  showSearchInChat,
+  toggleInfoPanel
 } = chatState
 
 const router = useRouter()
@@ -32,12 +33,16 @@ const otherParticipantId = computed(() => {
   if (!conv) return undefined
   const myId = currentUser?.value?.id
   const other = conv.participants?.find((p: any) => p.id && p.id !== myId)
-  return other?.id || conv.participants?.[0]?.id
+  return other?.id
 })
 
 function handleOpenProfile() {
   if (selectedConversation?.value?.isGroup) {
-    showInfoPanel.value = !showInfoPanel.value
+    if (toggleInfoPanel) {
+      toggleInfoPanel()
+    } else {
+      showInfoPanel.value = !showInfoPanel.value
+    }
     return
   }
   if (otherParticipantId.value) {
@@ -90,7 +95,7 @@ function handleOpenProfile() {
         <SearchIcon :size="18" />
       </button>
       <button
-        @click="showInfoPanel = !showInfoPanel"
+        @click="toggleInfoPanel ? toggleInfoPanel() : (showInfoPanel = !showInfoPanel)"
         title="Thông tin cuộc trò chuyện"
         :class="['p-2 rounded-xl transition-colors cursor-pointer', showInfoPanel ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700']"
       >

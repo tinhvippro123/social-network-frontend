@@ -13,10 +13,13 @@ import CreateGroupPostModal from './components/CreateGroupPostModal.vue'
 import { formatDate } from '@/utils/formatters'
 import { useGroupDetail } from '@/composables/groups/useGroupDetail'
 import filesApi from '@/api/files.api'
+import http from '@/api/client'
 import { useToast } from '@/composables/ui/useToast'
+import { useConfirm } from '@/composables/ui/useConfirm'
 
 const route = useRoute()
 const toast = useToast()
+const { confirm } = useConfirm()
 const {
   router,
   group,
@@ -41,6 +44,7 @@ const selectedPost = ref<any | null>(null)
 const isCreatePostModalOpen = ref(false)
 const isEditGroupModalOpen = ref(false)
 const isUpdatingGroup = ref(false)
+const editAvatarInputRef = ref<HTMLInputElement | null>(null)
 const editCoverInputRef = ref<HTMLInputElement | null>(null)
 const editGroupForm = ref({
   name: '',
@@ -62,6 +66,23 @@ const openEditGroupModal = () => {
   isEditGroupModalOpen.value = true
 }
 
+const handleEditAvatarUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  try {
+    const res = await filesApi.uploadFile(file)
+    if (res.data?.data?.fileUrl) {
+      editGroupForm.value.avatar = res.data.data.fileUrl
+      toast.success('Đã tải ảnh đại diện nhóm lên')
+    }
+  } catch {
+    toast.error('Không thể tải ảnh đại diện lên')
+  } finally {
+    input.value = ''
+  }
+}
+
 const handleEditCoverUpload = async (event: Event) => {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
@@ -76,6 +97,27 @@ const handleEditCoverUpload = async (event: Event) => {
     toast.error('Không thể tải ảnh bìa lên')
   } finally {
     input.value = ''
+  }
+}
+
+const handleReportGroup = async () => {
+  if (!group.value?.id) return
+  const ok = await confirm({
+    title: 'Báo cáo nhóm',
+    message: `Bạn có chắc chắn muốn gửi báo cáo nhóm "${group.value.name}" tới bộ phận kiểm duyệt?`,
+    confirmText: 'Gửi báo cáo',
+    variant: 'danger'
+  })
+  if (!ok) return
+  try {
+    await http.post('/reports', {
+      targetId: group.value.id,
+      type: 'GROUP',
+      reason: `Báo cáo nhóm cộng đồng: ${group.value.name}`
+    })
+    toast.success('Đã gửi báo cáo nhóm tới bộ phận kiểm duyệt')
+  } catch (err: any) {
+    toast.error(err?.response?.data?.message || 'Không thể gửi báo cáo lúc này')
   }
 }
 
@@ -179,6 +221,7 @@ const handlePostCreated = (newPost: any) => {
           @switch-tab="activeTab = $event"
           @edit-group="openEditGroupModal"
           @delete-group="handleDeleteGroup"
+          @report-group="handleReportGroup"
         />
 
         <!-- Tabs & Create Post Button -->
@@ -415,6 +458,26 @@ const handlePostCreated = (newPost: any) => {
               rows="3"
               class="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-surface-600 bg-gray-50 dark:bg-surface-700 text-sm text-gray-900 dark:text-white outline-none focus:border-primary-500 resize-none"
             />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Ảnh đại diện nhóm (URL)</label>
+            <div class="relative">
+              <input
+                v-model="editGroupForm.avatar"
+                type="text"
+                placeholder="https://... hoặc tải ảnh lên"
+                class="w-full pr-24 pl-3.5 py-2 rounded-xl border border-gray-200 dark:border-surface-600 bg-gray-50 dark:bg-surface-700 text-sm text-gray-900 dark:text-white outline-none focus:border-primary-500"
+              />
+              <input ref="editAvatarInputRef" type="file" accept="image/*" class="hidden" @change="handleEditAvatarUpload" />
+              <button
+                type="button"
+                @click="editAvatarInputRef?.click()"
+                class="absolute right-1.5 top-1.5 px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/50 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+              >
+                <Upload :size="12" /> Tải ảnh
+              </button>
+            </div>
           </div>
 
           <div>

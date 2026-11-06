@@ -140,7 +140,7 @@ http.interceptors.response.use(
 
     if (status === 403) {
       const { useToast } = await import('@/composables/ui/useToast')
-      useToast().error('Bạn không có quyền thực hiện hành động này!')
+      useToast().error(errorMessage || 'Bạn không có quyền thực hiện hành động này!')
     } else if (status) {
       if (error.response?.data?.data && typeof error.response.data.data === 'object') {
         console.error('Validation Errors:', error.response.data.data)

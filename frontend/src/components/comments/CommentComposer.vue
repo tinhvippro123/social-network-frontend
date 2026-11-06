@@ -150,7 +150,10 @@ watch(
 const handleImageSelected = (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
-    attachedImage.value = target.files[0]
+    const file = target.files[0]
+    if (file.size > 5 * 1024 * 1024) { target.value = ''; return }
+    if (attachedImagePreview.value) URL.revokeObjectURL(attachedImagePreview.value)
+    attachedImage.value = file
     attachedImagePreview.value = URL.createObjectURL(target.files[0])
   }
 }

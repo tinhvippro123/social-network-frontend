@@ -18,7 +18,7 @@ defineEmits<{
       <PinIcon :size="16" class="text-primary-600 dark:text-primary-400 shrink-0" />
       <div class="flex-1 min-w-0">
         <p class="text-xs font-semibold text-primary-700 dark:text-primary-300">Tin nhắn đã ghim</p>
-        <p class="text-sm text-gray-600 dark:text-gray-400 truncate">{{ pinnedMessage.content }}</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400 truncate">{{ pinnedMessage.content || (pinnedMessage.type === 'image' ? '[Hình ảnh]' : `[Tệp] ${pinnedMessage.fileName || ''}`) }}</p>
       </div>
     </div>
     <button @click.stop="$emit('unpin', pinnedMessage.id)" class="p-1 rounded-lg text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors shrink-0">

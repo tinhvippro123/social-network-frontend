@@ -30,8 +30,9 @@ const listData = ref<UserSummary[]>([])
 
 const currentList = computed(() => {
   if (!searchQuery.value) return listData.value
+  const q = searchQuery.value.toLowerCase()
   return listData.value.filter(u =>
-    u.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    (u.name || '').toLowerCase().includes(q)
   )
 })
 
@@ -86,8 +87,8 @@ function goToProfile(userId: string) {
   router.push(`/profile/${userId}`)
 }
 
-// Reload when modal opens or type changes
-watch(() => [props.show, props.type], ([show]) => {
+// Reload when modal opens, type changes, or user changes
+watch(() => [props.show, props.type, props.user?.id], ([show]) => {
   if (show) {
     searchQuery.value = ''
     loadList()

@@ -140,6 +140,12 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Error Banner -->
+    <div v-if="statsError" class="mt-3 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+      <AlertCircle :size="14" class="shrink-0" />
+      <span>{{ statsError }}</span>
+    </div>
+
     <!-- Stats Cards Row -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-4">
       <!-- Positive Card -->

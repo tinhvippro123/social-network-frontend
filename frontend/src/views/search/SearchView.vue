@@ -15,6 +15,8 @@ import {
 import { useSearch } from '@/composables/core/useSearch'
 import { usePosts } from '@/composables/posts/usePosts'
 import { useUiStore } from '@/stores/ui.store'
+import { useAuthStore } from '@/stores/auth.store'
+import { useToast } from '@/composables/ui/useToast'
 import usersApi from '@/api/users.api'
 import type { UserSummary } from '@/types'
 import PostCard from '@/components/PostCard.vue'
@@ -25,9 +27,12 @@ import SearchUserItem from './components/SearchUserItem.vue'
 const route = useRoute()
 const router = useRouter()
 const uiStore = useUiStore()
+const authStore = useAuthStore()
+const toast = useToast()
 
 // Omni-Search states
 const query = ref((route.query.q as string) || '')
+const submittedQuery = ref((route.query.q as string) || '')
 const textMode = ref<'keyword' | 'semantic'>((route.query.type as 'semantic' | 'keyword') || 'keyword')
 const selectedFile = ref<File | null>(null)
 const fileType = ref<'image' | 'document' | null>(null)
@@ -47,7 +52,7 @@ const {
 } = useSearch()
 
 // Discover posts for initial recommendations
-const { posts: initialPosts, isLoading: isLoadingInitial, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
+const { posts: initialPosts, tags: popularTags, isLoading: isLoadingInitial, fetchPosts, fetchPopularTags, toggleBookmark: apiToggleBookmark } = usePosts()
 
 async function handleToggleBookmark(postId: string) {
   const target = results.value.find(p => p.id === postId) || initialPosts.value.find(p => p.id === postId)
@@ -90,8 +95,9 @@ function checkPendingFile(): boolean {
 }
 
 onMounted(async () => {
-  // Fetch initial posts & users in background
+  // Fetch initial posts, popular tags & users in background
   fetchPosts()
+  fetchPopularTags()
   fetchUsers()
 
   // Prioritize pending file upload from navbar if any
@@ -102,9 +108,18 @@ onMounted(async () => {
   // Execute search if route has query
   if (route.query.q) {
     query.value = route.query.q as string
+    submittedQuery.value = query.value
     if (route.query.type === 'semantic') {
       textMode.value = 'semantic'
     }
+    executeSearch()
+  }
+})
+
+watch(() => authStore.user?.id, () => {
+  fetchPosts()
+  fetchUsers()
+  if (submittedQuery.value.trim() && !selectedFile.value) {
     executeSearch()
   }
 })
@@ -133,6 +148,7 @@ watch(() => route.query.type, (newType) => {
 function handleUpdateQuery(val: string) {
   query.value = val
   if (!val.trim() && !selectedFile.value) {
+    submittedQuery.value = ''
     clearSearch()
     router.replace({ query: textMode.value === 'semantic' ? { type: 'semantic' } : {} })
   }
@@ -159,10 +175,15 @@ async function fetchUsers() {
 
 // Handle file selection from header
 function handleSelectFile(file: File, type: 'image' | 'document') {
+  if (file.size > 5 * 1024 * 1024) {
+    toast.warning('Kích thước tệp tìm kiếm không được vượt quá 5MB')
+    return
+  }
   selectedFile.value = file
   fileType.value = type
   activeTab.value = 'posts'
   query.value = ''
+  submittedQuery.value = ''
   router.replace({ query: {} })
   executeSearch()
 }
@@ -196,10 +217,12 @@ async function executeSearch() {
 
   const q = query.value.trim()
   if (!q) {
+    submittedQuery.value = ''
     clearSearch()
     return
   }
 
+  submittedQuery.value = q
   router.replace({
     query: {
       q,
@@ -223,10 +246,14 @@ const filteredUsers = computed(() => {
   )
 })
 
-// Available tags from initial posts
+// Available tags from popular tags, initial posts, and search results
 const allTags = computed(() => {
   const tagSet = new Set<string>()
+  popularTags.value.forEach(t => {
+    if (t.name) tagSet.add(t.name)
+  })
   initialPosts.value.forEach(p => p.tags?.forEach(t => tagSet.add(t)))
+  results.value.forEach(p => p.tags?.forEach(t => tagSet.add(t)))
   return Array.from(tagSet)
 })
 
@@ -237,8 +264,14 @@ const filteredTags = computed(() => {
 })
 
 // Has active query or file search
+const hasActivePostSearch = computed(() => {
+  return !!submittedQuery.value.trim() || !!selectedFile.value
+})
+
 const hasActiveSearch = computed(() => {
-  return !!query.value.trim() || !!selectedFile.value
+  return activeTab.value === 'posts'
+    ? hasActivePostSearch.value
+    : (!!query.value.trim() || !!selectedFile.value)
 })
 
 const tabs = [
@@ -275,7 +308,7 @@ const tabs = [
       <div class="flex items-center gap-2.5 flex-wrap">
         <span class="text-sm text-gray-500 dark:text-gray-400">Kết quả cho:</span>
         <span class="text-base font-bold text-gray-900 dark:text-white">
-          "{{ selectedFile ? selectedFile.name : query }}"
+          "{{ selectedFile ? selectedFile.name : (activeTab === 'posts' ? submittedQuery : query) }}"
         </span>
 
         <!-- Elegant AI Badge -->

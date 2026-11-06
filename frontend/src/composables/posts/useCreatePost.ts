@@ -12,8 +12,8 @@ import ImageExtension from '@tiptap/extension-image'
 import LinkExtension from '@tiptap/extension-link'
 import type { GeoLocation } from '@/types'
 import {
-  Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, List, ListOrdered,
-  Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote
+  Bold, Italic, Strikethrough, Heading1, Heading2, List, ListOrdered,
+  Code as CodeIcon, Image as ImageIcon, Link as LinkIcon, Quote, Undo, Redo
 } from '@lucide/vue'
 
 export function useCreatePost() {
@@ -93,9 +93,12 @@ export function useCreatePost() {
   }
 
   const toolbarItems = [
+    { icon: Undo, label: 'Hoàn tác (Undo)', action: 'undo' },
+    { icon: Redo, label: 'Làm lại (Redo)', action: 'redo' },
+    { icon: null, label: 'divider', action: '' },
     { icon: Bold, label: 'Bold', action: 'bold' },
     { icon: Italic, label: 'Italic', action: 'italic' },
-    { icon: UnderlineIcon, label: 'Strike', action: 'strike' },
+    { icon: Strikethrough, label: 'Strike', action: 'strike' },
     { icon: null, label: 'divider', action: '' },
     { icon: Heading1, label: 'Heading 1', action: 'h1' },
     { icon: Heading2, label: 'Heading 2', action: 'h2' },
@@ -223,6 +226,8 @@ export function useCreatePost() {
   const handleToolbarAction = (action: string) => {
     if (!editor.value) return
     switch (action) {
+      case 'undo': editor.value.chain().focus().undo().run(); break;
+      case 'redo': editor.value.chain().focus().redo().run(); break;
       case 'bold': editor.value.chain().focus().toggleBold().run(); break;
       case 'italic': editor.value.chain().focus().toggleItalic().run(); break;
       case 'strike': editor.value.chain().focus().toggleStrike().run(); break;

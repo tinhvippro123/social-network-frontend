@@ -92,10 +92,14 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     }
 
     if (event.type === 'conversation.nickname' && convId && payload) {
+      if (payload.targetUserId && String(payload.targetUserId) === String(authStore.user?.id)) {
+        return
+      }
       const conv = conversations.value.find(c => c.id === convId && !c.isGroup)
       if (conv) {
+        const other = conv.participants?.find(p => p.id && p.id !== authStore.user?.id)
         if (!(conv as any).originalName) {
-          (conv as any).originalName = conv.name
+          (conv as any).originalName = other?.name || conv.name
         }
         conv.nickname = payload.nickname || ''
         if (payload.nickname) {
@@ -268,7 +272,7 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     if (conv.isGroup) return null
     const myId = authStore.user?.id
     const other = conv.participants?.find(p => p.id && p.id !== myId)
-    return other?.id || conv.participants?.[0]?.id || null
+    return other?.id || null
   }
 
   async function blockUser(userIdOrConvId: string): Promise<boolean> {

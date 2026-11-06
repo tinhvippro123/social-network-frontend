@@ -25,7 +25,7 @@ const router = useRouter()
       <div class="relative">
         <img v-if="selectedPost.coverImage" :src="selectedPost.coverImage" class="w-full h-36 object-cover" />
         <div v-else class="w-full h-36 bg-linear-to-br from-primary-100 to-teal-100 dark:from-primary-900/40 dark:to-teal-900/30 flex items-center justify-center text-5xl">
-          {{ getCategoryEmoji(selectedPost.category.slug) }}
+          {{ getCategoryEmoji(selectedPost.category?.slug || '') }}
         </div>
         <button
           @click="selectedPost = null"
@@ -36,7 +36,7 @@ const router = useRouter()
         </button>
         <!-- Category badge -->
         <div class="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-xs font-medium text-white">
-          {{ getCategoryEmoji(selectedPost.category.slug) }} {{ selectedPost.category.name }}
+          {{ getCategoryEmoji(selectedPost.category?.slug || '') }} {{ selectedPost.category?.name || 'Chưa phân loại' }}
         </div>
       </div>
       <div class="p-4">

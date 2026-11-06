@@ -176,12 +176,12 @@ function distanceLabel(post: Post) {
       >
         <img v-if="post.coverImage" :src="post.coverImage" class="w-16 h-12 rounded-lg object-cover shrink-0" />
         <div v-else class="w-16 h-12 rounded-lg shrink-0 bg-primary-50 dark:bg-surface-700 flex items-center justify-center text-lg">
-          {{ getCategoryEmoji(post.category.slug) }}
+          {{ getCategoryEmoji(post.category?.slug || '') }}
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 mb-0.5">
-            <span class="text-xs">{{ getCategoryEmoji(post.category.slug) }}</span>
-            <span class="text-xs text-gray-400">{{ post.category.name }}</span>
+            <span class="text-xs">{{ getCategoryEmoji(post.category?.slug || '') }}</span>
+            <span class="text-xs text-gray-400">{{ post.category?.name || 'Chưa phân loại' }}</span>
             <span v-if="distanceLabel(post)" class="ml-auto text-[11px] font-semibold text-teal-600 dark:text-teal-400 whitespace-nowrap">
               {{ distanceLabel(post) }}
             </span>
@@ -334,7 +334,7 @@ function distanceLabel(post: Post) {
             >
               <img v-if="post.coverImage" :src="post.coverImage" class="w-14 h-10 rounded-lg object-cover shrink-0" />
               <div v-else class="w-14 h-10 rounded-lg shrink-0 bg-primary-50 dark:bg-surface-700 flex items-center justify-center">
-                {{ getCategoryEmoji(post.category.slug) }}
+                {{ getCategoryEmoji(post.category?.slug || '') }}
               </div>
               <div class="flex-1 min-w-0">
                 <h4 class="text-sm font-semibold text-gray-900 dark:text-white line-clamp-1">

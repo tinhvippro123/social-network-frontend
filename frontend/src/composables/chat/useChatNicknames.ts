@@ -34,7 +34,17 @@ function getOtherParticipantId(conv: ChatConversation): string | undefined {
   if (!conv.participants || conv.participants.length === 0) return undefined
   const myId = useAuthStore().user?.id
   const other = conv.participants.find(p => p.id && p.id !== myId && !p.id.startsWith('curr'))
-  return other?.id || conv.participants[0]?.id
+  return other?.id
+}
+
+function resolveRealName(conv: ChatConversation): string {
+  if (conv.originalName && conv.originalName !== conv.nickname) return conv.originalName
+  if (!conv.isGroup && Array.isArray(conv.participants)) {
+    const myId = useAuthStore().user?.id
+    const other = conv.participants.find(p => p.id && p.id !== myId && !p.id.startsWith('curr') && p.name && p.name !== conv.nickname)
+    if (other?.name) return other.name
+  }
+  return conv.originalName || conv.name
 }
 
 export function useChatNicknames() {
@@ -51,8 +61,8 @@ export function useChatNicknames() {
     const trimmed = newNick.trim()
     const otherId = getOtherParticipantId(conv)
 
-    if (!conv.originalName) {
-      conv.originalName = conv.name
+    if (!conv.originalName || conv.originalName === conv.nickname) {
+      conv.originalName = resolveRealName(conv)
     }
 
     if (trimmed) {
@@ -106,8 +116,8 @@ export function useChatNicknames() {
     const otherId = getOtherParticipantId(conv)
 
     if (conv.nickname) {
-      if (!conv.originalName) {
-        conv.originalName = conv.name
+      if (!conv.originalName || conv.originalName === conv.nickname) {
+        conv.originalName = resolveRealName(conv)
       }
       conv.name = conv.nickname
       const map = loadNicknames()
@@ -124,8 +134,8 @@ export function useChatNicknames() {
 
     const saved = getNickname(conv.id, otherId)
     if (saved && saved.nickname) {
-      if (!conv.originalName) {
-        conv.originalName = saved.originalName || conv.name
+      if (!conv.originalName || conv.originalName === saved.nickname) {
+        conv.originalName = (saved.originalName && saved.originalName !== saved.nickname) ? saved.originalName : resolveRealName(conv)
       }
       conv.nickname = saved.nickname
       conv.name = saved.nickname

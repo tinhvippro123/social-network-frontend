@@ -104,7 +104,7 @@ function showTermsNotice(title: string) {
               :key="i"
               :class="[
                 'h-1 flex-1 rounded-full transition-all duration-300',
-                i <= passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-white/10'
+                i <= passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-gray-200 dark:bg-white/10'
               ]"
             />
           </div>

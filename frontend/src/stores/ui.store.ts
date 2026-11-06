@@ -42,7 +42,7 @@ export const useUiStore = defineStore('ui', () => {
     if (!token) return
     try {
       const { data } = await notificationsApi.getAll()
-      notifications.value = data.data
+      notifications.value = (data.data || []).map((item: any) => ({ ...item, type: (item.type || 'system').toLowerCase(), isRead: Boolean(item.isRead) }))
     } catch (e) {
       console.error('Lỗi lấy thông báo:', e)
     }
@@ -61,6 +61,7 @@ export const useUiStore = defineStore('ui', () => {
   function markAllRead() {
     notifications.value.forEach(n => n.isRead = true)
     notificationsApi.markAllRead().catch(err => console.error('Lỗi đánh dấu tất cả đã đọc:', err))
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('notifications-marked-all-read'))
   }
 
   // ── Search UI ──────────────────────────────

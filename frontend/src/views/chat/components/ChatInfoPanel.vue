@@ -70,7 +70,7 @@ const router = injectedRouter || useRouter()
 const otherParticipant = computed(() => {
   const parts = selectedConversation?.value?.participants || []
   const myId = currentUser?.value?.id
-  return parts.find((p: any) => p.id !== myId) || parts[0] || null
+  return parts.find((p: any) => p.id && p.id !== myId) || null
 })
 
 const isBlocked = computed(() => {
@@ -154,7 +154,7 @@ function handleOpenSearchInChat() {
 }
 
 async function handleReportConversation() {
-  const targetId = otherParticipant.value?.id || selectedConversation.value?.id
+  const targetId = otherParticipant.value?.id
   if (!targetId) return
   const ok = await confirm({
     title: 'Báo cáo cuộc trò chuyện',
@@ -264,7 +264,11 @@ async function handleReportConversation() {
               </div>
             </button>
 
-            <button @click="handleReportConversation" class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer">
+            <button
+              v-if="!selectedConversation.isGroup && otherParticipant"
+              @click="handleReportConversation"
+              class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer"
+            >
               <div class="flex items-center gap-3 w-full">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-500 dark:bg-red-900/30">
                   <FlagIcon :size="16" />

@@ -568,6 +568,7 @@ export function usePostDetail() {
       }
     } catch (e) {
       console.error('Failed to add comment', e)
+      toast.error((e as any)?.response?.data?.message || 'Không thể gửi bình luận')
     }
   }
 
@@ -591,6 +592,7 @@ export function usePostDetail() {
       }
     } catch (e) {
       console.error('Failed to reply comment', e)
+      toast.error((e as any)?.response?.data?.message || 'Không thể gửi phản hồi bình luận')
     }
   }
 

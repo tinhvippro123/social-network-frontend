@@ -12,10 +12,10 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
   const searchChat = ref('')
 
   const sharedMedia = computed(() =>
-    messages.value.filter(m => m.type === 'image' && m.imageUrl)
+    messages.value.filter(m => !m.isRevoked && m.status !== 'revoked' && m.type === 'image' && m.imageUrl)
   )
   const sharedFiles = computed(() =>
-    messages.value.filter(m => m.type === 'file' && m.fileName)
+    messages.value.filter(m => !m.isRevoked && m.status !== 'revoked' && m.type === 'file' && m.fileName)
   )
   const sharedLinks = computed<SharedLinkItem[]>(() => {
     const urlRegex = /https?:\/\/[^\s<>")]+/gi
@@ -66,14 +66,17 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
   const filteredConversations = computed(() => {
     let list = conversations.value
     if (searchChat.value) {
+      const q = searchChat.value.toLowerCase()
       list = list.filter(c =>
-        c.name.toLowerCase().includes(searchChat.value.toLowerCase())
+        c.name.toLowerCase().includes(q) || c.originalName?.toLowerCase().includes(q)
       )
     }
     return [...list].sort((a, b) => {
       if (a.isPinned && !b.isPinned) return -1
       if (!a.isPinned && b.isPinned) return 1
-      return 0
+      const ta = new Date(a.lastMessageTime || 0).getTime() || 0
+      const tb = new Date(b.lastMessageTime || 0).getTime() || 0
+      return tb - ta
     })
   })
 
@@ -109,7 +112,7 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
   /** Nhãn vạch phân cách ngày: Hôm nay / Hôm qua / Thứ 3, 21/10/2026 */
   const formatDayLabel = (timeStr: string) => {
     const d = toDate(timeStr)
-    if (!d) return ''
+    if (!d) return 'Hôm nay'
     const diff = daysAgo(d)
     if (diff === 0) return 'Hôm nay'
     if (diff === 1) return 'Hôm qua'
@@ -119,7 +122,9 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
   const isSameDay = (a?: string, b?: string) => {
     const da = toDate(a)
     const db = toDate(b)
-    return !!da && !!db && startOfDay(da) === startOfDay(db)
+    if (!da && !db) return true
+    if (!da || !db) return a === b
+    return startOfDay(da) === startOfDay(db)
   }
 
   /**

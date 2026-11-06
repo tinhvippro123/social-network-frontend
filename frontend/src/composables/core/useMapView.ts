@@ -197,7 +197,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
 
     postsWithLocation.value.forEach(post => {
       if (!post.location) return
-      const emoji = getCategoryEmoji(post.category.slug)
+      const emoji = getCategoryEmoji(post.category?.slug || '')
       const position = displayPositions.value.get(post.id) || [post.location.lat, post.location.lng]
       const marker = L.marker(position, {
         icon: createEmojiIcon(emoji, selectedPost.value?.id === post.id)
@@ -208,7 +208,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
         <div style="min-width: 200px; font-family: system-ui, sans-serif;">
           <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px; line-height: 1.3;">${escapeHtml(post.title)}</div>
           <div style="font-size: 11px; color: #888; display: flex; align-items: center; gap: 4px;">
-            <span>${emoji}</span> ${escapeHtml(post.category.name)}
+            <span>${emoji}</span> ${escapeHtml(post.category?.name || 'Chưa phân loại')}
             ${distance !== null ? ` · <span style="color:#0d9488;font-weight:600;">cách ${formatDistance(distance)}</span>` : ''}
           </div>
           ${post.eventStartTime ? `<div style="font-size: 11px; color: #7c3aed; margin-top: 4px;">🕐 ${formatEventTime(post.eventStartTime, post.eventEndTime)}</div>` : ''}
@@ -273,6 +273,10 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
   const searchAroundCampus = () => searchNearby(HCMUNRE_CENTER)
 
   const clearNearby = () => {
+    if (radiusTimer) {
+      clearTimeout(radiusTimer)
+      radiusTimer = null
+    }
     searchCenter.value = null
     nearbyPosts.value = []
     selectedPost.value = null
@@ -304,6 +308,39 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
     }
   }
 
+  const focusPostById = async (postId: string) => {
+    let targetPost = postsWithLocation.value.find(p => p.id === postId)
+    if (!targetPost) {
+      try {
+        const res = await postsApi.getById(postId)
+        const raw = res.data?.data
+        if (raw) {
+          const normalized = normalizePost(raw)
+          if (normalized.location) {
+            if (!posts.value.some(p => p.id === normalized.id)) {
+              posts.value.unshift(normalized)
+            }
+            if (selectedFilter.value !== 'all' && normalized.category?.slug !== selectedFilter.value) {
+              selectedFilter.value = 'all'
+            }
+            if (searchCenter.value && !nearbyPosts.value.some(p => p.id === normalized.id)) {
+              searchCenter.value = null
+              nearbyPosts.value = []
+              renderRadius()
+            }
+            renderMarkers()
+            targetPost = normalized
+          }
+        }
+      } catch {
+        // ignore if post not found
+      }
+    }
+    if (targetPost) {
+      selectPostFromList(targetPost)
+    }
+  }
+
   const initMap = async () => {
     if (!mapContainer.value) return
 
@@ -328,19 +365,13 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
 
     const queryPostId = route.query.postId as string | undefined
     if (queryPostId) {
-      const targetPost = postsWithLocation.value.find(p => p.id === queryPostId)
-      if (targetPost) {
-        selectPostFromList(targetPost)
-      }
+      await focusPostById(queryPostId)
     }
   }
 
   watch(() => route.query.postId, (newId) => {
     if (!newId) return
-    const targetPost = postsWithLocation.value.find(p => p.id === newId)
-    if (targetPost) {
-      selectPostFromList(targetPost)
-    }
+    focusPostById(newId as string)
   })
 
   const destroyMap = () => {

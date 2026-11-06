@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { ShieldAlert, Check, X, Ban, ExternalLink } from '@lucide/vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { useAuthStore } from '@/stores/auth.store'
+import { useToast } from '@/composables/ui/useToast'
 
 const props = defineProps<{
   reports: any[]
@@ -16,6 +17,7 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 
 const pendingReports = computed(() =>
   (props.reports || []).filter((r: any) => (r.status || 'pending').toLowerCase() === 'pending').slice(0, 6)
@@ -25,7 +27,13 @@ function viewTarget(report: any) {
   const type = (report.type || '').toLowerCase()
   let path = '/'
   if (type === 'post') path = `/posts/${report.targetId}`
-  else if (type === 'comment') path = report.targetPostId ? `/posts/${report.targetPostId}#comment-${report.targetId}` : '/'
+  else if (type === 'comment') {
+    if (!report.targetPostId) {
+      toast.info('Bình luận hoặc bài viết gốc đã bị xóa')
+      return
+    }
+    path = `/posts/${report.targetPostId}#comment-${report.targetId}`
+  }
   else if (type === 'group') path = `/groups/${report.targetId}`
   else if (type === 'user') path = `/profile/${report.targetId}`
   window.open(router.resolve(path).href, '_blank', 'noopener')

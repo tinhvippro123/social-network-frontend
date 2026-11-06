@@ -3,11 +3,13 @@ import { computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Tag, ArrowLeft } from '@lucide/vue'
 import { usePosts } from '@/composables/posts/usePosts'
+import { useAuthStore } from '@/stores/auth.store'
 import PostCard from '@/components/PostCard.vue'
 import PostSkeletonCard from '@/components/posts/PostSkeletonCard.vue'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const tagName = computed(() => (route.params.name as string) || '')
 
 const { posts, isLoading, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
@@ -37,12 +39,16 @@ watch(tagName, () => {
   }
 })
 
+watch(() => authStore.user?.id, () => {
+  fetchPosts({ limit: 100 })
+})
+
 // Lọc chính xác các bài viết có gắn thẻ tag này
 const displayPosts = computed(() => {
-  const target = tagName.value.trim().toLowerCase()
+  const target = tagName.value.replace(/^#+/, '').trim().toLowerCase()
   if (!target) return []
   return posts.value.filter(p =>
-    p.tags?.some(t => t.trim().toLowerCase() === target)
+    p.tags?.some(t => t.replace(/^#+/, '').trim().toLowerCase() === target)
   )
 })
 </script>

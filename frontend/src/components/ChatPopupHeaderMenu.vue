@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   MessageCircle, User as UserIcon, Edit, Users,
@@ -28,6 +28,38 @@ const authStore = useAuthStore()
 const toast = useToast()
 const { confirm } = useConfirm()
 
+const blockedUserIds = ref<Set<string>>(new Set())
+
+async function loadBlockedUsers() {
+  try {
+    const res = await chatApi.getBlockedUsers()
+    const list = res.data?.data || []
+    blockedUserIds.value = new Set(list.map((u: any) => typeof u === 'string' ? u : u.id))
+  } catch {
+    // ignore
+  }
+}
+
+onMounted(() => {
+  loadBlockedUsers()
+  window.addEventListener('chat-block-updated', loadBlockedUsers)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('chat-block-updated', loadBlockedUsers)
+})
+
+const otherParticipantId = computed(() => {
+  if (props.conv.isGroup) return undefined
+  const other = props.conv.participants?.find(p => p.id && p.id !== authStore.user?.id)
+  const rawId = other?.id || (props.conv.id.startsWith('new-') ? props.conv.id.replace(/^new-/, '') : undefined)
+  return rawId?.startsWith('new-') ? rawId.replace(/^new-/, '') : rawId
+})
+
+const isBlocked = computed(() => {
+  return otherParticipantId.value ? blockedUserIds.value.has(otherParticipantId.value) : false
+})
+
 const isMuted = computed(() => !!props.conv.isMuted)
 
 const menuGroups = computed(() => {
@@ -51,13 +83,17 @@ const menuGroups = computed(() => {
       action: 'mute',
       active: isMuted.value
     },
-    ...(!isGroup ? [{ icon: Ban, label: 'Chặn', action: 'block', danger: true }] : []),
+    ...(!isGroup && otherParticipantId.value
+      ? [{ icon: Ban, label: isBlocked.value ? 'Bỏ chặn' : 'Chặn', action: 'block', danger: !isBlocked.value }]
+      : []),
   ])
 
   groups.push([
     { icon: Archive, label: 'Lưu trữ đoạn chat', action: 'archive' },
     { icon: Trash2, label: 'Xóa đoạn chat', action: 'delete', danger: true },
-    { icon: AlertTriangle, label: 'Báo cáo', action: 'report', danger: true },
+    ...(!isGroup && otherParticipantId.value
+      ? [{ icon: AlertTriangle, label: 'Báo cáo', action: 'report', danger: true }]
+      : []),
   ])
 
   return groups
@@ -65,8 +101,7 @@ const menuGroups = computed(() => {
 
 const handleAction = async (action: string) => {
   emit('close')
-  const other = props.conv.participants?.find(p => p.id !== authStore.user?.id) || props.conv
-  const resolvedUserId = other?.id?.startsWith('new-') ? other.id.replace(/^new-/, '') : other?.id
+  const resolvedUserId = otherParticipantId.value
 
   switch (action) {
     case 'open-tab':
@@ -110,6 +145,7 @@ const handleAction = async (action: string) => {
         if (!props.conv.id.startsWith('new-')) {
           await chatApi.muteConversation(props.conv.id, nextState)
         }
+        window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
         toast.success(nextState ? 'Đã tắt thông báo cuộc trò chuyện' : 'Đã bật lại thông báo cuộc trò chuyện')
       } catch {
         props.conv.isMuted = !nextState
@@ -118,13 +154,24 @@ const handleAction = async (action: string) => {
     }
 
     case 'block': {
+      if (!resolvedUserId) break
+      if (isBlocked.value) {
+        try {
+          await chatApi.unblockUser(resolvedUserId)
+          window.dispatchEvent(new CustomEvent('chat-block-updated'))
+          toast.success(`Đã bỏ chặn ${props.conv.name}`)
+        } catch {
+          // Handled by axios error interceptor
+        }
+        break
+      }
       const ok = await confirm({
         title: 'Chặn người dùng',
         message: `Bạn có chắc muốn chặn ${props.conv.name}? Hai bạn sẽ không thể gửi tin nhắn cho nhau nữa.`,
         confirmText: 'Chặn',
         variant: 'danger'
       })
-      if (ok && resolvedUserId) {
+      if (ok) {
         try {
           await chatApi.blockUser(resolvedUserId)
           window.dispatchEvent(new CustomEvent('chat-block-updated'))
@@ -175,6 +222,7 @@ const handleAction = async (action: string) => {
     }
 
     case 'report': {
+      if (!resolvedUserId) break
       const ok = await confirm({
         title: 'Báo cáo cuộc trò chuyện',
         message: `Bạn có muốn báo cáo cuộc trò chuyện với ${props.conv.name} vì nội dung không phù hợp không?`,
@@ -182,10 +230,9 @@ const handleAction = async (action: string) => {
         variant: 'warning'
       })
       if (!ok) break
-      const targetId = resolvedUserId || props.conv.id.replace(/^new-/, '')
       try {
         await http.post('/reports', {
-          targetId,
+          targetId: resolvedUserId,
           type: 'USER',
           reason: 'Nội dung tin nhắn không phù hợp / quấy rối',
           description: `Báo cáo cuộc trò chuyện với ${props.conv.name}`

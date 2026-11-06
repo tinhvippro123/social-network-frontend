@@ -87,13 +87,22 @@ const handleNicknameChanged = (e: any) => {
   findAndApply(minimizedChats.value)
 }
 
+const handleConversationRemoved = (e: any) => {
+  const id = e?.detail?.id
+  if (id) {
+    closeWindow(id)
+  }
+}
+
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
   window.addEventListener('chat-nickname-changed', handleNicknameChanged)
+  window.addEventListener('chat-conversation-removed', handleConversationRemoved)
 })
 onUnmounted(() => {
   document.removeEventListener('click', handleDocumentClick)
   window.removeEventListener('chat-nickname-changed', handleNicknameChanged)
+  window.removeEventListener('chat-conversation-removed', handleConversationRemoved)
 })
 
 const MAX_WINDOWS = 2

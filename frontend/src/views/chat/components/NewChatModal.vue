@@ -4,6 +4,7 @@ import { X, Search, MessageCirclePlus, Users } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import UserSelectionItem from './UserSelectionItem.vue'
 import usersApi from '@/api/users.api'
+import chatApi from '@/api/chat.api'
 import { useAuthStore } from '@/stores/auth.store'
 import type { User } from '@/types'
 
@@ -35,8 +36,38 @@ const groupName = ref('')
 const loadUsers = async () => {
   isLoading.value = true
   try {
-    const { data } = await usersApi.getAll()
-    allUsers.value = (data.data || []).filter((u: User) => u.id !== authStore.user?.id)
+    const [usersRes, convsRes] = await Promise.allSettled([
+      usersApi.getAll(50),
+      chatApi.getConversations()
+    ])
+    const map = new Map<string, User>()
+    if (usersRes.status === 'fulfilled') {
+      const list = usersRes.value.data?.data || []
+      list.forEach((u: User) => {
+        if (u?.id && u.id !== authStore.user?.id) map.set(u.id, u)
+      })
+    }
+    if (convsRes.status === 'fulfilled') {
+      const convs = convsRes.value.data?.data || []
+      convs.forEach((c: any) => {
+        ;(c.participants || []).forEach((p: User) => {
+          if (p?.id && p.id !== authStore.user?.id && !map.has(p.id)) {
+            map.set(p.id, p)
+          }
+        })
+      })
+    }
+    if (props.preselectedUserId && props.preselectedUserId !== authStore.user?.id && !map.has(props.preselectedUserId)) {
+      try {
+        const profileRes = await usersApi.getProfile(props.preselectedUserId)
+        if (profileRes.data?.data?.id) {
+          map.set(profileRes.data.data.id, profileRes.data.data)
+        }
+      } catch {
+        // ignore
+      }
+    }
+    allUsers.value = Array.from(map.values())
   } catch {
     allUsers.value = []
   }
@@ -79,6 +110,9 @@ const handleCreate = () => {
   const name = isGroup ? (groupName.value.trim() || fallbackGroupName) : undefined
 
   emit('create', participantIds, name, isGroup)
+  setTimeout(() => {
+    isCreating.value = false
+  }, 1500)
 }
 
 const handleClose = () => {

@@ -25,8 +25,7 @@ onMounted(async () => {
     const res = await postsApi.getById(id)
     const loaded = res.data?.data || res.data
     const myId = authStore.user?.id
-    const isAdminOrMod = authStore.isModerator
-    if (loaded && myId && loaded.author?.id && loaded.author.id !== myId && !isAdminOrMod) {
+    if (loaded && myId && loaded.author?.id && loaded.author.id !== myId) {
       errorMessage.value = 'Bạn không có quyền chỉnh sửa bài viết của người khác'
       return
     }

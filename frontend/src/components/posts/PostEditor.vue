@@ -145,7 +145,7 @@ const router = useRouter()
             <div v-if="item.label === 'divider'" class="w-px h-5 bg-gray-200 dark:bg-surface-700 mx-1" />
             <button
               v-else
-              :title="item.label"
+              :title="item.label" type="button"
               @click="handleToolbarAction(item.action)"
               class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >

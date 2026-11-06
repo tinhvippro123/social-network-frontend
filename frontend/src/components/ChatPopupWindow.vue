@@ -14,11 +14,13 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { useChatNicknames } from '@/composables/chat/useChatNicknames'
 import { useWebSocket } from '@/composables/core/useWebSocket'
+import { useAuthStore } from '@/stores/auth.store'
 import chatApi from '@/api/chat.api'
 import filesApi from '@/api/files.api'
 
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
 const { setNickname, applyNicknameToConversation } = useChatNicknames()
 const showNicknameModal = ref(false)
 const showEmojiPicker = ref(false)
@@ -62,6 +64,9 @@ const { connect: connectWs } = useWebSocket(undefined, (event) => {
     if (idx >= 0) {
       messages.value[idx] = { ...messages.value[idx], ...updated }
     }
+    if (event.type === 'message.revoked') {
+      window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+    }
   } else if (event.type === 'conversation.read') {
     messages.value.forEach(m => {
       if (m.isOwn && m.status !== 'revoked') {
@@ -69,8 +74,11 @@ const { connect: connectWs } = useWebSocket(undefined, (event) => {
       }
     })
   } else if (event.type === 'conversation.nickname' && payload) {
-    if (!props.conv.originalName) {
-      props.conv.originalName = props.conv.name
+    if (props.conv.isGroup) return
+    if (payload.targetUserId && String(payload.targetUserId) === String(authStore.user?.id)) return
+    if (!props.conv.originalName || props.conv.originalName === props.conv.nickname) {
+      const other = props.conv.participants?.find(p => p.id && p.id !== authStore.user?.id && p.name && p.name !== props.conv.nickname)
+      props.conv.originalName = other?.name || props.conv.name
     }
     props.conv.nickname = payload.nickname || ''
     props.conv.name = payload.nickname || props.conv.originalName || props.conv.name
@@ -150,6 +158,7 @@ async function handleRevokeMessage(msgId: string) {
         content: 'Tin nhắn đã bị thu hồi'
       }
     }
+    window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
     toast.info('Đã thu hồi tin nhắn')
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Không thể thu hồi tin nhắn')
@@ -172,11 +181,16 @@ function handleAddReaction(msgId: string, emoji: string) {
   const msg = messages.value.find(m => m.id === msgId)
   if (!msg) return
   if (!msg.reactions) msg.reactions = []
-  const existingIdx = msg.reactions.findIndex(r => r.emoji === emoji && r.userId === 'me')
+  const myId = authStore.user?.id || 'me'
+  const existingIdx = msg.reactions.findIndex(r => r.userId === myId || r.userId === 'me')
   if (existingIdx >= 0) {
-    msg.reactions.splice(existingIdx, 1)
+    if (msg.reactions[existingIdx].emoji === emoji) {
+      msg.reactions.splice(existingIdx, 1)
+    } else {
+      msg.reactions[existingIdx].emoji = emoji
+    }
   } else {
-    msg.reactions.push({ emoji, userId: 'me', userName: 'Bạn' })
+    msg.reactions.push({ emoji, userId: myId, userName: authStore.user?.name || 'Bạn' })
   }
 }
 
@@ -343,10 +357,13 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
         props.conv.id = createdRes.data.data.id
       }
     }
+    const replyTarget = replyingTo.value
+    replyingTo.value = null
     const { data } = await chatApi.sendMessage({
       conversationId: props.conv.id,
       content: type === 'image' ? '[Hình ảnh]' : file.name,
       type,
+      replyToId: replyTarget?.id,
       imageUrl: type === 'image' ? uploadedUrl : undefined,
       fileUrl: type === 'file' ? uploadedUrl : undefined,
       fileName: type === 'file' ? file.name : undefined,
@@ -462,17 +479,17 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
                     msg.isOwn ? 'ml-auto' : ''
                   ]"
                 >
-                  <span class="font-semibold">{{ msg.replyTo.senderName }}:</span> {{ msg.replyTo.content }}
+                  <span class="font-semibold">{{ msg.replyTo.senderName }}:</span> {{ msg.replyTo.content || 'Tin nhắn đính kèm / đã thu hồi' }}
                 </div>
 
                 <img
-                  v-if="msg.type === 'image' && msg.imageUrl && msg.status !== 'revoked'"
+                  v-if="msg.type === 'image' && msg.imageUrl && msg.status !== 'revoked' && !msg.isRevoked"
                   :src="msg.imageUrl"
                   alt="Hình ảnh"
                   class="max-h-40 rounded-xl object-cover border border-gray-200 dark:border-surface-600 mb-1"
                 />
                 <a
-                  v-else-if="msg.type === 'file' && msg.fileName && msg.status !== 'revoked'"
+                  v-else-if="msg.type === 'file' && msg.fileName && msg.status !== 'revoked' && !msg.isRevoked"
                   :href="msg.fileUrl || '#'"
                   :download="msg.fileName"
                   target="_blank"
@@ -547,7 +564,7 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
     >
       <div class="flex items-center gap-1.5 min-w-0 text-gray-600 dark:text-gray-300">
         <Reply :size="13" class="text-primary-500 shrink-0" />
-        <span class="truncate">Đang trả lời <strong>{{ replyingTo.sender?.name || 'tin nhắn' }}</strong>: {{ replyingTo.content }}</span>
+        <span class="truncate">Đang trả lời <strong>{{ replyingTo.sender?.name || 'tin nhắn' }}</strong>: {{ replyingTo.content || (replyingTo.type === 'image' ? '[Hình ảnh]' : `[Tệp] ${replyingTo.fileName || ''}`) }}</span>
       </div>
       <button type="button" @click="replyingTo = null" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer shrink-0">
         <X :size="14" />

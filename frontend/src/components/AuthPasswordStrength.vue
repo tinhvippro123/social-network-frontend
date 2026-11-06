@@ -15,7 +15,7 @@ const passwordStrength = computed(() => {
   if (/[A-Z]/.test(props.password)) score++
   if (/[0-9]/.test(props.password)) score++
   if (/[^A-Za-z0-9]/.test(props.password)) score++
-  return score
+  return Math.max(1, score)
 })
 </script>
 
@@ -27,7 +27,7 @@ const passwordStrength = computed(() => {
         :key="i"
         :class="[
           'h-1 flex-1 rounded-full transition-all duration-300',
-          i <= passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-white/10'
+          i <= passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-gray-200 dark:bg-white/10'
         ]"
       />
     </div>

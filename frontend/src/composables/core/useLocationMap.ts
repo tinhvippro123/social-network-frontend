@@ -156,6 +156,13 @@ export function useLocationMap(mapContainer: Ref<HTMLElement | null>) {
   }
 
   const destroyMap = () => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout)
+      searchTimeout = null
+    }
+    searchQuery.value = ''
+    searchResults.value = []
+    showSearchResults.value = false
     if (map) {
       map.remove()
       map = null

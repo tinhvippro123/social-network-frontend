@@ -12,6 +12,7 @@ import {
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { useToast } from '@/composables/ui/useToast'
+import { formatDate } from '@/utils/formatters'
 
 const props = defineProps<{
   users: any[]
@@ -128,7 +129,7 @@ onUnmounted(() => {
                     >
                       {{ user.name }}
                     </button>
-                    <p class="text-xs text-gray-400">Tham gia {{ new Date(user.joinedAt).toLocaleDateString('vi-VN') }}</p>
+                    <p class="text-xs text-gray-400">Tham gia {{ formatDate(user.joinedAt) }}</p>
                   </div>
                 </div>
               </td>

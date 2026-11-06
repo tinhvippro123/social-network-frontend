@@ -45,6 +45,7 @@ export function useRegister() {
       if (/[A-Z]/.test(val)) strength++
       if (/[0-9]/.test(val)) strength++
       if (/[^A-Za-z0-9]/.test(val)) strength++
+      strength = Math.max(1, strength)
     }
     passwordStrength.value = strength
   })

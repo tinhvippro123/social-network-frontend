@@ -25,7 +25,7 @@ const tokenError = ref('')
 // Bước 1: Gửi yêu cầu quên mật khẩu
 async function handleSendOtp() {
   emailError.value = ''
-  if (!email.value || !email.value.includes('@')) {
+  if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
     emailError.value = 'Vui lòng nhập địa chỉ email hợp lệ'
     return
   }
@@ -226,7 +226,8 @@ async function handleResetPassword() {
           <button
             type="button"
             @click="handleSendOtp"
-            class="text-xs text-primary-500 hover:underline font-medium"
+            :disabled="isLoading"
+            class="text-xs text-primary-500 hover:underline font-medium disabled:opacity-50 cursor-pointer"
           >
             Chưa nhận được mã? Gửi lại
           </button>

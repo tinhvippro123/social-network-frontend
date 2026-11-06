@@ -116,7 +116,7 @@ const {
           :key="tag.name"
           class="group inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-surface-700/70 border border-gray-200 dark:border-surface-600 hover:border-red-300 dark:hover:border-red-800 transition-all"
         >
-          <RouterLink :to="`/tags/${tag.name}`" class="text-sm font-semibold text-gray-800 dark:text-gray-200 hover:text-red-500 hover:underline">#{{ tag.name }}</RouterLink>
+          <RouterLink :to="`/tags/${encodeURIComponent(tag.name)}`" class="text-sm font-semibold text-gray-800 dark:text-gray-200 hover:text-red-500 hover:underline">#{{ tag.name }}</RouterLink>
           <span class="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-gray-200/70 dark:bg-surface-600 text-gray-600 dark:text-gray-300">
             {{ tag.postsCount }} bài
           </span>

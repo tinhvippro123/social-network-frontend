@@ -87,7 +87,8 @@ export function useAdminCategories() {
       const targetId = editingCategory.value.id || editingCategory.value.slug
       await adminApi.updateCategory(targetId, {
         name: editCategoryName.value.trim(),
-        icon: editCategoryIcon.value.trim() || '📁'
+        icon: editCategoryIcon.value.trim() || '📁',
+        description: editingCategory.value.description
       })
       toast.success('Đã cập nhật danh mục thành công!')
       showEditModal.value = false

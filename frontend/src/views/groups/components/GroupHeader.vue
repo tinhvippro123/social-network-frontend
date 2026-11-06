@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Users, FileText, Globe, Lock, Check, Shield, Settings, Trash2 } from '@lucide/vue'
+import { Users, FileText, Globe, Lock, Check, Shield, Settings, Trash2, Flag } from '@lucide/vue'
 
 defineProps<{
   group: any
@@ -12,6 +12,7 @@ const emit = defineEmits<{
   (e: 'switchTab', tab: 'posts' | 'members' | 'about'): void
   (e: 'editGroup'): void
   (e: 'deleteGroup'): void
+  (e: 'reportGroup'): void
 }>()
 </script>
 
@@ -123,6 +124,17 @@ const emit = defineEmits<{
           >
             <Trash2 :size="16" />
             <span class="hidden sm:inline">Giải tán</span>
+          </button>
+
+          <button
+            v-else
+            type="button"
+            @click="emit('reportGroup')"
+            title="Báo cáo nhóm vi phạm"
+            class="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-red-500 bg-gray-100 dark:bg-surface-700 hover:bg-red-50 dark:hover:bg-red-950/30 border border-gray-200 dark:border-surface-600 transition-colors cursor-pointer"
+          >
+            <Flag :size="15" />
+            <span class="hidden sm:inline">Báo cáo</span>
           </button>
         </div>
       </div>

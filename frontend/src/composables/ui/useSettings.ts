@@ -128,6 +128,10 @@ export function useSettings() {
   }
 
   const uploadAvatar = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn tệp hình ảnh hợp lệ!')
+      return
+    }
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Kích thước ảnh tối đa là 5MB')
       return
@@ -138,7 +142,18 @@ export function useSettings() {
       const url = res.data?.data?.fileUrl || res.data?.fileUrl
       if (url) {
         profileForm.value.avatar = url
-        toast.success('Đã tải ảnh lên thành công!')
+        const trimmedName = profileForm.value.name.trim() || user.value?.name || ''
+        if (trimmedName) {
+          const { data } = await usersApi.updateProfile({
+            name: trimmedName,
+            bio: profileForm.value.bio,
+            avatar: url
+          })
+          if (data?.data) {
+            authStore.setUser(data.data)
+          }
+        }
+        toast.success('Đã cập nhật ảnh đại diện thành công!')
       }
     } catch (e: any) {
       toast.error(e.response?.data?.message || 'Không thể tải ảnh đại diện lên!')

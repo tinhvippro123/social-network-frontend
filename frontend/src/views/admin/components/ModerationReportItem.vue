@@ -4,6 +4,7 @@ import { Eye, Check, X, Ban, Clock } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDateTime } from '@/utils/formatters'
 import { useAuthStore } from '@/stores/auth.store'
+import { useToast } from '@/composables/ui/useToast'
 import type { Report } from '@/types'
 
 const props = defineProps<{
@@ -24,12 +25,19 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 
 function viewTarget() {
   const type = (props.report.type || '').toLowerCase()
   let path = '/'
   if (type === 'post') path = `/posts/${props.report.targetId}`
-  else if (type === 'comment') path = (props.report as any).targetPostId ? `/posts/${(props.report as any).targetPostId}#comment-${props.report.targetId}` : '/'
+  else if (type === 'comment') {
+    if (!(props.report as any).targetPostId) {
+      toast.info('Bình luận hoặc bài viết gốc đã bị xóa')
+      return
+    }
+    path = `/posts/${(props.report as any).targetPostId}#comment-${props.report.targetId}`
+  }
   else if (type === 'user') path = `/profile/${props.report.targetId}`
   else if (type === 'group') path = `/groups/${props.report.targetId}`
   // Mở tab mới để admin không bị rời khỏi hàng đợi kiểm duyệt
@@ -107,7 +115,7 @@ function viewTarget() {
           @click="emit('resolve', report.id, 'ban')"
           class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all cursor-pointer"
         >
-          <Ban :size="12" /> Cấm người đăng
+          <Ban :size="12" /> {{ report.type === 'user' ? 'Cấm tài khoản' : 'Cấm người đăng' }}
         </button>
         <button
           type="button"

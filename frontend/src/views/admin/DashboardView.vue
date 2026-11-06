@@ -68,7 +68,7 @@ ChartJS.register(
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-      <template v-if="isLoading">
+      <template v-if="isLoading && !statCards.length">
         <AdminStatCardSkeleton v-for="i in 4" :key="i" />
       </template>
       <template v-else-if="statCards.length">
@@ -118,10 +118,10 @@ ChartJS.register(
       </div>
 
       <!-- Moderation Queue -->
-      <ModerationQueueWidget :reports="reports" :isLoading="isLoading" @resolve="resolveReport" />
+      <ModerationQueueWidget :reports="reports" :isLoading="isLoading && !reports.length" @resolve="resolveReport" />
     </div>
 
     <!-- Users Table -->
-    <UsersTableWidget :users="users" :isLoading="isLoading" />
+    <UsersTableWidget :users="users" :isLoading="isLoading && !users.length" />
   </div>
 </template>

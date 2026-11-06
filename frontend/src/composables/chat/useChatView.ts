@@ -188,6 +188,10 @@ export function useChatView() {
       newChatInitialMode.value = 'group'
       newChatPreselectedUserId.value = (route.query.memberId as string) || null
       showNewChatModal.value = true
+      const nextQuery = { ...route.query }
+      delete nextQuery.createGroup
+      delete nextQuery.memberId
+      router.replace({ path: '/chat', query: nextQuery })
     }
 
     isInitialLoading.value = false
@@ -203,6 +207,10 @@ export function useChatView() {
         newChatInitialMode.value = 'group'
         newChatPreselectedUserId.value = (newMemberId as string) || null
         showNewChatModal.value = true
+        const nextQuery = { ...route.query }
+        delete nextQuery.createGroup
+        delete nextQuery.memberId
+        router.replace({ path: '/chat', query: nextQuery })
       }
 
       const rawId = newId ? String(newId) : null
@@ -245,6 +253,7 @@ export function useChatView() {
     selectedConversation.value = conv
     showMobileChat.value = true
     showInfoPanel.value = false
+    rightSidebarView.value = 'info'
     showEmojiPicker.value = false
     showSearchInChat.value = false
     replyingTo.value = null
@@ -277,14 +286,17 @@ export function useChatView() {
     const target = event.target as HTMLInputElement
     const file = target.files?.[0]
     if (!file || !selectedConversation.value) return
+    const replyId = replyingTo.value?.id
 
     try {
       const uploadRes = await filesApi.uploadFile(file)
       const imageUrl = uploadRes.data?.data?.fileUrl
       if (!imageUrl) throw new Error('Không nhận được đường dẫn ảnh')
 
+      replyingTo.value = null
       await apiSendMessage(selectedConversation.value.id, '[Hình ảnh]', 'image', {
-        imageUrl
+        imageUrl,
+        replyToId: replyId
       })
       await nextTick()
       scrollToBottom()
@@ -299,6 +311,7 @@ export function useChatView() {
     const target = event.target as HTMLInputElement
     const file = target.files?.[0]
     if (!file || !selectedConversation.value) return
+    const replyId = replyingTo.value?.id
 
     const size = file.size < 1024 * 1024
       ? `${(file.size / 1024).toFixed(1)} KB`
@@ -309,10 +322,12 @@ export function useChatView() {
       const fileUrl = uploadRes.data?.data?.fileUrl
       if (!fileUrl) throw new Error('Không nhận được đường dẫn tệp')
 
+      replyingTo.value = null
       await apiSendMessage(selectedConversation.value.id, file.name, 'file', {
         fileName: file.name,
         fileSize: size,
-        fileUrl
+        fileUrl,
+        replyToId: replyId
       })
       await nextTick()
       scrollToBottom()
@@ -330,7 +345,11 @@ export function useChatView() {
   }
 
   const handlePerformSearch = async () => {
-    if (!searchQuery.value.trim() || !selectedConversation.value) return
+    if (!searchQuery.value.trim() || !selectedConversation.value) {
+      searchResults.value = []
+      currentSearchIndex.value = 0
+      return
+    }
     const results = await searchMessages(selectedConversation.value.id, searchQuery.value)
     searchResults.value = results
     currentSearchIndex.value = 0
@@ -493,6 +512,7 @@ export function useChatView() {
     if (!ok) return
     try {
       await deleteConversation(conversationId)
+      window.dispatchEvent(new CustomEvent('chat-conversation-removed', { detail: { id: conversationId } }))
       if (selectedConversation.value?.id === conversationId) {
         selectedConversation.value = conversations.value[0] || null
         showInfoPanel.value = false

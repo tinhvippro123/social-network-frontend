@@ -1,4 +1,4 @@
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import notificationsApi from '@/api/notifications.api'
 import { navigateToNotificationLink } from '@/utils/notificationNavigation'
@@ -101,12 +101,21 @@ export function useNotifications() {
     navigateToNotificationLink(router, notification)
   }
 
+  const handleExternalMarkAllRead = () => {
+    notifications.value.forEach(n => { n.isRead = true })
+  }
+
   watch(activeFilter, () => {
     fetchNotifications()
   })
 
   onMounted(() => {
     fetchNotifications()
+    window.addEventListener('notifications-marked-all-read', handleExternalMarkAllRead)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('notifications-marked-all-read', handleExternalMarkAllRead)
   })
 
   return {

@@ -49,6 +49,9 @@ const { connect: connectWs } = useWebSocket(undefined, (event) => {
   if (!event || !event.type) return
   if (
     event.type === 'message.created' ||
+    event.type === 'message.revoked' ||
+    event.type === 'message.updated' ||
+    event.type === 'conversation.read' ||
     event.type === 'conversation.created' ||
     event.type === 'conversation.nickname'
   ) {
@@ -129,6 +132,9 @@ function handleChatClick() {
 }
 
 function selectConversation(conv: ChatConversation) {
+  if (conv.unreadCount > 0 && !conv.id.startsWith('new-')) {
+    chatApi.markAsRead(conv.id).catch(() => {})
+  }
   conv.unreadCount = 0
   if (window.innerWidth < 640 || router.currentRoute.value.path.startsWith('/chat')) {
     router.push(`/chat?id=${conv.id}`)
