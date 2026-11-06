@@ -41,8 +41,8 @@ function toggleJoin() {
     <!-- Cover Banner (Facebook Group Style) -->
     <div class="relative h-36 overflow-hidden bg-gray-100 dark:bg-surface-700">
       <img
-        v-if="group.coverImage"
-        :src="group.coverImage"
+        v-if="group.coverImage || group.avatar"
+        :src="group.coverImage || group.avatar"
         :alt="group.name"
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />

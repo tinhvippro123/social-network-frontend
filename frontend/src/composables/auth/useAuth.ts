@@ -27,6 +27,7 @@ export function useAuth() {
 
   /** Đăng nhập */
   async function login(credentials: LoginRequest) {
+    error.value = null
     await execute(async () => {
       const { data } = await authApi.login(credentials)
       authStore.setToken(data.data.accessToken)
@@ -49,6 +50,7 @@ export function useAuth() {
 
   /** Đăng nhập Google */
   async function loginWithGoogle(payload: GoogleLoginPayload) {
+    error.value = null
     await execute(async () => {
       const { data } = await authApi.loginWithGoogle(payload)
       authStore.setToken(data.data.accessToken)
@@ -73,6 +75,7 @@ export function useAuth() {
 
   /** Đăng ký */
   async function register(data: RegisterRequest) {
+    error.value = null
     await execute(async () => {
       await authApi.register(data)
       toast.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập.')

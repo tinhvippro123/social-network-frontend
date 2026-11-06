@@ -143,6 +143,7 @@ watch(() => [route.params.id, authUser.value?.id], () => {
     <ProfileHeader
       :current-user="profileUser"
       :is-own-profile="isOwnProfile"
+      :can-view-connections="isAllowedToView"
       @message="handleMessage"
     />
 

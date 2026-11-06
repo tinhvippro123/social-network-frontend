@@ -114,11 +114,25 @@ export function useChatNicknames() {
   function applyNicknameToConversation(conv: ChatConversation): ChatConversation {
     if (!conv || conv.isGroup) return conv
     const otherId = getOtherParticipantId(conv)
+    const saved = getNickname(conv.id, otherId)
+
+    if (saved && saved.nickname) {
+      if (!conv.originalName || conv.originalName === saved.nickname) {
+        conv.originalName = (saved.originalName && saved.originalName !== saved.nickname) ? saved.originalName : resolveRealName(conv)
+      }
+      conv.nickname = saved.nickname
+      conv.name = saved.nickname
+      return conv
+    }
+
+    if (conv.originalName) {
+      delete conv.nickname
+      conv.name = conv.originalName
+      return conv
+    }
 
     if (conv.nickname) {
-      if (!conv.originalName || conv.originalName === conv.nickname) {
-        conv.originalName = resolveRealName(conv)
-      }
+      conv.originalName = resolveRealName(conv)
       conv.name = conv.nickname
       const map = loadNicknames()
       const entry: SavedNickname = {
@@ -132,14 +146,6 @@ export function useChatNicknames() {
       return conv
     }
 
-    const saved = getNickname(conv.id, otherId)
-    if (saved && saved.nickname) {
-      if (!conv.originalName || conv.originalName === saved.nickname) {
-        conv.originalName = (saved.originalName && saved.originalName !== saved.nickname) ? saved.originalName : resolveRealName(conv)
-      }
-      conv.nickname = saved.nickname
-      conv.name = saved.nickname
-    }
     return conv
   }
 

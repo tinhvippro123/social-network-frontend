@@ -121,25 +121,47 @@ const cancelInlineReply = () => {
         Bình luận ({{ sentimentStats?.total || comments.length }})
       </h3>
 
-      <!-- AI Sentiment Widget -->
+      <!-- AI Sentiment Widget (Thesis Proposal: Biểu đồ tỉ lệ cảm xúc trên mỗi bài viết) -->
       <div
         v-if="sentimentStats && sentimentStats.total > 0"
-        class="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-linear-to-r from-emerald-50/70 via-indigo-50/40 to-purple-50/50 dark:from-surface-700 dark:to-surface-700 border border-gray-200/90 dark:border-surface-600 text-xs shadow-2xs"
+        class="flex flex-col gap-1.5 px-3 py-2 rounded-xl bg-linear-to-r from-emerald-50/70 via-indigo-50/40 to-purple-50/50 dark:from-surface-700 dark:to-surface-700 border border-gray-200/90 dark:border-surface-600 text-xs shadow-2xs min-w-56"
         title="Tỉ lệ cảm xúc tự động phân tích bởi giải thuật Lexicon-based NLP"
       >
-        <span class="inline-flex items-center gap-1 font-bold text-indigo-700 dark:text-indigo-300">
-          <Sparkles :size="13" class="text-indigo-500 animate-pulse" />
-          Cảm xúc AI:
-        </span>
-        <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
-          <Smile :size="13" /> {{ sentimentStats.posPct }}% Tích cực
-        </span>
-        <span v-if="sentimentStats.neuPct > 0" class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400 font-medium">
-          <Meh :size="13" /> {{ sentimentStats.neuPct }}% Trung lập
-        </span>
-        <span v-if="sentimentStats.negPct > 0" class="inline-flex items-center gap-1 text-rose-500 dark:text-rose-400 font-semibold">
-          <Frown :size="13" /> {{ sentimentStats.negPct }}% Tiêu cực
-        </span>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center gap-1 font-bold text-indigo-700 dark:text-indigo-300">
+            <Sparkles :size="13" class="text-indigo-500 animate-pulse" />
+            Cảm xúc AI:
+          </span>
+          <span v-if="sentimentStats.posPct > 0" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+            <Smile :size="13" /> {{ sentimentStats.posPct }}% Tích cực
+          </span>
+          <span v-if="sentimentStats.neuPct > 0" class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400 font-medium">
+            <Meh :size="13" /> {{ sentimentStats.neuPct }}% Trung lập
+          </span>
+          <span v-if="sentimentStats.negPct > 0" class="inline-flex items-center gap-1 text-rose-500 dark:text-rose-400 font-semibold">
+            <Frown :size="13" /> {{ sentimentStats.negPct }}% Tiêu cực
+          </span>
+        </div>
+        <div class="h-1.5 w-full bg-gray-200/80 dark:bg-surface-600 rounded-full overflow-hidden flex">
+          <div
+            v-if="sentimentStats.posPct > 0"
+            class="h-full bg-emerald-500 transition-all duration-500"
+            :style="{ width: `${sentimentStats.posPct}%` }"
+            :title="`Tích cực: ${sentimentStats.positive} bình luận (${sentimentStats.posPct}%)`"
+          />
+          <div
+            v-if="sentimentStats.neuPct > 0"
+            class="h-full bg-blue-400 dark:bg-blue-500 transition-all duration-500"
+            :style="{ width: `${sentimentStats.neuPct}%` }"
+            :title="`Trung lập: ${sentimentStats.neutral} bình luận (${sentimentStats.neuPct}%)`"
+          />
+          <div
+            v-if="sentimentStats.negPct > 0"
+            class="h-full bg-rose-500 transition-all duration-500"
+            :style="{ width: `${sentimentStats.negPct}%` }"
+            :title="`Tiêu cực: ${sentimentStats.negative} bình luận (${sentimentStats.negPct}%)`"
+          />
+        </div>
       </div>
     </div>
 

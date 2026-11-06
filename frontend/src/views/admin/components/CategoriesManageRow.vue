@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { GripVertical, Edit3, Trash2 } from '@lucide/vue'
+import { Edit3, Trash2 } from '@lucide/vue'
 
 defineProps<{
   category: {
@@ -7,6 +7,7 @@ defineProps<{
     name: string
     slug: string
     icon: string
+    description?: string
     postsCount: number
   }
 }>()
@@ -42,14 +43,15 @@ function formatCategoryIcon(icon?: string): string {
 
 <template>
   <tr class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors group">
-    <td class="px-3 py-4 text-center">
-      <GripVertical :size="16" class="text-gray-300 dark:text-surface-600 mx-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+    <td class="px-3 py-4 text-center text-xs text-gray-400 font-medium">
+      •
     </td>
     <td class="px-5 py-4">
       <span class="text-2xl">{{ formatCategoryIcon(category.icon) }}</span>
     </td>
     <td class="px-5 py-4">
       <RouterLink :to="`/?category=${encodeURIComponent(category.slug || category.name)}`" class="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-500 hover:underline">{{ category.name }}</RouterLink>
+      <p v-if="category.description" class="text-xs text-gray-400 line-clamp-1 mt-0.5">{{ category.description }}</p>
     </td>
     <td class="px-5 py-4">
       <code class="text-xs bg-gray-100 dark:bg-surface-700 px-2 py-1 rounded text-gray-500">{{ category.slug }}</code>

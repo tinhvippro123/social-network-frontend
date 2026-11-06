@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   X, ExternalLink, Eye, EyeOff, CheckCircle2, Trash2,
@@ -25,6 +25,14 @@ const router = useRouter()
 
 const detailedPost = ref<any | null>(null)
 const isLoadingContent = ref(false)
+const sanitizedContent = computed(() => {
+  const raw = detailedPost.value?.content || ''
+  return raw
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<(iframe|object|embed|form)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+    .replace(/\son\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/(href|src)\s*=\s*["']\s*javascript:[^"']*["']/gi, '$1="#"')
+})
 
 async function fetchFullPost(postId: string) {
   if (!postId) return
@@ -192,7 +200,7 @@ onBeforeUnmount(() => {
               <div
                 v-else-if="detailedPost.content"
                 class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 text-sm leading-relaxed p-4 rounded-xl bg-gray-50/50 dark:bg-surface-900/30 border border-gray-100 dark:border-surface-700/50"
-                v-html="detailedPost.content"
+                v-html="sanitizedContent"
               />
               <div
                 v-else-if="detailedPost.excerpt"

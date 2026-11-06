@@ -16,10 +16,14 @@ import filesApi from '@/api/files.api'
 import http from '@/api/client'
 import { useToast } from '@/composables/ui/useToast'
 import { useConfirm } from '@/composables/ui/useConfirm'
+import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 
 const route = useRoute()
 const toast = useToast()
 const { confirm } = useConfirm()
+const authStore = useAuthStore()
+const uiStore = useUiStore()
 const {
   router,
   group,
@@ -29,6 +33,7 @@ const {
   users,
   isUsersLoading,
   activeTab,
+  isSystemMod,
   isGroupOwner,
   isGroupManager,
   canViewContent,
@@ -102,6 +107,11 @@ const handleEditCoverUpload = async (event: Event) => {
 
 const handleReportGroup = async () => {
   if (!group.value?.id) return
+  if (!authStore.isLoggedIn) {
+    toast.info('Vui lòng đăng nhập để báo cáo nhóm')
+    uiStore.openAuthModal('login')
+    return
+  }
   const ok = await confirm({
     title: 'Báo cáo nhóm',
     message: `Bạn có chắc chắn muốn gửi báo cáo nhóm "${group.value.name}" tới bộ phận kiểm duyệt?`,
@@ -131,7 +141,7 @@ const submitEditGroup = async () => {
     const ok = await handleUpdateGroup({
       name: editGroupForm.value.name.trim(),
       description: editGroupForm.value.description.trim() || undefined,
-      avatar: editGroupForm.value.avatar.trim() || group.value?.avatar || undefined,
+      avatar: editGroupForm.value.avatar.trim() || undefined,
       coverImage: editGroupForm.value.coverImage.trim() || undefined,
       isPublic: editGroupForm.value.isPublic
     })
@@ -217,6 +227,7 @@ const handlePostCreated = (newPost: any) => {
           :group="group"
           :is-owner="isGroupOwner"
           :is-manager="isGroupManager"
+          :can-delete="isGroupOwner || isSystemMod"
           @toggle-join="handleToggleJoin"
           @switch-tab="activeTab = $event"
           @edit-group="openEditGroupModal"

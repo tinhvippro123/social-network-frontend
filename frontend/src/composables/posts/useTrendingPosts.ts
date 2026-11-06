@@ -1,11 +1,12 @@
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { usePosts } from './usePosts'
 import { useUsers } from '../core/useUsers'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function useTrendingPosts() {
   const route = useRoute()
+  const router = useRouter()
   const authStore = useAuthStore()
   const { posts, isLoading, fetchPosts, tags, fetchPopularTags, toggleBookmark: apiToggleBookmark } = usePosts()
   const { users, fetchUsers } = useUsers()
@@ -16,11 +17,24 @@ export function useTrendingPosts() {
   const sidebarLoading = ref(true)
 
   watch(() => route.query.category, (newCat) => {
-    selectedCategory.value = (newCat as string) || 'all'
+    const normalized = (newCat as string) || 'all'
+    if (selectedCategory.value !== normalized) {
+      selectedCategory.value = normalized
+    }
   })
 
-  watch(selectedCategory, () => {
+  watch(selectedCategory, (newCat) => {
     visibleCount.value = 4
+    const currentQueryCat = (route.query.category as string) || 'all'
+    if (newCat !== currentQueryCat) {
+      const nextQuery = { ...route.query }
+      if (newCat === 'all') {
+        delete nextQuery.category
+      } else {
+        nextQuery.category = newCat
+      }
+      router.replace({ query: nextQuery })
+    }
   })
 
   // Preserve backend's Wilson Score + Gravity trending order from GET /api/posts?sort=trending
@@ -67,9 +81,12 @@ export function useTrendingPosts() {
   }
 
   const initData = async () => {
-    fetchPosts({ sort: 'trending', limit: 50 })
     sidebarLoading.value = true
-    await Promise.all([fetchUsers(), fetchPopularTags()])
+    await Promise.all([
+      fetchPosts({ sort: 'trending', limit: 50 }),
+      fetchUsers(),
+      fetchPopularTags()
+    ])
     sidebarLoading.value = false
   }
 

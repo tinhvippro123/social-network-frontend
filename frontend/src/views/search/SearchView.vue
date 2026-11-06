@@ -109,9 +109,6 @@ onMounted(async () => {
   if (route.query.q) {
     query.value = route.query.q as string
     submittedQuery.value = query.value
-    if (route.query.type === 'semantic') {
-      textMode.value = 'semantic'
-    }
     executeSearch()
   }
 })
@@ -164,7 +161,7 @@ watch(textMode, () => {
 async function fetchUsers() {
   try {
     isLoadingUsers.value = true
-    const res = await usersApi.getAll(20)
+    const res = await usersApi.getAll(100)
     recommendedUsers.value = res.data?.data || []
   } catch (err) {
     console.error('Failed to fetch recommended users:', err)

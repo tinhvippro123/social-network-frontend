@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import {
-  Users, FileText, Flag, BarChart3, TrendingUp, TrendingDown,
-  Eye, ShieldAlert, Ban, Check, X, MoreVertical, Search as SearchIcon,
-  ArrowUp, ArrowDown, UserPlus, AlertTriangle
+  BarChart3
 } from '@lucide/vue'
 import { useAdminDashboard } from '@/composables/admin/useAdminDashboard'
-import { formatNumber } from '@/utils/formatters'
-import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import ModerationQueueWidget from './components/ModerationQueueWidget.vue'
 import UsersTableWidget from './components/UsersTableWidget.vue'
@@ -27,17 +22,16 @@ import {
 import { Line } from 'vue-chartjs'
 
 const {
-  stats,
   users,
   reports,
   isLoading,
-  activeTab,
   selectedPeriod,
   periodTitle,
   statCards,
   chartData,
   chartOptions,
-  resolveReport
+  resolveReport,
+  dismissReport
 } = useAdminDashboard()
 
 ChartJS.register(
@@ -118,7 +112,7 @@ ChartJS.register(
       </div>
 
       <!-- Moderation Queue -->
-      <ModerationQueueWidget :reports="reports" :isLoading="isLoading && !reports.length" @resolve="resolveReport" />
+      <ModerationQueueWidget :reports="reports" :isLoading="isLoading && !reports.length" @resolve="resolveReport" @dismiss="dismissReport" />
     </div>
 
     <!-- Users Table -->

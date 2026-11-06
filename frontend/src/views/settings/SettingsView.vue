@@ -49,7 +49,7 @@ const currentTabComponent = computed(() => {
             :key="tab.id"
             @click="activeTab = tab.id"
             :class="[
-              'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all',
+              'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer',
               activeTab === tab.id
                 ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-surface-700'
@@ -104,7 +104,9 @@ const currentTabComponent = computed(() => {
       <!-- Content Area -->
       <div class="flex-1 min-w-0">
         <transition name="fade" mode="out-in">
-          <component :is="currentTabComponent" />
+          <KeepAlive>
+            <component :is="currentTabComponent" />
+          </KeepAlive>
         </transition>
       </div>
     </div>

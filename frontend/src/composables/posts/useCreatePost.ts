@@ -18,7 +18,7 @@ import {
 
 export function useCreatePost() {
   const { categories, fetchCategories } = useCategories()
-  const { success, error } = useToast()
+  const { success, error, info } = useToast()
   const router = useRouter()
 
   const title = ref('')
@@ -199,6 +199,7 @@ export function useCreatePost() {
         }
       }
       try {
+        info('Đang tải ảnh lên...')
         const uploadResponses = await Promise.all(files.map(file => filesApi.uploadFile(file)))
         const urls = uploadResponses
           .map(res => res.data?.data?.fileUrl || res.data?.fileUrl)
@@ -271,7 +272,7 @@ export function useCreatePost() {
     }
     
     // Bỏ HTML tags để đếm số ký tự văn bản
-    const plainTextContent = content.value.replace(/<[^>]*>?/gm, '').trim()
+    const plainTextContent = content.value.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/gi, ' ').trim()
     if (plainTextContent.length < 50) {
       error('Nội dung bài viết quá ngắn (yêu cầu ít nhất 50 ký tự)')
       return

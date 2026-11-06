@@ -68,6 +68,7 @@ const onPublish = () => {
 }
 
 const formattedPreviewContent = computed(() => formatContentWithGalleries(content.value))
+const contentCharCount = computed(() => content.value.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/gi, ' ').trim().length)
 
 const router = useRouter()
 </script>
@@ -159,8 +160,10 @@ const router = useRouter()
         </div>
         
         <div class="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-surface-700 bg-gray-50 dark:bg-surface-800/50">
-          <p class="text-xs text-gray-400">{{ content.replace(/<[^>]*>?/gm, '').trim().length }} ký tự</p>
-          <p class="text-xs text-gray-400">Tự động lưu</p>
+          <p class="text-xs text-gray-400">{{ contentCharCount }} ký tự</p>
+          <p :class="['text-xs font-medium', contentCharCount >= 50 ? 'text-emerald-500' : 'text-gray-400']">
+            {{ contentCharCount >= 50 ? 'Đã đạt độ dài tối thiểu' : 'Tối thiểu 50 ký tự' }}
+          </p>
         </div>
       </div>
 

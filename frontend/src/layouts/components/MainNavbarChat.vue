@@ -70,8 +70,30 @@ function handleOutsideClick(e: MouseEvent) {
   }
 }
 
-function onNicknameChanged() {
+function onNicknameChanged(e: any) {
+  const detail = e?.detail
+  if (detail) {
+    const target = liveConversations.value.find(
+      c => !c.isGroup && (c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
+    )
+    if (target) {
+      if (detail.nickname) {
+        target.nickname = detail.nickname
+      } else {
+        delete target.nickname
+      }
+      if (detail.name) target.name = detail.name
+      if (detail.originalName) target.originalName = detail.originalName
+    }
+  }
   liveConversations.value = [...liveConversations.value]
+}
+
+function onConversationRemoved(e: any) {
+  const id = e?.detail?.id
+  if (id) {
+    liveConversations.value = liveConversations.value.filter(c => c.id !== id)
+  }
 }
 
 onMounted(() => {
@@ -80,12 +102,14 @@ onMounted(() => {
   document.addEventListener('click', handleOutsideClick)
   window.addEventListener('chat-nickname-changed', onNicknameChanged)
   window.addEventListener('chat-conversations-sync', loadConversations)
+  window.addEventListener('chat-conversation-removed', onConversationRemoved)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleOutsideClick)
   window.removeEventListener('chat-nickname-changed', onNicknameChanged)
   window.removeEventListener('chat-conversations-sync', loadConversations)
+  window.removeEventListener('chat-conversation-removed', onConversationRemoved)
 })
 
 watch(() => props.showChat, (isOpen) => {

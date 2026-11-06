@@ -43,7 +43,7 @@ onUnmounted(() => {
     <button
       v-if="isVisible"
       @click="scrollToTop"
-      class="fixed bottom-24 sm:bottom-16 right-4 sm:right-6 z-50 w-12 h-12 rounded-full bg-primary-500 text-white shadow-xl shadow-primary-500/30 flex items-center justify-center hover:bg-primary-600 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+      class="fixed bottom-24 sm:bottom-16 right-4 sm:right-22 z-50 w-12 h-12 rounded-full bg-primary-500 text-white shadow-xl shadow-primary-500/30 flex items-center justify-center hover:bg-primary-600 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
       title="Lên đầu trang"
     >
       <ArrowUp :size="20" />

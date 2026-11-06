@@ -12,8 +12,10 @@ const {
   showEditModal,
   newCategoryName,
   newCategoryIcon,
+  newCategoryDescription,
   editCategoryName,
   editCategoryIcon,
+  editCategoryDescription,
   tags,
   isTagsLoading,
   showRenameTagModal,
@@ -156,6 +158,10 @@ const {
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tên danh mục</label>
               <input v-model="newCategoryName" @keydown.enter="handleAddCategory" type="text" placeholder="Nhập tên danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
             </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mô tả (tùy chọn)</label>
+              <input v-model="newCategoryDescription" @keydown.enter="handleAddCategory" type="text" placeholder="Mô tả ngắn về danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
+            </div>
           </div>
           <div class="flex gap-3 mt-6">
             <button type="button" @click="showAddModal = false" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all cursor-pointer">Hủy</button>
@@ -178,6 +184,10 @@ const {
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tên danh mục</label>
               <input v-model="editCategoryName" @keydown.enter="handleUpdateCategory" type="text" placeholder="Nhập tên danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mô tả (tùy chọn)</label>
+              <input v-model="editCategoryDescription" @keydown.enter="handleUpdateCategory" type="text" placeholder="Mô tả ngắn về danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
             </div>
           </div>
           <div class="flex gap-3 mt-6">

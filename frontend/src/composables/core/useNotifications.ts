@@ -6,7 +6,7 @@ import { useUiStore } from '@/stores/ui.store'
 
 export interface Notification {
   id: string
-  type: 'upvote' | 'comment' | 'reply' | 'follow' | 'mention' | 'group_invite' | 'post_approved' | 'system'
+  type: 'upvote' | 'comment' | 'reply' | 'follow' | 'mention' | 'group_invite' | 'post_approved' | 'report' | 'system'
   title: string
   message: string
   avatar?: string
@@ -20,7 +20,7 @@ function mapBackendNotification(item: any): Notification {
   return {
     id: item.id,
     type: type as any,
-    title: item.title || (type === 'system' ? 'Hệ thống' : type.charAt(0).toUpperCase() + type.slice(1)),
+    title: item.title || (type === 'system' ? 'Hệ thống' : ''),
     message: item.message || '',
     avatar: item.avatar || '',
     link: item.link || '',
@@ -105,6 +105,14 @@ export function useNotifications() {
     notifications.value.forEach(n => { n.isRead = true })
   }
 
+  const handleExternalMarkSingleRead = (e: any) => {
+    const id = e?.detail?.id
+    if (id) {
+      const target = notifications.value.find(n => n.id === id)
+      if (target) target.isRead = true
+    }
+  }
+
   watch(activeFilter, () => {
     fetchNotifications()
   })
@@ -112,10 +120,12 @@ export function useNotifications() {
   onMounted(() => {
     fetchNotifications()
     window.addEventListener('notifications-marked-all-read', handleExternalMarkAllRead)
+    window.addEventListener('notification-marked-read', handleExternalMarkSingleRead)
   })
 
   onUnmounted(() => {
     window.removeEventListener('notifications-marked-all-read', handleExternalMarkAllRead)
+    window.removeEventListener('notification-marked-read', handleExternalMarkSingleRead)
   })
 
   return {

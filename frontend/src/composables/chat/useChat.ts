@@ -66,6 +66,12 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
           status: updated.isRevoked ? 'revoked' : (updated.status || messages.value[idx].status),
         }
       }
+      if (event.type === 'message.revoked' && convId) {
+        const conv = conversations.value.find(c => c.id === convId)
+        if (conv && (idx === -1 || idx === messages.value.length - 1)) {
+          conv.lastMessage = 'Tin nhắn đã bị thu hồi'
+        }
+      }
       return
     }
 
@@ -122,7 +128,11 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
         c => !c.isGroup && (c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId))
       )
       if (target) {
-        target.nickname = detail.nickname
+        if (detail.nickname) {
+          target.nickname = detail.nickname
+        } else {
+          delete target.nickname
+        }
         target.name = detail.name
         if (detail.originalName) target.originalName = detail.originalName
       }
@@ -352,6 +362,13 @@ export function useChat(onRealtimeMessage?: (msg: ChatMessage, conversationId: s
     msg.fileUrl = undefined
     msg.fileName = undefined
     msg.fileSize = undefined
+    const conv = conversations.value.find(c => c.id === targetConvId)
+    if (conv && messages.value[messages.value.length - 1]?.id === messageId) {
+      conv.lastMessage = 'Tin nhắn đã bị thu hồi'
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+    }
     toast.info('Đã thu hồi tin nhắn')
   }
 

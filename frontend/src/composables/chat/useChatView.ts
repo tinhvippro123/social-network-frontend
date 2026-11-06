@@ -64,7 +64,11 @@ export function useChatView() {
         selectedConversation.value.id === detail.convId ||
         selectedConversation.value.participants?.some((p: any) => p.id === detail.otherId)
       ) {
-        selectedConversation.value.nickname = detail.nickname
+        if (detail.nickname) {
+          selectedConversation.value.nickname = detail.nickname
+        } else {
+          delete selectedConversation.value.nickname
+        }
         selectedConversation.value.name = detail.name
         if (detail.originalName) selectedConversation.value.originalName = detail.originalName
       }
@@ -268,18 +272,25 @@ export function useChatView() {
   const handleSendMessage = async () => {
     if (!newMessage.value.trim() || !selectedConversation.value) return
     const content = newMessage.value
-    const replyId = replyingTo.value?.id
+    const replyTarget = replyingTo.value
+    const replyId = replyTarget?.id
 
     newMessage.value = ''
     replyingTo.value = null
     highlightedMessageId.value = null
     showEmojiPicker.value = false
 
-    await apiSendMessage(selectedConversation.value.id, content, 'text', {
-      replyToId: replyId
-    })
-    await nextTick()
-    scrollToBottom()
+    try {
+      await apiSendMessage(selectedConversation.value.id, content, 'text', {
+        replyToId: replyId
+      })
+      await nextTick()
+      scrollToBottom()
+    } catch (err: any) {
+      newMessage.value = content
+      replyingTo.value = replyTarget
+      toast.error(err?.response?.data?.message || 'Gửi tin nhắn thất bại')
+    }
   }
 
   const handleSendImage = async (event: Event) => {
@@ -340,6 +351,9 @@ export function useChatView() {
 
   const handleScroll = () => {
     if (!chatContainer.value) return
+    if (activeActionMenu.value) {
+      activeActionMenu.value = null
+    }
     const { scrollTop, scrollHeight, clientHeight } = chatContainer.value
     showScrollBottom.value = scrollHeight - scrollTop - clientHeight > 100
   }

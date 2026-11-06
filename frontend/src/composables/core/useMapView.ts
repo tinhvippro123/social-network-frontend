@@ -110,7 +110,10 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
       : 'Toàn quốc'
   )
 
-  const getCategoryEmoji = (slug: string) => CATEGORY_META[slug]?.icon || '📌'
+  const getCategoryEmoji = (slug: string, customIcon?: string) => {
+    if (customIcon && /[^\u0000-\u007F]/.test(customIcon)) return customIcon
+    return CATEGORY_META[slug]?.icon || '📌'
+  }
 
   const createEmojiIcon = (emoji: string, active = false) => {
     return L.divIcon({
@@ -197,7 +200,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
 
     postsWithLocation.value.forEach(post => {
       if (!post.location) return
-      const emoji = getCategoryEmoji(post.category?.slug || '')
+      const emoji = getCategoryEmoji(post.category?.slug || '', post.category?.icon)
       const position = displayPositions.value.get(post.id) || [post.location.lat, post.location.lng]
       const marker = L.marker(position, {
         icon: createEmojiIcon(emoji, selectedPost.value?.id === post.id)
@@ -291,7 +294,12 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
   // Kéo thanh bán kính → gọi lại API (debounce để không spam request khi đang kéo)
   watch(searchRadius, () => {
     if (!searchCenter.value) {
-      searchCenter.value = HCMUNRE_CENTER
+      if (map) {
+        const c = map.getCenter()
+        searchCenter.value = { lat: c.lat, lng: c.lng, label: 'tâm bản đồ hiện tại' }
+      } else {
+        searchCenter.value = HCMUNRE_CENTER
+      }
     }
     renderRadius()
     if (radiusTimer) clearTimeout(radiusTimer)

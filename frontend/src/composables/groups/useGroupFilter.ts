@@ -11,7 +11,10 @@ export function useGroupFilter(groups: Ref<Group[]>) {
     if (filterType.value === 'discover') g = g.filter(item => !item.isJoined)
     if (searchGroup.value) {
       const search = searchGroup.value.toLowerCase()
-      g = g.filter(item => item.name.toLowerCase().includes(search))
+      g = g.filter(item =>
+        item.name.toLowerCase().includes(search) ||
+        Boolean(item.description && item.description.toLowerCase().includes(search))
+      )
     }
     return g
   })

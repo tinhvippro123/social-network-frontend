@@ -37,6 +37,11 @@ const router = createRouter({
       meta: { title: 'Trang chủ' }
     },
     {
+      path: '/events',
+      name: 'events',
+      redirect: { path: '/', query: { category: 'su-kien' } }
+    },
+    {
       path: '/trending',
       name: 'trending',
       component: () => import('@/views/TrendingView.vue'),

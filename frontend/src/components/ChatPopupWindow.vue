@@ -4,10 +4,11 @@ import { useRouter } from 'vue-router'
 import {
   X, Send, Minus, Maximize2,
   Smile, Paperclip, Image as ImageIcon,
-  ChevronDown, BellOff, FileText, Download, Reply
+  ChevronDown, BellOff, FileText, Download, Reply, Pin
 } from '@lucide/vue'
 import type { ChatConversation, ChatMessage } from '@/types'
 import ChatMessageActions from '@/views/chat/components/ChatMessageActions.vue'
+import ChatImagePreviewModal from '@/views/chat/components/ChatImagePreviewModal.vue'
 import ChatPopupHeaderMenu from '@/components/ChatPopupHeaderMenu.vue'
 import NicknameModal from '@/components/NicknameModal.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -44,6 +45,15 @@ const isLoadingMessages = ref(false)
 const activeHeaderMenu = ref(false)
 const activeMessageAction = ref<string | null>(null)
 const messageContainer = ref<HTMLElement | null>(null)
+const previewImageUrl = ref<string | null>(null)
+
+function scrollToPopupMessage(msgId?: string) {
+  if (!msgId) return
+  const el = document.getElementById(`popup-msg-${msgId}`)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+}
 
 const { connect: connectWs } = useWebSocket(undefined, (event) => {
   if (!event || event.conversationId !== props.conv.id) return
@@ -459,7 +469,7 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
           </span>
         </div>
 
-        <div :class="['flex', msg.isOwn ? 'justify-end' : 'justify-start']">
+        <div :id="`popup-msg-${msg.id}`" :class="['flex', msg.isOwn ? 'justify-end' : 'justify-start']">
           <div :class="['max-w-[calc(100%-86px)] flex gap-1.5 items-end relative group/bubble', msg.isOwn ? 'flex-row-reverse' : '']">
             <UserAvatar
               v-if="!msg.isOwn"
@@ -474,10 +484,12 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
                 <!-- Reply reference -->
                 <div
                   v-if="msg.replyTo && msg.status !== 'revoked' && !msg.isRevoked"
+                  @click="scrollToPopupMessage(msg.replyTo.id)"
                   :class="[
-                    'mb-1 px-2.5 py-1 rounded-xl text-[11px] bg-gray-100/80 dark:bg-surface-700/60 border-l-2 border-primary-400 text-gray-500 dark:text-gray-400 max-w-full truncate',
+                    'mb-1 px-2.5 py-1 rounded-xl text-[11px] bg-gray-100/80 dark:bg-surface-700/60 border-l-2 border-primary-400 text-gray-500 dark:text-gray-400 max-w-full truncate cursor-pointer hover:bg-gray-200/70 dark:hover:bg-surface-600/70 transition-colors',
                     msg.isOwn ? 'ml-auto' : ''
                   ]"
+                  title="Nhấn để xem tin nhắn gốc"
                 >
                   <span class="font-semibold">{{ msg.replyTo.senderName }}:</span> {{ msg.replyTo.content || 'Tin nhắn đính kèm / đã thu hồi' }}
                 </div>
@@ -486,7 +498,8 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
                   v-if="msg.type === 'image' && msg.imageUrl && msg.status !== 'revoked' && !msg.isRevoked"
                   :src="msg.imageUrl"
                   alt="Hình ảnh"
-                  class="max-h-40 rounded-xl object-cover border border-gray-200 dark:border-surface-600 mb-1"
+                  class="max-h-40 rounded-xl object-cover border border-gray-200 dark:border-surface-600 mb-1 cursor-pointer hover:opacity-95 transition-opacity"
+                  @click="previewImageUrl = msg.imageUrl || null"
                 />
                 <a
                   v-else-if="msg.type === 'file' && msg.fileName && msg.status !== 'revoked' && !msg.isRevoked"
@@ -536,6 +549,7 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
                   </button>
                 </div>
                 <div :class="['flex items-center gap-1 mt-0.5 text-[10px] text-gray-400', msg.isOwn ? 'justify-end' : '']">
+                  <Pin v-if="msg.isPinned && msg.status !== 'revoked' && !msg.isRevoked" :size="10" class="text-amber-500" title="Tin nhắn đã ghim" />
                   <span>{{ formatClockTime(msg.createdAt || msg.timestamp) }}</span>
                   <span v-if="msg.isOwn" :class="msg.status === 'read' ? 'text-primary-500' : ''">{{ getStatusIcon(msg.status) }}</span>
                 </div>
@@ -649,6 +663,14 @@ async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
       @close="showNicknameModal = false"
       @save="handleSaveNickname"
     />
+
+    <!-- Image Lightbox Modal -->
+    <Teleport to="body">
+      <ChatImagePreviewModal
+        :image-preview="previewImageUrl"
+        @close="previewImageUrl = null"
+      />
+    </Teleport>
   </div>
 </template>
 

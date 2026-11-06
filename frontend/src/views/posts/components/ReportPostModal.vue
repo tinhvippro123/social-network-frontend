@@ -27,7 +27,8 @@ const reasons = [
 
 const handleSubmit = async () => {
   if (!selectedReason.value) return
-  const reason = selectedReason.value
+  const reasonObj = reasons.find(r => r.id === selectedReason.value)
+  const reason = reasonObj ? reasonObj.label : selectedReason.value
   const desc = description.value
   selectedReason.value = ''
   description.value = ''

@@ -78,7 +78,11 @@ const handleNicknameChanged = (e: any) => {
   const findAndApply = (list: ChatConversation[]) => {
     const match = list.find(c => !c.isGroup && (c.id === detail.convId || c.participants?.some(p => p.id === detail.otherId)))
     if (match) {
-      match.nickname = detail.nickname
+      if (detail.nickname) {
+        match.nickname = detail.nickname
+      } else {
+        delete match.nickname
+      }
       match.name = detail.name
       if (detail.originalName) match.originalName = detail.originalName
     }

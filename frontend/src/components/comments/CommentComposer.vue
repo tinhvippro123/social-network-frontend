@@ -85,6 +85,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { Image as ImageIcon, Smile, X, Send } from '@lucide/vue'
+import { useToast } from '@/composables/ui/useToast'
+
+const toast = useToast()
 
 const props = defineProps({
   placeholder: {
@@ -151,10 +154,19 @@ const handleImageSelected = (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
     const file = target.files[0]
-    if (file.size > 5 * 1024 * 1024) { target.value = ''; return }
+    if (!file.type.startsWith('image/')) {
+      toast.error('Chỉ hỗ trợ định dạng tệp hình ảnh')
+      target.value = ''
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Kích thước ảnh đính kèm tối đa là 5MB')
+      target.value = ''
+      return
+    }
     if (attachedImagePreview.value) URL.revokeObjectURL(attachedImagePreview.value)
     attachedImage.value = file
-    attachedImagePreview.value = URL.createObjectURL(target.files[0])
+    attachedImagePreview.value = URL.createObjectURL(file)
   }
 }
 

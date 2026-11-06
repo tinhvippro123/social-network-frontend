@@ -67,7 +67,7 @@ const menuGroups = computed(() => {
   const groups: Array<Array<{ icon: any; label: string; action: string; active?: boolean; danger?: boolean }>> = [
     [
       { icon: MessageCircle, label: 'Mở trong tab Tin nhắn', action: 'open-tab' },
-      ...(!isGroup ? [{ icon: UserIcon, label: 'Xem trang cá nhân', action: 'profile' }] : []),
+      ...(!isGroup && otherParticipantId.value ? [{ icon: UserIcon, label: 'Xem trang cá nhân', action: 'profile' }] : []),
     ],
   ]
 
@@ -100,11 +100,11 @@ const menuGroups = computed(() => {
 })
 
 const handleAction = async (action: string) => {
-  emit('close')
   const resolvedUserId = otherParticipantId.value
 
   switch (action) {
     case 'open-tab':
+      emit('close')
       if (props.conv.id.startsWith('new-')) {
         router.push(`/chat?userId=${props.conv.id.replace(/^new-/, '')}`)
       } else {
@@ -114,6 +114,7 @@ const handleAction = async (action: string) => {
       break
 
     case 'profile': {
+      emit('close')
       if (resolvedUserId) {
         window.open(router.resolve(`/profile/${resolvedUserId}`).href, '_blank', 'noopener')
       }
@@ -121,11 +122,13 @@ const handleAction = async (action: string) => {
     }
 
     case 'nickname': {
+      emit('close')
       emit('open-nickname')
       break
     }
 
     case 'create-group': {
+      emit('close')
       toast.info('Đang mở trình tạo nhóm chat...')
       router.push({
         path: '/chat',
@@ -139,6 +142,7 @@ const handleAction = async (action: string) => {
     }
 
     case 'mute': {
+      emit('close')
       const nextState = !props.conv.isMuted
       props.conv.isMuted = nextState
       try {
@@ -154,8 +158,12 @@ const handleAction = async (action: string) => {
     }
 
     case 'block': {
-      if (!resolvedUserId) break
+      if (!resolvedUserId) {
+        emit('close')
+        break
+      }
       if (isBlocked.value) {
+        emit('close')
         try {
           await chatApi.unblockUser(resolvedUserId)
           window.dispatchEvent(new CustomEvent('chat-block-updated'))
@@ -171,10 +179,12 @@ const handleAction = async (action: string) => {
         confirmText: 'Chặn',
         variant: 'danger'
       })
+      emit('close')
       if (ok) {
         try {
           await chatApi.blockUser(resolvedUserId)
           window.dispatchEvent(new CustomEvent('chat-block-updated'))
+          window.dispatchEvent(new CustomEvent('chat-conversation-removed', { detail: { id: props.conv.id } }))
           toast.success(`Đã chặn ${props.conv.name}`)
           emit('close-window')
         } catch {
@@ -185,11 +195,13 @@ const handleAction = async (action: string) => {
     }
 
     case 'archive': {
+      emit('close')
       try {
         if (!props.conv.id.startsWith('new-')) {
           await chatApi.hideConversation(props.conv.id)
         }
         window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+        window.dispatchEvent(new CustomEvent('chat-conversation-removed', { detail: { id: props.conv.id } }))
         toast.success('Đã lưu trữ và ẩn đoạn chat khỏi màn hình')
         emit('close-window')
       } catch {
@@ -205,12 +217,14 @@ const handleAction = async (action: string) => {
         confirmText: 'Xóa vĩnh viễn',
         variant: 'danger'
       })
+      emit('close')
       if (ok) {
         try {
           if (!props.conv.id.startsWith('new-')) {
             await chatApi.deleteConversation(props.conv.id)
           }
           window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+          window.dispatchEvent(new CustomEvent('chat-conversation-removed', { detail: { id: props.conv.id } }))
           emit('clear-chat')
           toast.success('Đã xóa đoạn chat')
           emit('close-window')
@@ -222,13 +236,17 @@ const handleAction = async (action: string) => {
     }
 
     case 'report': {
-      if (!resolvedUserId) break
+      if (!resolvedUserId) {
+        emit('close')
+        break
+      }
       const ok = await confirm({
         title: 'Báo cáo cuộc trò chuyện',
         message: `Bạn có muốn báo cáo cuộc trò chuyện với ${props.conv.name} vì nội dung không phù hợp không?`,
         confirmText: 'Gửi báo cáo',
         variant: 'warning'
       })
+      emit('close')
       if (!ok) break
       try {
         await http.post('/reports', {

@@ -126,6 +126,7 @@ onMounted(() => {
 watch([groupId, postId], ([newGroupId, newPostId], [oldGroupId, oldPostId]) => {
   if (newGroupId && newPostId && (newGroupId !== oldGroupId || newPostId !== oldPostId)) {
     loadData()
+    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 })

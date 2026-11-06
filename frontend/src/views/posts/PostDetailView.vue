@@ -267,7 +267,7 @@ function handleProseClick(e: MouseEvent) {
     <ReportPostModal
       :show="showReportModal"
       @close="showReportModal = false"
-      @submit="(reason, desc) => { reportPost(reason, desc); showReportModal = false }"
+      @submit="async (reason, desc) => { await reportPost(reason, desc); showReportModal = false }"
     />
 
     <!-- Image Lightbox Gallery Modal -->

@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
 import {
   Eye, MessageCircle, Bookmark,
-  BookmarkCheck, Clock, ChevronUp, MapPin
+  BookmarkCheck, Clock, ChevronUp, MapPin, Calendar
 } from '@lucide/vue'
 import type { Post } from '@/types'
 
@@ -150,6 +150,15 @@ const handleBookmark = async (e: Event) => {
       <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-primary-500 transition-colors">
         {{ post.title }}
       </h2>
+
+      <!-- Event Schedule Badge -->
+      <div
+        v-if="post.eventStartTime"
+        class="inline-flex items-center gap-1.5 px-2.5 py-1 mb-2.5 rounded-lg bg-purple-50 dark:bg-purple-900/25 text-purple-700 dark:text-purple-300 text-xs font-medium w-fit"
+      >
+        <Calendar :size="13" class="shrink-0" />
+        <span>{{ new Date(post.eventStartTime).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</span>
+      </div>
 
       <!-- Excerpt -->
       <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1 wrap-break-word">

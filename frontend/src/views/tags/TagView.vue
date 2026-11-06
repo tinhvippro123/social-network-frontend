@@ -10,7 +10,7 @@ import PostSkeletonCard from '@/components/posts/PostSkeletonCard.vue'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-const tagName = computed(() => (route.params.name as string) || '')
+const tagName = computed(() => ((route.params.name as string) || '').replace(/^#+/, '').trim())
 
 const { posts, isLoading, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
 
@@ -34,9 +34,7 @@ onMounted(() => {
 })
 
 watch(tagName, () => {
-  if (posts.value.length === 0) {
-    fetchPosts({ limit: 100 })
-  }
+  fetchPosts({ limit: 100 })
 })
 
 watch(() => authStore.user?.id, () => {

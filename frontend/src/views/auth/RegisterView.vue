@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Check } from '@lucide/vue'
 import AuthSocialLogin from './components/AuthSocialLogin.vue'
+import AuthPasswordStrength from '@/components/AuthPasswordStrength.vue'
 import { useRegister } from '@/composables/auth/useRegister'
 import { useToast } from '@/composables/ui/useToast'
 
@@ -18,9 +19,6 @@ const {
   showPassword,
   isLoading,
   agreeTerms,
-  passwordStrength,
-  strengthColors,
-  strengthLabels,
   handleRegister
 } = useRegister()
 
@@ -97,21 +95,7 @@ function showTermsNotice(title: string) {
         </div>
         <p v-if="passwordError" class="mt-1.5 text-sm text-red-500">{{ passwordError }}</p>
         <!-- Password strength indicator -->
-        <div v-if="password && password.length > 0" class="mt-2">
-          <div class="flex gap-1 mb-1">
-            <div
-              v-for="i in 4"
-              :key="i"
-              :class="[
-                'h-1 flex-1 rounded-full transition-all duration-300',
-                i <= passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-gray-200 dark:bg-white/10'
-              ]"
-            />
-          </div>
-          <p class="text-xs" :class="strengthColors[passwordStrength - 1]?.replace('bg-', 'text-')">
-            {{ passwordStrength > 0 ? strengthLabels[passwordStrength - 1] : 'Nhập mật khẩu' }}
-          </p>
-        </div>
+        <AuthPasswordStrength :password="password" />
       </div>
 
       <!-- Confirm Password -->

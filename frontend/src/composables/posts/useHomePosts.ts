@@ -1,11 +1,12 @@
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { usePosts } from './usePosts'
 import { useCategories } from '../core/useCategories'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function useHomePosts() {
   const route = useRoute()
+  const router = useRouter()
   const authStore = useAuthStore()
   const { posts, isLoading, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
   const { categories, fetchCategories } = useCategories()
@@ -15,11 +16,24 @@ export function useHomePosts() {
   const loadingMore = ref(false)
 
   watch(() => route.query.category, (newCat) => {
-    selectedCategory.value = (newCat as string) || 'all'
+    const normalized = (newCat as string) || 'all'
+    if (selectedCategory.value !== normalized) {
+      selectedCategory.value = normalized
+    }
   })
 
-  watch(selectedCategory, () => {
+  watch(selectedCategory, (newCat) => {
     visibleCount.value = 4
+    const currentQueryCat = (route.query.category as string) || 'all'
+    if (newCat !== currentQueryCat) {
+      const nextQuery = { ...route.query }
+      if (newCat === 'all') {
+        delete nextQuery.category
+      } else {
+        nextQuery.category = newCat
+      }
+      router.replace({ query: nextQuery })
+    }
   })
 
   const filteredPosts = computed(() => {

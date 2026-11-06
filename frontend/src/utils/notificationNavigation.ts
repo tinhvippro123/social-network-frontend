@@ -16,11 +16,14 @@ export function parseNotificationLink(link?: string, message?: string): ParsedNo
     targetPath = parts[0]
     targetHash = '#' + parts[1]
   }
+  if (targetPath.includes('?')) {
+    targetPath = targetPath.split('?')[0]
+  }
 
   if (message) {
     const cleaned = message
       .replace(
-        /\s+(commented on your post|commented|đã bình luận về bài viết của bạn|đã bình luận.*|đã trả lời bình luận của bạn|đã trả lời.*|đã nhắc đến bạn.*|mentioned you.*|đã bày tỏ cảm xúc.*)/i,
+        /\s+(commented on your post|commented|đã bình luận về bài viết của bạn|đã bình luận.*|đã trả lời bình luận của bạn|đã trả lời.*|đã nhắc đến bạn.*|mentioned you.*|đã bày tỏ cảm xúc.*|đã thả cảm xúc.*)/i,
         ''
       )
       .trim()

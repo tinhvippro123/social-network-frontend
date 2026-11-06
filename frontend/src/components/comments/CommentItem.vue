@@ -45,12 +45,13 @@
             <p
               class="text-gray-900 dark:text-gray-100 whitespace-pre-line wrap-break-word leading-snug"
               :class="level === 0 ? 'text-[13px] sm:text-sm' : 'text-xs sm:text-[13px]'"
-            ><span v-if="comment.replyTo" class="text-primary-600 dark:text-primary-400 font-bold cursor-pointer hover:underline mr-1">@{{ comment.replyTo }}</span><span>{{ cleanCommentText }}</span></p>
+            ><span v-if="comment.replyTo" @click.stop="comment.replyToAuthorId && goToProfile(comment.replyToAuthorId)" class="text-primary-600 dark:text-primary-400 font-bold cursor-pointer hover:underline mr-1">@{{ comment.replyTo }}</span><span>{{ cleanCommentText }}</span></p>
             <img
               v-if="commentImageUrl"
               :src="commentImageUrl"
               alt="Ảnh bình luận"
-              class="mt-2 max-h-52 w-auto rounded-xl object-cover border border-gray-200 dark:border-surface-600"
+              @click.stop="openCommentImage(commentImageUrl)"
+              class="mt-2 max-h-52 w-auto rounded-xl object-cover border border-gray-200 dark:border-surface-600 cursor-zoom-in hover:opacity-95 transition-opacity"
             />
           </div>
           
@@ -94,12 +95,12 @@
               </button>
               
               <!-- Emoji Picker Popup -->
-              <div v-if="activeEmojiPicker === comment.id" @click.stop class="absolute left-0 bottom-6 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 flex gap-1">
+              <div v-if="activeEmojiPicker === comment.id" @click.stop class="absolute left-0 bottom-6 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 grid grid-cols-8 gap-1 w-64">
                 <button
                   v-for="emoji in emojiList"
                   :key="emoji"
                   @click="toggleReaction(emoji)"
-                  class="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-base transition-colors cursor-pointer hover:scale-110"
+                  class="w-7 h-7 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-base transition-colors cursor-pointer hover:scale-110"
                 >
                   {{ emoji }}
                 </button>
@@ -315,30 +316,35 @@ const containerClass = computed(() => {
  * Also preserves parent author name as `replyTo` and caps `_replyParentId` at depth 2 so
  * replying to a depth-3 comment never exceeds backend's max depth of 3.
  */
-function flattenReplies(replies: any[], rootAuthorName?: string, rootId?: string): any[] {
+function flattenReplies(replies: any[], rootAuthorName?: string, rootId?: string, rootAuthorId?: string): any[] {
   if (!replies || !Array.isArray(replies)) return []
   const result: any[] = []
-  function traverse(list: any[], parentAuthorName?: string, safeParentId?: string, depth = 1) {
+  function traverse(list: any[], parentAuthorName?: string, safeParentId?: string, depth = 1, parentAuthorId?: string) {
     for (const item of list) {
       if (parentAuthorName && !item.replyTo && item.author?.name !== parentAuthorName) {
         item.replyTo = parentAuthorName
+        item.replyToAuthorId = parentAuthorId
       }
       // Backend allows max depth 3 (root=1, reply=2, sub-reply=3). Any reply to depth >= 3 attaches to safeParentId (depth 2).
       const nextSafeParentId = depth >= 2 ? (safeParentId || item.id) : item.id
       item._replyParentId = nextSafeParentId
       result.push(item)
       if (item.replies && item.replies.length > 0) {
-        traverse(item.replies, item.author?.name, nextSafeParentId, depth + 1)
+        traverse(item.replies, item.author?.name, nextSafeParentId, depth + 1, item.author?.id)
       }
     }
   }
-  traverse(replies, rootAuthorName, rootId, 1)
+  traverse(replies, rootAuthorName, rootId, 1, rootAuthorId)
   return result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+}
+
+function openCommentImage(url: string) {
+  window.open(url, '_blank', 'noopener')
 }
 
 const displayReplies = computed(() => {
   if (props.level === 0) {
-    return flattenReplies(props.comment.replies || [], props.comment.author?.name, props.comment.id)
+    return flattenReplies(props.comment.replies || [], props.comment.author?.name, props.comment.id, props.comment.author?.id)
   }
   return []
 })

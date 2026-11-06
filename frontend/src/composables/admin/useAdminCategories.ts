@@ -15,9 +15,11 @@ export function useAdminCategories() {
 
   const newCategoryName = ref('')
   const newCategoryIcon = ref('')
+  const newCategoryDescription = ref('')
 
   const editCategoryName = ref('')
   const editCategoryIcon = ref('')
+  const editCategoryDescription = ref('')
 
   // Tag Management state
   const tags = ref<{ id: string; name: string; postsCount: number }[]>([])
@@ -57,12 +59,14 @@ export function useAdminCategories() {
     try {
       await adminApi.createCategory({
         name: newCategoryName.value.trim(),
-        icon: newCategoryIcon.value.trim() || '📁'
+        icon: newCategoryIcon.value.trim() || '📁',
+        description: newCategoryDescription.value.trim() || undefined
       })
       toast.success('Đã thêm danh mục mới thành công!')
       showAddModal.value = false
       newCategoryName.value = ''
       newCategoryIcon.value = ''
+      newCategoryDescription.value = ''
       await fetchCategories()
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể tạo danh mục')
@@ -73,6 +77,7 @@ export function useAdminCategories() {
     editingCategory.value = category
     editCategoryName.value = category.name || ''
     editCategoryIcon.value = category.icon || ''
+    editCategoryDescription.value = category.description || ''
     showEditModal.value = true
   }
 
@@ -88,7 +93,7 @@ export function useAdminCategories() {
       await adminApi.updateCategory(targetId, {
         name: editCategoryName.value.trim(),
         icon: editCategoryIcon.value.trim() || '📁',
-        description: editingCategory.value.description
+        description: editCategoryDescription.value.trim() || undefined
       })
       toast.success('Đã cập nhật danh mục thành công!')
       showEditModal.value = false
@@ -175,8 +180,10 @@ export function useAdminCategories() {
     editingCategory,
     newCategoryName,
     newCategoryIcon,
+    newCategoryDescription,
     editCategoryName,
     editCategoryIcon,
+    editCategoryDescription,
     tags,
     isTagsLoading,
     showRenameTagModal,

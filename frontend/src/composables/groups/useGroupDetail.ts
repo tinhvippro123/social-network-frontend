@@ -242,6 +242,7 @@ export function useGroupDetail() {
     users,
     isUsersLoading,
     activeTab,
+    isSystemMod,
     isGroupOwner,
     isGroupManager,
     canViewContent,

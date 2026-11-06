@@ -16,6 +16,7 @@ import http from '@/api/client'
 const props = defineProps<{
   currentUser: any
   isOwnProfile?: boolean
+  canViewConnections?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -74,6 +75,10 @@ onUnmounted(() => {
 })
 
 function openFollowersModal(type: 'followers' | 'following') {
+  if (props.canViewConnections === false) {
+    addToast({ message: 'Trang cá nhân này ở chế độ riêng tư', type: 'info' })
+    return
+  }
   followersModalType.value = type
   showFollowersModal.value = true
 }
@@ -212,7 +217,7 @@ function handleMessage() {
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ currentUser.bio }}</p>
           <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-3 text-xs text-gray-400">
             <span class="flex items-center gap-1"><Calendar :size="12" /> Tham gia {{ formatDate(currentUser.joinedAt) }}</span>
-            <span class="flex items-center gap-1"><MapPin :size="12" /> TP. Hồ Chí Minh</span>
+            <span v-if="currentUser.location" class="flex items-center gap-1"><MapPin :size="12" /> {{ currentUser.location }}</span>
             <span v-if="currentUser.email" class="flex items-center gap-1"><LinkIcon :size="12" /> {{ currentUser.email }}</span>
           </div>
         </div>

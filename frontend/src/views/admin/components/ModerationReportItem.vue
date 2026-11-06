@@ -111,6 +111,7 @@ function viewTarget() {
           <X :size="12" /> Xóa nội dung
         </button>
         <button
+          v-if="!(report.type === 'user' && String(report.targetId) === String(authStore.user?.id))"
           type="button"
           @click="emit('resolve', report.id, 'ban')"
           class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all cursor-pointer"

@@ -13,6 +13,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'resolve', reportId: string, action: 'keep' | 'delete' | 'ban'): void
+  (e: 'dismiss', reportId: string): void
 }>()
 
 const router = useRouter()
@@ -104,12 +105,21 @@ function viewTarget(report: any) {
             <X :size="12" /> Xóa
           </button>
           <button
+            v-if="!(report.type === 'user' && String(report.targetId) === String(authStore.user?.id))"
             type="button"
             @click="emit('resolve', report.id, 'ban')"
             class="flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all cursor-pointer"
             title="Cấm tác giả"
           >
             <Ban :size="12" />
+          </button>
+          <button
+            type="button"
+            @click="emit('dismiss', report.id)"
+            class="flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-lg text-xs font-medium bg-gray-500/10 text-gray-500 hover:bg-gray-500 hover:text-white transition-all cursor-pointer"
+            title="Bỏ qua báo cáo"
+          >
+            Bỏ qua
           </button>
         </div>
       </div>

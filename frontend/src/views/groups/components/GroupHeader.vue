@@ -5,6 +5,7 @@ defineProps<{
   group: any
   isOwner?: boolean
   isManager?: boolean
+  canDelete?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -21,8 +22,8 @@ const emit = defineEmits<{
     <!-- Group Cover Banner (Facebook Group Style) -->
     <div class="h-52 sm:h-64 relative overflow-hidden bg-gray-100 dark:bg-surface-700">
       <img
-        v-if="group.coverImage"
-        :src="group.coverImage"
+        v-if="group.coverImage || group.avatar"
+        :src="group.coverImage || group.avatar"
         :alt="group.name"
         class="w-full h-full object-cover"
       />
@@ -116,7 +117,7 @@ const emit = defineEmits<{
           </button>
 
           <button
-            v-if="isOwner"
+            v-if="isOwner || canDelete"
             type="button"
             @click="emit('deleteGroup')"
             title="Giải tán nhóm"
@@ -127,7 +128,7 @@ const emit = defineEmits<{
           </button>
 
           <button
-            v-else
+            v-if="!isOwner"
             type="button"
             @click="emit('reportGroup')"
             title="Báo cáo nhóm vi phạm"

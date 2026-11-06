@@ -123,6 +123,17 @@ export function useAdminDashboard() {
     }
   }
 
+  const dismissReport = async (reportId: string) => {
+    try {
+      await adminApi.dismissReport(reportId)
+      toast.info('Đã bỏ qua báo cáo')
+      const days = selectedPeriod.value === '90d' ? 90 : selectedPeriod.value === '30d' ? 30 : 7
+      await Promise.all([fetchStats(days), fetchReports({ limit: 100 })])
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể bỏ qua báo cáo')
+    }
+  }
+
   const initData = async () => {
     const days = selectedPeriod.value === '90d' ? 90 : selectedPeriod.value === '30d' ? 30 : 7
     await Promise.all([
@@ -148,6 +159,7 @@ export function useAdminDashboard() {
     chartData,
     chartOptions,
     initData,
-    resolveReport
+    resolveReport,
+    dismissReport
   }
 }

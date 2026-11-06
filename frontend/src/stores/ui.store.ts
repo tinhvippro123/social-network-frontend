@@ -56,6 +56,7 @@ export const useUiStore = defineStore('ui', () => {
     const n = notifications.value.find(n => n.id === id)
     if (n) n.isRead = true
     notificationsApi.markRead(id).catch(err => console.error('Lỗi đánh dấu đã đọc:', err))
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('notification-marked-read', { detail: { id } }))
   }
 
   function markAllRead() {

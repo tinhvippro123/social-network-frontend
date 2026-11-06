@@ -42,7 +42,8 @@ export function usePostDetail() {
     showReportModal.value = false
     await Promise.all([
       fetchPost(postId),
-      fetchPosts({ limit: 4 })
+      fetchPosts({ limit: 4 }),
+      fetchComments(postId)
     ])
 
     if (!post.value) {
@@ -59,8 +60,6 @@ export function usePostDetail() {
       comments.value = []
       return
     }
-
-    await fetchComments(postId)
 
     // Load user vote, current reaction, and bookmark status from backend if user is authenticated
     if (user.value) {
