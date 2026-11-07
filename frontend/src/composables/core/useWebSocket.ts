@@ -1,9 +1,10 @@
 // ==========================================
 // Composable — useWebSocket
-// Kết nối WebSocket cho Chat Real-time (/ws/chat)
+// Kết nối WebSocket cho Chat Real-time (/ws/chat) xác thực qua HttpOnly Cookie Handshake
 // ==========================================
 import { ref, onUnmounted, getCurrentInstance } from 'vue'
-import { STORAGE_KEYS } from '@/constants'
+import { useAuthStore } from '@/stores/auth.store'
+import { hasAuthSessionCookie } from '@/utils/cookies'
 
 function resolveDefaultWsUrl(): string {
   if (import.meta.env.VITE_WS_URL) {
@@ -32,6 +33,12 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
   const MAX_RECONNECT = 8
   const RECONNECT_DELAY = 3000
 
+  function hasActiveSession(): boolean {
+    if (typeof window === 'undefined') return false
+    const authStore = useAuthStore()
+    return authStore.isLoggedIn || hasAuthSessionCookie()
+  }
+
   function stopPing() {
     if (pingTimer) {
       clearInterval(pingTimer)
@@ -46,11 +53,9 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
     }, 25000)
   }
 
-  /** Kết nối WebSocket và xác thực JWT frame đầu tiên */
+  /** Kết nối WebSocket — trình duyệt tự đính kèm HttpOnly Cookie trong HTTP Upgrade Handshake */
   function connect(wsUrl?: string) {
-    if (typeof window === 'undefined') return
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
-    if (!token) return
+    if (!hasActiveSession()) return
 
     const finalUrl = wsUrl || url || resolveDefaultWsUrl()
     if (!finalUrl) {
@@ -69,11 +74,7 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
         isConnected.value = true
         reconnectAttempts = 0
         error.value = null
-        const currentToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
-        if (currentToken) {
-          send({ type: 'auth', token: currentToken })
-          startPing()
-        }
+        startPing()
       }
 
       ws.value.onmessage = (event) => {
@@ -106,10 +107,9 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
     }
   }
 
-  /** Tự động reconnect */
+  /** Tự động reconnect khi còn phiên đăng nhập */
   function attemptReconnect(wsUrl: string) {
-    const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) : null
-    if (!token || reconnectAttempts >= MAX_RECONNECT) {
+    if (!hasActiveSession() || reconnectAttempts >= MAX_RECONNECT) {
       return
     }
     if (reconnectTimer) clearTimeout(reconnectTimer)

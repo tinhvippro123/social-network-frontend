@@ -64,12 +64,14 @@ export const PAGINATION = {
   ADMIN_LIMIT: 20,
 } as const
 
-/** LocalStorage keys */
+/** LocalStorage keys (chỉ lưu tùy chọn giao diện, KHÔNG lưu JWT hay thông tin nhạy cảm) */
 export const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'vietblog_access_token',
-  REFRESH_TOKEN: 'vietblog_refresh_token',
   THEME: 'vietblog_theme',
-  USER: 'vietblog_user',
+} as const
+
+/** Cookie names (JWT thật nằm trong HttpOnly Cookie do Backend quản lý) */
+export const COOKIE_NAMES = {
+  LOGGED_IN: 'vietblog_logged_in',
 } as const
 
 /** Mảng Emoji được hỗ trợ trong bình luận */

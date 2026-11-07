@@ -76,7 +76,6 @@ async function handleLogin() {
       email: email.value.trim(),
       password: password.value
     })
-    authStore.setToken(data.data.accessToken)
     authStore.setUser(data.data.user)
     uiStore.closeAuthModal()
     toast.success(`Chào mừng trở lại, ${data.data.user?.name || 'bạn'}!`)

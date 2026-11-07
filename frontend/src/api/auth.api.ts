@@ -1,6 +1,7 @@
 // ==========================================
-// API — Authentication
+// API — Authentication (HttpOnly Cookie Session)
 // ==========================================
+import type { AxiosRequestConfig } from 'axios'
 import http from './client'
 import type { ApiResponse } from './client'
 import type { User } from '@/types'
@@ -18,7 +19,7 @@ export interface RegisterRequest {
 }
 
 export interface AuthTokens {
-  accessToken: string
+  accessToken?: string
 }
 
 export interface GoogleLoginPayload {
@@ -39,11 +40,11 @@ const authApi = {
   logout: () =>
     http.post<ApiResponse>('/auth/logout'),
 
-  refreshToken: (refreshToken: string) =>
-    http.post<ApiResponse<AuthTokens>>('/auth/refresh', { token: refreshToken, refreshToken }),
+  refreshToken: (config?: AxiosRequestConfig) =>
+    http.post<ApiResponse<AuthTokens & { user: User }>>('/auth/refresh', {}, config),
 
-  getProfile: () =>
-    http.get<ApiResponse<User>>('/auth/me'),
+  getProfile: (config?: AxiosRequestConfig) =>
+    http.get<ApiResponse<User>>('/auth/me', config),
 
   updateProfile: (data: Partial<User>) =>
     http.put<ApiResponse<User>>('/auth/me', data),

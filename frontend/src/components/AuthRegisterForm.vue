@@ -102,7 +102,6 @@ async function handleRegister() {
       email: email.value.trim(),
       password: password.value
     })
-    authStore.setToken(data.data.accessToken)
     authStore.setUser(data.data.user)
     uiStore.closeAuthModal()
     toast.success(`Chào mừng ${data.data.user?.name || name.value.trim()} đến với VietBlog!`)

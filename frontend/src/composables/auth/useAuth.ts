@@ -1,12 +1,11 @@
 // ==========================================
 // Composable — useAuth
-// Login/Logout/Token management
+// Login/Logout/Session management (HttpOnly Cookie)
 // ==========================================
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import authApi from '@/api/auth.api'
 import type { LoginRequest, RegisterRequest, GoogleLoginPayload } from '@/api/auth.api'
-import { STORAGE_KEYS } from '@/constants'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAsyncState } from '../core/useAsyncState'
 import { useToast } from '../ui/useToast'
@@ -25,12 +24,11 @@ export function useAuth() {
   const isAdmin = computed(() => authStore.isAdmin)
   const isModerator = computed(() => authStore.isModerator)
 
-  /** Đăng nhập */
+  /** Đăng nhập (Backend tự cấp HttpOnly Access & Refresh Cookie) */
   async function login(credentials: LoginRequest) {
     error.value = null
     await execute(async () => {
       const { data } = await authApi.login(credentials)
-      authStore.setToken(data.data.accessToken)
       authStore.setUser(data.data.user)
       toast.success(`Chào mừng ${data.data.user.name || 'bạn'} quay trở lại!`)
 
@@ -48,12 +46,11 @@ export function useAuth() {
     }, 'Đăng nhập thất bại')
   }
 
-  /** Đăng nhập Google */
+  /** Đăng nhập Google (Backend tự cấp HttpOnly Access & Refresh Cookie) */
   async function loginWithGoogle(payload: GoogleLoginPayload) {
     error.value = null
     await execute(async () => {
       const { data } = await authApi.loginWithGoogle(payload)
-      authStore.setToken(data.data.accessToken)
       authStore.setUser(data.data.user)
 
       const redirectUrl = route.query.redirect as string
@@ -83,11 +80,10 @@ export function useAuth() {
     }, 'Đăng ký thất bại')
   }
 
-  /** Đăng xuất */
+  /** Đăng xuất (gọi Backend xóa HttpOnly Cookie rồi xóa state RAM) */
   async function logout() {
     try {
-      // Backend JWT hiện tại là stateless, chỉ cần xóa token ở frontend
-      // await authApi.logout()
+      await authApi.logout()
     } catch (e) {
       console.warn('Lỗi khi gọi API đăng xuất:', e)
     } finally {
@@ -96,9 +92,9 @@ export function useAuth() {
     }
   }
 
-  /** Khôi phục session từ localStorage (gọi khi app mount) */
-  function initAuth() {
-    // AuthStore already handles this inside its definition!
+  /** Khôi phục session từ HttpOnly Cookie khi app khởi tạo */
+  async function initAuth() {
+    await authStore.bootstrapSession()
   }
 
   /** Lấy profile mới nhất từ server */
@@ -107,7 +103,7 @@ export function useAuth() {
       const { data } = await authApi.getProfile()
       authStore.setUser(data.data)
     } catch {
-      logout()
+      await logout()
     }
   }
 

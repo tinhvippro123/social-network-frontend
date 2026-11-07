@@ -201,11 +201,14 @@ const router = createRouter({
 })
 
 // Global Navigation Guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   // Update document title
   document.title = `${to.meta.title || 'Trang chủ'} | VietBlog`
 
   const authStore = useAuthStore()
+  if (!authStore.isInitialized) {
+    await authStore.bootstrapSession()
+  }
 
   // Check if route requires admin privileges
   if (to.meta.requiresAdmin) {

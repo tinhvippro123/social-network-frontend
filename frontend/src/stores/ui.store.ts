@@ -5,6 +5,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Notification } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
+import { useAuthStore } from '@/stores/auth.store'
+import { hasAuthSessionCookie } from '@/utils/cookies'
 
 import notificationsApi from '@/api/notifications.api'
 
@@ -38,8 +40,8 @@ export const useUiStore = defineStore('ui', () => {
   const notifications = ref<Notification[]>([])
   
   async function fetchNotifications() {
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
-    if (!token) return
+    const authStore = useAuthStore()
+    if (!authStore.isLoggedIn && !hasAuthSessionCookie()) return
     try {
       const { data } = await notificationsApi.getAll()
       notifications.value = (data.data || []).map((item: any) => ({ ...item, type: (item.type || 'system').toLowerCase(), isRead: Boolean(item.isRead) }))

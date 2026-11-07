@@ -1,13 +1,29 @@
 // ==========================================
-// Store — Auth (User state + tokens)
+// Store — Auth (In-memory User state + HttpOnly Cookie Session)
 // ==========================================
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User } from '@/types'
-import { STORAGE_KEYS } from '@/constants'
+import authApi from '@/api/auth.api'
+import { hasAuthSessionCookie, clearAuthIndicatorCookie } from '@/utils/cookies'
+
+const LEGACY_LOCAL_STORAGE_KEYS = [
+  'vietblog_access_token',
+  'vietblog_refresh_token',
+  'vietblog_user',
+] as const
+
+function purgeLegacyLocalStorage() {
+  if (typeof window === 'undefined') return
+  for (const key of LEGACY_LOCAL_STORAGE_KEYS) {
+    localStorage.removeItem(key)
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
-  const accessToken = ref<string | null>(null)
+  const isInitialized = ref(false)
+  let bootstrapPromise: Promise<void> | null = null
 
   const isLoggedIn = computed(() => !!user.value)
   const isAdmin = computed(() => {
@@ -21,48 +37,74 @@ export const useAuthStore = defineStore('auth', () => {
 
   function setUser(newUser: User | null) {
     user.value = newUser
-    if (newUser) {
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(newUser))
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.USER)
-    }
-  }
-
-  function setToken(token: string | null) {
-    accessToken.value = token
-    if (token) {
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token)
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-    }
+    isInitialized.value = true
+    purgeLegacyLocalStorage()
   }
 
   function clearAuth() {
     user.value = null
-    accessToken.value = null
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
-    localStorage.removeItem(STORAGE_KEYS.USER)
+    isInitialized.value = true
+    clearAuthIndicatorCookie()
+    purgeLegacyLocalStorage()
+  }
+
+  /** Khôi phục phiên từ HttpOnly Cookie khi tải lại trang (single-flight) */
+  async function bootstrapSession(): Promise<void> {
+    purgeLegacyLocalStorage()
+    if (user.value) {
+      isInitialized.value = true
+      return
+    }
+    if (!hasAuthSessionCookie()) {
+      isInitialized.value = true
+      return
+    }
+    if (bootstrapPromise) {
+      return bootstrapPromise
+    }
+
+    bootstrapPromise = (async () => {
+      try {
+        const { data } = await authApi.getProfile({
+          skipErrorToast: true,
+          skipAuthRedirect: true,
+        } as any)
+        if (data?.data) {
+          user.value = data.data
+        } else {
+          clearAuth()
+        }
+      } catch {
+        clearAuth()
+      } finally {
+        isInitialized.value = true
+        bootstrapPromise = null
+      }
+    })()
+
+    return bootstrapPromise
   }
 
   function initAuth() {
-    accessToken.value = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
-    const savedUser = localStorage.getItem(STORAGE_KEYS.USER)
-    try {
-      if (savedUser && savedUser !== 'null' && savedUser !== 'undefined') {
-        user.value = JSON.parse(savedUser)
-      }
-    } catch (e) {
-      console.error('Lỗi khi đọc dữ liệu User từ bộ nhớ tạm:', e)
-      localStorage.removeItem(STORAGE_KEYS.USER)
+    purgeLegacyLocalStorage()
+    if (hasAuthSessionCookie() && !user.value) {
+      void bootstrapSession()
+    } else {
+      isInitialized.value = true
     }
   }
 
-  initAuth()
+  purgeLegacyLocalStorage()
 
   return {
-    user, accessToken,
-    isLoggedIn, isAdmin, isModerator,
-    setUser, setToken, clearAuth, initAuth,
+    user,
+    isInitialized,
+    isLoggedIn,
+    isAdmin,
+    isModerator,
+    setUser,
+    clearAuth,
+    bootstrapSession,
+    initAuth,
   }
 })
