@@ -62,7 +62,7 @@ const handleClick = () => {
     <div
       v-else
       :class="[
-        'w-24 h-20 sm:w-32 sm:h-24 rounded-xl shrink-0 flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100/60 dark:from-primary-950/40 dark:to-primary-900/30 border border-primary-200/50 dark:border-primary-800/40',
+        'w-24 h-20 sm:w-32 sm:h-24 rounded-xl shrink-0 flex items-center justify-center bg-linear-to-br from-primary-50 to-primary-100/60 dark:from-primary-950/40 dark:to-primary-900/30 border border-primary-200/50 dark:border-primary-800/40',
         isDraft ? 'opacity-60' : 'transition-transform duration-300 group-hover:scale-105'
       ]"
     >
@@ -80,12 +80,12 @@ const handleClick = () => {
       </div>
 
       <h3 :class="[
-        'font-bold text-gray-900 dark:text-white line-clamp-2 mb-2 break-words',
+        'font-bold text-gray-900 dark:text-white line-clamp-2 mb-2 wrap-break-word',
         !isDraft && 'group-hover:text-primary-500 transition-colors'
       ]">
         {{ post.title }}
       </h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mb-3 break-words">
+      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mb-3 wrap-break-word">
         {{ post.excerpt }}
       </p>
 

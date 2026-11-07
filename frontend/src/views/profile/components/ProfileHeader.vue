@@ -279,15 +279,15 @@ function handleMessage() {
 
       <!-- Stats (clickable) -->
       <div class="flex items-center justify-center gap-8 sm:gap-14 mt-6 pt-6 border-t border-gray-200 dark:border-surface-700">
-        <div class="text-center min-w-[60px]">
+        <div class="text-center min-w-15">
           <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatNumber(currentUser.postsCount) }}</p>
           <p class="text-xs text-gray-400">Bài viết</p>
         </div>
-        <button @click="openFollowersModal('followers')" class="text-center group cursor-pointer hover:scale-105 transition-transform min-w-[60px]">
+        <button @click="openFollowersModal('followers')" class="text-center group cursor-pointer hover:scale-105 transition-transform min-w-15">
           <p class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors">{{ formatNumber(currentUser.followersCount) }}</p>
           <p class="text-xs text-gray-400 group-hover:text-primary-400 transition-colors">Followers</p>
         </button>
-        <button @click="openFollowersModal('following')" class="text-center group cursor-pointer hover:scale-105 transition-transform min-w-[60px]">
+        <button @click="openFollowersModal('following')" class="text-center group cursor-pointer hover:scale-105 transition-transform min-w-15">
           <p class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors">{{ formatNumber(currentUser.followingCount) }}</p>
           <p class="text-xs text-gray-400 group-hover:text-primary-400 transition-colors">Following</p>
         </button>
