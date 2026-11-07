@@ -5,6 +5,7 @@ import { useSettings } from '@/composables/ui/useSettings'
 import { useConfirm } from '@/composables/ui/useConfirm'
 import { useToast } from '@/composables/ui/useToast'
 import { useAuthStore } from '@/stores/auth.store'
+import authApi from '@/api/auth.api'
 import http from '@/api/client'
 
 const { accountForm, showCurrentPassword, showNewPassword, showConfirmPassword, changePassword, isSaving } = useSettings()
@@ -36,6 +37,11 @@ async function handleDeactivateAccount() {
       }
     } catch {
       // ignore if report already exists
+    }
+    try {
+      await authApi.logout()
+    } catch {
+      // ignore logout network errors
     }
     authStore.clearAuth()
     toast.info('Đã gửi yêu cầu vô hiệu hóa tài khoản và đăng xuất khỏi phiên làm việc.')

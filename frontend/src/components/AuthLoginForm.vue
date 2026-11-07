@@ -20,12 +20,15 @@ const isLoading = ref(false)
 const emailError = ref('')
 const passwordError = ref('')
 
-function fillDemo(role: 'admin' | 'user') {
+function fillDemo(role: 'admin' | 'moderator' | 'user') {
   emailError.value = ''
   passwordError.value = ''
   emitError('update:error', '')
   if (role === 'admin') {
     email.value = 'admin@vietblog.com'
+    password.value = 'Password123!'
+  } else if (role === 'moderator') {
+    email.value = 'phamminhduc@gmail.com'
     password.value = 'Password123!'
   } else {
     email.value = 'nguyenvanan@gmail.com'
@@ -77,10 +80,13 @@ async function handleLogin() {
       password: password.value
     })
     authStore.setUser(data.data.user)
+    const pendingRedirect = uiStore.consumeAuthRedirect()
     uiStore.closeAuthModal()
     toast.success(`Chào mừng trở lại, ${data.data.user?.name || 'bạn'}!`)
     const role = (data.data.user?.role || '').toLowerCase()
-    if (role === 'admin') {
+    if (pendingRedirect) {
+      router.push(pendingRedirect)
+    } else if (role === 'admin') {
       router.push('/admin')
     } else if (role === 'moderator') {
       router.push('/admin/moderation')
@@ -153,7 +159,7 @@ async function handleLogin() {
     <!-- Quick Demo Accounts -->
     <div class="pt-2 border-t border-white/10">
       <div class="text-[11px] text-gray-400 mb-1.5 font-medium">Tài khoản demo sẵn (Bấm để điền nhanh):</div>
-      <div class="grid grid-cols-2 gap-2">
+      <div class="grid grid-cols-3 gap-1.5">
         <button
           type="button"
           @click="fillDemo('admin')"
@@ -164,6 +170,18 @@ async function handleLogin() {
             <span>Admin</span>
           </div>
           <div class="text-[10px] text-gray-400 font-mono truncate">admin@vietblog.com</div>
+        </button>
+
+        <button
+          type="button"
+          @click="fillDemo('moderator')"
+          class="p-2 rounded-xl text-left border border-emerald-500/30 bg-emerald-950/30 hover:bg-emerald-900/40 transition-colors cursor-pointer"
+        >
+          <div class="font-semibold text-xs text-emerald-300 flex items-center gap-1">
+            <ShieldCheck :size="12" />
+            <span>Mod</span>
+          </div>
+          <div class="text-[10px] text-gray-400 font-mono truncate">phamminhduc@gmail.com</div>
         </button>
 
         <button

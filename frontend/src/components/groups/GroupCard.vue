@@ -98,10 +98,12 @@ function toggleJoin() {
             'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95',
             group.isJoined
               ? 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30'
+              : !group.isPublic && authStore.isLoggedIn
+              ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40'
               : 'gradient-primary text-white hover:opacity-90 shadow-2xs'
           ]"
         >
-          {{ group.isJoined ? 'Đã tham gia' : 'Tham gia' }}
+          {{ group.isJoined ? 'Đã tham gia' : (!group.isPublic && authStore.isLoggedIn ? 'Cần lời mời' : 'Tham gia') }}
         </button>
       </div>
     </div>

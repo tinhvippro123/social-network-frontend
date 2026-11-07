@@ -208,37 +208,47 @@ function handleProseClick(e: MouseEvent) {
           </div>
         </div>
 
-        <!-- Interaction Bar -->
-        <PostInteractionBar
-          :post="post"
-          :isBookmarked="isBookmarked"
-          :userVote="userVote"
-          :currentUserReaction="currentUserReaction"
-          :activeEmojiPicker="activeEmojiPicker"
-          :emojiList="emojiList"
-          @upvote="handleUpvote"
-          @downvote="handleDownvote"
-          @toggleBookmark="toggleBookmark"
-          @toggleEmojiPicker="toggleEmojiPicker"
-          @toggleReaction="toggleReaction"
-          @report="handleOpenReport"
-          @scrollToComments="scrollToComments"
-        />
-
-        <!-- Comments Section -->
-        <div id="comments-section">
-          <PostComments
-            :comments="comments"
-            :user="user"
-            :replyingTo="replyingTo"
+        <template v-if="(post.status || 'published').toLowerCase() === 'published'">
+          <!-- Interaction Bar -->
+          <PostInteractionBar
+            :post="post"
+            :currentUserId="user?.id"
+            :isBookmarked="isBookmarked"
+            :userVote="userVote"
+            :currentUserReaction="currentUserReaction"
             :activeEmojiPicker="activeEmojiPicker"
-            @setReplyingTo="setReplyingTo"
-            @clearReplyingTo="clearReplyingTo"
+            :emojiList="emojiList"
+            @upvote="handleUpvote"
+            @downvote="handleDownvote"
+            @toggleBookmark="toggleBookmark"
             @toggleEmojiPicker="toggleEmojiPicker"
-            @addComment="addComment"
-            @replyComment="replyComment"
-            @deleteComment="deleteComment"
+            @toggleReaction="toggleReaction"
+            @report="handleOpenReport"
+            @scrollToComments="scrollToComments"
           />
+
+          <!-- Comments Section -->
+          <div id="comments-section">
+            <PostComments
+              :comments="comments"
+              :user="user"
+              :postAuthorId="post.author?.id"
+              :replyingTo="replyingTo"
+              :activeEmojiPicker="activeEmojiPicker"
+              @setReplyingTo="setReplyingTo"
+              @clearReplyingTo="clearReplyingTo"
+              @toggleEmojiPicker="toggleEmojiPicker"
+              @addComment="addComment"
+              @replyComment="replyComment"
+              @deleteComment="deleteComment"
+            />
+          </div>
+        </template>
+        <div
+          v-else
+          class="bg-amber-50/70 dark:bg-amber-950/20 rounded-2xl border border-amber-200/80 dark:border-amber-800/40 p-5 text-center text-sm text-amber-700 dark:text-amber-300"
+        >
+          Bài viết chưa được xuất bản công khai nên tính năng bình luận và tương tác tạm thời đóng.
         </div>
       </article>
 

@@ -85,14 +85,23 @@ export const useUiStore = defineStore('ui', () => {
   // ── Auth Modal ──────────────────────────────
   const showAuthModal = ref(false)
   const authModalTab = ref<'login' | 'register'>('login')
+  const authRedirectPath = ref<string | null>(null)
 
-  function openAuthModal(tab: 'login' | 'register' = 'login') {
+  function openAuthModal(tab: 'login' | 'register' = 'login', redirectPath: string | null = null) {
     authModalTab.value = tab
+    authRedirectPath.value = redirectPath
     showAuthModal.value = true
+  }
+
+  function consumeAuthRedirect(): string | null {
+    const target = authRedirectPath.value
+    authRedirectPath.value = null
+    return target
   }
 
   function closeAuthModal() {
     showAuthModal.value = false
+    authRedirectPath.value = null
   }
 
   return {
@@ -106,6 +115,6 @@ export const useUiStore = defineStore('ui', () => {
     searchQuery, isSearchOpen, pendingSearchFile, setPendingSearchFile, consumePendingSearchFile,
     fetchNotifications,
     // Auth Modal
-    showAuthModal, authModalTab, openAuthModal, closeAuthModal,
+    showAuthModal, authModalTab, authRedirectPath, openAuthModal, consumeAuthRedirect, closeAuthModal,
   }
 })

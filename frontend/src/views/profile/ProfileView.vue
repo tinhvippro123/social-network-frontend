@@ -13,6 +13,7 @@ import GroupCard from '@/components/groups/GroupCard.vue'
 import { useAuth } from '@/composables/auth/useAuth'
 import { useToast } from '@/composables/ui/useToast'
 import { useConfirm } from '@/composables/ui/useConfirm'
+import { useUiStore } from '@/stores/ui.store'
 import usersApi from '@/api/users.api'
 import groupsApi from '@/api/groups.api'
 import type { UserProfile } from '@/types'
@@ -20,6 +21,7 @@ import type { UserProfile } from '@/types'
 const router = useRouter()
 const route = useRoute()
 const { user: authUser } = useAuth()
+const uiStore = useUiStore()
 const toast = useToast()
 const { confirm } = useConfirm()
 
@@ -56,6 +58,8 @@ async function loadProfile() {
     const targetId = profileUserId.value || authUser.value?.id
     if (!targetId) {
       profileUser.value = null
+      uiStore.openAuthModal('login', '/profile')
+      router.replace('/')
       return
     }
     try {

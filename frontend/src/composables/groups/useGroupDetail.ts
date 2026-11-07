@@ -107,6 +107,10 @@ export function useGroupDetail() {
           users.value = []
         }
       } else {
+        if (group.value.isPublic === false) {
+          toast.info('Nhóm riêng tư chỉ có thể tham gia khi được Quản trị viên nhóm thêm vào')
+          return
+        }
         await joinGroup(group.value.id)
         toast.success(`Đã tham gia nhóm "${group.value.name}"`)
         await Promise.all([
@@ -231,6 +235,10 @@ export function useGroupDetail() {
     if (newId && newId !== oldId) {
       await initData()
     }
+  })
+
+  watch(() => authStore.user?.id, async () => {
+    await initData()
   })
 
   return {

@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGroups } from './useGroups'
 import { useGroupFilter } from './useGroupFilter'
@@ -58,6 +58,11 @@ export function useGroupsView() {
         await leaveGroup(targetGroup.id)
         toast.info(`Đã rời khỏi nhóm "${targetGroup.name}"`)
       } else {
+        if (targetGroup.isPublic === false) {
+          toast.info('Nhóm riêng tư chỉ dành cho thành viên được mời')
+          router.push(`/groups/${targetGroup.id}`)
+          return
+        }
         await joinGroup(targetGroup.id)
         toast.success(`Đã tham gia nhóm "${targetGroup.name}"`)
       }
@@ -67,6 +72,10 @@ export function useGroupsView() {
   }
 
   onMounted(() => {
+    initData()
+  })
+
+  watch(() => authStore.user?.id, () => {
     initData()
   })
 

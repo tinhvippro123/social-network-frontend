@@ -116,7 +116,7 @@
               Báo cáo
             </button>
             <button
-              v-if="user && (user.id === comment.author?.id || user.id === comment.authorId || ['admin', 'moderator'].includes((user.role || '').toLowerCase()))"
+              v-if="user && (user.id === comment.author?.id || user.id === comment.authorId || (postAuthorId && user.id === postAuthorId) || ['admin', 'moderator'].includes((user.role || '').toLowerCase()))"
               @click="handleDeleteComment"
               class="font-semibold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
             >
@@ -194,6 +194,7 @@
             :inline-reply-id="inlineReplyId"
             :active-emoji-picker="activeEmojiPicker"
             :user="user"
+            :post-author-id="postAuthorId"
             @reply="(tid, rid, aname) => $emit('reply', tid, rid, aname)"
             @submit-reply="(content, image) => $emit('submit-reply', content, image)"
             @cancel-reply="$emit('cancel-reply')"
@@ -262,13 +263,15 @@ interface Props {
   inlineReplyId?: string | null
   activeEmojiPicker?: string | null
   user?: any
+  postAuthorId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   level: 0,
   inlineReplyId: null,
   activeEmojiPicker: null,
-  user: null
+  user: null,
+  postAuthorId: undefined
 })
 
 const emit = defineEmits<{
@@ -414,6 +417,7 @@ const handleSubmitReply = (content: string, image: File | null) => {
 
 function toggleReaction(emoji: string) {
   if (!props.user) {
+    emit('toggle-emoji', null)
     toast.info('Vui lòng đăng nhập để thả cảm xúc')
     uiStore.openAuthModal('login')
     return

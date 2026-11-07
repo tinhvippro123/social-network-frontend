@@ -8,6 +8,7 @@ import CommentItem from '@/components/comments/CommentItem.vue'
 const props = defineProps<{
   comments: any[]
   user: any
+  postAuthorId?: string
   replyingTo: any
   activeEmojiPicker: string | null
 }>()
@@ -193,6 +194,7 @@ const cancelInlineReply = () => {
         :inline-reply-id="inlineReplyId"
         :active-emoji-picker="activeEmojiPicker"
         :user="user"
+        :post-author-id="postAuthorId"
         @reply="handleReplyClick"
         @submit-reply="handleInlineSubmit"
         @cancel-reply="cancelInlineReply"

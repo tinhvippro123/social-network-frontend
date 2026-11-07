@@ -21,6 +21,11 @@ export function useBookmarks() {
   })
 
   async function fetchBookmarked() {
+    if (!authStore.isLoggedIn) {
+      bookmarkedPosts.value = []
+      isLoading.value = false
+      return
+    }
     isLoading.value = true
     try {
       const { data } = await postsApi.getBookmarkedPosts(1, 50)
@@ -63,7 +68,11 @@ export function useBookmarks() {
     initData()
   })
 
-  watch(() => authStore.user?.id, () => {
+  watch(() => authStore.user?.id, (newUserId) => {
+    if (!newUserId) {
+      bookmarkedPosts.value = []
+      return
+    }
     initData()
   })
 

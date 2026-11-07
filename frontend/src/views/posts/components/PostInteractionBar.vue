@@ -16,6 +16,7 @@ import { COMMENT_EMOJIS } from '@/constants'
 const props = withDefaults(
   defineProps<{
     post: any
+    currentUserId?: string
     isBookmarked: boolean
     userVote?: 'UPVOTE' | 'DOWNVOTE' | null
     currentUserReaction?: string | null
@@ -309,6 +310,7 @@ const sharePost = async () => {
       </button>
 
       <button 
+        v-if="!currentUserId || post?.author?.id !== currentUserId"
         type="button"
         @click="emit('report')"
         class="flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-red-500 transition-all cursor-pointer"

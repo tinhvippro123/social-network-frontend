@@ -271,14 +271,22 @@ const handlePostCreated = (newPost: any) => {
           <Lock :size="48" class="mx-auto text-amber-500 mb-4" />
           <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Nhóm riêng tư</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-5">
-            Chỉ thành viên của nhóm mới có thể xem các bài thảo luận và danh sách thành viên. Hãy tham gia nhóm để kết nối cùng mọi người!
+            Chỉ thành viên của nhóm mới có thể xem các bài thảo luận và danh sách thành viên.
           </p>
           <button
+            v-if="!authStore.isLoggedIn"
             @click="handleToggleJoin"
             class="px-5 py-2.5 text-sm font-semibold text-white gradient-primary rounded-xl cursor-pointer shadow-md shadow-primary-500/20 hover:opacity-90 transition-opacity"
           >
-            Tham gia nhóm ngay
+            Đăng nhập để kiểm tra quyền thành viên
           </button>
+          <span
+            v-else
+            class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40"
+          >
+            <Lock :size="14" />
+            <span>Liên hệ Trưởng nhóm / Quản trị viên để được thêm vào nhóm</span>
+          </span>
         </div>
 
         <!-- Tab Content: Bài viết -->
@@ -338,10 +346,12 @@ const handlePostCreated = (newPost: any) => {
                       ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'
                       : item.role === 'ADMIN'
                       ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400'
+                      : item.role === 'MODERATOR'
+                      ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400'
                       : 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-300'
                   ]"
                 >
-                  {{ item.role === 'OWNER' ? 'Trưởng nhóm' : item.role === 'ADMIN' ? 'Quản trị viên' : 'Thành viên' }}
+                  {{ item.role === 'OWNER' ? 'Trưởng nhóm' : item.role === 'ADMIN' ? 'Quản trị viên' : item.role === 'MODERATOR' ? 'Kiểm duyệt viên' : 'Thành viên' }}
                 </span>
                 <button
                   v-if="isGroupOwner && item.role !== 'OWNER'"

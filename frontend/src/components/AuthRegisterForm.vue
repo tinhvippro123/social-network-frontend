@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Check } from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
@@ -7,6 +8,7 @@ import AuthPasswordStrength from './AuthPasswordStrength.vue'
 import authApi from '@/api/auth.api'
 import { useToast } from '@/composables/ui/useToast'
 
+const router = useRouter()
 const toast = useToast()
 
 const authStore = useAuthStore()
@@ -103,8 +105,12 @@ async function handleRegister() {
       password: password.value
     })
     authStore.setUser(data.data.user)
+    const pendingRedirect = uiStore.consumeAuthRedirect()
     uiStore.closeAuthModal()
     toast.success(`Chào mừng ${data.data.user?.name || name.value.trim()} đến với VietBlog!`)
+    if (pendingRedirect) {
+      router.push(pendingRedirect)
+    }
   } catch (err: any) {
     emitError('update:error', err.response?.data?.message || 'Đăng ký thất bại, vui lòng thử lại')
   } finally {

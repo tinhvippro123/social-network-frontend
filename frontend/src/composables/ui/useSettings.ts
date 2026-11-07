@@ -97,19 +97,32 @@ export function useSettings() {
 
   loadPersistedPrefs()
 
+  function updatePersistedPrefsSection(section: 'notificationSettings' | 'privacySettings', value: any) {
+    if (typeof window === 'undefined') return
+    try {
+      const key = getPrefsKey()
+      const existing = JSON.parse(localStorage.getItem(key) || '{}')
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          ...existing,
+          [section]: value,
+        })
+      )
+    } catch {
+      // ignore storage errors
+    }
+  }
+
   watch(
-    [notificationSettings, privacySettings],
-    () => {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(
-          getPrefsKey(),
-          JSON.stringify({
-            notificationSettings: notificationSettings.value,
-            privacySettings: privacySettings.value,
-          })
-        )
-      }
-    },
+    notificationSettings,
+    (val) => updatePersistedPrefsSection('notificationSettings', val),
+    { deep: true }
+  )
+
+  watch(
+    privacySettings,
+    (val) => updatePersistedPrefsSection('privacySettings', val),
     { deep: true }
   )
 

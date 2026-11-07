@@ -14,11 +14,12 @@ const {
   handleLogin
 } = useLogin()
 
-function fillDemo(role: 'admin' | 'user') {
-  emailError.value = ''
-  passwordError.value = ''
+function fillDemo(role: 'admin' | 'moderator' | 'user') {
   if (role === 'admin') {
     email.value = 'admin@vietblog.com'
+    password.value = 'Password123!'
+  } else if (role === 'moderator') {
+    email.value = 'phamminhduc@gmail.com'
     password.value = 'Password123!'
   } else {
     email.value = 'nguyenvanan@gmail.com'
@@ -109,7 +110,7 @@ function fillDemo(role: 'admin' | 'user') {
     <!-- Quick Demo Accounts -->
     <div class="mt-4 pt-4 border-t border-gray-100 dark:border-white/10">
       <div class="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">Tài khoản demo sẵn (Bấm để điền nhanh):</div>
-      <div class="grid grid-cols-2 gap-2">
+      <div class="grid grid-cols-3 gap-2">
         <button
           type="button"
           @click="fillDemo('admin')"
@@ -117,9 +118,21 @@ function fillDemo(role: 'admin' | 'user') {
         >
           <div class="font-semibold text-xs text-purple-700 dark:text-purple-300 flex items-center gap-1">
             <ShieldCheck :size="13" />
-            <span>Quản trị viên (Admin)</span>
+            <span>Admin</span>
           </div>
           <div class="text-[11px] text-gray-500 font-mono mt-0.5 truncate">admin@vietblog.com</div>
+        </button>
+
+        <button
+          type="button"
+          @click="fillDemo('moderator')"
+          class="p-2.5 rounded-xl text-left border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/60 dark:bg-emerald-950/20 hover:bg-emerald-100/80 transition-colors cursor-pointer"
+        >
+          <div class="font-semibold text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+            <ShieldCheck :size="13" />
+            <span>Moderator</span>
+          </div>
+          <div class="text-[11px] text-gray-500 font-mono mt-0.5 truncate">phamminhduc@gmail.com</div>
         </button>
 
         <button
@@ -129,7 +142,7 @@ function fillDemo(role: 'admin' | 'user') {
         >
           <div class="font-semibold text-xs text-blue-700 dark:text-blue-300 flex items-center gap-1">
             <User :size="13" />
-            <span>Người dùng (User)</span>
+            <span>User</span>
           </div>
           <div class="text-[11px] text-gray-500 font-mono mt-0.5 truncate">nguyenvanan@gmail.com</div>
         </button>

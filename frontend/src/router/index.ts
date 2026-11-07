@@ -236,9 +236,9 @@ router.beforeEach(async (to, from, next) => {
   // Check if route requires auth (for regular users)
   if (to.meta.requiresAuth) {
     if (!authStore.isLoggedIn) {
-      // Show auth modal instead of redirecting away
+      // Show auth modal instead of redirecting away, preserving target route
       const uiStore = useUiStore()
-      uiStore.openAuthModal('login')
+      uiStore.openAuthModal('login', to.fullPath)
       // Stay on current page (or go home if no previous page)
       if (from.name) {
         return next(false)

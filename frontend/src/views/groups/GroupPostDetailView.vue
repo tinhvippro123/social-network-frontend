@@ -75,12 +75,19 @@ const loadData = async () => {
   isLoading.value = true
 
   try {
-    const [postRes, groupRes] = await Promise.all([
-      groupsApi.getPostById(groupId.value, postId.value),
-      groupsApi.getById(groupId.value)
-    ])
+    const groupRes = await groupsApi.getById(groupId.value)
+    const grp = groupRes.data.data
+    group.value = grp
+    const sysRole = (authStore.user?.role || '').toLowerCase()
+    const canReadGroup = grp?.isPublic !== false || grp?.isJoined || sysRole === 'admin' || sysRole === 'moderator'
+    if (!canReadGroup) {
+      toast.info('Nhóm riêng tư chỉ dành cho thành viên')
+      router.replace(`/groups/${groupId.value}`)
+      return
+    }
+
+    const postRes = await groupsApi.getPostById(groupId.value, postId.value)
     post.value = postRes.data.data
-    group.value = groupRes.data.data
 
     // Tải thêm các thảo luận khác trong nhóm này để hiển thị ở sidebar
     groupsApi.getPosts(groupId.value, { limit: 5 })
@@ -120,6 +127,10 @@ const goToPost = (targetPostId: string) => {
 }
 
 onMounted(() => {
+  loadData()
+})
+
+watch(() => authStore.user?.id, () => {
   loadData()
 })
 
