@@ -9,22 +9,22 @@
    ========================================== */
 
 @theme {
-  /* Primary Colors - Deep Oxford Navy (Muted Editorial Blue) */
-  --color-primary-50: #f0f4f8;
-  --color-primary-100: #d9e2ec;
-  --color-primary-200: #bcccdc;
-  --color-primary-300: #9fb3c8;
-  --color-primary-400: #7b9bb8;
-  --color-primary-500: #2b4c7e;
-  --color-primary-600: #1e3a5f;
-  --color-primary-700: #162d4c;
-  --color-primary-800: #102a43;
-  --color-primary-900: #0a1929;
+  /* Primary Colors - Classic Sapphire Blue (Balanced Brightness & Low Glare) */
+  --color-primary-50: #f2f6fc;
+  --color-primary-100: #e1ebf7;
+  --color-primary-200: #c5d9f0;
+  --color-primary-300: #9bbde4;
+  --color-primary-400: #6899d3;
+  --color-primary-500: #3568b2;
+  --color-primary-600: #2b579a;
+  --color-primary-700: #214478;
+  --color-primary-800: #1a365f;
+  --color-primary-900: #132847;
 
-  /* Accent Colors - Muted Steel Blue */
-  --color-accent-400: #7b9bb8;
-  --color-accent-500: #2b4c7e;
-  --color-accent-600: #1e3a5f;
+  /* Accent Colors - Classic Sapphire Blue */
+  --color-accent-400: #6899d3;
+  --color-accent-500: #3568b2;
+  --color-accent-600: #2b579a;
 
   /* Dark Mode Surface Colors - Neutral Charcoal */
   --color-surface-900: #18191a;

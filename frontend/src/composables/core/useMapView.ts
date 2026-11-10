@@ -117,9 +117,9 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
 
   const createEmojiIcon = (_emoji: string, active = false) => {
     const size = active ? 36 : 30
-    const color = active ? '#162d4c' : '#1e3a5f'
+    const color = active ? '#214478' : '#2b579a'
     return L.divIcon({
-      html: `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 3px 6px rgba(30,58,95,0.35));cursor:pointer;transition:transform 0.15s ease;">
+      html: `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 3px 6px rgba(43,87,154,0.35));cursor:pointer;transition:transform 0.15s ease;">
         <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
           <circle cx="12" cy="10" r="3" fill="#ffffff"/>
@@ -133,7 +133,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
   }
 
   const centerIcon = L.divIcon({
-    html: '<div style="width:18px;height:18px;border-radius:9999px;background:#1e3a5f;border:3px solid #fff;box-shadow:0 0 0 6px rgba(30,58,95,0.25);"></div>',
+    html: '<div style="width:18px;height:18px;border-radius:9999px;background:#2b579a;border:3px solid #fff;box-shadow:0 0 0 6px rgba(43,87,154,0.25);"></div>',
     iconSize: [18, 18],
     iconAnchor: [9, 9],
     className: 'emoji-marker'
@@ -187,9 +187,9 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
     const { lat, lng, label } = searchCenter.value
     L.circle([lat, lng], {
       radius: searchRadius.value * 1000,
-      color: '#1e3a5f',
+      color: '#2b579a',
       weight: 2,
-      fillColor: '#1e3a5f',
+      fillColor: '#2b579a',
       fillOpacity: 0.08,
       dashArray: '6 6'
     }).addTo(radiusLayer)
@@ -220,7 +220,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
           <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px; line-height: 1.3;">${escapeHtml(post.title)}</div>
           <div style="font-size: 11px; color: #888; display: flex; align-items: center; gap: 4px;">
             ${escapeHtml(post.category?.name || 'Chưa phân loại')}
-            ${distance !== null ? ` · <span style="color:#1e3a5f;font-weight:600;">cách ${formatDistance(distance)}</span>` : ''}
+            ${distance !== null ? ` · <span style="color:#2b579a;font-weight:600;">cách ${formatDistance(distance)}</span>` : ''}
           </div>
           ${post.eventStartTime ? `<div style="font-size: 11px; color: #d97706; margin-top: 4px;">${formatEventTime(post.eventStartTime, post.eventEndTime)}</div>` : ''}
         </div>
