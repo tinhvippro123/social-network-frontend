@@ -39,19 +39,31 @@ function close() {
 
         <!-- Modal -->
         <div class="relative w-full max-w-md bg-white dark:bg-surface-800 rounded-2xl shadow-xl border border-gray-200 dark:border-surface-700 overflow-hidden">
-          <!-- Close button -->
-          <button
-            @click="close"
-            class="absolute top-3.5 right-3.5 z-10 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all cursor-pointer"
-          >
-            <X :size="18" />
-          </button>
-
-          <!-- Header / Tab switch -->
+          <!-- Header: Title + Close button on top, full-width Tab switch below -->
           <div class="px-6 pt-5 pb-3">
-            <div class="flex items-center gap-1 bg-gray-100 dark:bg-surface-700/60 rounded-xl p-1 mb-3.5 pr-8">
+            <div class="flex items-start justify-between gap-3 mb-3.5">
+              <div>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white leading-snug">
+                  {{ uiStore.authModalTab === 'login' ? 'Chào mừng trở lại' : 'Tạo tài khoản mới' }}
+                </h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {{ uiStore.authModalTab === 'login' ? 'Đăng nhập để tiếp tục hành trình của bạn' : 'Tham gia cộng đồng VietBlog ngay hôm nay' }}
+                </p>
+              </div>
+              <button
+                @click="close"
+                type="button"
+                title="Đóng"
+                class="w-8 h-8 -mr-1 -mt-0.5 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all shrink-0 cursor-pointer"
+              >
+                <X :size="18" />
+              </button>
+            </div>
+
+            <div class="flex items-center gap-1 bg-gray-100 dark:bg-surface-700/60 rounded-xl p-1">
               <button
                 @click="uiStore.authModalTab = 'login'"
+                type="button"
                 :class="[
                   'flex-1 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer',
                   uiStore.authModalTab === 'login'
@@ -63,6 +75,7 @@ function close() {
               </button>
               <button
                 @click="uiStore.authModalTab = 'register'"
+                type="button"
                 :class="[
                   'flex-1 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer',
                   uiStore.authModalTab === 'register'
@@ -73,13 +86,6 @@ function close() {
                 Đăng ký
               </button>
             </div>
-
-            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-0.5">
-              {{ uiStore.authModalTab === 'login' ? 'Chào mừng trở lại' : 'Tạo tài khoản mới' }}
-            </h2>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              {{ uiStore.authModalTab === 'login' ? 'Đăng nhập để tiếp tục hành trình của bạn' : 'Tham gia cộng đồng VietBlog ngay hôm nay' }}
-            </p>
           </div>
 
           <!-- Error message -->
