@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, User } from '@lucide/vue'
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
 import { useToast } from '@/composables/ui/useToast'
@@ -19,22 +19,6 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const emailError = ref('')
 const passwordError = ref('')
-
-function fillDemo(role: 'admin' | 'moderator' | 'user') {
-  emailError.value = ''
-  passwordError.value = ''
-  emitError('update:error', '')
-  if (role === 'admin') {
-    email.value = 'admin@vietblog.com'
-    password.value = 'Password123!'
-  } else if (role === 'moderator') {
-    email.value = 'phamminhduc@gmail.com'
-    password.value = 'Password123!'
-  } else {
-    email.value = 'nguyenvanan@gmail.com'
-    password.value = 'Password123!'
-  }
-}
 
 defineProps<{
   error?: string
@@ -154,48 +138,6 @@ async function handleLogin() {
       >
         Quên mật khẩu?
       </button>
-    </div>
-
-    <!-- Quick Demo Accounts -->
-    <div class="pt-2 border-t border-white/10">
-      <div class="text-[11px] text-gray-400 mb-1.5 font-medium">Tài khoản demo sẵn (Bấm để điền nhanh):</div>
-      <div class="grid grid-cols-3 gap-1.5">
-        <button
-          type="button"
-          @click="fillDemo('admin')"
-          class="p-2 rounded-xl text-left border border-purple-500/30 bg-purple-950/30 hover:bg-purple-900/40 transition-colors cursor-pointer"
-        >
-          <div class="font-semibold text-xs text-purple-300 flex items-center gap-1">
-            <ShieldCheck :size="12" />
-            <span>Admin</span>
-          </div>
-          <div class="text-[10px] text-gray-400 font-mono truncate">admin@vietblog.com</div>
-        </button>
-
-        <button
-          type="button"
-          @click="fillDemo('moderator')"
-          class="p-2 rounded-xl text-left border border-emerald-500/30 bg-emerald-950/30 hover:bg-emerald-900/40 transition-colors cursor-pointer"
-        >
-          <div class="font-semibold text-xs text-emerald-300 flex items-center gap-1">
-            <ShieldCheck :size="12" />
-            <span>Mod</span>
-          </div>
-          <div class="text-[10px] text-gray-400 font-mono truncate">phamminhduc@gmail.com</div>
-        </button>
-
-        <button
-          type="button"
-          @click="fillDemo('user')"
-          class="p-2 rounded-xl text-left border border-blue-500/30 bg-blue-950/30 hover:bg-blue-900/40 transition-colors cursor-pointer"
-        >
-          <div class="font-semibold text-xs text-blue-300 flex items-center gap-1">
-            <User :size="12" />
-            <span>User</span>
-          </div>
-          <div class="text-[10px] text-gray-400 font-mono truncate">nguyenvanan@gmail.com</div>
-        </button>
-      </div>
     </div>
 
     <!-- Submit -->
