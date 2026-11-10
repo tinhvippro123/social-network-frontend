@@ -24,7 +24,7 @@ const router = useRouter()
     >
       <div class="relative">
         <img v-if="selectedPost.coverImage" :src="selectedPost.coverImage" class="w-full h-36 object-cover" />
-        <div v-else class="w-full h-36 bg-linear-to-br from-primary-100 to-teal-100 dark:from-primary-900/40 dark:to-teal-900/30 flex items-center justify-center">
+        <div v-else class="w-full h-36 bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center">
           <MapPin :size="36" class="text-primary-500" />
         </div>
         <button
@@ -50,7 +50,7 @@ const router = useRouter()
           <MapPin :size="12" class="text-primary-500 shrink-0" />
           <span class="truncate">{{ selectedPost.location?.address }}</span>
         </div>
-        <div v-if="distanceTo(selectedPost) !== null" class="flex items-center gap-2 text-xs text-teal-600 dark:text-teal-400 font-semibold mb-2">
+        <div v-if="distanceTo(selectedPost) !== null" class="flex items-center gap-2 text-xs text-primary-600 dark:text-primary-400 font-semibold mb-2">
           <Ruler :size="12" />
           <span>Cách tâm tìm kiếm {{ formatDistance(distanceTo(selectedPost)!) }}</span>
         </div>
