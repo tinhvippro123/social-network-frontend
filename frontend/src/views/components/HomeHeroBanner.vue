@@ -15,16 +15,16 @@ const greeting = computed(() => {
 </script>
 
 <template>
-  <div class="relative overflow-hidden rounded-2xl bg-primary-600 p-6 sm:p-8 mb-6 shadow-sm">
+  <div class="relative overflow-hidden rounded-2xl bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 p-6 sm:p-8 mb-6 shadow-xs">
     <div class="relative z-10">
-      <div class="flex items-center gap-2 mb-2.5">
-        <Flame :size="18" class="text-primary-100" />
-        <span class="text-primary-100 text-sm font-medium">Chào mừng đến VietBlog</span>
+      <div class="flex items-center gap-2 mb-2">
+        <Flame :size="18" class="text-primary-500" />
+        <span class="text-primary-600 dark:text-primary-400 text-sm font-semibold">Chào mừng đến VietBlog</span>
       </div>
-      <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1.5">
         {{ greeting }}, {{ userName }}
       </h1>
-      <p class="text-primary-50 text-sm sm:text-base max-w-lg">
+      <p class="text-gray-500 dark:text-gray-400 text-sm sm:text-base max-w-lg">
         Hôm nay có gì mới để khám phá?
       </p>
     </div>
