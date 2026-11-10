@@ -9,22 +9,23 @@
    ========================================== */
 
 @theme {
-  /* Primary Colors - Teal */
-  --color-primary-50: #f0fdfa;
-  --color-primary-100: #ccfbf1;
-  --color-primary-200: #99f6e4;
-  --color-primary-300: #5eead4;
-  --color-primary-400: #2dd4bf;
-  --color-primary-500: #14b8a6;
-  --color-primary-600: #0d9488;
-  --color-primary-700: #0f766e;
-  --color-primary-800: #115e59;
-  --color-primary-900: #134e4a;
+  /* Primary Colors - Dark Slate Editorial */
+  --color-primary-50: #f8fafc;
+  --color-primary-100: #f1f5f9;
+  --color-primary-200: #e2e8f0;
+  --color-primary-300: #cbd5e1;
+  --color-primary-400: #94a3b8;
+  --color-primary-500: #1e293b;
+  --color-primary-600: #1e293b;
+  --color-primary-700: #0f172a;
+  --color-primary-800: #0f172a;
+  --color-primary-900: #020617;
+  --color-primary-950: #020617;
 
-  /* Accent Colors - Cyan */
-  --color-accent-400: #22d3ee;
-  --color-accent-500: #06b6d4;
-  --color-accent-600: #0891b2;
+  /* Accent Colors - Slate */
+  --color-accent-400: #94a3b8;
+  --color-accent-500: #475569;
+  --color-accent-600: #1e293b;
 
   /* Dark Mode Surface Colors - Slate */
   --color-surface-900: #0f172a;
@@ -104,15 +105,15 @@
   }
 
   .gradient-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white shadow-xs transition-colors;
+    @apply bg-primary-600 hover:bg-primary-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white shadow-xs transition-colors;
   }
 
   .gradient-accent {
-    @apply bg-primary-600;
+    @apply bg-primary-600 dark:bg-slate-700;
   }
 
   .text-gradient {
-    @apply text-primary-600 dark:text-primary-400;
+    @apply text-primary-600 dark:text-slate-100;
   }
 
   .glow {

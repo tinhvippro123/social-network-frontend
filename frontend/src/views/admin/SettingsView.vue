@@ -76,7 +76,7 @@ const {
         <!-- Features -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
           <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-5">
-            <Database :size="18" class="text-teal-500" /> Tính năng
+            <Database :size="18" class="text-primary-600 dark:text-primary-300" /> Tính năng
           </h3>
           <div class="space-y-4">
             <AdminSettingCheckbox

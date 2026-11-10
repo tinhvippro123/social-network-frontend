@@ -46,7 +46,7 @@ const barHeight = (val: number, list: number[]) => {
         <div class="flex items-end justify-between gap-1.5 h-48">
           <div v-for="(val, i) in stats.postGrowth" :key="i" class="flex-1 min-w-0 flex flex-col items-center gap-2" :title="`${stats.growthLabels[i]}: ${val}`">
             <span v-if="stats.postGrowth.length <= 14" class="text-xs text-gray-400 font-medium">{{ val }}</span>
-            <div class="w-full bg-linear-to-t from-blue-500 to-cyan-400 rounded-t-lg transition-all duration-700" :style="{ height: `${barHeight(val, stats.postGrowth)}px` }" />
+            <div class="w-full bg-primary-600 dark:bg-slate-600 rounded-t-lg transition-all duration-700" :style="{ height: `${barHeight(val, stats.postGrowth)}px` }" />
             <span v-if="stats.postGrowth.length <= 14 || Number(i) % 5 === 0" class="text-[10px] text-gray-400 truncate">{{ stats.growthLabels[i] }}</span>
           </div>
         </div>

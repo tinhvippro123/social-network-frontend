@@ -45,7 +45,7 @@ const goToProfile = (userId?: string) => {
       />
       <div
         v-else
-        class="w-full h-full bg-linear-to-br from-primary-50 via-teal-50/80 to-emerald-100/70 dark:from-primary-950/50 dark:via-surface-700 dark:to-teal-900/30 border border-primary-100/80 dark:border-surface-600/60 rounded-xl flex flex-col items-center justify-center gap-1.5 group-hover:scale-[1.02] transition-transform duration-300"
+        class="w-full h-full bg-primary-50 dark:bg-surface-700 border border-primary-100/80 dark:border-surface-600/60 rounded-xl flex flex-col items-center justify-center gap-1.5 group-hover:scale-[1.02] transition-transform duration-300"
       >
         <div class="w-9 h-9 rounded-xl bg-white/85 dark:bg-surface-800/85 shadow-2xs flex items-center justify-center text-primary-500 dark:text-primary-400">
           <MessageSquare :size="18" />

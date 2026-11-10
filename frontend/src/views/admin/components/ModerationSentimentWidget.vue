@@ -219,17 +219,17 @@ onMounted(() => {
       </div>
       <div class="h-3 w-full bg-gray-100 dark:bg-surface-700 rounded-full overflow-hidden flex shadow-inner">
         <div
-          class="h-full bg-linear-to-r from-emerald-500 to-teal-400 transition-all duration-700"
+          class="h-full bg-emerald-500 transition-all duration-700"
           :style="{ width: `${positivePercent}%` }"
           :title="`Tích cực: ${stats.positive} (${positivePercent}%)`"
         />
         <div
-          class="h-full bg-linear-to-r from-blue-500 to-cyan-400 transition-all duration-700"
+          class="h-full bg-slate-400 transition-all duration-700"
           :style="{ width: `${neutralPercent}%` }"
           :title="`Trung lập: ${stats.neutral} (${neutralPercent}%)`"
         />
         <div
-          class="h-full bg-linear-to-r from-rose-500 to-red-500 transition-all duration-700"
+          class="h-full bg-rose-500 transition-all duration-700"
           :style="{ width: `${negativePercent}%` }"
           :title="`Tiêu cực: ${stats.negative} (${negativePercent}%)`"
         />
@@ -348,7 +348,7 @@ onMounted(() => {
           </div>
           <div class="p-2 rounded-lg bg-white/70 dark:bg-surface-800/70 border border-gray-100 dark:border-surface-700">
             <span class="text-gray-400 text-[10px] block">Xử lý phủ định</span>
-            <span class="font-medium text-teal-600 dark:text-teal-400">Đã kích hoạt</span>
+            <span class="font-medium text-primary-600 dark:text-primary-300">Đã kích hoạt</span>
           </div>
         </div>
       </div>

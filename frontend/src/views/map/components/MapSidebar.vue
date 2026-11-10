@@ -135,12 +135,12 @@ function distanceLabel(post: Post) {
     </div>
 
     <!-- Active nearby search banner -->
-    <div v-if="searchCenter" class="mx-4 mt-3 px-3 py-2 rounded-xl bg-teal-50 dark:bg-teal-900/20 border border-teal-200/70 dark:border-teal-800/50 flex items-start gap-2">
-      <div class="flex-1 min-w-0 text-xs text-teal-700 dark:text-teal-300">
+    <div v-if="searchCenter" class="mx-4 mt-3 px-3 py-2 rounded-xl bg-primary-50 dark:bg-surface-700/60 border border-primary-200/70 dark:border-surface-600 flex items-start gap-2">
+      <div class="flex-1 min-w-0 text-xs text-primary-700 dark:text-primary-300">
         <p class="font-semibold">Đang tìm trong bán kính {{ searchRadius }} km</p>
         <p class="truncate opacity-80">quanh {{ searchCenter.label }}</p>
       </div>
-      <button @click="emit('clearNearby')" class="text-xs font-semibold text-teal-700 dark:text-teal-300 hover:underline shrink-0">
+      <button @click="emit('clearNearby')" class="text-xs font-semibold text-primary-700 dark:text-primary-300 hover:underline shrink-0">
         Xem tất cả
       </button>
     </div>
@@ -182,7 +182,7 @@ function distanceLabel(post: Post) {
           <div class="flex items-center gap-1.5 mb-0.5">
             <span class="text-xs">{{ getCategoryEmoji(post.category?.slug || '') }}</span>
             <span class="text-xs text-gray-400">{{ post.category?.name || 'Chưa phân loại' }}</span>
-            <span v-if="distanceLabel(post)" class="ml-auto text-[11px] font-semibold text-teal-600 dark:text-teal-400 whitespace-nowrap">
+            <span v-if="distanceLabel(post)" class="ml-auto text-[11px] font-semibold text-primary-600 dark:text-primary-300 whitespace-nowrap">
               {{ distanceLabel(post) }}
             </span>
           </div>
@@ -308,7 +308,7 @@ function distanceLabel(post: Post) {
             <button
               v-else
               @click="emit('clearNearby')"
-              class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-teal-700 bg-teal-50 dark:bg-teal-900/20"
+              class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-surface-700"
             >
               Xem tất cả
             </button>
@@ -343,7 +343,7 @@ function distanceLabel(post: Post) {
                 <div class="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
                   <MapPin :size="10" class="text-primary-500 shrink-0" />
                   <span class="truncate">{{ post.location?.address }}</span>
-                  <span v-if="distanceLabel(post)" class="ml-auto font-semibold text-teal-600 whitespace-nowrap">{{ distanceLabel(post) }}</span>
+                  <span v-if="distanceLabel(post)" class="ml-auto font-semibold text-primary-600 dark:text-primary-300 whitespace-nowrap">{{ distanceLabel(post) }}</span>
                 </div>
                 <div class="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
                   <span class="flex items-center gap-0.5"><Eye :size="10" /> {{ formatNumber(post.viewsCount) }}</span>

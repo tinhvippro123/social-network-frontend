@@ -284,7 +284,7 @@ watch([groupId, postId], ([newGroupId, newPostId], [oldGroupId, oldPostId]) => {
             />
 
             <!-- Group Callout Footer -->
-            <div class="p-5 rounded-2xl bg-linear-to-r from-primary-50 to-teal-50 dark:from-primary-950/30 dark:to-teal-950/20 border border-primary-200/50 dark:border-primary-800/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-8">
+            <div class="p-5 rounded-2xl bg-primary-50 dark:bg-surface-700/40 border border-primary-200/60 dark:border-surface-600 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-8">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-primary-500/10 dark:bg-primary-400/20 text-primary-600 dark:text-primary-400 flex items-center justify-center shrink-0">
                   <MessageSquare :size="20" />
@@ -318,7 +318,7 @@ watch([groupId, postId], ([newGroupId, newPostId], [oldGroupId, oldPostId]) => {
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-xl overflow-hidden bg-primary-50 dark:bg-surface-700 shrink-0">
               <img v-if="group.avatar" :src="group.avatar" :alt="group.name" class="w-full h-full object-cover" />
-              <div v-else class="w-full h-full bg-linear-to-tr from-primary-500 to-teal-400 flex items-center justify-center text-white font-bold text-lg">
+              <div v-else class="w-full h-full bg-primary-600 flex items-center justify-center text-white font-bold text-lg">
                 {{ group.name?.[0]?.toUpperCase() }}
               </div>
             </div>
