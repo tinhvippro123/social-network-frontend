@@ -9,22 +9,22 @@
    ========================================== */
 
 @theme {
-  /* Primary Colors - Classic Sapphire Blue (Balanced Brightness & Low Glare) */
-  --color-primary-50: #f2f6fc;
-  --color-primary-100: #e1ebf7;
-  --color-primary-200: #c5d9f0;
-  --color-primary-300: #9bbde4;
-  --color-primary-400: #6899d3;
-  --color-primary-500: #3568b2;
-  --color-primary-600: #2b579a;
-  --color-primary-700: #214478;
-  --color-primary-800: #1a365f;
-  --color-primary-900: #132847;
+  /* Primary Colors - Facebook / Meta Blue (#0866ff) */
+  --color-primary-50: #eef5ff;
+  --color-primary-100: #d9e8ff;
+  --color-primary-200: #bcd7ff;
+  --color-primary-300: #8ebeff;
+  --color-primary-400: #599bff;
+  --color-primary-500: #0866ff;
+  --color-primary-600: #0866ff;
+  --color-primary-700: #0054d6;
+  --color-primary-800: #0043ab;
+  --color-primary-900: #003687;
 
-  /* Accent Colors - Classic Sapphire Blue */
-  --color-accent-400: #6899d3;
-  --color-accent-500: #3568b2;
-  --color-accent-600: #2b579a;
+  /* Accent Colors - Facebook Blue */
+  --color-accent-400: #599bff;
+  --color-accent-500: #0866ff;
+  --color-accent-600: #0054d6;
 
   /* Dark Mode Surface Colors - Neutral Charcoal */
   --color-surface-900: #18191a;
