@@ -54,7 +54,7 @@ const {
           :class="[
             'px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer',
             filterType === f.key
-              ? 'bg-primary-500 text-white shadow-xs'
+              ? 'bg-primary-600 text-white shadow-xs'
               : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700'
           ]"
         >

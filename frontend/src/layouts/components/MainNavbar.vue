@@ -147,7 +147,7 @@ function onNavbarImagePicked(event: Event) {
       <button
         v-if="user"
         @click="emit('navigate', '/posts/create')"
-        class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 transition-colors shadow-sm"
+        class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors shadow-xs"
       >
         <PenSquare :size="16" />
         <span>Viết bài</span>
@@ -189,7 +189,7 @@ function onNavbarImagePicked(event: Event) {
         </button>
         <button
           @click="uiStore.openAuthModal('register')"
-          class="flex items-center px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 shadow-xs transition-all cursor-pointer"
+          class="flex items-center px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 shadow-xs transition-all cursor-pointer"
         >
           Đăng ký
         </button>

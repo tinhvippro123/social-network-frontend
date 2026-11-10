@@ -27,7 +27,7 @@ const emit = defineEmits<{
         :alt="group.name"
         class="w-full h-full object-cover"
       />
-      <div v-else class="w-full h-full bg-linear-to-r from-primary-600 to-teal-500" />
+      <div v-else class="w-full h-full bg-primary-600" />
       <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
       
       <!-- Privacy Badge overlaid on banner top-right -->
@@ -36,8 +36,8 @@ const emit = defineEmits<{
           :class="[
             'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md shadow-md border',
             group.isPublic
-              ? 'bg-emerald-500/80 border-emerald-400/40 text-white'
-              : 'bg-amber-500/80 border-amber-400/40 text-white'
+              ? 'bg-primary-600/90 border-white/20 text-white'
+              : 'bg-amber-600/90 border-white/20 text-white'
           ]"
         >
           <Globe v-if="group.isPublic" :size="12" />

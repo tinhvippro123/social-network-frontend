@@ -46,15 +46,15 @@ function toggleJoin() {
         :alt="group.name"
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
-      <div v-else class="w-full h-full bg-linear-to-r from-primary-600 to-teal-500" />
+      <div v-else class="w-full h-full bg-primary-600" />
       <div class="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
       <div class="absolute top-3 right-3">
         <span
           :class="[
             'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold backdrop-blur-sm border',
             group.isPublic
-              ? 'bg-emerald-500/80 border-emerald-400/40 text-white'
-              : 'bg-amber-500/80 border-amber-400/40 text-white'
+              ? 'bg-primary-600/90 border-white/20 text-white'
+              : 'bg-amber-600/90 border-white/20 text-white'
           ]"
         >
           <Globe v-if="group.isPublic" :size="10" />
