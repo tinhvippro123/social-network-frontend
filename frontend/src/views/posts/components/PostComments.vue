@@ -125,12 +125,12 @@ const cancelInlineReply = () => {
       <!-- AI Sentiment Widget (Thesis Proposal: Biểu đồ tỉ lệ cảm xúc trên mỗi bài viết) -->
       <div
         v-if="sentimentStats && sentimentStats.total > 0"
-        class="flex flex-col gap-1.5 px-3 py-2 rounded-xl bg-linear-to-r from-emerald-50/70 via-indigo-50/40 to-purple-50/50 dark:from-surface-700 dark:to-surface-700 border border-gray-200/90 dark:border-surface-600 text-xs shadow-2xs min-w-56"
+        class="flex flex-col gap-1.5 px-3 py-2 rounded-xl bg-gray-50 dark:bg-surface-700/60 border border-gray-200/90 dark:border-surface-600 text-xs shadow-2xs min-w-56"
         title="Tỉ lệ cảm xúc tự động phân tích bởi giải thuật Lexicon-based NLP"
       >
         <div class="flex flex-wrap items-center gap-2.5">
-          <span class="inline-flex items-center gap-1 font-bold text-indigo-700 dark:text-indigo-300">
-            <Sparkles :size="13" class="text-indigo-500 animate-pulse" />
+          <span class="inline-flex items-center gap-1 font-bold text-primary-700 dark:text-primary-300">
+            <Sparkles :size="13" class="text-primary-600 dark:text-primary-400" />
             Cảm xúc AI:
           </span>
           <span v-if="sentimentStats.posPct > 0" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">

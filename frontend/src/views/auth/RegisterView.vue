@@ -140,7 +140,7 @@ function showTermsNotice(title: string) {
       <button
         type="submit"
         :disabled="isLoading || !agreeTerms"
-        class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-lg shadow-primary-500/25 disabled:opacity-50 cursor-pointer"
+        class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-xs disabled:opacity-50 cursor-pointer"
       >
         <span v-if="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         <template v-else>

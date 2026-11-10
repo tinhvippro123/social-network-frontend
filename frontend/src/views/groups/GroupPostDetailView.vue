@@ -204,7 +204,7 @@ watch([groupId, postId], ([newGroupId, newPostId], [oldGroupId, oldPostId]) => {
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Bài thảo luận này không tồn tại hoặc đã bị xóa khỏi nhóm.</p>
       <button
         @click="router.push(`/groups/${groupId}`)"
-        class="px-5 py-2.5 rounded-xl gradient-primary text-white text-sm font-semibold shadow-md shadow-primary-500/20 hover:opacity-90 transition-opacity cursor-pointer"
+        class="px-5 py-2.5 rounded-xl gradient-primary text-white text-sm font-semibold shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
       >
         Quay lại nhóm
       </button>

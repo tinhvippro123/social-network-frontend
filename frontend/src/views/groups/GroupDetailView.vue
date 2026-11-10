@@ -256,7 +256,7 @@ const handlePostCreated = (newPost: any) => {
           <button
             v-if="group.isJoined"
             @click="isCreatePostModalOpen = true"
-            class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-white gradient-primary hover:opacity-90 shadow-md shadow-primary-500/20 transition-all cursor-pointer shrink-0"
+            class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-white gradient-primary hover:opacity-90 shadow-xs transition-all cursor-pointer shrink-0"
           >
             <PenSquare :size="16" />
             <span>Viết bài thảo luận</span>
@@ -276,7 +276,7 @@ const handlePostCreated = (newPost: any) => {
           <button
             v-if="!authStore.isLoggedIn"
             @click="handleToggleJoin"
-            class="px-5 py-2.5 text-sm font-semibold text-white gradient-primary rounded-xl cursor-pointer shadow-md shadow-primary-500/20 hover:opacity-90 transition-opacity"
+            class="px-5 py-2.5 text-sm font-semibold text-white gradient-primary rounded-xl cursor-pointer shadow-xs hover:opacity-90 transition-opacity"
           >
             Đăng nhập để kiểm tra quyền thành viên
           </button>
@@ -420,7 +420,7 @@ const handlePostCreated = (newPost: any) => {
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Nhóm này không tồn tại hoặc đã bị xóa khỏi hệ thống.</p>
       <button
         @click="router.push('/groups')"
-        class="px-5 py-2.5 rounded-xl gradient-primary text-white text-sm font-semibold shadow-md shadow-primary-500/20 hover:opacity-90 transition-opacity cursor-pointer"
+        class="px-5 py-2.5 rounded-xl gradient-primary text-white text-sm font-semibold shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
       >
         Về danh sách nhóm
       </button>

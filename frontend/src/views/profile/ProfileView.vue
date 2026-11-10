@@ -170,7 +170,7 @@ watch(() => [route.params.id, authUser.value?.id], () => {
           :class="[
             'flex items-center justify-center gap-1.5 px-2 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm font-medium transition-all duration-200 sm:flex-1 cursor-pointer',
             activeTab === tab.key
-              ? 'bg-primary-500 text-white shadow-md shadow-primary-500/25'
+              ? 'bg-primary-500 text-white shadow-xs'
               : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700'
           ]"
         >

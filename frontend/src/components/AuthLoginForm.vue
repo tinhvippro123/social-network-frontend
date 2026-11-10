@@ -87,7 +87,7 @@ async function handleLogin() {
   <form @submit.prevent="handleLogin" class="px-8 pb-8 space-y-4">
     <!-- Email -->
     <div>
-      <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
       <div class="relative">
         <Mail :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
@@ -95,17 +95,17 @@ async function handleLogin() {
           type="email"
           placeholder="name@example.com"
           :class="[
-            'w-full pl-11 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
-            emailError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+            'w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-white/5 border rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+            emailError ? 'border-red-500 focus:ring-red-500/50' : 'border-gray-200 dark:border-white/10 focus:ring-primary-500/40 focus:border-primary-500'
           ]"
         />
       </div>
-      <p v-if="emailError" class="mt-1.5 text-xs text-red-400">{{ emailError }}</p>
+      <p v-if="emailError" class="mt-1.5 text-xs text-red-500 dark:text-red-400">{{ emailError }}</p>
     </div>
 
     <!-- Password -->
     <div>
-      <label class="block text-sm font-medium text-gray-300 mb-2">Mật khẩu</label>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mật khẩu</label>
       <div class="relative">
         <Lock :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
@@ -113,20 +113,20 @@ async function handleLogin() {
           :type="showPassword ? 'text' : 'password'"
           placeholder="••••••••"
           :class="[
-            'w-full pl-11 pr-12 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
-            passwordError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-primary-500/50 focus:border-primary-500/50'
+            'w-full pl-11 pr-12 py-3 bg-gray-50 dark:bg-white/5 border rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all',
+            passwordError ? 'border-red-500 focus:ring-red-500/50' : 'border-gray-200 dark:border-white/10 focus:ring-primary-500/40 focus:border-primary-500'
           ]"
         />
         <button
           type="button"
           @click="showPassword = !showPassword"
-          class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors cursor-pointer"
+          class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
         >
           <EyeOff v-if="showPassword" :size="18" />
           <Eye v-else :size="18" />
         </button>
       </div>
-      <p v-if="passwordError" class="mt-1.5 text-xs text-red-400">{{ passwordError }}</p>
+      <p v-if="passwordError" class="mt-1.5 text-xs text-red-500 dark:text-red-400">{{ passwordError }}</p>
     </div>
 
     <!-- Forgot password link -->
@@ -134,7 +134,7 @@ async function handleLogin() {
       <button
         type="button"
         @click="uiStore.closeAuthModal(); router.push('/forgot-password')"
-        class="text-xs text-primary-400 hover:text-primary-300 transition-colors font-medium cursor-pointer"
+        class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors font-medium cursor-pointer"
       >
         Quên mật khẩu?
       </button>
@@ -144,7 +144,7 @@ async function handleLogin() {
     <button
       type="submit"
       :disabled="isLoading"
-      class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 cursor-pointer"
+      class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white bg-primary-600 hover:bg-primary-700 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
     >
       <span v-if="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
       <template v-else>

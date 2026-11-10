@@ -116,7 +116,7 @@ async function handleResetPassword() {
         <button
           type="submit"
           :disabled="isLoading"
-          class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-lg shadow-primary-500/25 disabled:opacity-50"
+          class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-xs disabled:opacity-50"
         >
           <span v-if="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           <template v-else>
@@ -213,7 +213,7 @@ async function handleResetPassword() {
         <button
           type="submit"
           :disabled="isLoading"
-          class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-lg shadow-primary-500/25 disabled:opacity-50"
+          class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-xs disabled:opacity-50"
         >
           <span v-if="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           <template v-else>
@@ -248,7 +248,7 @@ async function handleResetPassword() {
 
         <router-link
           to="/login"
-          class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-lg shadow-primary-500/25"
+          class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-xs"
         >
           Đăng nhập ngay
           <ArrowRight :size="18" />

@@ -36,7 +36,7 @@ function toggleJoin() {
 <template>
   <div
     @click="router.push(`/groups/${group.id}`)"
-    class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col justify-between"
+    class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col justify-between"
   >
     <!-- Cover Banner (Facebook Group Style) -->
     <div class="relative h-36 overflow-hidden bg-gray-100 dark:bg-surface-700">

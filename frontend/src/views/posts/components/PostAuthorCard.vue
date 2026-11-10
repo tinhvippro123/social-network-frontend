@@ -126,7 +126,7 @@ function goToProfile() {
         'w-full py-2 rounded-xl text-sm font-medium transition-all cursor-pointer disabled:opacity-50',
         isFollowing
           ? 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-600 hover:border-red-300 hover:text-red-500 dark:hover:text-red-400'
-          : 'text-white gradient-primary hover:opacity-90 shadow-lg shadow-primary-500/25'
+          : 'text-white gradient-primary hover:opacity-90 shadow-xs'
       ]"
     >
       <span v-if="isFollowLoading" class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />

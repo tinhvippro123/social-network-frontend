@@ -176,7 +176,7 @@ const handleSubmit = async () => {
           <button
             type="submit"
             :disabled="isSubmitting"
-            class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white gradient-primary rounded-xl hover:opacity-90 transition-all cursor-pointer shadow-md shadow-primary-500/20 disabled:opacity-50"
+            class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white gradient-primary rounded-xl hover:opacity-90 transition-all cursor-pointer shadow-xs disabled:opacity-50"
           >
             <Send :size="15" />
             <span>{{ isSubmitting ? 'Đang đăng...' : 'Đăng bài' }}</span>

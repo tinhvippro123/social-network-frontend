@@ -88,8 +88,8 @@ function isItemActive(to: string) {
         :class="[
           'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group border mt-3 cursor-pointer',
           currentPath.startsWith('/admin')
-            ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20 border-purple-500'
-            : 'text-purple-600 dark:text-purple-400 bg-purple-50/60 dark:bg-purple-950/25 border-purple-200 dark:border-purple-800/50 hover:bg-purple-100 dark:hover:bg-purple-900/40'
+            ? 'bg-primary-600 text-white shadow-xs border-primary-600'
+            : 'text-primary-700 dark:text-primary-400 bg-primary-50/70 dark:bg-primary-950/30 border-primary-200 dark:border-primary-800/50 hover:bg-primary-100 dark:hover:bg-primary-900/40'
         ]"
       >
         <Shield :size="20" class="shrink-0 transition-transform duration-200 group-hover:scale-110" />

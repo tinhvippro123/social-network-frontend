@@ -101,7 +101,7 @@ const router = useRouter()
         <button 
           :disabled="isLoading"
           @click="onPublish"
-          class="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50"
+          class="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-xs disabled:opacity-50"
         >
           <Loader2 v-if="isLoading" :size="16" class="animate-spin" />
           <Send v-else :size="16" />

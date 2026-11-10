@@ -47,7 +47,7 @@ const {
               </p>
               <button
                 @click="router.push('/')"
-                class="px-6 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-lg shadow-primary-500/25 cursor-pointer"
+                class="px-6 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-xs cursor-pointer"
               >
                 Khám phá bài viết
               </button>

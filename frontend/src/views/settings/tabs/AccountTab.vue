@@ -125,7 +125,7 @@ async function handleDeleteAccount() {
       <button 
         @click="changePassword"
         :disabled="isSaving"
-        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
         <Save :size="16" v-if="!isSaving" />
         <span v-else class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
         {{ isSaving ? 'Đang cập nhật...' : 'Cập nhật mật khẩu' }}

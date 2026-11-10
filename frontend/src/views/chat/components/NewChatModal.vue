@@ -278,7 +278,7 @@ watch(() => props.show, async (val) => {
                 'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all cursor-pointer',
                 selectedUsers.length === 0 || isCreating
                   ? 'bg-gray-300 dark:bg-surface-600 cursor-not-allowed'
-                  : 'gradient-primary hover:opacity-90 shadow-lg shadow-primary-500/25'
+                  : 'gradient-primary hover:opacity-90 shadow-xs'
               ]"
             >
               <span v-if="isCreating" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>

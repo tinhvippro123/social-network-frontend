@@ -80,7 +80,7 @@ const handleBookmark = async (e: Event) => {
 <template>
   <article
     @click="handleClick"
-    class="group h-full flex flex-col bg-white dark:bg-surface-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 dark:hover:border-primary-500/30 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer"
+    class="group h-full flex flex-col bg-white dark:bg-surface-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-surface-700 hover:border-primary-500/30 dark:hover:border-primary-500/30 hover:shadow-md transition-all duration-300 cursor-pointer"
   >
     <!-- Cover Image -->
     <div class="relative overflow-hidden h-48">

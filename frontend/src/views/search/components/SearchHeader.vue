@@ -194,7 +194,7 @@ function toggleAiMode() {
           <button
             type="button"
             @click="triggerDocumentPicker"
-            class="p-2.5 rounded-2xl text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-all relative group cursor-pointer"
+            class="p-2.5 rounded-2xl text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/40 transition-all relative group cursor-pointer"
             title="Tìm bằng tài liệu (PDF, DOCX)"
           >
             <FileText :size="20" />
@@ -208,9 +208,9 @@ function toggleAiMode() {
             type="button"
             @click="emit('search')"
             :disabled="isSearching || (!query.trim() && !selectedFile)"
-            class="flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 bg-linear-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-xs sm:text-sm rounded-2xl shadow-sm transition-all shadow-primary-500/20 cursor-pointer"
+            class="flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-xs sm:text-sm rounded-2xl shadow-xs transition-colors cursor-pointer"
           >
-            <Sparkles v-if="textMode === 'semantic' || selectedFile" :size="16" class="animate-pulse" />
+            <Sparkles v-if="textMode === 'semantic' || selectedFile" :size="16" />
             <span>{{ isSearching ? 'Đang tìm...' : 'Tìm kiếm' }}</span>
           </button>
         </div>
@@ -232,14 +232,14 @@ function toggleAiMode() {
           <!-- Document icon -->
           <div
             v-else
-            class="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 flex items-center justify-center shrink-0"
+            class="w-12 h-12 rounded-xl bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-300 flex items-center justify-center shrink-0"
           >
             <FileType :size="24" />
           </div>
 
           <div class="truncate">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold px-2 py-0.5 rounded-md" :class="fileType === 'image' ? 'bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300' : 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300'">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-md" :class="fileType === 'image' ? 'bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300' : 'bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300'">
                 {{ fileType === 'image' ? '🖼️ Tìm kiếm theo ảnh' : '📄 Tìm kiếm theo tài liệu' }}
               </span>
               <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -290,12 +290,12 @@ function toggleAiMode() {
           :class="[
             'flex items-center gap-2 px-3.5 py-1.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all cursor-pointer border',
             textMode === 'semantic'
-              ? 'bg-linear-to-r from-purple-600 via-indigo-600 to-primary-600 text-white border-transparent shadow-sm shadow-purple-500/20'
-              : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-surface-700 hover:border-purple-400 dark:hover:border-purple-500'
+              ? 'bg-primary-600 text-white border-transparent shadow-xs'
+              : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-surface-700 hover:border-primary-400 dark:hover:border-primary-500'
           ]"
           title="Bật chế độ tìm kiếm thông minh theo ý nghĩa câu hỏi"
         >
-          <Sparkles :size="15" :class="textMode === 'semantic' ? 'animate-pulse text-amber-200' : 'text-purple-500'" />
+          <Sparkles :size="15" :class="textMode === 'semantic' ? 'text-amber-200' : 'text-primary-600 dark:text-primary-400'" />
           <span>Tìm kiếm AI</span>
           <span
             class="text-[11px] px-1.5 py-0.2 rounded-full font-medium"

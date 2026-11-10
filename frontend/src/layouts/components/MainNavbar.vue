@@ -189,7 +189,7 @@ function onNavbarImagePicked(event: Event) {
         </button>
         <button
           @click="uiStore.openAuthModal('register')"
-          class="flex items-center px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 shadow-lg shadow-primary-500/25 transition-all cursor-pointer"
+          class="flex items-center px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 shadow-xs transition-all cursor-pointer"
         >
           Đăng ký
         </button>

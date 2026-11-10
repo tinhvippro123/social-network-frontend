@@ -101,7 +101,7 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100 dark:border-surface-700">
       <div class="flex items-center gap-3">
-        <div class="p-2.5 rounded-xl bg-linear-to-br from-indigo-500/10 to-purple-500/10 text-indigo-500 dark:text-indigo-400 ring-1 ring-indigo-500/20">
+        <div class="p-2.5 rounded-xl bg-primary-500/10 text-primary-600 dark:text-primary-400 ring-1 ring-primary-500/20">
           <Brain :size="22" />
         </div>
         <div>
@@ -109,7 +109,7 @@ onMounted(() => {
             <h2 class="text-base font-bold text-gray-900 dark:text-white">
               Phân tích cảm xúc bình luận (AI Sentiment Analysis)
             </h2>
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary-50 dark:bg-primary-950/40 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800/50">
               <Sparkles :size="10" />
               Lexicon-based NLP
             </span>
@@ -242,7 +242,7 @@ onMounted(() => {
       class="mt-4 pt-4 border-t border-dashed border-gray-200 dark:border-surface-700 bg-gray-50/70 dark:bg-surface-900/50 -mx-5 -mb-5 p-5 rounded-b-2xl"
     >
       <div class="flex items-center gap-2 mb-2">
-        <Sparkles :size="16" class="text-purple-500" />
+        <Sparkles :size="16" class="text-primary-600 dark:text-primary-400" />
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
           Thử nghiệm trực tiếp giải thuật Lexicon-based Sentiment Analysis
         </h3>
@@ -291,12 +291,12 @@ onMounted(() => {
           v-model="testInput"
           type="text"
           placeholder="Nhập câu bình luận cần phân tích cảm xúc..."
-          class="flex-1 px-3.5 py-2 rounded-xl text-sm border border-gray-200 dark:border-surface-600 bg-white dark:bg-surface-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          class="flex-1 px-3.5 py-2 rounded-xl text-sm border border-gray-200 dark:border-surface-600 bg-white dark:bg-surface-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
         />
         <button
           type="submit"
           :disabled="isTesting || !testInput.trim()"
-          class="px-4 py-2 rounded-xl text-sm font-semibold bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-1.5 transition-colors disabled:opacity-50 shrink-0"
+          class="px-4 py-2 rounded-xl text-sm font-semibold bg-primary-600 hover:bg-primary-700 text-white flex items-center gap-1.5 transition-colors disabled:opacity-50 shrink-0"
         >
           <Send :size="14" />
           <span>{{ isTesting ? 'Đang phân tích...' : 'Phân tích' }}</span>

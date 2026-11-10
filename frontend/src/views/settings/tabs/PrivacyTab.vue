@@ -121,7 +121,7 @@ onMounted(() => {
         <p class="text-xs text-gray-400 mt-1">Khi bạn chặn ai đó, họ sẽ không thể gửi tin nhắn trực tiếp cho bạn.</p>
       </div>
       <div class="mt-6 flex justify-end">
-        <button @click="saveSettings" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 cursor-pointer">
+        <button @click="saveSettings" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all shadow-xs cursor-pointer">
           <Save :size="16" /> Lưu thay đổi
         </button>
       </div>

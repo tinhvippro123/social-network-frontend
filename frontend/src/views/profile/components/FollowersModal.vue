@@ -157,7 +157,7 @@ watch(() => [props.show, props.type, props.user?.id], ([show]) => {
                   'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer',
                   u.isFollowing
                     ? 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400'
-                    : 'bg-primary-500 text-white hover:bg-primary-600 shadow-md shadow-primary-500/25'
+                    : 'bg-primary-500 text-white hover:bg-primary-600 shadow-xs'
                 ]"
               >
                 <component :is="u.isFollowing ? UserMinus : UserPlus" :size="12" />

@@ -50,7 +50,7 @@ const emit = defineEmits<{
         :class="[
           'shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer',
           modelValue === 'all'
-            ? 'gradient-primary text-white shadow-md shadow-primary-500/20'
+            ? 'gradient-primary text-white shadow-xs'
             : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 border border-gray-200 dark:border-surface-700'
         ]"
       >
@@ -68,7 +68,7 @@ const emit = defineEmits<{
         :class="[
           'shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer',
           modelValue === cat.slug
-            ? 'gradient-primary text-white shadow-md shadow-primary-500/20'
+            ? 'gradient-primary text-white shadow-xs'
             : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 border border-gray-200 dark:border-surface-700'
         ]"
       >

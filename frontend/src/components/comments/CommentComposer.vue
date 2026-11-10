@@ -73,7 +73,7 @@
         <button v-if="showCancel" @click="$emit('cancel')" :class="['text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 rounded-md transition-colors font-medium', compact ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm']">
           Hủy
         </button>
-        <button @click="handleSubmit" :disabled="!content.trim() && !attachedImage" :class="['rounded-md gradient-primary text-white font-semibold hover:opacity-90 transition-all shadow-md shadow-primary-500/30 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed', compact ? 'px-2 py-1 text-[10px]' : 'px-3 py-1.5 text-xs']">
+        <button @click="handleSubmit" :disabled="!content.trim() && !attachedImage" :class="['rounded-md gradient-primary text-white font-semibold hover:opacity-90 transition-all shadow-xs flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed', compact ? 'px-2 py-1 text-[10px]' : 'px-3 py-1.5 text-xs']">
           <Send :size="compact ? 10 : 14" />
           Gửi
         </button>

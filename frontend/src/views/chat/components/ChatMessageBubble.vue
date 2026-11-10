@@ -83,7 +83,7 @@ function openSenderProfile() {
         (msg.type === 'image' && !hasImageCaption) ? '' : 'px-4 py-2.5 shadow-sm border',
         (msg.type === 'image' && !hasImageCaption) ? '' : (msg.isRevoked ? 'bg-gray-100 dark:bg-surface-800 text-gray-500 italic border-gray-200 dark:border-surface-700' :
         msg.isOwn ? 'bg-primary-500 text-white border-primary-600 rounded-br-sm' : 'bg-white dark:bg-surface-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-surface-700 rounded-bl-sm'),
-        highlightedMessageId === msg.id ? 'ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-surface-900 shadow-md shadow-primary-500/25 scale-[1.01]' : searchResults.find((r: any) => r.id === msg.id) ? 'ring-2 ring-yellow-400 ring-offset-2 dark:ring-offset-surface-900' : ''
+        highlightedMessageId === msg.id ? 'ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-surface-900 shadow-xs scale-[1.01]' : searchResults.find((r: any) => r.id === msg.id) ? 'ring-2 ring-yellow-400 ring-offset-2 dark:ring-offset-surface-900' : ''
       ]">
         <!-- Revoked message -->
         <template v-if="msg.isRevoked">

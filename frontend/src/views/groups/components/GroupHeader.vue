@@ -100,7 +100,7 @@ const emit = defineEmits<{
                 ? 'bg-gray-100 dark:bg-surface-700 text-gray-700 dark:text-gray-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400 border border-gray-200 dark:border-surface-600'
                 : group.isPublic === false
                 ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40'
-                : 'gradient-primary text-white hover:opacity-90 shadow-md shadow-primary-500/20'
+                : 'gradient-primary text-white hover:opacity-90 shadow-xs'
             ]"
           >
             <Check v-if="group.isJoined" :size="16" class="stroke-3" />

@@ -311,7 +311,7 @@ const tabs = [
         <!-- Elegant AI Badge -->
         <span
           v-if="textMode === 'semantic' && !selectedFile"
-          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-2xs"
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-950/60 dark:text-primary-300 border border-primary-200 dark:border-primary-800 shadow-2xs"
         >
           <Sparkles :size="12" /> AI Search
         </span>
@@ -327,7 +327,7 @@ const tabs = [
         <!-- Elegant Document Badge -->
         <span
           v-else-if="selectedFile && fileType === 'document'"
-          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shadow-2xs"
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200 dark:border-teal-800 shadow-2xs"
         >
           <FileText :size="12" /> Tìm bằng tài liệu
         </span>
@@ -384,7 +384,7 @@ const tabs = [
         <div v-if="textMode === 'keyword' && !selectedFile" class="mt-5">
           <button
             @click="textMode = 'semantic'"
-            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-linear-to-r from-purple-600 to-indigo-600 text-white font-medium text-sm shadow-sm hover:from-purple-700 hover:to-indigo-700 transition-all cursor-pointer"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-medium text-sm shadow-xs transition-colors cursor-pointer"
           >
             <Sparkles :size="16" />
             <span>Thử tìm bằng Tìm kiếm AI</span>
@@ -395,7 +395,7 @@ const tabs = [
       <!-- Initial State (No search yet): Show Trending Suggestions & Recommended Posts -->
       <div v-else class="space-y-8">
         <!-- Quick Suggestions Section -->
-        <div class="p-6 bg-linear-to-br from-primary-50/50 via-white to-indigo-50/30 dark:from-surface-800 dark:via-surface-850 dark:to-surface-800 rounded-3xl border border-primary-100 dark:border-surface-700">
+        <div class="p-6 bg-gray-50/80 dark:bg-surface-800 rounded-3xl border border-gray-200/80 dark:border-surface-700">
           <div class="flex items-center gap-2 mb-3">
             <TrendingUp :size="18" class="text-primary-600 dark:text-primary-400" />
             <h3 class="font-bold text-gray-900 dark:text-white text-base">Từ khóa nổi bật & Gợi ý</h3>

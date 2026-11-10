@@ -69,7 +69,7 @@ onMounted(async () => {
       <p class="text-gray-500 text-sm">{{ errorMessage }}</p>
       <button
         @click="router.push('/')"
-        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-lg shadow-primary-500/20"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-xs"
       >
         <ArrowLeft :size="16" /> Về trang chủ
       </button>

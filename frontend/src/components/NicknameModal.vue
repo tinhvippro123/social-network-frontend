@@ -116,7 +116,7 @@ function handleReset() {
             <button
               @click="handleSave"
               type="button"
-              class="px-5 py-2 text-xs font-semibold text-white gradient-primary hover:opacity-90 rounded-xl transition-all shadow-md shadow-primary-500/25 cursor-pointer"
+              class="px-5 py-2 text-xs font-semibold text-white gradient-primary hover:opacity-90 rounded-xl transition-all shadow-xs cursor-pointer"
             >
               Lưu biệt danh
             </button>

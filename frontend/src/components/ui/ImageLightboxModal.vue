@@ -247,7 +247,7 @@ onUnmounted(() => {
               class="relative shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer border"
               :class="
                 idx === currentIndex
-                  ? 'ring-2 ring-primary-500 scale-105 border-primary-500 shadow-md shadow-primary-500/30'
+                  ? 'ring-2 ring-primary-500 scale-105 border-primary-500 shadow-xs'
                   : 'opacity-50 hover:opacity-100 border-white/10 hover:scale-100'
               "
             >

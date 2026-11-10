@@ -92,7 +92,7 @@ watch(() => newMessage.value, () => {
         <button
           @click="handleSendMessage"
           :disabled="!newMessage?.trim()"
-          class="p-3 rounded-xl gradient-primary text-white hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="p-3 rounded-xl gradient-primary text-white hover:opacity-90 transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <SendIcon :size="18" />
         </button>

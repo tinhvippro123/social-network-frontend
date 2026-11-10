@@ -83,14 +83,14 @@ async function copySummary() {
 </script>
 
 <template>
-  <div class="my-6 rounded-2xl border border-indigo-200/80 dark:border-indigo-900/50 bg-linear-to-br from-indigo-50/70 via-purple-50/40 to-white dark:from-indigo-950/20 dark:via-purple-950/10 dark:to-surface-900 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+  <div class="my-6 rounded-2xl border border-primary-200/80 dark:border-primary-900/50 bg-primary-50/40 dark:bg-surface-800/80 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
     <!-- Header / Trigger Bar -->
     <div
       @click="handleToggle"
       class="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5 cursor-pointer select-none transition-colors"
     >
       <div class="flex items-center gap-3">
-        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-tr from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20">
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-primary-600 text-white shadow-xs">
           <Sparkles :size="20" class="animate-pulse" />
         </div>
         <div>
@@ -98,7 +98,7 @@ async function copySummary() {
             <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
               Tóm tắt bài viết bằng AI
             </h3>
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-indigo-700 dark:text-indigo-300 bg-indigo-100/80 dark:bg-indigo-900/40 rounded-full border border-indigo-200 dark:border-indigo-800/60">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-primary-700 dark:text-primary-300 bg-primary-100/80 dark:bg-primary-900/40 rounded-full border border-primary-200 dark:border-primary-800/60">
               <BrainCircuit :size="12" />
               TextRank + TF-IDF
             </span>
@@ -116,7 +116,7 @@ async function copySummary() {
           class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all shadow-sm"
           :class="isExpanded
             ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-surface-800 dark:hover:bg-surface-700 dark:text-gray-300'
-            : 'bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-indigo-500/25'"
+            : 'bg-primary-600 hover:bg-primary-700 text-white'"
         >
           <template v-if="!isExpanded">
             <Sparkles :size="14" />
@@ -131,7 +131,7 @@ async function copySummary() {
     </div>
 
     <!-- Collapsible Content -->
-    <div v-if="isExpanded" class="border-t border-indigo-100 dark:border-indigo-950/60 p-4 sm:p-5 pt-3">
+    <div v-if="isExpanded" class="border-t border-primary-100 dark:border-primary-950/60 p-4 sm:p-5 pt-3">
       <!-- Toolbar: View Mode & Số câu & Copy -->
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100 dark:border-surface-800 text-xs">
         <div class="flex flex-wrap items-center gap-3">
@@ -141,7 +141,7 @@ async function copySummary() {
               type="button"
               @click.stop="viewMode = 'paragraph'"
               :class="viewMode === 'paragraph'
-                ? 'bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-400 font-bold shadow-xs'
+                ? 'bg-white dark:bg-surface-700 text-primary-600 dark:text-primary-400 font-bold shadow-xs'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'"
               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all text-xs"
             >
@@ -152,7 +152,7 @@ async function copySummary() {
               type="button"
               @click.stop="viewMode = 'bullet'"
               :class="viewMode === 'bullet'
-                ? 'bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-400 font-bold shadow-xs'
+                ? 'bg-white dark:bg-surface-700 text-primary-600 dark:text-primary-400 font-bold shadow-xs'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'"
               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all text-xs"
             >
@@ -168,7 +168,7 @@ async function copySummary() {
               @click.stop="changeSentencesCount(3)"
               :disabled="isLoading"
               :class="sentencesCount === 3
-                ? 'bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-400 font-bold shadow-xs'
+                ? 'bg-white dark:bg-surface-700 text-primary-600 dark:text-primary-400 font-bold shadow-xs'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'"
               class="px-2.5 py-1 rounded-md transition-all text-xs"
             >
@@ -179,7 +179,7 @@ async function copySummary() {
               @click.stop="changeSentencesCount(5)"
               :disabled="isLoading"
               :class="sentencesCount === 5
-                ? 'bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-400 font-bold shadow-xs'
+                ? 'bg-white dark:bg-surface-700 text-primary-600 dark:text-primary-400 font-bold shadow-xs'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'"
               class="px-2.5 py-1 rounded-md transition-all text-xs"
             >
@@ -220,13 +220,13 @@ async function copySummary() {
 
       <!-- Loading Skeleton -->
       <div v-if="isLoading" class="space-y-3 py-2">
-        <div class="flex items-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+        <div class="flex items-center gap-2 text-xs font-semibold text-primary-600 dark:text-primary-400">
           <RefreshCw :size="14" class="animate-spin" />
           <span>Đang phân tích đồ thị câu và tính toán trọng số TextRank...</span>
         </div>
-        <div class="h-4 bg-indigo-200/50 dark:bg-indigo-900/30 rounded-md animate-pulse w-full"></div>
-        <div class="h-4 bg-indigo-200/50 dark:bg-indigo-900/30 rounded-md animate-pulse w-11/12"></div>
-        <div class="h-4 bg-indigo-200/50 dark:bg-indigo-900/30 rounded-md animate-pulse w-4/5"></div>
+        <div class="h-4 bg-primary-200/50 dark:bg-primary-900/30 rounded-md animate-pulse w-full"></div>
+        <div class="h-4 bg-primary-200/50 dark:bg-primary-900/30 rounded-md animate-pulse w-11/12"></div>
+        <div class="h-4 bg-primary-200/50 dark:bg-primary-900/30 rounded-md animate-pulse w-4/5"></div>
       </div>
 
       <!-- Error State -->
@@ -246,9 +246,9 @@ async function copySummary() {
         <!-- Chế độ 1: Đoạn văn liền mạch (Mặc định) -->
         <div
           v-if="viewMode === 'paragraph'"
-          class="p-4 sm:p-5 rounded-xl bg-white/90 dark:bg-surface-800/90 border border-indigo-100 dark:border-surface-700 shadow-2xs backdrop-blur-xs relative overflow-hidden"
+          class="p-4 sm:p-5 rounded-xl bg-white/90 dark:bg-surface-800/90 border border-primary-100 dark:border-surface-700 shadow-2xs backdrop-blur-xs relative overflow-hidden"
         >
-          <div class="absolute -bottom-2 -right-2 text-indigo-500/10 dark:text-indigo-400/10 pointer-events-none select-none">
+          <div class="absolute -bottom-2 -right-2 text-primary-500/10 dark:text-primary-400/10 pointer-events-none select-none">
             <Quote :size="80" />
           </div>
           <p class="relative z-10 text-[14.5px] leading-relaxed text-gray-800 dark:text-gray-200 font-normal text-justify">
@@ -261,9 +261,9 @@ async function copySummary() {
           <div
             v-for="(sentence, idx) in summaryData.sentences"
             :key="idx"
-            class="flex items-start gap-3 p-3 rounded-xl bg-white/80 dark:bg-surface-800/80 border border-indigo-100/70 dark:border-surface-700 shadow-2xs backdrop-blur-xs transition-all hover:border-indigo-300 dark:hover:border-indigo-700"
+            class="flex items-start gap-3 p-3 rounded-xl bg-white/80 dark:bg-surface-800/80 border border-primary-100/70 dark:border-surface-700 shadow-2xs backdrop-blur-xs transition-all hover:border-primary-300 dark:hover:border-primary-700"
           >
-            <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-[11px] font-bold">
+            <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300 text-[11px] font-bold">
               {{ idx + 1 }}
             </span>
             <p class="text-sm leading-relaxed text-gray-800 dark:text-gray-200 font-normal">
@@ -278,7 +278,7 @@ async function copySummary() {
             <Quote :size="12" />
             <span>Trích xuất câu quan trọng bằng TextRank, giữ nguyên tính khách quan từ bài viết gốc.</span>
           </div>
-          <span class="font-mono text-[10px] text-indigo-500/80">
+          <span class="font-mono text-[10px] text-primary-500/80">
             alg: {{ summaryData.algorithm }}
           </span>
         </div>

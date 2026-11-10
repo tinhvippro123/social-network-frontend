@@ -38,7 +38,7 @@ const handleClick = () => {
     @click="handleClick"
     :class="[
       'flex gap-4 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-5 transition-all duration-300 cursor-pointer group',
-      isDraft ? 'hover:border-yellow-500/30 hover:shadow-lg' : 'hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/5'
+      isDraft ? 'hover:border-yellow-500/30 hover:shadow-lg' : 'hover:border-primary-500/30 hover:shadow-md'
     ]"
   >
     <!-- Cover Image with Fallback -->

@@ -121,7 +121,7 @@ const {
               </div>
               <button
                 @click="confirm"
-                class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 shrink-0"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all shadow-xs shrink-0"
               >
                 <Check :size="16" />
                 Xác nhận
