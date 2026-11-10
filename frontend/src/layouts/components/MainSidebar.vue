@@ -58,7 +58,7 @@ function isItemActive(to: string) {
         :class="[
           'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group cursor-pointer',
           isItemActive(item.to)
-            ? 'bg-primary-600 text-white dark:bg-surface-700 dark:text-white shadow-xs'
+            ? 'bg-primary-500/10 text-primary-500 dark:text-primary-400 shadow-sm'
             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-900 dark:hover:text-gray-200'
         ]"
       >
@@ -67,7 +67,7 @@ function isItemActive(to: string) {
           :size="20"
           :class="[
             'shrink-0 transition-transform duration-200 group-hover:scale-110',
-            isItemActive(item.to) ? 'text-white' : ''
+            isItemActive(item.to) ? 'text-primary-500' : ''
           ]"
         />
         <transition name="fade">
@@ -77,7 +77,7 @@ function isItemActive(to: string) {
         <!-- Active indicator -->
         <div
           v-if="isItemActive(item.to)"
-          class="ml-auto w-1.5 h-1.5 rounded-full bg-white"
+          class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500 "
         />
       </button>
 

@@ -345,7 +345,7 @@ const handlePostCreated = (newPost: any) => {
                     item.role === 'OWNER'
                       ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'
                       : item.role === 'ADMIN'
-                      ? 'bg-primary-100 dark:bg-primary-950/40 text-primary-700 dark:text-primary-300'
+                      ? 'bg-teal-100 dark:bg-teal-950/40 text-teal-700 dark:text-teal-400'
                       : item.role === 'MODERATOR'
                       ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400'
                       : 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-300'
@@ -358,7 +358,7 @@ const handlePostCreated = (newPost: any) => {
                   type="button"
                   :title="item.role === 'ADMIN' ? 'Hạ quyền quản trị' : 'Bổ nhiệm quản trị viên'"
                   @click="handleToggleMemberRole(item)"
-                  class="p-1.5 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/30 transition-colors cursor-pointer"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/30 transition-colors cursor-pointer"
                 >
                   <Shield :size="14" />
                 </button>

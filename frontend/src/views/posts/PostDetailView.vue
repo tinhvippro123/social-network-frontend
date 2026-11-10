@@ -292,9 +292,9 @@ function handleProseClick(e: MouseEvent) {
 
 <style>
 .highlight-comment-target {
-  outline: 2px solid #1e293b !important;
+  outline: 2px solid #0d9488 !important;
   outline-offset: 4px;
-  background-color: rgba(30, 41, 59, 0.08) !important;
+  background-color: rgba(13, 148, 136, 0.08) !important;
   border-radius: 1rem;
   transition: all 0.5s ease-in-out;
 }

@@ -125,7 +125,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
   }
 
   const centerIcon = L.divIcon({
-    html: '<div style="width:18px;height:18px;border-radius:9999px;background:#1e293b;border:3px solid #fff;box-shadow:0 0 0 6px rgba(30,41,59,0.22);"></div>',
+    html: '<div style="width:18px;height:18px;border-radius:9999px;background:#14b8a6;border:3px solid #fff;box-shadow:0 0 0 6px rgba(20,184,166,0.25);"></div>',
     iconSize: [18, 18],
     iconAnchor: [9, 9],
     className: 'emoji-marker'
@@ -179,9 +179,9 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
     const { lat, lng, label } = searchCenter.value
     L.circle([lat, lng], {
       radius: searchRadius.value * 1000,
-      color: '#1e293b',
+      color: '#14b8a6',
       weight: 2,
-      fillColor: '#1e293b',
+      fillColor: '#14b8a6',
       fillOpacity: 0.08,
       dashArray: '6 6'
     }).addTo(radiusLayer)
@@ -212,9 +212,9 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
           <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px; line-height: 1.3;">${escapeHtml(post.title)}</div>
           <div style="font-size: 11px; color: #888; display: flex; align-items: center; gap: 4px;">
             <span>${emoji}</span> ${escapeHtml(post.category?.name || 'Chưa phân loại')}
-            ${distance !== null ? ` · <span style="color:#1e293b;font-weight:600;">cách ${formatDistance(distance)}</span>` : ''}
+            ${distance !== null ? ` · <span style="color:#0d9488;font-weight:600;">cách ${formatDistance(distance)}</span>` : ''}
           </div>
-          ${post.eventStartTime ? `<div style="font-size: 11px; color: #d97706; margin-top: 4px;">🕐 ${formatEventTime(post.eventStartTime, post.eventEndTime)}</div>` : ''}
+          ${post.eventStartTime ? `<div style="font-size: 11px; color: #7c3aed; margin-top: 4px;">🕐 ${formatEventTime(post.eventStartTime, post.eventEndTime)}</div>` : ''}
         </div>
       `
       marker.bindPopup(popupContent, { className: 'custom-popup' })

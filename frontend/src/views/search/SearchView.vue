@@ -327,7 +327,7 @@ const tabs = [
         <!-- Elegant Document Badge -->
         <span
           v-else-if="selectedFile && fileType === 'document'"
-          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-950/60 dark:text-primary-300 border border-primary-200 dark:border-primary-800 shadow-2xs"
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200 dark:border-teal-800 shadow-2xs"
         >
           <FileText :size="12" /> Tìm bằng tài liệu
         </span>

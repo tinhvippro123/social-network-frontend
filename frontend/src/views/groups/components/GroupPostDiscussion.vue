@@ -192,7 +192,7 @@ onMounted(() => {
         class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-surface-700 rounded-xl transition-all cursor-pointer"
         title="Sao chép liên kết"
       >
-        <component :is="copied ? Check : Share2" :size="15" :class="copied ? 'text-emerald-500' : ''" />
+        <component :is="copied ? Check : Share2" :size="15" :class="copied ? 'text-teal-500' : ''" />
         <span>{{ copied ? 'Đã sao chép' : 'Chia sẻ' }}</span>
       </button>
     </div>

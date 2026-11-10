@@ -193,7 +193,7 @@ function handleMessage() {
 <template>
   <div class="relative bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 mb-6">
     <!-- Cover -->
-    <div class="h-40 sm:h-52 bg-primary-600 relative overflow-hidden rounded-t-2xl">
+    <div class="h-40 sm:h-52 bg-linear-to-r from-primary-600 to-teal-500 relative overflow-hidden rounded-t-2xl">
       <div class="absolute inset-0 opacity-20"
         style="background-image: radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px); background-size: 20px 20px;"
       />

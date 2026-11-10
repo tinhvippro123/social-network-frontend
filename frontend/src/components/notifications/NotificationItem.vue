@@ -41,9 +41,9 @@ const getNotificationColor = (type: Notification['type']) => {
     upvote: 'text-primary-500 bg-primary-500/10',
     comment: 'text-blue-500 bg-blue-500/10',
     reply: 'text-green-500 bg-green-500/10',
-    follow: 'text-primary-600 dark:text-primary-300 bg-primary-500/10',
+    follow: 'text-teal-500 bg-teal-500/10',
     mention: 'text-amber-500 bg-amber-500/10',
-    group_invite: 'text-primary-600 dark:text-primary-300 bg-primary-500/10',
+    group_invite: 'text-teal-500 bg-teal-500/10',
     post_approved: 'text-emerald-500 bg-emerald-500/10',
     report: 'text-red-500 bg-red-500/10',
     system: 'text-gray-500 bg-gray-500/10'

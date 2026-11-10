@@ -56,8 +56,8 @@ function viewTarget() {
           <span :class="['px-2.5 py-1 rounded-lg text-xs font-semibold',
             report.type === 'post' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600' :
             report.type === 'comment' ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-600' :
-            report.type === 'group' ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-300' :
-            'bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-300']">
+            report.type === 'group' ? 'bg-teal-100 dark:bg-teal-900/20 text-teal-600' :
+            'bg-teal-100 dark:bg-teal-900/20 text-teal-600']">
             {{ report.type === 'post' ? '📄 Bài viết' : report.type === 'comment' ? '💬 Bình luận' : report.type === 'group' ? '👥 Nhóm' : '👤 Người dùng' }}
           </span>
           <span :class="['px-2.5 py-1 rounded-lg text-xs font-semibold',

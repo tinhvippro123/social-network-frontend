@@ -232,14 +232,14 @@ function toggleAiMode() {
           <!-- Document icon -->
           <div
             v-else
-            class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-300 flex items-center justify-center shrink-0"
+            class="w-12 h-12 rounded-xl bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-300 flex items-center justify-center shrink-0"
           >
             <FileType :size="24" />
           </div>
 
           <div class="truncate">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-md" :class="fileType === 'image' ? 'bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300' : 'bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300'">
                 {{ fileType === 'image' ? '🖼️ Tìm kiếm theo ảnh' : '📄 Tìm kiếm theo tài liệu' }}
               </span>
               <span class="text-xs text-gray-500 dark:text-gray-400">

@@ -46,7 +46,7 @@ function toggleJoin() {
         :alt="group.name"
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
-      <div v-else class="w-full h-full bg-primary-600" />
+      <div v-else class="w-full h-full bg-linear-to-r from-primary-600 to-teal-500" />
       <div class="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
       <div class="absolute top-3 right-3">
         <span

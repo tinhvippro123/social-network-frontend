@@ -27,7 +27,7 @@ const emit = defineEmits<{
         :alt="group.name"
         class="w-full h-full object-cover"
       />
-      <div v-else class="w-full h-full bg-primary-600" />
+      <div v-else class="w-full h-full bg-linear-to-r from-primary-600 to-teal-500" />
       <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
       
       <!-- Privacy Badge overlaid on banner top-right -->
