@@ -1,5 +1,6 @@
 {
     "java.compile.nullAnalysis.mode": "disabled",
+    "java.configuration.updateBuildConfiguration": "automatic",
     "java.jdt.ls.java.home": "D:\\Program Files\\Java\\jdk-21.0.12.1",
     "java.configuration.runtimes": [
         {
@@ -13,8 +14,7 @@
         "**/.metadata/**",
         "**/archetype/**",
         "**/META-INF/maven/**",
-        "**/build/**",
-        "**/bin/**"
+        "**/build/**"
     ],
     "files.watcherExclude": {
         "**/build/**": true,
