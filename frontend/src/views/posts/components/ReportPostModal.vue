@@ -137,7 +137,7 @@ const handleClose = () => {
                   'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all',
                   !selectedReason || isSubmitting
                     ? 'bg-gray-300 dark:bg-surface-600 cursor-not-allowed'
-                    : 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/25'
+                    : 'bg-red-500 hover:bg-red-600 shadow-xs'
                 ]"
               >
                 <AlertTriangle v-if="!isSubmitting" :size="16" />

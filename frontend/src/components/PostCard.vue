@@ -154,7 +154,7 @@ const handleBookmark = async (e: Event) => {
       <!-- Event Schedule Badge -->
       <div
         v-if="post.eventStartTime"
-        class="inline-flex items-center gap-1.5 px-2.5 py-1 mb-2.5 rounded-lg bg-purple-50 dark:bg-purple-900/25 text-purple-700 dark:text-purple-300 text-xs font-medium w-fit"
+        class="inline-flex items-center gap-1.5 px-2.5 py-1 mb-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/25 text-amber-700 dark:text-amber-300 text-xs font-medium w-fit"
       >
         <Calendar :size="13" class="shrink-0" />
         <span>{{ new Date(post.eventStartTime).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</span>

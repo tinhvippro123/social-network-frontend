@@ -116,7 +116,7 @@ const handleDeletePost = async () => {
             <span class="flex items-center gap-1"><Eye :size="12" /> {{ formatNumber(post.viewsCount) }} lượt xem</span>
             <span
               v-if="post.eventStartTime"
-              class="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-medium"
+              class="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium"
             >
               <Calendar :size="12" /> {{ formatEventTimeRange(post.eventStartTime, post.eventEndTime) }}
             </span>

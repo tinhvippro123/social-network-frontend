@@ -77,7 +77,7 @@ function isItemActive(to: string) {
         <!-- Active indicator -->
         <div
           v-if="isItemActive(item.to)"
-          class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse-glow"
+          class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500 "
         />
       </button>
 
@@ -106,7 +106,7 @@ function isItemActive(to: string) {
         class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all duration-200 cursor-pointer"
       >
         <Sun v-if="isDark" :size="20" class="shrink-0 text-amber-400" />
-        <Moon v-else :size="20" class="shrink-0 text-indigo-500" />
+        <Moon v-else :size="20" class="shrink-0 text-slate-500" />
         <transition name="fade">
           <span v-if="isSidebarOpen || isMobile" class="whitespace-nowrap">
             {{ isDark ? 'Chế độ sáng' : 'Chế độ tối' }}

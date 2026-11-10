@@ -348,7 +348,7 @@ onMounted(() => {
           </div>
           <div class="p-2 rounded-lg bg-white/70 dark:bg-surface-800/70 border border-gray-100 dark:border-surface-700">
             <span class="text-gray-400 text-[10px] block">Xử lý phủ định</span>
-            <span class="font-medium text-purple-600 dark:text-purple-400">Đã kích hoạt</span>
+            <span class="font-medium text-teal-600 dark:text-teal-400">Đã kích hoạt</span>
           </div>
         </div>
       </div>

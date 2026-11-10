@@ -55,7 +55,7 @@ const router = useRouter()
           <span>Cách tâm tìm kiếm {{ formatDistance(distanceTo(selectedPost)!) }}</span>
         </div>
         <!-- Event time -->
-        <div v-if="selectedPost.eventStartTime" class="flex items-center gap-2 text-xs text-purple-500 mb-3 px-2.5 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/10">
+        <div v-if="selectedPost.eventStartTime" class="flex items-center gap-2 text-xs text-amber-500 mb-3 px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/10">
           <CalendarDays :size="12" />
           <span class="font-medium">{{ formatEventTime(selectedPost.eventStartTime, selectedPost.eventEndTime) }}</span>
         </div>

@@ -292,21 +292,11 @@ function handleProseClick(e: MouseEvent) {
 
 <style>
 .highlight-comment-target {
-  outline: 2px solid #10b981 !important;
+  outline: 2px solid #0d9488 !important;
   outline-offset: 4px;
-  background-color: rgba(16, 185, 129, 0.12) !important;
+  background-color: rgba(13, 148, 136, 0.08) !important;
   border-radius: 1rem;
   transition: all 0.5s ease-in-out;
-  animation: pulse-glow 1.5s ease-in-out infinite alternate;
-}
-
-@keyframes pulse-glow {
-  0% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
-  }
-  100% {
-    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
-  }
 }
 
 .post-prose-content > img,

@@ -173,7 +173,7 @@ const sharePost = async () => {
             userVote === 'UPVOTE'
               ? 'text-orange-600 dark:text-orange-400 font-extrabold'
               : userVote === 'DOWNVOTE'
-              ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
+              ? 'text-slate-600 dark:text-slate-400 font-extrabold'
               : 'text-gray-700 dark:text-gray-300'
           ]"
         >
@@ -187,8 +187,8 @@ const sharePost = async () => {
           :class="[
             'flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition-all duration-150 cursor-pointer active:scale-90',
             userVote === 'DOWNVOTE'
-              ? 'bg-indigo-600 text-white shadow-xs'
-              : 'text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30'
+              ? 'bg-slate-600 text-white shadow-xs'
+              : 'text-gray-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-950/30'
           ]"
           title="Không tán thành (Downvote)"
         >

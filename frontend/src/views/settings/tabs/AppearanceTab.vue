@@ -50,8 +50,8 @@ const { themeMode, setTheme, setSystemTheme } = useSettings()
           ]"
         >
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-              <Moon :size="20" class="text-indigo-600 dark:text-indigo-400" />
+            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center">
+              <Moon :size="20" class="text-slate-600 dark:text-slate-400" />
             </div>
             <div>
               <p class="font-semibold text-gray-900 dark:text-white text-sm">Chế độ tối</p>

@@ -27,11 +27,11 @@ watch(() => props.user?.avatar, () => {
 function getInitialsColor(name?: string) {
   const colors = [
     'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300',
-    'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300',
+    'bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-300',
     'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
     'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
     'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
-    'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
+    'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
   ]
   if (!name) return colors[0]
   let sum = 0

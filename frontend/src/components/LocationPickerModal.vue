@@ -49,7 +49,7 @@ const {
           <!-- Header -->
           <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-surface-700 shrink-0">
             <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-xl bg-linear-to-br from-red-500 to-orange-500 flex items-center justify-center">
+              <div class="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center">
                 <MapPin :size="18" class="text-white" />
               </div>
               <div>

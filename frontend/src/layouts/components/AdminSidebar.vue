@@ -50,7 +50,7 @@ const navItems = computed(() =>
       class="flex items-center gap-3 px-5 h-16 border-b border-gray-200 dark:border-surface-800 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
       title="Về trang chủ quản trị"
     >
-      <div class="w-9 h-9 rounded-xl bg-linear-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg shrink-0">
+      <div class="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center shadow-lg shrink-0">
         <span class="text-white font-bold text-lg">A</span>
       </div>
       <transition name="fade">
@@ -120,7 +120,7 @@ const navItems = computed(() =>
         class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-surface-800/60 dark:hover:text-gray-200 transition-all duration-200 cursor-pointer"
       >
         <Sun v-if="isDark" :size="20" class="shrink-0 text-amber-500" />
-        <Moon v-else :size="20" class="shrink-0 text-indigo-500" />
+        <Moon v-else :size="20" class="shrink-0 text-slate-500" />
         <transition name="fade">
           <span v-if="sidebarOpen || isMobile" class="whitespace-nowrap">
             {{ isDark ? 'Chế độ sáng' : 'Chế độ tối' }}

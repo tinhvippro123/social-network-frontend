@@ -37,7 +37,7 @@ export function useAdminDashboard() {
     return [
       { label: 'Tổng người dùng', value: formatNumber(stats.value.totalUsers), change: `+${stats.value.newUsersToday} hôm nay`, trend: (stats.value.newUsersToday > 0 ? 'up' : 'neutral') as 'up' | 'down' | 'neutral', icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
       { label: 'Tổng bài viết', value: formatNumber(stats.value.totalPosts), change: `+${stats.value.newPostsToday} hôm nay`, trend: (stats.value.newPostsToday > 0 ? 'up' : 'neutral') as 'up' | 'down' | 'neutral', icon: FileText, color: 'text-green-500', bg: 'bg-green-500/10' },
-      { label: 'Tổng nhóm', value: stats.value.totalGroups.toString(), change: `${formatNumber(stats.value.totalComments)} bình luận`, trend: 'neutral' as 'up' | 'down' | 'neutral', icon: Users, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+      { label: 'Tổng nhóm', value: stats.value.totalGroups.toString(), change: `${formatNumber(stats.value.totalComments)} bình luận`, trend: 'neutral' as 'up' | 'down' | 'neutral', icon: Users, color: 'text-teal-500', bg: 'bg-teal-500/10' },
       { label: 'Report đang chờ', value: stats.value.pendingReports.toString(), change: stats.value.pendingReports > 0 ? `${stats.value.pendingReports} cần xử lý` : 'Đã xử lý hết', trend: (stats.value.pendingReports > 0 ? 'down' : 'up') as 'up' | 'down' | 'neutral', icon: Flag, color: 'text-red-500', bg: 'bg-red-500/10' },
     ]
   })

@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue'
 import { Settings, Globe, Bell, Shield, Database, Palette, Save } from '@lucide/vue'
 import { useAdminSettings } from '@/composables/admin/useAdminSettings'
@@ -37,7 +37,7 @@ const {
         type="button"
         @click="saveSettings"
         :disabled="isSaving || isLoading"
-        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-500/25 cursor-pointer disabled:opacity-50"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-xs cursor-pointer disabled:opacity-50"
       >
         <Save :size="16" /> {{ isSaving ? 'Đang lưu...' : 'Lưu cài đặt' }}
       </button>
@@ -76,7 +76,7 @@ const {
         <!-- Features -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
           <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-5">
-            <Database :size="18" class="text-purple-500" /> Tính năng
+            <Database :size="18" class="text-teal-500" /> Tính năng
           </h3>
           <div class="space-y-4">
             <AdminSettingCheckbox

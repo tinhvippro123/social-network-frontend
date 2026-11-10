@@ -193,7 +193,7 @@ function distanceLabel(post: Post) {
             <MapPin :size="10" class="text-primary-500 shrink-0" />
             <span class="truncate">{{ post.location?.address }}</span>
           </div>
-          <div v-if="post.eventStartTime" class="flex items-center gap-1 mt-1 text-xs text-purple-500">
+          <div v-if="post.eventStartTime" class="flex items-center gap-1 mt-1 text-xs text-amber-500">
             <Clock :size="10" />
             <span>{{ formatEventTime(post.eventStartTime, post.eventEndTime) }}</span>
           </div>

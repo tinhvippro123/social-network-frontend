@@ -45,7 +45,7 @@ const {
           <button
             type="button"
             @click="showAddModal = true"
-            class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-500/25 cursor-pointer"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-xs cursor-pointer"
           >
             <Plus :size="16" /> Thêm danh mục
           </button>
@@ -165,7 +165,7 @@ const {
           </div>
           <div class="flex gap-3 mt-6">
             <button type="button" @click="showAddModal = false" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all cursor-pointer">Hủy</button>
-            <button type="button" @click="handleAddCategory" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-500/25 cursor-pointer">Thêm</button>
+            <button type="button" @click="handleAddCategory" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all shadow-xs cursor-pointer">Thêm</button>
           </div>
         </div>
       </div>
@@ -192,7 +192,7 @@ const {
           </div>
           <div class="flex gap-3 mt-6">
             <button type="button" @click="showEditModal = false" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all cursor-pointer">Hủy</button>
-            <button type="button" @click="handleUpdateCategory" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/25 cursor-pointer">Lưu thay đổi</button>
+            <button type="button" @click="handleUpdateCategory" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-xs cursor-pointer">Lưu thay đổi</button>
           </div>
         </div>
       </div>
@@ -216,7 +216,7 @@ const {
           </div>
           <div class="flex gap-3 mt-6">
             <button type="button" @click="showRenameTagModal = false" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all cursor-pointer">Hủy</button>
-            <button type="button" @click="handleRenameTag" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/25 cursor-pointer">Cập nhật Tag</button>
+            <button type="button" @click="handleRenameTag" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-xs cursor-pointer">Cập nhật Tag</button>
           </div>
         </div>
       </div>
