@@ -140,7 +140,7 @@ const formatCategoryIcon = (icon?: string) => {
             </div>
           </td>
           <td class="px-5 py-4 hidden sm:table-cell">
-            <span class="text-sm text-gray-500">{{ formatCategoryIcon(post.category?.icon || post.categoryIcon) }} {{ post.category?.name || post.categoryName || 'Chung' }}</span>
+            <span class="text-sm text-gray-500">{{ post.category?.name || post.categoryName || 'Chung' }}</span>
           </td>
           <td class="px-5 py-4">
             <div class="flex flex-col gap-1.5 items-start">
@@ -156,7 +156,7 @@ const formatCategoryIcon = (icon?: string) => {
                 class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
                 :title="'Bài viết này có ' + post.reportsCount + ' báo cáo từ người dùng. Nhấp để xem kiểm duyệt.'"
               >
-                ⚠️ {{ post.reportsCount }} báo cáo
+                {{ post.reportsCount }} báo cáo
               </router-link>
             </div>
           </td>

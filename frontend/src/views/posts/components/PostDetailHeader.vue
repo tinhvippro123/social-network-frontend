@@ -74,19 +74,19 @@ const handleDeletePost = async () => {
           @click.stop="post.category?.slug && router.push(`/?category=${post.category.slug}`)"
           class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 shadow-sm hover:bg-white dark:hover:bg-surface-700 transition-colors cursor-pointer"
         >
-          {{ post.category?.icon }} {{ post.category?.name }}
+          {{ post.category?.name }}
         </span>
         <span
           v-if="(post.status || '').toLowerCase() === 'draft'"
           class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/90 text-white backdrop-blur-sm shadow-sm"
         >
-          📝 Bản nháp
+          Bản nháp
         </span>
         <span
           v-else-if="(post.status || '').toLowerCase() === 'hidden'"
           class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-500/90 text-white backdrop-blur-sm shadow-sm"
         >
-          🔒 Đã ẩn
+          Đã ẩn
         </span>
       </div>
 

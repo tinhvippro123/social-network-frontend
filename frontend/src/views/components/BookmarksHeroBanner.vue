@@ -14,7 +14,7 @@ defineProps<{
         <span class="text-primary-100 text-sm font-medium">Bộ sưu tập cá nhân</span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">
-        Đã lưu 📚
+        Đã lưu
       </h1>
       <p class="text-primary-50 text-sm sm:text-base max-w-lg">
         Những bài viết bạn đã lưu lại để đọc sau. Hiện có {{ itemCount }} bài viết.

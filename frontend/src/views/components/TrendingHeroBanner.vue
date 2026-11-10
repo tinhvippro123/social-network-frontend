@@ -15,7 +15,7 @@ defineProps<{
         <span class="text-primary-100 text-sm font-medium">Nội dung nổi bật</span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">
-        Thịnh hành 🔥
+        Thịnh hành
       </h1>
       <p class="text-primary-50 text-sm sm:text-base max-w-lg mb-4">
         Những bài viết được cộng đồng yêu thích và tương tác nhiều nhất

@@ -58,13 +58,13 @@ function viewTarget() {
             report.type === 'comment' ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-600' :
             report.type === 'group' ? 'bg-teal-100 dark:bg-teal-900/20 text-teal-600' :
             'bg-teal-100 dark:bg-teal-900/20 text-teal-600']">
-            {{ report.type === 'post' ? '📄 Bài viết' : report.type === 'comment' ? '💬 Bình luận' : report.type === 'group' ? '👥 Nhóm' : '👤 Người dùng' }}
+            {{ report.type === 'post' ? 'Bài viết' : report.type === 'comment' ? 'Bình luận' : report.type === 'group' ? 'Nhóm' : 'Người dùng' }}
           </span>
           <span :class="['px-2.5 py-1 rounded-lg text-xs font-semibold',
             report.status === 'pending' ? 'bg-red-100 dark:bg-red-900/20 text-red-600' :
             report.status === 'resolved' ? 'bg-green-100 dark:bg-green-900/20 text-green-600' :
             'bg-gray-100 dark:bg-surface-700 text-gray-500']">
-            {{ report.status === 'pending' ? '⏳ Đang chờ' : report.status === 'resolved' ? '✅ Đã xử lý' : '❌ Đã bỏ qua' }}
+            {{ report.status === 'pending' ? 'Đang chờ' : report.status === 'resolved' ? 'Đã xử lý' : 'Đã bỏ qua' }}
           </span>
         </div>
 

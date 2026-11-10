@@ -54,10 +54,7 @@ const emit = defineEmits<{
             : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 border border-gray-200 dark:border-surface-700'
         ]"
       >
-        <span class="flex items-center gap-1.5">
-          <Flame :size="15" />
-          Tất cả
-        </span>
+        Tất cả
       </button>
 
       <button
@@ -72,10 +69,7 @@ const emit = defineEmits<{
             : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 border border-gray-200 dark:border-surface-700'
         ]"
       >
-        <span class="flex items-center gap-1.5">
-          <span v-if="cat.icon" class="text-sm">{{ cat.icon }}</span>
-          {{ cat.name }}
-        </span>
+        {{ cat.name }}
       </button>
     </div>
 

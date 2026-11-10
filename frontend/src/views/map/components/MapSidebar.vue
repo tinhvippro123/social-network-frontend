@@ -77,11 +77,10 @@ function distanceLabel(post: Post) {
           :class="[
             'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all',
             selectedFilter === cat.slug
-              ? 'bg-primary-500 text-white shadow-xs'
+              ? 'bg-primary-600 text-white shadow-xs'
               : 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-surface-600'
           ]"
         >
-          <span>{{ cat.icon }}</span>
           {{ cat.label }}
         </button>
       </div>
@@ -153,7 +152,7 @@ function distanceLabel(post: Post) {
           {{ postsWithLocation.length }} bài viết {{ searchCenter ? 'trong bán kính' : 'có vị trí' }}
         </p>
         <p v-if="selectedFilter !== 'all'" class="text-xs text-primary-500 font-medium">
-          {{ categoryFilters.find(c => c.slug === selectedFilter)?.icon }} {{ categoryFilters.find(c => c.slug === selectedFilter)?.label }}
+          {{ categoryFilters.find(c => c.slug === selectedFilter)?.label }}
         </p>
       </div>
 
@@ -175,12 +174,11 @@ function distanceLabel(post: Post) {
         ]"
       >
         <img v-if="post.coverImage" :src="post.coverImage" class="w-16 h-12 rounded-lg object-cover shrink-0" />
-        <div v-else class="w-16 h-12 rounded-lg shrink-0 bg-primary-50 dark:bg-surface-700 flex items-center justify-center text-lg">
-          {{ getCategoryEmoji(post.category?.slug || '') }}
+        <div v-else class="w-16 h-12 rounded-lg shrink-0 bg-primary-50 dark:bg-surface-700 flex items-center justify-center">
+          <MapPin :size="18" class="text-primary-500" />
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 mb-0.5">
-            <span class="text-xs">{{ getCategoryEmoji(post.category?.slug || '') }}</span>
             <span class="text-xs text-gray-400">{{ post.category?.name || 'Chưa phân loại' }}</span>
             <span v-if="distanceLabel(post)" class="ml-auto text-[11px] font-semibold text-teal-600 dark:text-teal-400 whitespace-nowrap">
               {{ distanceLabel(post) }}
@@ -259,11 +257,10 @@ function distanceLabel(post: Post) {
               :class="[
                 'flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0',
                 selectedFilter === cat.slug
-                  ? 'bg-primary-500 text-white'
+                  ? 'bg-primary-600 text-white'
                   : 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400'
               ]"
             >
-              <span>{{ cat.icon }}</span>
               {{ cat.label }}
             </button>
           </div>
@@ -334,7 +331,7 @@ function distanceLabel(post: Post) {
             >
               <img v-if="post.coverImage" :src="post.coverImage" class="w-14 h-10 rounded-lg object-cover shrink-0" />
               <div v-else class="w-14 h-10 rounded-lg shrink-0 bg-primary-50 dark:bg-surface-700 flex items-center justify-center">
-                {{ getCategoryEmoji(post.category?.slug || '') }}
+                <MapPin :size="16" class="text-primary-500" />
               </div>
               <div class="flex-1 min-w-0">
                 <h4 class="text-sm font-semibold text-gray-900 dark:text-white line-clamp-1">

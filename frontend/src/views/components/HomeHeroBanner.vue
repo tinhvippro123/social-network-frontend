@@ -22,7 +22,7 @@ const greeting = computed(() => {
         <span class="text-primary-100 text-sm font-medium">Chào mừng đến VietBlog</span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">
-        {{ greeting }}, {{ userName }} 👋
+        {{ greeting }}, {{ userName }}
       </h1>
       <p class="text-primary-50 text-sm sm:text-base max-w-lg">
         Hôm nay có gì mới để khám phá?

@@ -106,7 +106,7 @@ const handleBookmark = async (e: Event) => {
         class="absolute top-3 left-3 px-3 py-1 rounded-lg text-xs font-semibold bg-white/90 dark:bg-surface-800/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-surface-700 hover:text-primary-600 transition-colors cursor-pointer"
         title="Lọc theo danh mục này"
       >
-        {{ post.category?.icon }} {{ post.category?.name }}
+        {{ post.category?.name }}
       </span>
       <!-- Location badge -->
       <span

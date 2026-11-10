@@ -211,7 +211,7 @@ function handleMessage() {
           <div class="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2 sm:gap-4">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ currentUser.name }}</h1>
             <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 w-fit mx-auto sm:mx-0">
-              {{ (currentUser.role || '').toLowerCase() === 'admin' ? '👑 Admin' : (currentUser.role || '').toLowerCase() === 'moderator' ? '🛡️ Moderator' : '👤 Member' }}
+              {{ (currentUser.role || '').toLowerCase() === 'admin' ? 'Admin' : (currentUser.role || '').toLowerCase() === 'moderator' ? 'Moderator' : 'Member' }}
             </span>
           </div>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ currentUser.bio }}</p>
