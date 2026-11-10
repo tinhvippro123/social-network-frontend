@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue'
 import { Users, FileText, Globe, Lock, Check, Shield, Settings, Trash2, Flag } from '@lucide/vue'
 
-defineProps<{
+const props = defineProps<{
   group: any
   isOwner?: boolean
   isManager?: boolean
@@ -15,6 +16,32 @@ const emit = defineEmits<{
   (e: 'deleteGroup'): void
   (e: 'reportGroup'): void
 }>()
+
+const coverFailed = ref(false)
+const avatarFailed = ref(false)
+
+watch(() => [props.group?.coverImage, props.group?.avatar], () => {
+  coverFailed.value = false
+  avatarFailed.value = false
+})
+
+const resolvedCover = computed(() => {
+  const rawCover = props.group?.coverImage || ''
+  const normalizedCover = rawCover.includes('1523050854058')
+    ? 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80'
+    : rawCover
+  if (!coverFailed.value && normalizedCover) return normalizedCover
+  if (!avatarFailed.value && props.group?.avatar) return props.group.avatar
+  return ''
+})
+
+function handleCoverError() {
+  if (!coverFailed.value && props.group?.coverImage) {
+    coverFailed.value = true
+  } else {
+    avatarFailed.value = true
+  }
+}
 </script>
 
 <template>
@@ -22,9 +49,10 @@ const emit = defineEmits<{
     <!-- Group Cover Banner (Facebook Group Style) -->
     <div class="h-52 sm:h-64 relative overflow-hidden bg-gray-100 dark:bg-surface-700">
       <img
-        v-if="group.coverImage || group.avatar"
-        :src="group.coverImage || group.avatar"
+        v-if="resolvedCover"
+        :src="resolvedCover"
         :alt="group.name"
+        @error="handleCoverError"
         class="w-full h-full object-cover"
       />
       <div v-else class="w-full h-full bg-primary-600" />

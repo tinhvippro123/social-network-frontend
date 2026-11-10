@@ -61,7 +61,7 @@ function handleGoogleLogin() {
 <template>
   <div>
     <!-- Divider -->
-    <div class="flex items-center gap-4 my-6">
+    <div class="flex items-center gap-4 my-3.5">
       <div class="flex-1 h-px bg-gray-200 dark:bg-white/10" />
       <span class="text-xs text-gray-400 dark:text-gray-500 font-medium">HOẶC TIẾP TỤC VỚI</span>
       <div class="flex-1 h-px bg-gray-200 dark:bg-white/10" />
@@ -73,7 +73,7 @@ function handleGoogleLogin() {
         type="button"
         @click="handleGoogleLogin"
         :disabled="isGoogleLoading"
-        class="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all text-sm font-medium shadow-xs disabled:opacity-50 cursor-pointer"
+        class="w-full flex items-center justify-center gap-2.5 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all text-sm font-medium shadow-xs disabled:opacity-50 cursor-pointer"
       >
         <span v-if="isGoogleLoading" class="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
         <template v-else>

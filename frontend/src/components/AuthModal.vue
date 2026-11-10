@@ -42,18 +42,18 @@ function close() {
           <!-- Close button -->
           <button
             @click="close"
-            class="absolute top-4 right-4 z-10 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all cursor-pointer"
+            class="absolute top-3.5 right-3.5 z-10 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all cursor-pointer"
           >
             <X :size="18" />
           </button>
 
           <!-- Header / Tab switch -->
-          <div class="px-8 pt-8 pb-4">
-            <div class="flex items-center gap-1 bg-gray-100 dark:bg-surface-700/60 rounded-xl p-1 mb-6">
+          <div class="px-6 pt-5 pb-3">
+            <div class="flex items-center gap-1 bg-gray-100 dark:bg-surface-700/60 rounded-xl p-1 mb-3.5 pr-8">
               <button
                 @click="uiStore.authModalTab = 'login'"
                 :class="[
-                  'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer',
+                  'flex-1 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer',
                   uiStore.authModalTab === 'login'
                     ? 'bg-primary-600 text-white shadow-xs'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
@@ -64,7 +64,7 @@ function close() {
               <button
                 @click="uiStore.authModalTab = 'register'"
                 :class="[
-                  'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer',
+                  'flex-1 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer',
                   uiStore.authModalTab === 'register'
                     ? 'bg-primary-600 text-white shadow-xs'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
@@ -74,16 +74,16 @@ function close() {
               </button>
             </div>
 
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-1">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-0.5">
               {{ uiStore.authModalTab === 'login' ? 'Chào mừng trở lại' : 'Tạo tài khoản mới' }}
             </h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
               {{ uiStore.authModalTab === 'login' ? 'Đăng nhập để tiếp tục hành trình của bạn' : 'Tham gia cộng đồng VietBlog ngay hôm nay' }}
             </p>
           </div>
 
           <!-- Error message -->
-          <div v-if="error" class="mx-8 mb-4 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-sm text-red-600 dark:text-red-400">
+          <div v-if="error" class="mx-6 mb-2.5 px-3.5 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-xs text-red-600 dark:text-red-400">
             {{ error }}
           </div>
 
@@ -93,7 +93,7 @@ function close() {
           <!-- REGISTER Form -->
           <AuthRegisterForm v-else v-model:error="error" />
 
-          <div class="px-8 pb-8 -mt-2">
+          <div class="px-6 pb-5">
             <AuthSocialLogin />
           </div>
         </div>
