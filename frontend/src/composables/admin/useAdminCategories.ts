@@ -14,11 +14,9 @@ export function useAdminCategories() {
   const editingCategory = ref<any | null>(null)
 
   const newCategoryName = ref('')
-  const newCategoryIcon = ref('')
   const newCategoryDescription = ref('')
 
   const editCategoryName = ref('')
-  const editCategoryIcon = ref('')
   const editCategoryDescription = ref('')
 
   // Tag Management state
@@ -59,13 +57,11 @@ export function useAdminCategories() {
     try {
       await adminApi.createCategory({
         name: newCategoryName.value.trim(),
-        icon: newCategoryIcon.value.trim(),
         description: newCategoryDescription.value.trim() || undefined
       })
       toast.success('Đã thêm danh mục mới thành công!')
       showAddModal.value = false
       newCategoryName.value = ''
-      newCategoryIcon.value = ''
       newCategoryDescription.value = ''
       await fetchCategories()
     } catch (err: any) {
@@ -76,7 +72,6 @@ export function useAdminCategories() {
   const openEditModal = (category: any) => {
     editingCategory.value = category
     editCategoryName.value = category.name || ''
-    editCategoryIcon.value = category.icon || ''
     editCategoryDescription.value = category.description || ''
     showEditModal.value = true
   }
@@ -92,7 +87,6 @@ export function useAdminCategories() {
       const targetId = editingCategory.value.id || editingCategory.value.slug
       await adminApi.updateCategory(targetId, {
         name: editCategoryName.value.trim(),
-        icon: editCategoryIcon.value.trim(),
         description: editCategoryDescription.value.trim() || undefined
       })
       toast.success('Đã cập nhật danh mục thành công!')
@@ -179,10 +173,8 @@ export function useAdminCategories() {
     showEditModal,
     editingCategory,
     newCategoryName,
-    newCategoryIcon,
     newCategoryDescription,
     editCategoryName,
-    editCategoryIcon,
     editCategoryDescription,
     tags,
     isTagsLoading,

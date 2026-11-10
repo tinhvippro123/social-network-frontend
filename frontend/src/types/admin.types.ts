@@ -40,7 +40,6 @@ export interface AdminStats {
   newPostsInRange: number
   topCategories: Array<{
     name: string
-    icon?: string
     count: number
     pct: number
   }>

@@ -6,7 +6,6 @@ defineProps<{
     id?: string
     name: string
     slug: string
-    icon?: string
     description?: string
     postsCount: number
   }

@@ -208,7 +208,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
 
     postsWithLocation.value.forEach(post => {
       if (!post.location) return
-      const emoji = getCategoryEmoji(post.category?.slug || '', post.category?.icon)
+      const emoji = getCategoryEmoji(post.category?.slug || '')
       const position = displayPositions.value.get(post.id) || [post.location.lat, post.location.lng]
       const marker = L.marker(position, {
         icon: createEmojiIcon(emoji, selectedPost.value?.id === post.id)

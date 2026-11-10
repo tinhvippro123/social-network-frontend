@@ -89,18 +89,16 @@ const adminApi = {
   getCategories: () =>
     http.get<ApiResponse<any[]>>('/categories'),
 
-  createCategory: (data: { name: string; icon?: string; description?: string }) =>
+  createCategory: (data: { name: string; description?: string }) =>
     http.post<ApiResponse<any>>('/categories', {
       name: data.name,
-      icon: data.icon || '',
       slug: slugify(data.name),
       ...(data.description !== undefined ? { description: data.description } : {}),
     }),
 
-  updateCategory: (id: string, data: { name: string; icon?: string; description?: string }) =>
+  updateCategory: (id: string, data: { name: string; description?: string }) =>
     http.put<ApiResponse<any>>(`/categories/${id}`, {
       name: data.name,
-      icon: data.icon || '',
       slug: slugify(data.name),
       ...(data.description !== undefined ? { description: data.description } : {}),
     }),

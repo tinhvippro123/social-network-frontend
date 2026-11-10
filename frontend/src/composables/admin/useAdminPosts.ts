@@ -38,8 +38,7 @@ export function useAdminPosts() {
           },
           category: item.category || {
             id: item.categoryId,
-            name: item.categoryName || 'Chung',
-            icon: item.categoryIcon || ''
+            name: item.categoryName || 'Chung'
           }
         }))
         totalItems.value = res.data.meta?.total ?? posts.value.length
