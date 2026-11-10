@@ -39,7 +39,7 @@ export function useAdminPosts() {
           category: item.category || {
             id: item.categoryId,
             name: item.categoryName || 'Chung',
-            icon: item.categoryIcon || '📁'
+            icon: item.categoryIcon || ''
           }
         }))
         totalItems.value = res.data.meta?.total ?? posts.value.length

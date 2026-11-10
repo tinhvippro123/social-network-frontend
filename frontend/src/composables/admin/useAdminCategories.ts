@@ -59,7 +59,7 @@ export function useAdminCategories() {
     try {
       await adminApi.createCategory({
         name: newCategoryName.value.trim(),
-        icon: newCategoryIcon.value.trim() || '📁',
+        icon: newCategoryIcon.value.trim(),
         description: newCategoryDescription.value.trim() || undefined
       })
       toast.success('Đã thêm danh mục mới thành công!')
@@ -92,7 +92,7 @@ export function useAdminCategories() {
       const targetId = editingCategory.value.id || editingCategory.value.slug
       await adminApi.updateCategory(targetId, {
         name: editCategoryName.value.trim(),
-        icon: editCategoryIcon.value.trim() || '📁',
+        icon: editCategoryIcon.value.trim(),
         description: editCategoryDescription.value.trim() || undefined
       })
       toast.success('Đã cập nhật danh mục thành công!')

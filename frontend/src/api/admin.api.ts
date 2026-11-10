@@ -92,7 +92,7 @@ const adminApi = {
   createCategory: (data: { name: string; icon?: string; description?: string }) =>
     http.post<ApiResponse<any>>('/categories', {
       name: data.name,
-      icon: data.icon || '📁',
+      icon: data.icon || '',
       slug: slugify(data.name),
       ...(data.description !== undefined ? { description: data.description } : {}),
     }),
@@ -100,7 +100,7 @@ const adminApi = {
   updateCategory: (id: string, data: { name: string; icon?: string; description?: string }) =>
     http.put<ApiResponse<any>>(`/categories/${id}`, {
       name: data.name,
-      icon: data.icon || '📁',
+      icon: data.icon || '',
       slug: slugify(data.name),
       ...(data.description !== undefined ? { description: data.description } : {}),
     }),

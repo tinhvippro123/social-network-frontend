@@ -42,23 +42,6 @@ function handleModalDelete(post: any) {
   closePreview()
   emit('delete', post)
 }
-
-const formatCategoryIcon = (icon?: string) => {
-  if (!icon) return '📁'
-  const map: Record<string, string> = {
-    cpu: '💻',
-    calendar: '📅',
-    map: '🗺️',
-    coffee: '☕',
-    code: '💻',
-    book: '📚',
-    music: '🎵',
-    camera: '📷',
-    heart: '❤️',
-    star: '⭐'
-  }
-  return map[icon.toLowerCase()] || icon
-}
 </script>
 
 <template>

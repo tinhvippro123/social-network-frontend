@@ -6,7 +6,7 @@ defineProps<{
     id?: string
     name: string
     slug: string
-    icon: string
+    icon?: string
     description?: string
     postsCount: number
   }
@@ -16,38 +16,12 @@ const emit = defineEmits<{
   (e: 'edit', category: any): void
   (e: 'delete', category: any): void
 }>()
-
-const ICON_MAP: Record<string, string> = {
-  laptop: '💻',
-  code: '💻',
-  utensils: '🍜',
-  plane: '✈️',
-  camera: '📷',
-  'book-open': '📚',
-  'gamepad-2': '🎮',
-  music: '🎵',
-  film: '🎬',
-  heart: '❤️',
-  briefcase: '💼',
-  'graduation-cap': '🎓'
-}
-
-function formatCategoryIcon(icon?: string): string {
-  if (!icon) return '📁'
-  const key = icon.trim().toLowerCase()
-  if (ICON_MAP[key]) return ICON_MAP[key]
-  if (/^[a-z0-9_-]+$/i.test(key)) return '📁'
-  return icon
-}
 </script>
 
 <template>
   <tr class="border-b border-gray-100 dark:border-surface-700/50 hover:bg-gray-50 dark:hover:bg-surface-700/30 transition-colors group">
     <td class="px-3 py-4 text-center text-xs text-gray-400 font-medium">
       •
-    </td>
-    <td class="px-5 py-4">
-      <span class="text-2xl">{{ formatCategoryIcon(category.icon) }}</span>
     </td>
     <td class="px-5 py-4">
       <RouterLink :to="`/?category=${encodeURIComponent(category.slug || category.name)}`" class="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-500 hover:underline">{{ category.name }}</RouterLink>

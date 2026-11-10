@@ -58,9 +58,8 @@ const {
             <thead>
               <tr class="border-b border-gray-200 dark:border-surface-700 bg-gray-50 dark:bg-surface-800/50">
                 <th class="w-[5%] px-3 py-3.5"></th>
-                <th class="w-[10%] text-left text-xs font-semibold text-gray-500 uppercase px-5 py-3.5">Icon</th>
-                <th class="w-[40%] text-left text-xs font-semibold text-gray-500 uppercase px-5 py-3.5">Tên danh mục</th>
-                <th class="w-[20%] text-left text-xs font-semibold text-gray-500 uppercase px-5 py-3.5">Slug</th>
+                <th class="w-[45%] text-left text-xs font-semibold text-gray-500 uppercase px-5 py-3.5">Tên danh mục</th>
+                <th class="w-[25%] text-left text-xs font-semibold text-gray-500 uppercase px-5 py-3.5">Slug</th>
                 <th class="w-[15%] text-left text-xs font-semibold text-gray-500 uppercase px-5 py-3.5">Số bài viết</th>
                 <th class="w-[10%] text-right text-xs font-semibold text-gray-500 uppercase px-5 py-3.5">Thao tác</th>
               </tr>
@@ -79,7 +78,7 @@ const {
                 />
               </template>
               <tr v-else>
-                <td colspan="6" class="px-5 py-12 text-center">
+                <td colspan="5" class="px-5 py-12 text-center">
                   <FolderTree class="mx-auto h-12 w-12 text-gray-300 mb-3" />
                   <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">Không có danh mục nào</p>
                   <p class="text-xs text-gray-500">Hãy tạo danh mục đầu tiên.</p>
@@ -151,10 +150,6 @@ const {
           <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Thêm danh mục mới</h2>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon (emoji)</label>
-              <input v-model="newCategoryIcon" type="text" placeholder="💻" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
-            </div>
-            <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tên danh mục</label>
               <input v-model="newCategoryName" @keydown.enter="handleAddCategory" type="text" placeholder="Nhập tên danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
             </div>
@@ -177,10 +172,6 @@ const {
         <div class="bg-white dark:bg-surface-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200 dark:border-surface-700 animate-slide-up">
           <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Chỉnh sửa danh mục</h2>
           <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon (emoji)</label>
-              <input v-model="editCategoryIcon" type="text" placeholder="💻" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
-            </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tên danh mục</label>
               <input v-model="editCategoryName" @keydown.enter="handleUpdateCategory" type="text" placeholder="Nhập tên danh mục..." class="w-full px-4 py-2.5 bg-gray-50 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 text-gray-700 dark:text-gray-300" />
