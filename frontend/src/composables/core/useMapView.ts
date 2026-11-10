@@ -214,7 +214,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
             <span>${emoji}</span> ${escapeHtml(post.category?.name || 'Chưa phân loại')}
             ${distance !== null ? ` · <span style="color:#0d9488;font-weight:600;">cách ${formatDistance(distance)}</span>` : ''}
           </div>
-          ${post.eventStartTime ? `<div style="font-size: 11px; color: #7c3aed; margin-top: 4px;">🕐 ${formatEventTime(post.eventStartTime, post.eventEndTime)}</div>` : ''}
+          ${post.eventStartTime ? `<div style="font-size: 11px; color: #d97706; margin-top: 4px;">🕐 ${formatEventTime(post.eventStartTime, post.eventEndTime)}</div>` : ''}
         </div>
       `
       marker.bindPopup(popupContent, { className: 'custom-popup' })
