@@ -546,11 +546,11 @@ function toggleReactionInner(emoji: string) {
 :global(.dark) .thread-trunk-father,
 :global(.dark) .thread-trunk-child,
 :global(.dark) .thread-trunk-to-toggle {
-  background-color: #3a3b3c;
+  background-color: #475569;
 }
 
 :global(.dark) .thread-branch-child,
 :global(.dark) .thread-branch-toggle {
-  border-color: #3a3b3c;
+  border-color: #475569;
 }
 </style>

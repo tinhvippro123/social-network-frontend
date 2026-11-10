@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="relative overflow-hidden rounded-2xl bg-primary-600 p-6 sm:p-8 mb-6 shadow-sm">
+  <div class="relative overflow-hidden rounded-2xl bg-primary-600 dark:bg-primary-900/60 dark:border dark:border-primary-700/50 p-6 sm:p-8 mb-6 shadow-sm">
     <div class="relative z-10">
       <div class="flex items-center gap-2 mb-2.5">
         <TrendingUp :size="18" class="text-primary-100" />
