@@ -17,12 +17,12 @@ const isSubmitting = ref(false)
 const isSubmitted = ref(false)
 
 const reasons = [
-  { id: 'spam', label: 'Spam hoặc quảng cáo', icon: '📢' },
-  { id: 'inappropriate', label: 'Nội dung không phù hợp', icon: '🚫' },
-  { id: 'harassment', label: 'Quấy rối hoặc bắt nạt', icon: '😡' },
-  { id: 'misinformation', label: 'Thông tin sai lệch', icon: '❌' },
-  { id: 'copyright', label: 'Vi phạm bản quyền', icon: '©️' },
-  { id: 'other', label: 'Lý do khác', icon: '📝' },
+  { id: 'spam', label: 'Spam hoặc quảng cáo' },
+  { id: 'inappropriate', label: 'Nội dung không phù hợp' },
+  { id: 'harassment', label: 'Quấy rối hoặc bắt nạt' },
+  { id: 'misinformation', label: 'Thông tin sai lệch' },
+  { id: 'copyright', label: 'Vi phạm bản quyền' },
+  { id: 'other', label: 'Lý do khác' },
 ]
 
 const handleSubmit = async () => {
@@ -104,7 +104,6 @@ const handleClose = () => {
                     : 'bg-gray-50 dark:bg-surface-700 border-gray-200 dark:border-surface-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-600'
                 ]"
               >
-                <span class="text-lg">{{ reason.icon }}</span>
                 {{ reason.label }}
               </button>
 

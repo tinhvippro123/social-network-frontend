@@ -1,3 +1,4 @@
+import { matchesQuery } from '@/utils/textSearch'
 import { ref, computed, onMounted } from 'vue'
 import { useGroups } from '../groups/useGroups'
 import groupsApi from '@/api/groups.api'
@@ -14,10 +15,7 @@ export function useAdminGroups() {
 
   const filteredGroups = computed(() => {
     return (groups.value || []).filter((g: any) => {
-      const q = searchQuery.value.trim().toLowerCase()
-      const matchesSearch = !q ||
-        (g.name || '').toLowerCase().includes(q) ||
-        (g.description || '').toLowerCase().includes(q)
+      const matchesSearch = matchesQuery(searchQuery.value, g.name, g.description)
       const isPublic = g.isPublic !== false && g.privacy !== 'private'
       const matchesPrivacy = privacyFilter.value === 'all' ||
         (privacyFilter.value === 'public' && isPublic) ||

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { matchesQuery } from '@/utils/textSearch'
 import { ref, computed, watch } from 'vue'
 import { X, Search, MessageCirclePlus, Users } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -76,10 +77,7 @@ const loadUsers = async () => {
 
 const filteredUsers = computed(() => {
   if (!searchQuery.value.trim()) return allUsers.value
-  const q = searchQuery.value.toLowerCase()
-  return allUsers.value.filter(u =>
-    u.name.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
-  )
+  return allUsers.value.filter(u => matchesQuery(searchQuery.value, u.name, u.email))
 })
 
 const isSelected = (user: User) => selectedUsers.value.some(u => u.id === user.id)

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { matchesQuery } from '@/utils/textSearch'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { MessageCircle, Search as SearchIcon, Edit } from '@lucide/vue'
@@ -130,9 +131,7 @@ const totalUnread = computed(() =>
 
 const filteredConversations = computed(() => {
   if (!searchQuery.value) return displayedConversations.value
-  return displayedConversations.value.filter(c =>
-    c.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
+  return displayedConversations.value.filter(c => matchesQuery(searchQuery.value, c.name))
 })
 
 // Compute dropdown position based on trigger button

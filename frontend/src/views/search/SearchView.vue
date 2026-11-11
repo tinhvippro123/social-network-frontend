@@ -18,6 +18,7 @@ import { useUiStore } from '@/stores/ui.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useToast } from '@/composables/ui/useToast'
 import usersApi from '@/api/users.api'
+import { splitTokens } from '@/utils/textSearch'
 import type { UserSummary } from '@/types'
 import PostCard from '@/components/PostCard.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
@@ -33,7 +34,8 @@ const toast = useToast()
 // Omni-Search states
 const query = ref((route.query.q as string) || '')
 const submittedQuery = ref((route.query.q as string) || '')
-const textMode = ref<'keyword' | 'semantic'>((route.query.type as 'semantic' | 'keyword') || 'keyword')
+// Trang mang tên "Tìm kiếm AI" nên mặc định bật tìm kiếm ngữ nghĩa; ?type=keyword để tắt.
+const textMode = ref<'keyword' | 'semantic'>(route.query.type === 'keyword' ? 'keyword' : 'semantic')
 const selectedFile = ref<File | null>(null)
 const fileType = ref<'image' | 'document' | null>(null)
 const activeTab = ref<'posts' | 'users' | 'tags'>('posts')
@@ -97,7 +99,7 @@ function checkPendingFile(): boolean {
 onMounted(async () => {
   // Fetch initial posts, popular tags & users in background
   fetchPosts()
-  fetchPopularTags()
+  fetchPopularTags(100)
   fetchUsers()
 
   // Prioritize pending file upload from navbar if any
@@ -147,9 +149,16 @@ function handleUpdateQuery(val: string) {
   if (!val.trim() && !selectedFile.value) {
     submittedQuery.value = ''
     clearSearch()
-    router.replace({ query: textMode.value === 'semantic' ? { type: 'semantic' } : {} })
+    router.replace({ query: textMode.value === 'keyword' ? { type: 'keyword' } : {} })
   }
 }
+
+// Đồng bộ tab Bài viết với ô tìm kiếm: quay lại tab Bài viết thì tự tìm theo từ khóa đang gõ
+watch(activeTab, (tab) => {
+  if (tab === 'posts' && !selectedFile.value && query.value.trim() && query.value.trim() !== submittedQuery.value) {
+    executeSearch()
+  }
+})
 
 // Re-search when switching text mode if query exists
 watch(textMode, () => {
@@ -232,20 +241,6 @@ async function executeSearch() {
   } else {
     await searchByKeyword(q)
   }
-}
-
-function normalizeVi(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D')
-    .toLowerCase()
-    .trim()
-}
-
-function splitTokens(text: string): string[] {
-  return normalizeVi(text).split(/[^a-z0-9]+/).filter(Boolean)
 }
 
 // Filter users based on query (word-boundary aware)
@@ -356,7 +351,7 @@ const tabs = [
 
         <!-- Elegant AI Badge -->
         <span
-          v-if="textMode === 'semantic' && !selectedFile"
+          v-if="textMode === 'semantic' && !selectedFile && activeTab === 'posts'"
           class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-950/60 dark:text-primary-300 border border-primary-200 dark:border-primary-800 shadow-2xs"
         >
           <Sparkles :size="12" /> AI Search
@@ -423,7 +418,9 @@ const tabs = [
         <SearchIcon :size="48" class="mx-auto mb-4 text-gray-300 dark:text-gray-600" />
         <h3 class="text-lg font-bold text-gray-900 dark:text-white">Không tìm thấy bài viết nào</h3>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-md mx-auto">
-          Không có bài viết nào phù hợp. Hãy thử từ khóa khác hoặc bật tính năng Tìm kiếm AI để tìm theo ý nghĩa câu hỏi.
+          {{ textMode === 'keyword' && !selectedFile
+            ? 'Không có bài viết nào chứa đủ các từ khóa. Hãy thử từ khóa khác hoặc bật Tìm kiếm AI để tìm theo ý nghĩa câu hỏi.'
+            : 'Không có bài viết nào phù hợp. Hãy thử diễn đạt khác hoặc dùng từ khóa ngắn gọn hơn.' }}
         </p>
 
         <!-- Switch mode suggestion if keyword mode -->

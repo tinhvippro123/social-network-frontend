@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { matchesQuery } from '@/utils/textSearch'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
@@ -116,9 +117,7 @@ const hasMultipleMinimized = computed(() => minimizedChats.value.length >= 2)
 const composeUsers = computed(() => {
   const others = availableUsers.value.filter(u => u.id !== authStore.user?.id)
   if (!composeSearch.value) return others
-  return others.filter(u =>
-    u.name.toLowerCase().includes(composeSearch.value.toLowerCase())
-  )
+  return others.filter(u => matchesQuery(composeSearch.value, u.name))
 })
 
 function toggleCompose() {

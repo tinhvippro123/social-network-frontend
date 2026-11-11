@@ -43,19 +43,19 @@ export const mockUsers: User[] = [
 
 // ---- Categories ----
 export const mockCategories: Category[] = [
-  { id: 'c1', name: 'Công nghệ', slug: 'cong-nghe', icon: '💻', postsCount: 128 },
-  { id: 'c2', name: 'Lập trình', slug: 'lap-trinh', icon: '⌨️', postsCount: 256 },
-  { id: 'c3', name: 'Thiết kế', slug: 'thiet-ke', icon: '🎨', postsCount: 89 },
-  { id: 'c4', name: 'DevOps', slug: 'devops', icon: '🐳', postsCount: 67 },
-  { id: 'c5', name: 'AI & ML', slug: 'ai-ml', icon: '🤖', postsCount: 145 },
-  { id: 'c6', name: 'Mobile', slug: 'mobile', icon: '📱', postsCount: 93 },
-  { id: 'c7', name: 'Đời sống', slug: 'doi-song', icon: '🌿', postsCount: 72 },
-  { id: 'c8', name: 'Review', slug: 'review', icon: '⭐', postsCount: 54 },
-  { id: 'c9', name: 'Tìm trọ', slug: 'tim-tro', icon: '🏠', postsCount: 34 },
-  { id: 'c10', name: 'Pass đồ', slug: 'pass-do', icon: '🛒', postsCount: 48 },
-  { id: 'c11', name: 'Review địa điểm', slug: 'review-dia-diem', icon: '📍', postsCount: 27 },
-  { id: 'c12', name: 'Sự kiện', slug: 'su-kien', icon: '🎉', postsCount: 19 },
-  { id: 'c13', name: 'Khác', slug: 'khac', icon: '📌', postsCount: 15 },
+  { id: 'c1', name: 'Công nghệ', slug: 'cong-nghe', postsCount: 128 },
+  { id: 'c2', name: 'Lập trình', slug: 'lap-trinh', postsCount: 256 },
+  { id: 'c3', name: 'Thiết kế', slug: 'thiet-ke', postsCount: 89 },
+  { id: 'c4', name: 'DevOps', slug: 'devops', postsCount: 67 },
+  { id: 'c5', name: 'AI & ML', slug: 'ai-ml', postsCount: 145 },
+  { id: 'c6', name: 'Mobile', slug: 'mobile', postsCount: 93 },
+  { id: 'c7', name: 'Đời sống', slug: 'doi-song', postsCount: 72 },
+  { id: 'c8', name: 'Review', slug: 'review', postsCount: 54 },
+  { id: 'c9', name: 'Tìm trọ', slug: 'tim-tro', postsCount: 34 },
+  { id: 'c10', name: 'Pass đồ', slug: 'pass-do', postsCount: 48 },
+  { id: 'c11', name: 'Review địa điểm', slug: 'review-dia-diem', postsCount: 27 },
+  { id: 'c12', name: 'Sự kiện', slug: 'su-kien', postsCount: 19 },
+  { id: 'c13', name: 'Khác', slug: 'khac', postsCount: 15 },
 ]
 
 // ---- Posts ----

@@ -14,13 +14,12 @@ const selectedFilter = defineModel<string>('selectedFilter')
 
 const props = defineProps<{
   selectedPost: Post | null
-  categoryFilters: { slug: string; label: string; icon: string }[]
+  categoryFilters: { slug: string; label: string }[]
   postsWithLocation: Post[]
   searchCenter: SearchCenter | null
   isNearbyLoading: boolean
   isLocating: boolean
   distanceTo: (post: Post) => number | null
-  getCategoryEmoji: (slug: string) => string
   formatEventTime: (start: string, end?: string) => string
 }>()
 

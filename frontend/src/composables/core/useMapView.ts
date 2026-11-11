@@ -1,3 +1,4 @@
+import { matchesQuery } from '@/utils/textSearch'
 import { ref, computed, watch, onMounted, onUnmounted, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import L from 'leaflet'
@@ -27,12 +28,12 @@ export const HCMUNRE_CENTER: SearchCenter = {
   label: 'Trường ĐH Tài nguyên và Môi trường TP.HCM'
 }
 
-const CATEGORY_META: Record<string, { label: string; icon: string }> = {
-  'cong-nghe': { label: 'Công nghệ', icon: '💻' },
-  'doi-song': { label: 'Đời sống', icon: '🌿' },
-  'du-lich': { label: 'Du lịch', icon: '✈️' },
-  'am-thuc': { label: 'Ẩm thực', icon: '🍜' },
-  'su-kien': { label: 'Sự kiện', icon: '🎉' }
+const CATEGORY_META: Record<string, { label: string }> = {
+  'cong-nghe': { label: 'Công nghệ' },
+  'doi-song': { label: 'Đời sống' },
+  'du-lich': { label: 'Du lịch' },
+  'am-thuc': { label: 'Ẩm thực' },
+  'su-kien': { label: 'Sự kiện' }
 }
 
 /**
@@ -75,7 +76,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
   const { posts, fetchPosts } = usePosts()
 
   const categoryFilters = [
-    { slug: 'all', label: 'Tất cả', icon: '📍' },
+    { slug: 'all', label: 'Tất cả' },
     ...Object.entries(CATEGORY_META).map(([slug, meta]) => ({ slug, ...meta }))
   ]
 
@@ -89,11 +90,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
     }
 
     if (searchLocation.value.trim()) {
-      const q = searchLocation.value.trim().toLowerCase()
-      filtered = filtered.filter(p =>
-        p.title.toLowerCase().includes(q) ||
-        p.location?.address?.toLowerCase().includes(q)
-      )
+      filtered = filtered.filter(p => matchesQuery(searchLocation.value, p.title, p.location?.address))
     }
 
     return filtered
@@ -110,12 +107,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
       : 'Toàn quốc'
   )
 
-  const getCategoryEmoji = (slug: string, customIcon?: string) => {
-    if (customIcon && /[^\u0000-\u007F]/.test(customIcon)) return customIcon
-    return CATEGORY_META[slug]?.icon || '📌'
-  }
-
-  const createEmojiIcon = (_emoji: string, active = false) => {
+  const createPinIcon = (active = false) => {
     const size = active ? 36 : 30
     const color = active ? '#214478' : '#2b579a'
     return L.divIcon({
@@ -208,10 +200,9 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
 
     postsWithLocation.value.forEach(post => {
       if (!post.location) return
-      const emoji = getCategoryEmoji(post.category?.slug || '')
       const position = displayPositions.value.get(post.id) || [post.location.lat, post.location.lng]
       const marker = L.marker(position, {
-        icon: createEmojiIcon(emoji, selectedPost.value?.id === post.id)
+        icon: createPinIcon(selectedPost.value?.id === post.id)
       }).addTo(markersLayer!)
 
       const distance = distanceTo(post)
@@ -428,7 +419,6 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
     destroyMap,
     zoomIn,
     zoomOut,
-    getCategoryEmoji,
     formatEventTime,
     goToCurrentLocation,
     searchAroundCampus,

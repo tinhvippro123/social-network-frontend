@@ -23,7 +23,6 @@ const {
   selectPostFromList,
   zoomIn,
   zoomOut,
-  getCategoryEmoji,
   formatEventTime,
   goToCurrentLocation,
   searchAroundCampus,
@@ -45,7 +44,6 @@ const {
       :isNearbyLoading="isNearbyLoading"
       :isLocating="isLocating"
       :distanceTo="distanceTo"
-      :getCategoryEmoji="getCategoryEmoji"
       :formatEventTime="formatEventTime"
       @goToCurrentLocation="goToCurrentLocation"
       @searchAroundCampus="searchAroundCampus"
@@ -69,7 +67,6 @@ const {
       <MapSelectedPostCard
         v-model:selectedPost="selectedPost"
         :distanceTo="distanceTo"
-        :getCategoryEmoji="getCategoryEmoji"
         :formatEventTime="formatEventTime"
       />
 

@@ -9,7 +9,6 @@ const selectedPost = defineModel<Post | null>('selectedPost')
 
 defineProps<{
   distanceTo: (post: Post) => number | null
-  getCategoryEmoji: (slug: string) => string
   formatEventTime: (start: string, end?: string) => string
 }>()
 

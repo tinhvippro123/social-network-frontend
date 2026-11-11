@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { matchesQuery } from '@/utils/textSearch'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
@@ -26,13 +27,8 @@ const searchQuery = ref('')
 const activeDropdownUserId = ref<string | null>(null)
 
 const filteredUsers = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
-  if (!query) return props.users
-  return props.users.filter(u =>
-    (u.name && u.name.toLowerCase().includes(query)) ||
-    (u.email && u.email.toLowerCase().includes(query)) ||
-    (u.role && u.role.toLowerCase().includes(query))
-  )
+  if (!searchQuery.value.trim()) return props.users
+  return props.users.filter(u => matchesQuery(searchQuery.value, u.name, u.email, u.role))
 })
 
 function toggleDropdown(userId: string, event: Event) {

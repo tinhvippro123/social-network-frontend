@@ -157,9 +157,9 @@ export function usePosts() {
   }
 
   /** Lấy các tag phổ biến */
-  async function fetchPopularTags() {
+  async function fetchPopularTags(limit?: number) {
     try {
-      const { data } = await postsApi.getPopularTags()
+      const { data } = await postsApi.getPopularTags(limit)
       const list = data?.data || []
       tags.value = list.map((t: any, idx: number) => ({
         id: t.id || String(idx + 1),

@@ -1,3 +1,4 @@
+import { matchesQuery } from '@/utils/textSearch'
 import { ref, computed, type Ref } from 'vue'
 import type { ChatMessage, ChatConversation } from '@/types'
 
@@ -66,10 +67,7 @@ export function useChatLogic(messages: Ref<ChatMessage[]>, conversations: Ref<Ch
   const filteredConversations = computed(() => {
     let list = conversations.value
     if (searchChat.value) {
-      const q = searchChat.value.toLowerCase()
-      list = list.filter(c =>
-        c.name.toLowerCase().includes(q) || c.originalName?.toLowerCase().includes(q)
-      )
+      list = list.filter(c => matchesQuery(searchChat.value, c.name, c.originalName))
     }
     return [...list].sort((a, b) => {
       if (a.isPinned && !b.isPinned) return -1

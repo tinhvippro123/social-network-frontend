@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { matchesQuery } from '@/utils/textSearch'
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { X, UserPlus, UserMinus, Search as SearchIcon } from '@lucide/vue'
@@ -30,10 +31,7 @@ const listData = ref<UserSummary[]>([])
 
 const currentList = computed(() => {
   if (!searchQuery.value) return listData.value
-  const q = searchQuery.value.toLowerCase()
-  return listData.value.filter(u =>
-    (u.name || '').toLowerCase().includes(q)
-  )
+  return listData.value.filter(u => matchesQuery(searchQuery.value, u.name))
 })
 
 const title = computed(() =>
