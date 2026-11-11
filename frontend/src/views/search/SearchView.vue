@@ -234,13 +234,39 @@ async function executeSearch() {
   }
 }
 
-// Filter users based on query
+function normalizeVi(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase()
+    .trim()
+}
+
+function splitTokens(text: string): string[] {
+  return normalizeVi(text).split(/[^a-z0-9]+/).filter(Boolean)
+}
+
+// Filter users based on query (word-boundary aware)
 const filteredUsers = computed(() => {
-  if (!query.value.trim()) return recommendedUsers.value
-  const q = query.value.toLowerCase()
-  return recommendedUsers.value.filter(u =>
-    u.name.toLowerCase().includes(q) || (u.bio && u.bio.toLowerCase().includes(q))
-  )
+  const raw = query.value.trim()
+  if (!raw) return recommendedUsers.value
+  const qTokens = splitTokens(raw)
+  if (qTokens.length === 0) return recommendedUsers.value
+
+  return recommendedUsers.value.filter(u => {
+    const nameTokens = splitTokens(u.name || '')
+    const bioTokens = splitTokens(u.bio || '')
+    const allUserTokens = [...nameTokens, ...bioTokens]
+
+    return qTokens.every(qt => {
+      if (qt.length <= 2) {
+        return allUserTokens.some(ut => ut === qt)
+      }
+      return allUserTokens.some(ut => ut.startsWith(qt))
+    })
+  })
 })
 
 // Available tags from popular tags, initial posts, and search results
@@ -255,9 +281,29 @@ const allTags = computed(() => {
 })
 
 const filteredTags = computed(() => {
-  if (!query.value.trim()) return allTags.value
-  const q = query.value.toLowerCase()
-  return allTags.value.filter(t => t.toLowerCase().includes(q))
+  const raw = query.value.trim().replace(/^#+/, '')
+  if (!raw) return allTags.value
+  const qTokens = splitTokens(raw)
+  if (qTokens.length === 0) return allTags.value
+  const qCompact = qTokens.join('')
+
+  return allTags.value.filter(t => {
+    const tagSegments = splitTokens(t)
+    const tagCompact = tagSegments.join('')
+
+    // Nếu gõ liền hoặc gõ tách từ (VD: "sài gòn" <-> "saigon", dài >= 4 ký tự)
+    if (qCompact.length >= 4 && tagCompact.startsWith(qCompact)) {
+      return true
+    }
+
+    // So khớp theo từng từ trong tag (VD: "ai" chỉ khớp "#ai", không khớp giữa chữ "#saigon")
+    return qTokens.every(qt => {
+      if (qt.length <= 2) {
+        return tagSegments.some(seg => seg === qt)
+      }
+      return tagSegments.some(seg => seg.startsWith(qt))
+    })
+  })
 })
 
 // Has active query or file search
