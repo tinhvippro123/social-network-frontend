@@ -55,33 +55,31 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - Mở `F12 -> Network`: Chỉ gọi các API công khai (`/api/posts`, `/api/categories`, `/api/tags/popular`, `/api/users/top`).
   - **Không** gọi `/api/users/me` (nhờ cờ cookie `vietblog_logged_in=1`), **không** mở kết nối `/ws` WebSocket, **không** có bất kỳ lỗi đỏ `401` hay `403` nào trên Console.
 - [ ] **Thanh điều hướng trên cùng (`MainNavbar.vue`):**
-  - Hiển thị Logo **VietBlog** (bấm về `/`), ô tìm kiếm nhanh **Omni-Search** ở giữa, nút **Chuyển đổi Giao diện Sáng/Tối (Dark/Light Mode)**, nút **`Đăng nhập`** và **`Đăng ký`**.
+  - Hiển thị Logo **VietBlog** (bấm về `/`), ô tìm kiếm nhanh **Omni-Search** ở giữa (kèm nút chọn ảnh CBIR và chuyển sang tìm kiếm AI), nút **`Đăng nhập`** và **`Đăng ký`** trên nền giao diện sáng (**Light Mode** — tông màu **Classic Sapphire Blue `#2b579a`**).
   - **Không** hiển thị nút `Viết bài`, chuông `Thông báo` hay Avatar cá nhân.
 - [ ] **Ô tìm kiếm nhanh Omni-Search trên Navbar:**
   - Gõ từ khóa (VD: `"AI"`) -> sau `280ms` hiện dropdown gợi ý tối đa 5 bài viết kèm ảnh thumbnail và tên tác giả.
   - Bấm vào 1 gợi ý -> chuyển tới `/posts/:id`.
   - Bấm phím `Enter` -> chuyển tới `/search?q=AI`.
-  - Bấm biểu tượng **Camera (`📷`)** bên phải ô tìm kiếm -> mở hộp thoại chọn ảnh từ máy tính -> tự động chuyển sang `/search` ở chế độ **Tìm kiếm bằng hình ảnh (CBIR)** và hiển thị kết quả tương đồng.
+  - Bấm biểu tượng **Camera** bên phải ô tìm kiếm -> mở hộp thoại chọn ảnh từ máy tính -> tự động chuyển sang `/search` ở chế độ **Tìm kiếm bằng hình ảnh (CBIR)** và hiển thị kết quả tương đồng.
 - [ ] **Thanh điều hướng bên trái (`MainSidebar.vue`):**
-  - Nhóm **Menu chính**: Hiển thị đầy đủ `Trang chủ (/)`, `Sự kiện (/events)`, `Thịnh hành (/trending)`, `Bản đồ (/map)`, `Nhóm (/groups)`, `Tìm kiếm (/search)`, `Đã lưu (/bookmarks)`.
-  - Nhóm **Cá nhân (`Tin nhắn`, `Thông báo`, `Hồ sơ`, `Cài đặt`)** và **Quản trị (`Bảng điều khiển`)**: **Ẩn hoàn toàn** đối với Guest.
-  - Danh sách **Chủ đề (`Categories`)**: Hiển thị tối đa 6 danh mục ban đầu, bấm **`Xem thêm (N)`** mở rộng toàn bộ danh mục, bấm **`Thu gọn`** thu nhỏ lại.
+  - Nhóm **Menu chính**: Hiển thị đầy đủ `Trang chủ (/)`, `Tìm kiếm AI (/search)`, `Thịnh hành (/trending)`, `Đã lưu (/bookmarks)`, `Viết bài (/posts/create)`, `Nhóm (/groups)`, `Tin nhắn (/chat)`, `Thông báo (/notifications)`, `Bản đồ (/map)`.
+  - Mục **Quản trị (`Quản trị /admin`)**: **Ẩn hoàn toàn** đối với Guest.
 - [ ] **Cơ chế Ghi nhớ Trang đích (`authRedirectPath`) khi Guest truy cập route yêu cầu đăng nhập:**
   - Tại thanh bên trái, bấm vào mục **`Đã lưu (/bookmarks)`** (hoặc gõ trực tiếp URL `/posts/create`, `/chat`, `/notifications`, `/settings`, `/profile`).
   - **Kỳ vọng:** Không chuyển sang trang trắng hay báo lỗi; hệ thống giữ nguyên trang hiện tại (hoặc về `/`), hiện thông báo *"Vui lòng đăng nhập để tiếp tục"* và **tự động bật `AuthModal`**. Sau khi đăng nhập thành công trên `AuthModal`, hệ thống **tự động chuyển hướng đúng vào trang vừa bấm** (VD: `/bookmarks` hoặc `/posts/create`).
 - [ ] **Nút Cuộn lên đầu trang (`ScrollToTop.vue`) & Hộp thoại Chat nổi (`ChatPopup.vue`):**
-  - Cuộn xuống quá `300px` -> nút mũi tên lên xuất hiện ở góc phải dưới, bấm vào cuộn mượt lên đầu trang.
-  - **Không** hiển thị bong bóng `ChatPopup` ở góc phải dưới khi chưa đăng nhập.
+  - Cuộn xuống quá `300px` -> nút mũi tên lên (`w-10 h-10`) xuất hiện gọn ở góc phải dưới (`bottom-6 right-5`), không che khuất nút **`Theo dõi`** của khung *Tác giả nổi bật* (nhờ khoảng đệm `pb-16` cuối cột phải), bấm vào cuộn mượt lên đầu trang.
+  - **Không** hiển thị nút soạn tin nhắn nổi `ChatPopup` ở góc phải dưới khi chưa đăng nhập.
 
 ### 1.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
 - [ ] **Thanh điều hướng trên cùng (`MainNavbar.vue`):**
-  - Nút `Đăng nhập / Đăng ký` biến mất; thay bằng nút **`Viết bài`** (`/posts/create`), **Chuông Thông báo** (kèm chấm đỏ số lượng chưa đọc) và **Menu Avatar người dùng**.
+  - Nút `Đăng nhập / Đăng ký` biến mất; thay bằng biểu tượng **Tin nhắn (`MainNavbarChat`)**, **Chuông Thông báo** (kèm chấm đỏ số lượng chưa đọc) và **Menu Avatar người dùng**.
   - Bấm vào Avatar -> mở menu thả xuống gồm: Tên & Email, `Trang cá nhân`, `Bài viết đã lưu`, `Cài đặt`, `Quản trị hệ thống` (chỉ hiện nếu là `ADMIN`/`MODERATOR`), và `Đăng xuất`.
 - [ ] **Thanh điều hướng bên trái (`MainSidebar.vue`):**
-  - Xuất hiện thêm nhóm **Cá nhân**: `Tin nhắn (/chat)`, `Thông báo (/notifications)`, `Hồ sơ (/profile)`, `Cài đặt (/settings)`.
-  - Nếu đăng nhập bằng `MODERATOR` (`phamminhduc@gmail.com`) hoặc `ADMIN` (`admin@vietblog.com`), xuất hiện thêm nhóm **Quản trị**: `Bảng điều khiển (/admin)`.
-- [ ] **Bong bóng Chat nổi (`ChatPopup.vue`):**
-  - Hiển thị ở góc phải dưới mọi trang (trừ khi đang ở trang `/chat`), hiển thị tổng số tin nhắn chưa đọc thời gian thực qua WebSocket.
+  - Nếu đăng nhập bằng `MODERATOR` (`phamminhduc@gmail.com`) hoặc `ADMIN` (`admin@vietblog.com`), xuất hiện thêm mục **`Quản trị (/admin)`** ở cuối menu.
+- [ ] **Bong bóng Chat nổi (`ChatPopup.vue`) & Nút `ScrollToTop.vue`:**
+  - Nút soạn tin nhắn nổi hiển thị ở góc phải dưới mọi trang (`right-6 bottom-2`, trừ khi đang ở trang `/chat`), đồng thời nút mũi tên cuộn lên đầu trang tự động xếp thẳng hàng phía trên (`sm:bottom-16 sm:right-7`) mà không đè lên nhau.
 
 ---
 
@@ -94,7 +92,7 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - Nhập thông tin hợp lệ mới -> Đăng ký thành công (`200 OK`), tự động đăng nhập (`POST /api/auth/login`) và đính kèm `HttpOnly Cookie`.
 - [ ] **Đăng nhập (`/login` hoặc tab `Đăng nhập` trên `AuthModal`):**
   - Nhập sai mật khẩu -> Trả về `401 Unauthorized` (*"Email hoặc mật khẩu không chính xác"*).
-  - Kiểm tra **3 nút Demo Quick-Fill** (`Admin`, `Moderator`, `User`) trên cả trang `/login` và `AuthModal`: Bấm vào từng nút tự động điền đúng email/mật khẩu mà không phát sinh cảnh báo console.
+  - Nhập đúng email/mật khẩu (VD: `nguyenvanan@gmail.com` / `Password123!`) -> Đăng nhập thành công, tự động lưu `HttpOnly Cookie` và điều hướng theo đúng vai trò (`USER` về `/` hoặc `authRedirectPath`, `MODERATOR` về `/admin/moderation`, `ADMIN` về `/admin`).
   - Bấm nút **Google OAuth** -> Kiểm tra luồng xác thực Google (`POST /api/auth/google`).
 - [ ] **Quên mật khẩu 2 bước kèm OTP (`/forgot-password`):**
   - **Bước 1:** Nhập email chưa đăng ký -> Báo lỗi `404` (*"Không tìm thấy tài khoản với email này"*). Nhập `nguyenvanan@gmail.com` -> Bấm *Gửi mã xác nhận* -> Hiển thị hộp xanh **`💡 Mã xác thực (OTP)`** gồm 6 chữ số ngay trên màn hình để phục vụ demo bảo vệ.
@@ -136,10 +134,10 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - Hiển thị bảng xếp hạng bài viết nổi bật kèm **Huy hiệu Top 1 (`#1` vàng), Top 2 (`#2` bạc), Top 3 (`#3` đồng)** và thống kê tổng lượt xem / tổng lượt bình chọn ở đầu trang.
 - [ ] **Trang Chủ đề / Tag (`/tags/:name`):**
   - Bấm vào 1 tag bất kỳ (VD: `#AI`, `#SpringBoot`) -> Chuyển tới `/tags/AI`, hiển thị tiêu đề chủ đề, số lượng bài viết và danh sách bài viết thuộc tag đó.
-- [ ] **Thanh bên phải (`RightSidebar.vue`):**
-  - Khối **Bài viết xu hướng**: Bấm vào từng bài chuyển tới `/posts/:id`.
-  - Khối **Chủ đề phổ biến**: Bấm vào từng tag chuyển tới `/tags/:name`.
-  - Khối **Tác giả nổi bật**: Bấm vào tên/avatar tác giả chuyển tới `/profile/:id`. Bấm nút **`Theo dõi`** khi là Guest -> Bật `AuthModal`.
+- [ ] **Thanh bên phải (`TrendingSidebar.vue`):**
+  - Khối **Thịnh hành**: Hiển thị top 5 bài viết xu hướng, bấm vào từng bài chuyển tới `/posts/:id`.
+  - Khối **Tags phổ biến**: Hiển thị tối đa 12 tag phổ biến nhất, bấm vào từng tag chuyển tới `/tags/:name`.
+  - Khối **Tác giả nổi bật**: Hiển thị top 3 tác giả, có khoảng đệm dưới (`pb-16`) để không bị nút nổi góc dưới che khuất; bấm vào tên/avatar tác giả chuyển tới `/profile/:id`. Bấm nút **`Theo dõi`** khi là Guest -> Bật `AuthModal`.
 
 ### 3.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
 - [ ] **Khung tạo bài nhanh trên đầu Trang chủ:**
@@ -270,7 +268,7 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 ### 8.1. Khi KHÔNG ĐĂNG NHẬP (`Guest`)
 - [ ] **Hiển thị Bản đồ & Chống đè điểm ghim (Coordinate Jittering):**
   - Truy cập `/map` -> Bản đồ Leaflet tải đầy đủ các điểm ghim (Marker) bài viết có gắn tọa độ.
-  - Mỗi danh mục hiển thị **biểu tượng Emoji riêng biệt** trên ghim. Các bài viết trùng tọa độ được tự động tách nhẹ để không đè khít lên nhau.
+  - Mỗi điểm ghim hiển thị **biểu tượng ghim bản đồ SVG (`Map Pin`)** màu xanh Sapphire (`#2b579a`) đồng bộ nhận diện thương hiệu và đổi sang màu cam (`#f97316`) khi đang chọn. Các bài viết trùng tọa độ được tự động tách nhẹ để không đè khít lên nhau.
 - [ ] **Tìm kiếm Bán kính Không gian (`1 km` – `50 km`):**
   - Bấm nút **`Quanh HCMUNRE`** (hoặc bấm trực tiếp vào một điểm bất kỳ trên bản đồ, hoặc bấm **`Vị trí của tôi`**) -> Xuất hiện vòng tròn bán kính màu xanh trên bản đồ.
   - Kéo thanh trượt **Bán kính (`1 km` -> `50 km`)** -> Danh sách bài viết bên cột trái tự động lọc theo khoảng cách thực tế (`PostGIS ST_DWithin` / `Haversine`) và hiển thị số **`km` cách tâm** trên từng bài.
@@ -311,7 +309,7 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 
 ---
 
-## PHẦN 10: Cài Đặt Người Dùng (`/settings` — 5 Tab `<KeepAlive>`)
+## PHẦN 10: Cài Đặt Người Dùng (`/settings` — 4 Tab `<KeepAlive>`)
 
 ### 10.1. Khi KHÔNG ĐĂNG NHẬP (`Guest`)
 - [ ] Truy cập `/settings` -> Router chặn lại, lưu `authRedirectPath = '/settings'` và bật `AuthModal`.
@@ -324,9 +322,7 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - **Vô hiệu hóa / Xóa tài khoản:**
     - Nếu là **`USER` / `MODERATOR`**: Xác nhận vô hiệu hóa/xóa -> Gửi báo cáo yêu cầu tới Admin (`POST /api/reports`), gọi `POST /api/auth/logout` xóa sạch `HttpOnly Cookie`, xóa phiên hiện tại và đưa về `/login`.
     - Nếu là **`ADMIN`**: Hệ thống cảnh báo và chặn tự vô hiệu hóa/xóa tài khoản Quản trị viên ngay lập tức.
-- [ ] **Tab 3 — `Giao diện (AppearanceTab.vue)`:**
-  - Chuyển đổi chế độ **Sáng (`Light`)**, **Tối (`Dark`)**, **Theo hệ thống (`System`)** -> Áp dụng tức thì trên toàn ứng dụng.
-- [ ] **Tab 4 — `Thông báo (NotificationsTab.vue)` & Tab 5 — `Quyền riêng tư (PrivacyTab.vue)`:**
+- [ ] **Tab 3 — `Thông báo (NotificationsTab.vue)` & Tab 4 — `Quyền riêng tư (PrivacyTab.vue)`:**
   - Bật/tắt các công tắc nhận thông báo và chọn chế độ hiển thị hồ sơ (`Công khai` / `Chỉ người theo dõi` / `Riêng tư`) -> Lưu đồng bộ vào `localStorage` (`vb_user_prefs_<id>`) mà không ghi đè chéo dữ liệu giữa 2 tab.
 
 ---
@@ -376,8 +372,8 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 > [!IMPORTANT]
 > **Cách bố trí màn hình khi test & demo bảo vệ đồ án:**
 > Chia đôi màn hình máy tính (Snap Left / Snap Right):
-> - **Cửa sổ Trái (Trình duyệt thường — `User A`):** Đăng nhập `nguyenvanan@gmail.com` (`123456`).
-> - **Cửa sổ Phải (Trình duyệt Ẩn danh / Edge — `User B`):** Đăng nhập `dangthimylinh@gmail.com` (`123456`).
+> - **Cửa sổ Trái (Trình duyệt thường — `User A`):** Đăng nhập `nguyenvanan@gmail.com` (`Password123!`).
+> - **Cửa sổ Phải (Trình duyệt Ẩn danh / Edge — `User B`):** Đăng nhập `dangthimylinh@gmail.com` (`Password123!`).
 
 - [ ] **1. Kiểm tra Bắt tay WebSocket (`Handshake`) qua `HttpOnly Cookie` & Nhịp tim (`Heartbeat`):**
   - Mở `F12 -> Network -> WS -> Reload` trên máy `User A`:
@@ -467,9 +463,9 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - **Đổi vai trò (`Role`):** Nâng quyền 1 `USER` lên `MODERATOR` hoặc hạ về `USER`.
   - **Khóa / Mở khóa tài khoản (`Ban / Unban`):** Khóa 1 tài khoản `USER` -> Tài khoản đó lập tức không thể đăng nhập hoặc gọi API (nhận `403 Tài khoản đã bị khóa`).
   - **Bảo vệ tự khóa mình:** Admin không thể tự khóa hoặc tự hạ quyền của chính mình.
-- [ ] **6. Quản lý Danh mục & Thẻ Tag (`/admin/categories` — `AdminCategoriesView.vue`):**
-  - **Danh mục (`Categories`):** Thêm danh mục mới (tên, mô tả, icon, màu sắc), chỉnh sửa danh mục, xóa danh mục (tự động chặn xóa nếu danh mục đang chứa bài viết).
-  - **Thẻ (`Tags`):** Tạo tag mới, đổi tên tag, xóa tag rác.
+- [ ] **6. Quản lý Danh mục & Thẻ Tag (`/admin/categories` — `CategoriesView.vue`):**
+  - **Danh mục (`Categories`):** Thêm danh mục mới (**tên danh mục** và **mô tả**, hệ thống tự động sinh `slug` chuẩn SEO, không dùng emoji/icon), chỉnh sửa danh mục, xóa danh mục (tự động chặn xóa nếu danh mục đang chứa bài viết).
+  - **Thẻ (`Tags`):** Xem thống kê các thẻ tag phổ biến và lọc danh mục theo trạng thái có/chưa có bài viết.
 - [ ] **7. Phân tích Chuyên sâu (`/admin/analytics` — `AdminAnalyticsView.vue`):**
   - Xem biểu đồ thống kê bài viết theo danh mục, xu hướng tương tác, tỉ lệ cảm xúc bình luận toàn hệ thống và top tác giả có đóng góp cao nhất.
 - [ ] **8. Cài đặt Hệ thống (`/admin/settings` — `AdminSettingsView.vue`):**
@@ -496,7 +492,7 @@ Khi đưa lên server/cloud có tên miền HTTPS thực tế, cấu hình các 
    - Mở `F12 -> Application`: Chứng minh `Local Storage` không chứa JWT; mở tab `Cookies` chỉ rõ `vietblog_access_token` và `vietblog_refresh_token` đều gắn cờ **`HttpOnly = ✓`**, kết hợp Docker chạy **PostgreSQL (`PostGIS` + `pgvector`)** và **Redis 7+**.
 2. **Phút 3–4 (Trải nghiệm Guest vs Auth & Tóm tắt AI `TextRank`):**
    - Trên cửa sổ Ẩn danh (`Guest`), mở 1 bài viết dài -> Bấm **`Tóm tắt bằng AI`** trình diễn thuật toán `TextRank` (`Đoạn văn` / `Ý chính`, `3 câu` / `5 câu`).
-   - Bấm thử `Bookmark` khi là Guest -> Trình diễn `AuthModal` bật lên, bấm nút Demo Quick-Fill **`User`** để đăng nhập và tự động hoàn tất thao tác.
+   - Bấm thử `Bookmark` khi là Guest -> Trình diễn `AuthModal` bật lên, đăng nhập bằng tài khoản **`User`** (`nguyenvanan@gmail.com` / `Password123!`) để tự động hoàn tất thao tác.
 3. **Phút 5–6 (AI Phân tích Cảm xúc 4-Gram & Tìm kiếm Đa phương thức `TF-IDF` + `CBIR 51 chiều`):**
    - Viết bình luận có cấu trúc phủ định/chuyển ý tiếng Việt -> Chỉ rõ nhãn cảm xúc AI và thanh **Biểu đồ Tỉ lệ Cảm xúc**.
    - Chuyển sang `/search`: Trình diễn tìm kiếm ngữ nghĩa văn bản, tải 1 tấm ảnh để tìm bài viết có ảnh tương đồng (**`CBIR 51 chiều`**), và tải 1 file `.pdf`/`.docx` để tìm bài viết liên quan.
@@ -504,5 +500,5 @@ Khi đưa lên server/cloud có tên miền HTTPS thực tế, cấu hình các 
    - Mở `/map`, bấm **`Quanh HCMUNRE`**, kéo thanh bán kính `1–50 km` để lọc bài viết theo không gian.
    - Mở `/chat` (hoặc `ChatPopup`), gửi tin nhắn/hình ảnh real-time qua WebSocket xác thực bằng `HttpOnly Cookie`.
 5. **Phút 9–10 (Phân quyền 3 Cấp `USER` / `MODERATOR` / `ADMIN`):**
-   - Đăng nhập nhanh bằng nút Demo **`Moderator`** -> Chỉ rõ giao diện giới hạn đúng 3 mục kiểm duyệt.
-   - Đăng nhập bằng nút Demo **`Admin`** -> Mở `/admin` trình diễn toàn bộ 8 phân hệ quản trị, thống kê và công cụ kiểm tra cảm xúc NLP trực tiếp.
+   - Đăng nhập bằng tài khoản **`Moderator`** (`phamminhduc@gmail.com` / `Password123!`) -> Chỉ rõ giao diện giới hạn đúng 3 mục kiểm duyệt.
+   - Đăng nhập bằng tài khoản **`Admin`** (`admin@vietblog.com` / `Password123!`) -> Mở `/admin` trình diễn toàn bộ 8 phân hệ quản trị, thống kê và công cụ kiểm tra cảm xúc NLP trực tiếp.
