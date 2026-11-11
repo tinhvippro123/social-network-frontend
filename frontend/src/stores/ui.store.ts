@@ -11,19 +11,19 @@ import { hasAuthSessionCookie } from '@/utils/cookies'
 import notificationsApi from '@/api/notifications.api'
 
 export const useUiStore = defineStore('ui', () => {
-  // ── Theme ──────────────────────────────────
+  // ── Theme (Locked to Light Mode) ───────────
   const isDark = ref(false)
 
   function toggleTheme() {
-    isDark.value = !isDark.value
-    document.documentElement.classList.toggle('dark', isDark.value)
-    localStorage.setItem(STORAGE_KEYS.THEME, isDark.value ? 'dark' : 'light')
+    isDark.value = false
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem(STORAGE_KEYS.THEME, 'light')
   }
 
   function initTheme() {
-    const saved = localStorage.getItem(STORAGE_KEYS.THEME)
-    isDark.value = saved ? saved === 'dark' : false
-    document.documentElement.classList.toggle('dark', isDark.value)
+    isDark.value = false
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem(STORAGE_KEYS.THEME, 'light')
   }
 
   initTheme()

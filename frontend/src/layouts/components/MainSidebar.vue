@@ -58,7 +58,7 @@ function isItemActive(to: string) {
         :class="[
           'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group cursor-pointer',
           isItemActive(item.to)
-            ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-semibold'
+            ? 'bg-primary-600 text-white shadow-xs'
             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-900 dark:hover:text-gray-200'
         ]"
       >
@@ -67,7 +67,7 @@ function isItemActive(to: string) {
           :size="20"
           :class="[
             'shrink-0 transition-transform duration-200 group-hover:scale-110',
-            isItemActive(item.to) ? 'text-primary-600 dark:text-primary-400' : ''
+            isItemActive(item.to) ? 'text-white' : ''
           ]"
         />
         <transition name="fade">
@@ -77,7 +77,7 @@ function isItemActive(to: string) {
         <!-- Active indicator -->
         <div
           v-if="isItemActive(item.to)"
-          class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500"
+          class="ml-auto w-1.5 h-1.5 rounded-full bg-white"
         />
       </button>
 
@@ -98,22 +98,6 @@ function isItemActive(to: string) {
         </transition>
       </button>
     </nav>
-
-    <!-- Sidebar Footer -->
-    <div class="p-3 border-t border-gray-200 dark:border-surface-700 shrink-0">
-      <button
-        @click="emit('toggleTheme')"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all duration-200 cursor-pointer"
-      >
-        <Sun v-if="isDark" :size="20" class="shrink-0 text-amber-400" />
-        <Moon v-else :size="20" class="shrink-0 text-slate-500" />
-        <transition name="fade">
-          <span v-if="isSidebarOpen || isMobile" class="whitespace-nowrap">
-            {{ isDark ? 'Chế độ sáng' : 'Chế độ tối' }}
-          </span>
-        </transition>
-      </button>
-    </div>
   </aside>
 </template>
 

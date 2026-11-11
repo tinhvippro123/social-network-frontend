@@ -112,22 +112,6 @@ const navItems = computed(() =>
         />
       </button>
     </nav>
-
-    <!-- Sidebar Footer -->
-    <div class="p-3 border-t border-gray-200 dark:border-surface-800 shrink-0">
-      <button
-        @click="emit('toggleTheme')"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-surface-800/60 dark:hover:text-gray-200 transition-all duration-200 cursor-pointer"
-      >
-        <Sun v-if="isDark" :size="20" class="shrink-0 text-amber-500" />
-        <Moon v-else :size="20" class="shrink-0 text-slate-500" />
-        <transition name="fade">
-          <span v-if="sidebarOpen || isMobile" class="whitespace-nowrap">
-            {{ isDark ? 'Chế độ sáng' : 'Chế độ tối' }}
-          </span>
-        </transition>
-      </button>
-    </div>
   </aside>
 </template>
 

@@ -18,7 +18,6 @@ export const NAV_ITEMS = [
 export const SETTINGS_TABS = [
   { id: 'profile', label: 'Thông tin cá nhân', icon: User },
   { id: 'account', label: 'Tài khoản', icon: Lock },
-  { id: 'appearance', label: 'Giao diện', icon: Palette },
   { id: 'notifications', label: 'Thông báo', icon: Bell },
   { id: 'privacy', label: 'Quyền riêng tư', icon: Shield },
 ] as const
