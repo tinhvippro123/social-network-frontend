@@ -65,7 +65,7 @@ async function toggleFollowUser(u: any) {
 </script>
 
 <template>
-  <aside class="w-full lg:w-80 shrink-0 space-y-5">
+  <aside class="w-full lg:w-80 shrink-0 space-y-5 pb-16">
     <!-- Trending Posts -->
     <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
       <h3 class="flex items-center gap-2 text-base font-bold text-gray-900 dark:text-white mb-4">
@@ -124,7 +124,7 @@ async function toggleFollowUser(u: any) {
       </div>
       <div v-else-if="tags.length > 0" class="flex flex-wrap gap-2">
         <span
-          v-for="tag in tags"
+          v-for="tag in tags.slice(0, 12)"
           :key="tag.id"
           @click="router.push('/tags/' + encodeURIComponent(tag.name))"
           class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700 hover:bg-primary-50 dark:hover:bg-primary-950/40 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-200 dark:hover:border-primary-800 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors cursor-pointer border border-gray-200 dark:border-surface-600"
