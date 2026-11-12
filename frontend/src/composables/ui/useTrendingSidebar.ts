@@ -1,10 +1,12 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePosts } from '../posts/usePosts'
 import { useUsers } from '../core/useUsers'
+import { useAuthStore } from '@/stores/auth.store'
 
 export function useTrendingSidebar() {
   const router = useRouter()
+  const authStore = useAuthStore()
   const { posts, fetchTrending, tags, fetchPopularTags } = usePosts()
   const { users, fetchUsers } = useUsers()
   
@@ -22,6 +24,10 @@ export function useTrendingSidebar() {
   }
 
   onMounted(() => {
+    initData()
+  })
+
+  watch(() => authStore.user?.id, () => {
     initData()
   })
 

@@ -56,7 +56,7 @@ const {
           <button
             type="button"
             @click="showPassword = !showPassword"
-            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
+            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors cursor-pointer"
           >
             <EyeOff v-if="showPassword" :size="18" />
             <Eye v-else :size="18" />
@@ -75,16 +75,16 @@ const {
           />
           <span class="text-sm text-gray-600 dark:text-gray-400">Ghi nhớ đăng nhập</span>
         </label>
-        <a href="#" class="text-sm text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors font-medium">
+        <router-link to="/forgot-password" class="text-sm text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors font-medium">
           Quên mật khẩu?
-        </a>
+        </router-link>
       </div>
 
       <!-- Login Button -->
       <button
         type="submit"
         :disabled="isLoading"
-        class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-lg shadow-primary-500/25 disabled:opacity-50"
+        class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-xs disabled:opacity-50 cursor-pointer"
       >
         <span v-if="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         <template v-else>

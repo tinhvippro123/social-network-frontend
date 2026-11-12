@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import {
-  Users, FileText, Flag, BarChart3, TrendingUp, TrendingDown,
-  Eye, ShieldAlert, Ban, Check, X, MoreVertical, Search as SearchIcon,
-  ArrowUp, ArrowDown, UserPlus, AlertTriangle
+  BarChart3
 } from '@lucide/vue'
 import { useAdminDashboard } from '@/composables/admin/useAdminDashboard'
-import { formatNumber } from '@/utils/formatters'
-import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import ModerationQueueWidget from './components/ModerationQueueWidget.vue'
 import UsersTableWidget from './components/UsersTableWidget.vue'
@@ -27,15 +22,16 @@ import {
 import { Line } from 'vue-chartjs'
 
 const {
-  stats,
   users,
   reports,
   isLoading,
-  activeTab,
   selectedPeriod,
+  periodTitle,
   statCards,
   chartData,
-  chartOptions
+  chartOptions,
+  resolveReport,
+  dismissReport
 } = useAdminDashboard()
 
 ChartJS.register(
@@ -66,7 +62,7 @@ ChartJS.register(
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-      <template v-if="isLoading">
+      <template v-if="isLoading && !statCards.length">
         <AdminStatCardSkeleton v-for="i in 4" :key="i" />
       </template>
       <template v-else-if="statCards.length">
@@ -76,7 +72,7 @@ ChartJS.register(
           :label="stat.label"
           :value="stat.value"
           :change="stat.change"
-          :trend="stat.color.includes('green') ? 'up' : stat.color.includes('red') ? 'down' : 'neutral'"
+          :trend="stat.trend || (stat.color.includes('green') ? 'up' : stat.color.includes('red') ? 'down' : 'neutral')"
           :icon="stat.icon"
           :icon-color="stat.color"
           :icon-bg="stat.bg"
@@ -90,12 +86,12 @@ ChartJS.register(
         <div class="flex items-center justify-between mb-6">
           <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <BarChart3 :size="18" class="text-primary-500" />
-            Thống kê tuần này
+            {{ periodTitle }}
           </h3>
-          <select class="text-xs bg-gray-100 dark:bg-surface-700 border-none rounded-lg px-3 py-1.5 text-gray-600 dark:text-gray-400">
-            <option>7 ngày qua</option>
-            <option>30 ngày qua</option>
-            <option>3 tháng qua</option>
+          <select v-model="selectedPeriod" class="text-xs bg-gray-100 dark:bg-surface-700 border-none rounded-lg px-3 py-1.5 text-gray-600 dark:text-gray-400 focus:outline-none">
+            <option value="7d">7 ngày qua</option>
+            <option value="30d">30 ngày qua</option>
+            <option value="90d">3 tháng qua</option>
           </select>
         </div>
 
@@ -116,10 +112,10 @@ ChartJS.register(
       </div>
 
       <!-- Moderation Queue -->
-      <ModerationQueueWidget :reports="reports" :isLoading="isLoading" />
+      <ModerationQueueWidget :reports="reports" :isLoading="isLoading && !reports.length" @resolve="resolveReport" @dismiss="dismissReport" />
     </div>
 
     <!-- Users Table -->
-    <UsersTableWidget :users="users" :isLoading="isLoading" />
+    <UsersTableWidget :users="users" :isLoading="isLoading && !users.length" />
   </div>
 </template>

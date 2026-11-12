@@ -1,18 +1,48 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { Eye, Check, X, Ban, Clock } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDateTime } from '@/utils/formatters'
+import { useAuthStore } from '@/stores/auth.store'
+import { useToast } from '@/composables/ui/useToast'
 import type { Report } from '@/types'
 
-defineProps<{
+const props = defineProps<{
   report: Report & {
     targetTitle: string
+    targetPostId?: string | null
     reporter: {
       name: string
       avatar: string
     }
   }
 }>()
+
+const emit = defineEmits<{
+  (e: 'resolve', reportId: string, action: 'keep' | 'delete' | 'ban'): void
+  (e: 'dismiss', reportId: string): void
+}>()
+
+const router = useRouter()
+const authStore = useAuthStore()
+const toast = useToast()
+
+function viewTarget() {
+  const type = (props.report.type || '').toLowerCase()
+  let path = '/'
+  if (type === 'post') path = `/posts/${props.report.targetId}`
+  else if (type === 'comment') {
+    if (!(props.report as any).targetPostId) {
+      toast.info('Bình luận hoặc bài viết gốc đã bị xóa')
+      return
+    }
+    path = `/posts/${(props.report as any).targetPostId}#comment-${props.report.targetId}`
+  }
+  else if (type === 'user') path = `/profile/${props.report.targetId}`
+  else if (type === 'group') path = `/groups/${props.report.targetId}`
+  // Mở tab mới để admin không bị rời khỏi hàng đợi kiểm duyệt
+  window.open(router.resolve(path).href, '_blank', 'noopener')
+}
 </script>
 
 <template>
@@ -26,27 +56,31 @@ defineProps<{
           <span :class="['px-2.5 py-1 rounded-lg text-xs font-semibold',
             report.type === 'post' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600' :
             report.type === 'comment' ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-600' :
-            'bg-purple-100 dark:bg-purple-900/20 text-purple-600']">
-            {{ report.type === 'post' ? '📄 Bài viết' : report.type === 'comment' ? '💬 Bình luận' : '👤 Người dùng' }}
+            report.type === 'group' ? 'bg-teal-100 dark:bg-teal-900/20 text-teal-600' :
+            'bg-teal-100 dark:bg-teal-900/20 text-teal-600']">
+            {{ report.type === 'post' ? 'Bài viết' : report.type === 'comment' ? 'Bình luận' : report.type === 'group' ? 'Nhóm' : 'Người dùng' }}
           </span>
           <span :class="['px-2.5 py-1 rounded-lg text-xs font-semibold',
             report.status === 'pending' ? 'bg-red-100 dark:bg-red-900/20 text-red-600' :
             report.status === 'resolved' ? 'bg-green-100 dark:bg-green-900/20 text-green-600' :
             'bg-gray-100 dark:bg-surface-700 text-gray-500']">
-            {{ report.status === 'pending' ? '⏳ Đang chờ' : report.status === 'resolved' ? '✅ Đã xử lý' : '❌ Bỏ qua' }}
+            {{ report.status === 'pending' ? 'Đang chờ' : report.status === 'resolved' ? 'Đã xử lý' : 'Đã bỏ qua' }}
           </span>
         </div>
 
         <h3 class="font-semibold text-gray-900 dark:text-white mb-1">{{ report.targetTitle }}</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
           <span class="font-medium">Lý do:</span> {{ report.reason }}
+        </p>
+        <p v-if="(report as any).description" class="text-xs text-gray-500 dark:text-gray-400 italic mb-2 bg-gray-50 dark:bg-surface-700/50 px-3 py-1.5 rounded-lg">
+          "{{ (report as any).description }}"
         </p>
         <div class="flex items-center gap-3">
           <UserAvatar :user="report.reporter as any" size="sm" />
           <div class="flex-1 min-w-0 flex items-center gap-2">
             <span class="text-sm font-medium text-gray-900 dark:text-white">{{ report.reporter.name }}</span>
             <span class="text-xs text-gray-500">đã báo cáo</span>
-            <span class="text-sm font-medium text-blue-500 hover:underline cursor-pointer">{{ report.targetTitle }}</span>
+            <span @click="viewTarget" class="text-sm font-medium text-blue-500 hover:underline cursor-pointer">{{ report.targetTitle }}</span>
           </div>
           <span class="text-xs text-gray-400 flex items-center gap-1"><Clock :size="12" /> {{ formatDateTime(report.createdAt) }}</span>
         </div>
@@ -54,17 +88,42 @@ defineProps<{
 
       <!-- Actions -->
       <div v-if="report.status === 'pending'" class="flex flex-col gap-2 shrink-0">
-        <button class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all">
+        <button
+          type="button"
+          @click="viewTarget"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all cursor-pointer"
+        >
           <Eye :size="12" /> Xem nội dung
         </button>
-        <button class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all">
+        <button
+          type="button"
+          @click="emit('resolve', report.id, 'keep')"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all cursor-pointer"
+        >
           <Check :size="12" /> Giữ lại
         </button>
-        <button class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all">
+        <button
+          v-if="report.type !== 'user' && (report.type !== 'group' || authStore.isAdmin)"
+          type="button"
+          @click="emit('resolve', report.id, 'delete')"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer"
+        >
           <X :size="12" /> Xóa nội dung
         </button>
-        <button class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all">
-          <Ban :size="12" /> Cấm người đăng
+        <button
+          v-if="!(report.type === 'user' && String(report.targetId) === String(authStore.user?.id))"
+          type="button"
+          @click="emit('resolve', report.id, 'ban')"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all cursor-pointer"
+        >
+          <Ban :size="12" /> {{ report.type === 'user' ? 'Cấm tài khoản' : 'Cấm người đăng' }}
+        </button>
+        <button
+          type="button"
+          @click="emit('dismiss', report.id)"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-gray-500/10 text-gray-500 hover:bg-gray-500 hover:text-white transition-all cursor-pointer"
+        >
+          <X :size="12" /> Bỏ qua
         </button>
       </div>
     </div>

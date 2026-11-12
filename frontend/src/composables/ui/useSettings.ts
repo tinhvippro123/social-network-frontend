@@ -18,11 +18,13 @@ export function useSettings() {
   const isUploadingAvatar = ref(false)
 
   const activeTab = ref('profile')
-  const themeMode = ref<'light' | 'dark' | 'system'>(uiStore.isDark ? 'dark' : 'light')
-  
+  const savedThemeMode = typeof window !== 'undefined' ? localStorage.getItem('vb_theme_mode') as 'light' | 'dark' | 'system' | null : null
+  const themeMode = ref<'light' | 'dark' | 'system'>(savedThemeMode || (uiStore.isDark ? 'dark' : 'light'))
+
   watch(() => uiStore.isDark, (isDark) => {
     if (themeMode.value !== 'system') {
       themeMode.value = isDark ? 'dark' : 'light'
+      if (typeof window !== 'undefined') localStorage.setItem('vb_theme_mode', themeMode.value)
     }
   })
   const tabs = SETTINGS_TABS
@@ -42,6 +44,7 @@ export function useSettings() {
         email: newUser.email || '',
         avatar: newUser.avatar || '',
       }
+      loadPersistedPrefs(newUser.id)
     }
   })
 
@@ -71,19 +74,77 @@ export function useSettings() {
     showReadReceipts: true,
   })
 
+  function getPrefsKey(userId?: string) {
+    return `vb_user_prefs_${userId || user.value?.id || 'default'}`
+  }
+
+  function loadPersistedPrefs(userId?: string) {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = localStorage.getItem(getPrefsKey(userId))
+      if (!raw) return
+      const parsed = JSON.parse(raw)
+      if (parsed?.notificationSettings) {
+        notificationSettings.value = { ...notificationSettings.value, ...parsed.notificationSettings }
+      }
+      if (parsed?.privacySettings) {
+        privacySettings.value = { ...privacySettings.value, ...parsed.privacySettings }
+      }
+    } catch {
+      // ignore invalid JSON
+    }
+  }
+
+  loadPersistedPrefs()
+
+  function updatePersistedPrefsSection(section: 'notificationSettings' | 'privacySettings', value: any) {
+    if (typeof window === 'undefined') return
+    try {
+      const key = getPrefsKey()
+      const existing = JSON.parse(localStorage.getItem(key) || '{}')
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          ...existing,
+          [section]: value,
+        })
+      )
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  watch(
+    notificationSettings,
+    (val) => updatePersistedPrefsSection('notificationSettings', val),
+    { deep: true }
+  )
+
+  watch(
+    privacySettings,
+    (val) => updatePersistedPrefsSection('privacySettings', val),
+    { deep: true }
+  )
+
   const setSystemTheme = () => {
     themeMode.value = 'system'
+    if (typeof window !== 'undefined') localStorage.setItem('vb_theme_mode', 'system')
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     if (prefersDark !== uiStore.isDark) uiStore.toggleTheme()
   }
 
   const setTheme = (mode: 'light' | 'dark') => {
     themeMode.value = mode
+    if (typeof window !== 'undefined') localStorage.setItem('vb_theme_mode', mode)
     if (mode === 'light' && uiStore.isDark) uiStore.toggleTheme()
     if (mode === 'dark' && !uiStore.isDark) uiStore.toggleTheme()
   }
 
   const uploadAvatar = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn tệp hình ảnh hợp lệ!')
+      return
+    }
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Kích thước ảnh tối đa là 5MB')
       return
@@ -94,7 +155,18 @@ export function useSettings() {
       const url = res.data?.data?.fileUrl || res.data?.fileUrl
       if (url) {
         profileForm.value.avatar = url
-        toast.success('Đã tải ảnh lên thành công!')
+        const trimmedName = profileForm.value.name.trim() || user.value?.name || ''
+        if (trimmedName) {
+          const { data } = await usersApi.updateProfile({
+            name: trimmedName,
+            bio: profileForm.value.bio,
+            avatar: url
+          })
+          if (data?.data) {
+            authStore.setUser(data.data)
+          }
+        }
+        toast.success('Đã cập nhật ảnh đại diện thành công!')
       }
     } catch (e: any) {
       toast.error(e.response?.data?.message || 'Không thể tải ảnh đại diện lên!')
@@ -104,14 +176,23 @@ export function useSettings() {
   }
 
   const saveProfile = async () => {
-    if (!profileForm.value.name.trim()) {
+    const trimmedName = profileForm.value.name.trim()
+    if (!trimmedName) {
       toast.error('Tên hiển thị không được để trống!')
+      return
+    }
+    if (trimmedName.length < 2 || trimmedName.length > 50) {
+      toast.error('Tên hiển thị phải từ 2 đến 50 ký tự!')
+      return
+    }
+    if (profileForm.value.bio && profileForm.value.bio.length > 250) {
+      toast.error('Giới thiệu bản thân không được vượt quá 250 ký tự!')
       return
     }
     isSaving.value = true
     try {
       const { data } = await usersApi.updateProfile({
-        name: profileForm.value.name.trim(),
+        name: trimmedName,
         bio: profileForm.value.bio,
         avatar: profileForm.value.avatar
       })
@@ -125,6 +206,10 @@ export function useSettings() {
   }
 
   const changePassword = async () => {
+    if (!accountForm.value.currentPassword) {
+      toast.error('Vui lòng nhập mật khẩu hiện tại!')
+      return
+    }
     if (accountForm.value.newPassword.length < 8) {
       toast.error('Mật khẩu mới phải có ít nhất 8 ký tự!')
       return
@@ -151,8 +236,15 @@ export function useSettings() {
   const saveSettings = async () => {
     isSaving.value = true
     try {
-      // API call mock (Chưa có endpoint cho Settings)
-      await new Promise(r => setTimeout(r, 500))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          getPrefsKey(),
+          JSON.stringify({
+            notificationSettings: notificationSettings.value,
+            privacySettings: privacySettings.value,
+          })
+        )
+      }
       toast.success('Đã lưu cấu hình cá nhân!')
     } finally {
       isSaving.value = false

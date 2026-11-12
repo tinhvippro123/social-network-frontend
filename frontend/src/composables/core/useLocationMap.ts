@@ -1,5 +1,6 @@
 import { ref, type Ref, nextTick } from 'vue'
 import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { MAP_CONFIG, MAP_MARKERS } from '@/constants/map'
 import { mapApi } from '@/api/map.api'
 
@@ -109,7 +110,7 @@ export function useLocationMap(mapContainer: Ref<HTMLElement | null>) {
     )
   }
 
-  const initMap = async (initialLat?: number, initialLng?: number) => {
+  const initMap = async (initialLat?: number, initialLng?: number, initialAddr?: string) => {
     await nextTick()
     if (!mapContainer.value || map) return
 
@@ -124,12 +125,19 @@ export function useLocationMap(mapContainer: Ref<HTMLElement | null>) {
 
     L.control.zoom({ position: 'bottomright' }).addTo(map)
 
-    if (initialLat && initialLng) {
+    if (initialLat != null && initialLng != null) {
       selectedLat.value = initialLat
       selectedLng.value = initialLng
       setMapMarker(initialLat, initialLng)
-      await reverseGeocode(initialLat, initialLng)
+      if (initialAddr) {
+        selectedAddress.value = initialAddr
+      } else {
+        await reverseGeocode(initialLat, initialLng)
+      }
     } else {
+      selectedLat.value = null
+      selectedLng.value = null
+      selectedAddress.value = ''
       map.setView(MAP_CONFIG.DEFAULT_CENTER as [number, number], MAP_CONFIG.DEFAULT_ZOOM)
       getCurrentLocation()
     }
@@ -141,9 +149,20 @@ export function useLocationMap(mapContainer: Ref<HTMLElement | null>) {
       setMapMarker(lat, lng)
       await reverseGeocode(lat, lng)
     })
+
+    setTimeout(() => {
+      map?.invalidateSize()
+    }, 250)
   }
 
   const destroyMap = () => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout)
+      searchTimeout = null
+    }
+    searchQuery.value = ''
+    searchResults.value = []
+    showSearchResults.value = false
     if (map) {
       map.remove()
       map = null

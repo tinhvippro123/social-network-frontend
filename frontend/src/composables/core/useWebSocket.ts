@@ -1,25 +1,94 @@
 // ==========================================
 // Composable — useWebSocket
-// Kết nối WebSocket cho Chat Real-time
+// Kết nối WebSocket cho Chat Real-time (/ws/chat) xác thực qua HttpOnly Cookie Handshake
 // ==========================================
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, getCurrentInstance } from 'vue'
+import authApi from '@/api/auth.api'
+import { useAuthStore } from '@/stores/auth.store'
+import { hasAuthSessionCookie } from '@/utils/cookies'
 
-export function useWebSocket(url?: string) {
+function resolveDefaultWsUrl(): string {
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL
+  }
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
+  try {
+    const u = new URL(apiBase, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8080')
+    const wsProtocol = u.protocol === 'https:' ? 'wss:' : 'ws:'
+    return `${wsProtocol}//${u.host}/ws/chat`
+  } catch {
+    return 'ws://localhost:8080/ws/chat'
+  }
+}
+
+export function useWebSocket(url?: string, onMessageCallback?: (payload: any) => void) {
   const ws = ref<WebSocket | null>(null)
   const isConnected = ref(false)
+  const isAuthenticated = ref(false)
   const lastMessage = ref<any>(null)
   const error = ref<string | null>(null)
 
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+  let pingTimer: ReturnType<typeof setInterval> | null = null
+  let authFallbackTimer: ReturnType<typeof setTimeout> | null = null
   let reconnectAttempts = 0
-  const MAX_RECONNECT = 5
+  const MAX_RECONNECT = 8
   const RECONNECT_DELAY = 3000
+  const WS_COOKIE_AUTH_GRACE_MS = 350
 
-  /** Kết nối WebSocket */
+  function hasActiveSession(): boolean {
+    if (typeof window === 'undefined') return false
+    const authStore = useAuthStore()
+    return authStore.isLoggedIn || hasAuthSessionCookie()
+  }
+
+  function stopPing() {
+    if (pingTimer) {
+      clearInterval(pingTimer)
+      pingTimer = null
+    }
+  }
+
+  function stopAuthFallback() {
+    if (authFallbackTimer) {
+      clearTimeout(authFallbackTimer)
+      authFallbackTimer = null
+    }
+  }
+
+  async function authenticateWithTicket() {
+    if (!ws.value || ws.value.readyState !== WebSocket.OPEN || isAuthenticated.value || !hasActiveSession()) {
+      return
+    }
+    try {
+      const { data } = await authApi.getWsTicket()
+      const ticket = data?.data?.ticket
+      if (ticket && ws.value?.readyState === WebSocket.OPEN && !isAuthenticated.value) {
+        send({ type: 'auth', token: ticket })
+      }
+    } catch {
+      // Cookie handshake or session refresh will handle recovery if session is still valid
+    }
+  }
+
+  function startPing() {
+    stopPing()
+    pingTimer = setInterval(() => {
+      send({ type: 'ping' })
+    }, 25000)
+  }
+
+  /** Kết nối WebSocket — ưu tiên HttpOnly Cookie Handshake, fallback WS Ticket nếu cross-domain */
   function connect(wsUrl?: string) {
-    const finalUrl = wsUrl || url || import.meta.env.VITE_WS_URL
+    if (!hasActiveSession()) return
+
+    const finalUrl = wsUrl || url || resolveDefaultWsUrl()
     if (!finalUrl) {
       error.value = 'WebSocket URL không được cung cấp'
+      return
+    }
+
+    if (ws.value && (ws.value.readyState === WebSocket.OPEN || ws.value.readyState === WebSocket.CONNECTING)) {
       return
     }
 
@@ -30,11 +99,24 @@ export function useWebSocket(url?: string) {
         isConnected.value = true
         reconnectAttempts = 0
         error.value = null
+        startPing()
+        stopAuthFallback()
+        authFallbackTimer = setTimeout(() => {
+          void authenticateWithTicket()
+        }, WS_COOKIE_AUTH_GRACE_MS)
       }
 
       ws.value.onmessage = (event) => {
         try {
-          lastMessage.value = JSON.parse(event.data)
+          const parsed = JSON.parse(event.data)
+          lastMessage.value = parsed
+          if (parsed?.type === 'authenticated') {
+            isAuthenticated.value = true
+            stopAuthFallback()
+          }
+          if (onMessageCallback) {
+            onMessageCallback(parsed)
+          }
         } catch {
           lastMessage.value = event.data
         }
@@ -46,26 +128,29 @@ export function useWebSocket(url?: string) {
 
       ws.value.onclose = () => {
         isConnected.value = false
+        isAuthenticated.value = false
+        stopAuthFallback()
+        stopPing()
         attemptReconnect(finalUrl)
       }
-    } catch (err) {
+    } catch {
       error.value = 'Không thể kết nối WebSocket'
     }
   }
 
-  /** Tự động reconnect */
+  /** Tự động reconnect khi còn phiên đăng nhập */
   function attemptReconnect(wsUrl: string) {
-    if (reconnectAttempts >= MAX_RECONNECT) {
-      error.value = `Không thể kết nối lại sau ${MAX_RECONNECT} lần thử`
+    if (!hasActiveSession() || reconnectAttempts >= MAX_RECONNECT) {
       return
     }
+    if (reconnectTimer) clearTimeout(reconnectTimer)
     reconnectTimer = setTimeout(() => {
       reconnectAttempts++
       connect(wsUrl)
     }, RECONNECT_DELAY)
   }
 
-  /** Gửi message */
+  /** Gửi message JSON frame */
   function send(data: Record<string, unknown>) {
     if (ws.value?.readyState === WebSocket.OPEN) {
       ws.value.send(JSON.stringify(data))
@@ -75,20 +160,24 @@ export function useWebSocket(url?: string) {
   /** Ngắt kết nối */
   function disconnect() {
     if (reconnectTimer) clearTimeout(reconnectTimer)
+    stopAuthFallback()
+    stopPing()
     if (ws.value) {
-      // Gỡ sự kiện onclose trước khi đóng để tránh bị trigger reconnect (Memory Leak)
       ws.value.onclose = null
       ws.value.close()
     }
     ws.value = null
     isConnected.value = false
+    isAuthenticated.value = false
   }
 
-  // Auto cleanup khi component unmount
-  onUnmounted(() => disconnect())
+  if (getCurrentInstance()) {
+    onUnmounted(() => disconnect())
+  }
 
   return {
     isConnected,
+    isAuthenticated,
     lastMessage,
     error,
     connect,

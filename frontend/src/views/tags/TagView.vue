@@ -1,32 +1,54 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Tag, ArrowLeft, TrendingUp, Clock, Filter } from '@lucide/vue'
+import { Tag, ArrowLeft } from '@lucide/vue'
 import { usePosts } from '@/composables/posts/usePosts'
+import { useAuthStore } from '@/stores/auth.store'
 import PostCard from '@/components/PostCard.vue'
 import PostSkeletonCard from '@/components/posts/PostSkeletonCard.vue'
 
 const route = useRoute()
 const router = useRouter()
-const tagName = computed(() => route.params.name as string)
+const authStore = useAuthStore()
+const tagName = computed(() => ((route.params.name as string) || '').replace(/^#+/, '').trim())
 
-const { posts, isLoading, fetchPosts } = usePosts()
+const { posts, isLoading, fetchPosts, toggleBookmark: apiToggleBookmark } = usePosts()
+
+async function handleToggleBookmark(postId: string) {
+  const post = posts.value.find(p => p.id === postId)
+  if (!post) return
+  const prev = post.bookmarked
+  post.bookmarked = !prev
+  try {
+    const res = await apiToggleBookmark(postId)
+    if (typeof res === 'boolean') {
+      post.bookmarked = res
+    }
+  } catch {
+    post.bookmarked = prev
+  }
+}
 
 onMounted(() => {
-  fetchPosts()
+  fetchPosts({ limit: 100 })
 })
 
-// Filter posts by tag (mock: show all posts as if they all have this tag)
-const filteredPosts = computed(() => {
+watch(tagName, () => {
+  fetchPosts({ limit: 100 })
+})
+
+watch(() => authStore.user?.id, () => {
+  fetchPosts({ limit: 100 })
+})
+
+// Lọc chính xác các bài viết có gắn thẻ tag này
+const displayPosts = computed(() => {
+  const target = tagName.value.replace(/^#+/, '').trim().toLowerCase()
+  if (!target) return []
   return posts.value.filter(p =>
-    p.tags?.some(t => t.toLowerCase() === tagName.value?.toLowerCase())
+    p.tags?.some(t => t.replace(/^#+/, '').trim().toLowerCase() === target)
   )
 })
-
-// If no posts match the tag, show all posts as fallback for demo
-const displayPosts = computed(() =>
-  filteredPosts.value.length > 0 ? filteredPosts.value : posts.value
-)
 </script>
 
 <template>
@@ -35,7 +57,7 @@ const displayPosts = computed(() =>
     <div class="mb-8">
       <button
         @click="router.back()"
-        class="flex items-center gap-2 text-sm text-gray-500 hover:text-primary-500 transition-colors mb-4"
+        class="flex items-center gap-2 text-sm text-gray-500 hover:text-primary-500 transition-colors mb-4 cursor-pointer"
       >
         <ArrowLeft :size="16" />
         Quay lại
@@ -62,12 +84,13 @@ const displayPosts = computed(() =>
         v-for="post in displayPosts"
         :key="post.id"
         :post="post"
+        @bookmark="handleToggleBookmark"
       />
     </div>
 
     <div v-else class="text-center py-20 text-gray-500">
       <Tag :size="48" class="mx-auto mb-4 opacity-30" />
-      <p class="text-lg font-medium">Không tìm thấy bài viết nào với tag này</p>
+      <p class="text-lg font-medium">Không tìm thấy bài viết nào với tag #{{ tagName }}</p>
     </div>
   </div>
 </template>

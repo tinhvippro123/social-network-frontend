@@ -45,10 +45,15 @@ const router = useRouter()
               {{ post.title }}
             </p>
             <div class="flex items-center gap-2 mt-1 text-xs text-gray-400">
-              <span>{{ post.author.name }}</span>
+              <span
+                @click.stop="post.author?.id && router.push(`/profile/${post.author.id}`)"
+                class="hover:text-primary-500 hover:underline transition-colors"
+              >
+                {{ post.author.name }}
+              </span>
               <span>·</span>
               <span class="flex items-center gap-0.5">
-                <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc: number, curr: any) => acc + curr.count, 0) || 0) }}
+                <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc: number, curr: any) => acc + curr.count, 0) || (post.upvotesCount || 0) + (post.commentsCount || 0)) }}
               </span>
             </div>
           </div>
@@ -73,6 +78,7 @@ const router = useRouter()
         <span
           v-for="tag in tags"
           :key="tag.id"
+          @click="router.push('/tags/' + encodeURIComponent(tag.name))"
           class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700 hover:bg-gray-100 dark:hover:bg-surface-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors cursor-pointer border border-gray-200 dark:border-surface-600"
         >
           #{{ tag.name }}

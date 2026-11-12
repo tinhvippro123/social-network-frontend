@@ -12,7 +12,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5 hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5 hover:shadow-md transition-all duration-300">
     <div class="flex items-start justify-between">
       <div>
         <p class="text-sm text-gray-500 dark:text-gray-400">{{ label }}</p>

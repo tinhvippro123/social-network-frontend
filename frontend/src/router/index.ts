@@ -20,6 +20,12 @@ const router = createRouter({
       component: () => import('@/views/auth/RegisterView.vue'),
       meta: { layout: 'auth', title: 'Đăng ký', guestOnly: true }
     },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('@/views/auth/ForgotPasswordView.vue'),
+      meta: { layout: 'auth', title: 'Quên mật khẩu', guestOnly: true }
+    },
 
     // ==========================================
     // Client routes (MainLayout - user sidebar)
@@ -29,6 +35,11 @@ const router = createRouter({
       name: 'home',
       component: () => import('@/views/HomeView.vue'),
       meta: { title: 'Trang chủ' }
+    },
+    {
+      path: '/events',
+      name: 'events',
+      redirect: { path: '/', query: { category: 'su-kien' } }
     },
     {
       path: '/trending',
@@ -77,6 +88,12 @@ const router = createRouter({
       name: 'group-detail',
       component: () => import('@/views/groups/GroupDetailView.vue'),
       meta: { title: 'Chi tiết nhóm' }
+    },
+    {
+      path: '/groups/:id/posts/:postId',
+      name: 'group-post-detail',
+      component: () => import('@/views/groups/GroupPostDetailView.vue'),
+      meta: { title: 'Thảo luận nhóm' }
     },
     {
       path: '/tags/:name',
@@ -134,13 +151,13 @@ const router = createRouter({
       path: '/admin/posts',
       name: 'admin-posts',
       component: () => import('@/views/admin/PostsManageView.vue'),
-      meta: { layout: 'admin', title: 'Quản lý bài viết', requiresAdmin: true }
+      meta: { layout: 'admin', title: 'Quản lý bài viết', requiresModerator: true }
     },
     {
       path: '/admin/moderation',
       name: 'admin-moderation',
       component: () => import('@/views/admin/ModerationView.vue'),
-      meta: { layout: 'admin', title: 'Kiểm duyệt nội dung', requiresAdmin: true }
+      meta: { layout: 'admin', title: 'Kiểm duyệt nội dung', requiresModerator: true }
     },
     {
       path: '/admin/categories',
@@ -152,7 +169,7 @@ const router = createRouter({
       path: '/admin/groups',
       name: 'admin-groups',
       component: () => import('@/views/admin/GroupsManageView.vue'),
-      meta: { layout: 'admin', title: 'Quản lý nhóm', requiresAdmin: true }
+      meta: { layout: 'admin', title: 'Quản lý nhóm', requiresModerator: true }
     },
     {
       path: '/admin/analytics',
@@ -184,11 +201,14 @@ const router = createRouter({
 })
 
 // Global Navigation Guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   // Update document title
   document.title = `${to.meta.title || 'Trang chủ'} | VietBlog`
 
   const authStore = useAuthStore()
+  if (!authStore.isInitialized) {
+    await authStore.bootstrapSession()
+  }
 
   // Check if route requires admin privileges
   if (to.meta.requiresAdmin) {
@@ -197,6 +217,17 @@ router.beforeEach((to, from, next) => {
       return next({ name: 'login', query: { redirect: to.fullPath } })
     }
     if (!authStore.isAdmin) {
+      if (authStore.isModerator) return next({ name: 'admin-moderation' })
+      return next({ name: 'home' })
+    }
+    return next()
+  }
+
+  if (to.meta.requiresModerator) {
+    if (!authStore.isLoggedIn) {
+      return next({ name: 'login', query: { redirect: to.fullPath } })
+    }
+    if (!authStore.isModerator) {
       return next({ name: 'home' })
     }
     return next()
@@ -205,9 +236,9 @@ router.beforeEach((to, from, next) => {
   // Check if route requires auth (for regular users)
   if (to.meta.requiresAuth) {
     if (!authStore.isLoggedIn) {
-      // Show auth modal instead of redirecting away
+      // Show auth modal instead of redirecting away, preserving target route
       const uiStore = useUiStore()
-      uiStore.openAuthModal('login')
+      uiStore.openAuthModal('login', to.fullPath)
       // Stay on current page (or go home if no previous page)
       if (from.name) {
         return next(false)
@@ -222,6 +253,9 @@ router.beforeEach((to, from, next) => {
     if (authStore.isLoggedIn) {
       if (authStore.isAdmin) {
         return next({ name: 'admin-dashboard' })
+      }
+      if (authStore.isModerator) {
+        return next({ name: 'admin-moderation' })
       }
       return next({ name: 'home' })
     }

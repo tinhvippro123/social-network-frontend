@@ -5,24 +5,28 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Notification } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
+import { useAuthStore } from '@/stores/auth.store'
+import { hasAuthSessionCookie } from '@/utils/cookies'
 
 import notificationsApi from '@/api/notifications.api'
 
 export const useUiStore = defineStore('ui', () => {
-  // ── Theme ──────────────────────────────────
+  // ── Theme (Locked to Light Mode) ───────────
   const isDark = ref(false)
 
   function toggleTheme() {
-    isDark.value = !isDark.value
-    document.documentElement.classList.toggle('dark', isDark.value)
-    localStorage.setItem(STORAGE_KEYS.THEME, isDark.value ? 'dark' : 'light')
+    isDark.value = false
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem(STORAGE_KEYS.THEME, 'light')
   }
 
   function initTheme() {
-    const saved = localStorage.getItem(STORAGE_KEYS.THEME)
-    isDark.value = saved ? saved === 'dark' : false
-    document.documentElement.classList.toggle('dark', isDark.value)
+    isDark.value = false
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem(STORAGE_KEYS.THEME, 'light')
   }
+
+  initTheme()
 
   // ── Sidebar ────────────────────────────────
   const isSidebarOpen = ref(true)
@@ -36,9 +40,11 @@ export const useUiStore = defineStore('ui', () => {
   const notifications = ref<Notification[]>([])
   
   async function fetchNotifications() {
+    const authStore = useAuthStore()
+    if (!authStore.isLoggedIn && !hasAuthSessionCookie()) return
     try {
       const { data } = await notificationsApi.getAll()
-      notifications.value = data.data
+      notifications.value = (data.data || []).map((item: any) => ({ ...item, type: (item.type || 'system').toLowerCase(), isRead: Boolean(item.isRead) }))
     } catch (e) {
       console.error('Lỗi lấy thông báo:', e)
     }
@@ -52,28 +58,50 @@ export const useUiStore = defineStore('ui', () => {
     const n = notifications.value.find(n => n.id === id)
     if (n) n.isRead = true
     notificationsApi.markRead(id).catch(err => console.error('Lỗi đánh dấu đã đọc:', err))
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('notification-marked-read', { detail: { id } }))
   }
 
   function markAllRead() {
     notifications.value.forEach(n => n.isRead = true)
     notificationsApi.markAllRead().catch(err => console.error('Lỗi đánh dấu tất cả đã đọc:', err))
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('notifications-marked-all-read'))
   }
 
   // ── Search UI ──────────────────────────────
   const searchQuery = ref('')
   const isSearchOpen = ref(false)
+  const pendingSearchFile = ref<{ file: File; type: 'image' | 'document' } | null>(null)
+
+  function setPendingSearchFile(file: File, type: 'image' | 'document') {
+    pendingSearchFile.value = { file, type }
+  }
+
+  function consumePendingSearchFile() {
+    const item = pendingSearchFile.value
+    pendingSearchFile.value = null
+    return item
+  }
 
   // ── Auth Modal ──────────────────────────────
   const showAuthModal = ref(false)
   const authModalTab = ref<'login' | 'register'>('login')
+  const authRedirectPath = ref<string | null>(null)
 
-  function openAuthModal(tab: 'login' | 'register' = 'login') {
+  function openAuthModal(tab: 'login' | 'register' = 'login', redirectPath: string | null = null) {
     authModalTab.value = tab
+    authRedirectPath.value = redirectPath
     showAuthModal.value = true
+  }
+
+  function consumeAuthRedirect(): string | null {
+    const target = authRedirectPath.value
+    authRedirectPath.value = null
+    return target
   }
 
   function closeAuthModal() {
     showAuthModal.value = false
+    authRedirectPath.value = null
   }
 
   return {
@@ -84,9 +112,9 @@ export const useUiStore = defineStore('ui', () => {
     // Notifications
     notifications, unreadCount, markNotificationRead, markAllRead,
     // Search
-    searchQuery, isSearchOpen,
+    searchQuery, isSearchOpen, pendingSearchFile, setPendingSearchFile, consumePendingSearchFile,
     fetchNotifications,
     // Auth Modal
-    showAuthModal, authModalTab, openAuthModal, closeAuthModal,
+    showAuthModal, authModalTab, authRedirectPath, openAuthModal, consumeAuthRedirect, closeAuthModal,
   }
 })

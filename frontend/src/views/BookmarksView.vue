@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Bookmark, FolderOpen } from '@lucide/vue'
 import PostCard from '@/components/PostCard.vue'
@@ -7,7 +6,6 @@ import PostSkeletonCard from '@/components/posts/PostSkeletonCard.vue'
 import BookmarksSidebar from './components/BookmarksSidebar.vue'
 import BookmarksHeroBanner from './components/BookmarksHeroBanner.vue'
 import { useBookmarks } from '@/composables/core/useBookmarks'
-import { formatNumber } from '@/utils/formatters'
 
 const router = useRouter()
 
@@ -49,7 +47,7 @@ const {
               </p>
               <button
                 @click="router.push('/')"
-                class="px-6 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-lg shadow-primary-500/25"
+                class="px-6 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all duration-200 shadow-xs cursor-pointer"
               >
                 Khám phá bài viết
               </button>
@@ -61,7 +59,7 @@ const {
               v-for="post in bookmarkedPosts"
               :key="post.id"
               :post="post"
-              @toggle-bookmark="toggleBookmark"
+              @bookmark="toggleBookmark"
               @click="router.push(`/posts/${post.id}`)"
               class="cursor-pointer transition-transform hover:-translate-y-1"
             />

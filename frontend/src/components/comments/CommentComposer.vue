@@ -38,11 +38,11 @@
           v-model="content"
           :placeholder="replyToName ? 'Viết phản hồi...' : placeholder"
           :rows="rows"
-          class="w-full bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 placeholder-gray-400 resize-none outline-none p-0 relative z-20 break-words break-all overflow-hidden"
+          class="w-full bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 placeholder-gray-400 resize-none outline-none p-0 relative z-20 wrap-break-word overflow-hidden"
           :class="compact ? 'text-xs leading-relaxed' : 'text-sm leading-relaxed'"
           :style="{ textIndent: replyToName ? `${tagWidth}px` : '0px' }"
           @input="adjustHeight"
-          @keydown.enter.prevent="handleSubmit"
+          @keydown.enter.exact.prevent="handleSubmit"
           @keydown.delete="handleBackspace"
         ></textarea>
       </div>
@@ -50,7 +50,7 @@
     
     <!-- Toolbar -->
     <div class="flex items-center justify-between px-2 pb-1.5 pt-0.5" :class="{ 'border-t border-gray-100 dark:border-surface-600/50': !compact }">
-      <div class="flex items-center gap-0.5 relative">
+      <div ref="emojiContainerRef" class="flex items-center gap-0.5 relative">
         <input type="file" ref="fileInputRef" @change="handleImageSelected" accept="image/*" class="hidden" />
         <button @click="fileInputRef?.click()" :class="['text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-all rounded-md', compact ? 'p-1' : 'p-1.5']" title="Đính kèm ảnh">
           <ImageIcon :size="compact ? 14 : 18" />
@@ -73,7 +73,7 @@
         <button v-if="showCancel" @click="$emit('cancel')" :class="['text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 rounded-md transition-colors font-medium', compact ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm']">
           Hủy
         </button>
-        <button @click="handleSubmit" :disabled="!content.trim() && !attachedImage" :class="['rounded-md gradient-primary text-white font-semibold hover:opacity-90 transition-all shadow-md shadow-primary-500/30 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed', compact ? 'px-2 py-1 text-[10px]' : 'px-3 py-1.5 text-xs']">
+        <button @click="handleSubmit" :disabled="!content.trim() && !attachedImage" :class="['rounded-md gradient-primary text-white font-semibold hover:opacity-90 transition-all shadow-xs flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed', compact ? 'px-2 py-1 text-[10px]' : 'px-3 py-1.5 text-xs']">
           <Send :size="compact ? 10 : 14" />
           Gửi
         </button>
@@ -83,8 +83,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { Image as ImageIcon, Smile, X, Send } from '@lucide/vue'
+import { useToast } from '@/composables/ui/useToast'
+
+const toast = useToast()
 
 const props = defineProps({
   placeholder: {
@@ -125,6 +128,12 @@ const attachedImage = ref<File | null>(null)
 const attachedImagePreview = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const showEmojiPicker = ref(false)
+const emojiContainerRef = ref<HTMLElement | null>(null)
+const handleOutsideEmojiClick = (e: MouseEvent) => {
+  if (showEmojiPicker.value && emojiContainerRef.value && !emojiContainerRef.value.contains(e.target as Node)) {
+    showEmojiPicker.value = false
+  }
+}
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 const tagRef = ref<HTMLElement | null>(null)
 const tagWidth = ref(0)
@@ -144,8 +153,20 @@ watch(
 const handleImageSelected = (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
-    attachedImage.value = target.files[0]
-    attachedImagePreview.value = URL.createObjectURL(target.files[0])
+    const file = target.files[0]
+    if (!file.type.startsWith('image/')) {
+      toast.error('Chỉ hỗ trợ định dạng tệp hình ảnh')
+      target.value = ''
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Kích thước ảnh đính kèm tối đa là 5MB')
+      target.value = ''
+      return
+    }
+    if (attachedImagePreview.value) URL.revokeObjectURL(attachedImagePreview.value)
+    attachedImage.value = file
+    attachedImagePreview.value = URL.createObjectURL(file)
   }
 }
 
@@ -207,7 +228,14 @@ defineExpose({
   focus
 })
 
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideEmojiClick)
+  if (attachedImagePreview.value) {
+    URL.revokeObjectURL(attachedImagePreview.value)
+  }
+})
 onMounted(() => {
+  document.addEventListener('click', handleOutsideEmojiClick)
   if (props.autoFocus) {
     setTimeout(() => {
       inputRef.value?.focus()

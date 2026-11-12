@@ -1,10 +1,11 @@
 import {
   Home, TrendingUp, Bookmark, PenSquare, Users, MessageCircle, MapPin,
-  User, Lock, Palette, Bell, Shield
+  User, Lock, Palette, Bell, Shield, Sparkles
 } from '@lucide/vue'
 
 export const NAV_ITEMS = [
   { icon: Home, label: 'Trang chủ', to: '/' },
+  { icon: Sparkles, label: 'Tìm kiếm AI', to: '/search' },
   { icon: TrendingUp, label: 'Thịnh hành', to: '/trending' },
   { icon: Bookmark, label: 'Đã lưu', to: '/bookmarks' },
   { icon: PenSquare, label: 'Viết bài', to: '/posts/create' },
@@ -17,7 +18,6 @@ export const NAV_ITEMS = [
 export const SETTINGS_TABS = [
   { id: 'profile', label: 'Thông tin cá nhân', icon: User },
   { id: 'account', label: 'Tài khoản', icon: Lock },
-  { id: 'appearance', label: 'Giao diện', icon: Palette },
   { id: 'notifications', label: 'Thông báo', icon: Bell },
   { id: 'privacy', label: 'Quyền riêng tư', icon: Shield },
 ] as const

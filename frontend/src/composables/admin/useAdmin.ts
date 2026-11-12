@@ -10,9 +10,9 @@ export function useAdmin() {
   const reports = ref<Report[]>([])
   const { isLoading, error, execute } = useAsyncState()
 
-  async function fetchStats() {
+  async function fetchStats(days = 7) {
     await execute(async () => {
-      const { data } = await adminApi.getStats()
+      const { data } = await adminApi.getStats(days)
       stats.value = data.data
     }, 'Không thể tải thống kê')
   }

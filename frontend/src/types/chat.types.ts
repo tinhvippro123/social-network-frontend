@@ -13,6 +13,8 @@ export interface ChatConversation {
   isOnline: boolean
   isPinned: boolean
   isMuted: boolean
+  nickname?: string
+  originalName?: string
   participants: User[]
 }
 

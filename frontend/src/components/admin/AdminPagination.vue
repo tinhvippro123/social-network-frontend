@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight } from '@lucide/vue'
-import { computed } from 'vue'
 
 const props = defineProps<{
   currentPage: number
@@ -32,22 +31,23 @@ const {
     
     <div class="flex items-center gap-1">
       <button 
+        type="button"
         @click="handlePrev" 
         :disabled="currentPage <= 1"
-        :class="['p-1.5 rounded-lg transition-colors', currentPage <= 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-surface-700']"
+        :class="['p-1.5 rounded-lg transition-colors', currentPage <= 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-surface-700 cursor-pointer']"
       >
         <ChevronLeft :size="16" />
       </button>
       
-      <!-- Lược giản: Chỉ hiển thị page hiện tại vì đây là admin tĩnh -->
-      <button class="px-3 py-1 rounded-lg text-xs font-medium bg-red-500 text-white">
-        {{ currentPage }}
-      </button>
+      <span class="px-3 py-1 rounded-lg text-xs font-medium bg-red-500 text-white select-none">
+        {{ currentPage }} / {{ Math.max(1, totalPages) }}
+      </span>
       
       <button 
+        type="button"
         @click="handleNext" 
         :disabled="currentPage >= totalPages"
-        :class="['p-1.5 rounded-lg transition-colors', currentPage >= totalPages ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-surface-700']"
+        :class="['p-1.5 rounded-lg transition-colors', currentPage >= totalPages ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-surface-700 cursor-pointer']"
       >
         <ChevronRight :size="16" />
       </button>

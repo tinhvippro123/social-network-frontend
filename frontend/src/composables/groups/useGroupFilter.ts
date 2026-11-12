@@ -1,3 +1,4 @@
+import { matchesQuery } from '@/utils/textSearch'
 import { ref, computed, type Ref } from 'vue'
 import type { Group } from '@/types'
 
@@ -10,8 +11,7 @@ export function useGroupFilter(groups: Ref<Group[]>) {
     if (filterType.value === 'joined') g = g.filter(item => item.isJoined)
     if (filterType.value === 'discover') g = g.filter(item => !item.isJoined)
     if (searchGroup.value) {
-      const search = searchGroup.value.toLowerCase()
-      g = g.filter(item => item.name.toLowerCase().includes(search))
+      g = g.filter(item => matchesQuery(searchGroup.value, item.name, item.description))
     }
     return g
   })

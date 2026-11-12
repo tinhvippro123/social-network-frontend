@@ -10,11 +10,16 @@ import { formatDate, formatNumber } from '@/utils/formatters'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import PostDetailHeader from './components/PostDetailHeader.vue'
 import PostAuthorCard from './components/PostAuthorCard.vue'
+import PostAiSummary from './components/PostAiSummary.vue'
 import PostInteractionBar from './components/PostInteractionBar.vue'
 import PostComments from './components/PostComments.vue'
 import RelatedPostsSidebar from './components/RelatedPostsSidebar.vue'
 import ReportPostModal from './components/ReportPostModal.vue'
+import ImageLightboxModal from '@/components/ui/ImageLightboxModal.vue'
+import { formatContentWithGalleries } from '@/utils/proseGallery'
 import { usePostDetail } from '@/composables/posts/usePostDetail'
+import { useUiStore } from '@/stores/ui.store'
+import { useToast } from '@/composables/ui/useToast'
 import { useCodeHighlight } from '@/composables/core/useCodeHighlight'
 import 'highlight.js/styles/github-dark.css'
 
@@ -27,6 +32,10 @@ const {
   isLoading,
   newComment,
   isBookmarked,
+  userVote,
+  currentUserReaction,
+  handleUpvote,
+  handleDownvote,
   replyingTo,
   activeEmojiPicker,
   emojiList,
@@ -44,12 +53,95 @@ const {
 } = usePostDetail()
 
 const isFollowing = ref(false)
+const uiStore = useUiStore()
+const toast = useToast()
+
+function handleOpenReport() {
+  if (!user.value) {
+    toast.info('Vui lòng đăng nhập để báo cáo bài viết')
+    uiStore.openAuthModal('login')
+    return
+  }
+  showReportModal.value = true
+}
 // Code syntax highlighting for post content
 const postContent = computed(() => post.value?.content || null)
 useCodeHighlight(postContent)
 
+// Transform consecutive images in each section into Collage Gallery Grids (+N)
+const formattedPostContent = computed(() => formatContentWithGalleries(post.value?.content))
 
+// Image Lightbox Gallery
+const isLightboxOpen = ref(false)
+const lightboxIndex = ref(0)
+const galleryImages = ref<Array<{ src: string; alt?: string }>>([])
 
+function updateGalleryImages() {
+  if (!post.value) {
+    galleryImages.value = []
+    return
+  }
+  const list: Array<{ src: string; alt?: string }> = []
+  if (post.value.coverImage) {
+    list.push({ src: post.value.coverImage, alt: post.value.title || 'Ảnh bìa' })
+  }
+  if (typeof document !== 'undefined') {
+    const proseImgs = document.querySelectorAll('.post-prose-content img')
+    proseImgs.forEach((imgEl) => {
+      const src = (imgEl as HTMLImageElement).getAttribute('src') || (imgEl as HTMLImageElement).src
+      const alt = (imgEl as HTMLImageElement).alt || ''
+      if (src && !list.some((item) => item.src === src)) {
+        list.push({ src, alt })
+      }
+    })
+  }
+  galleryImages.value = list
+}
+
+function handleOpenLightbox(index: number = 0) {
+  updateGalleryImages()
+  lightboxIndex.value = Math.max(0, Math.min(index, galleryImages.value.length - 1))
+  isLightboxOpen.value = true
+}
+
+function handleProseClick(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (target && target.tagName === 'IMG') {
+    const img = target as HTMLImageElement
+    const src = img.getAttribute('src') || img.src
+
+    // Check if the clicked image belongs to a section's inline Collage Gallery
+    const inlineGallery = img.closest('.post-inline-gallery')
+    if (inlineGallery) {
+      const groupImgs = Array.from(inlineGallery.querySelectorAll('img'))
+      const groupList = groupImgs
+        .map((el) => ({
+          src: el.getAttribute('src') || el.src,
+          alt: el.alt || post.value?.title || 'Ảnh bài viết'
+        }))
+        .filter((item) => Boolean(item.src))
+
+      if (groupList.length > 0) {
+        galleryImages.value = groupList
+        const idx = groupList.findIndex((item) => item.src === src)
+        lightboxIndex.value = idx !== -1 ? idx : 0
+        isLightboxOpen.value = true
+        return
+      }
+    }
+
+    // Standalone image: open with all article images
+    updateGalleryImages()
+    const foundIdx = galleryImages.value.findIndex((item) => item.src === src)
+    if (foundIdx !== -1) {
+      handleOpenLightbox(foundIdx)
+    } else {
+      galleryImages.value.push({ src, alt: img.alt || '' })
+      lightboxIndex.value = galleryImages.value.length - 1
+      isLightboxOpen.value = true
+    }
+  }
+}
 </script>
 
 <template>
@@ -82,21 +174,25 @@ useCodeHighlight(postContent)
       <!-- Article -->
       <article class="flex-1 min-w-0">
         <!-- Cover Image & Author Info -->
-        <PostDetailHeader :post="post" :user="user" />
+        <PostDetailHeader :post="post" :user="user" @open-lightbox="handleOpenLightbox" />
+
+        <!-- AI TextRank Summarization Block -->
+        <PostAiSummary v-if="(post.status || 'published').toLowerCase() === 'published'" :postId="post.id" />
 
         <!-- Content -->
         <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-8 mb-6 overflow-hidden">
           <div
-            class="prose prose-lg dark:prose-invert max-w-none break-words break-all
+            class="post-prose-content prose prose-lg dark:prose-invert max-w-none wrap-break-word
               prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold
               prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-p:leading-relaxed
               prose-a:text-primary-500 prose-a:no-underline hover:prose-a:underline
-              prose-code:bg-gray-100 dark:prose-code:bg-surface-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:break-words
+              prose-code:bg-gray-100 dark:prose-code:bg-surface-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:wrap-break-word
               prose-pre:bg-gray-900 dark:prose-pre:bg-surface-900 prose-pre:rounded-xl prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-surface-700 prose-pre:overflow-x-auto prose-pre:max-w-full
               prose-blockquote:border-primary-500 prose-blockquote:bg-primary-50 dark:prose-blockquote:bg-primary-900/10 prose-blockquote:rounded-r-xl prose-blockquote:py-1 prose-blockquote:not-italic
               prose-li:text-gray-600 dark:prose-li:text-gray-300
               prose-strong:text-gray-900 dark:prose-strong:text-white"
-            v-html="post.content || '<p>Đang cập nhật nội dung...</p>'"
+            @click="handleProseClick"
+            v-html="formattedPostContent"
           ></div>
 
           <!-- Tags -->
@@ -104,7 +200,7 @@ useCodeHighlight(postContent)
             <span
               v-for="tag in post.tags"
               :key="tag"
-              @click="router.push(`/tags/${tag}`)"
+              @click="router.push(`/tags/${encodeURIComponent(tag)}`)"
               class="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/30 cursor-pointer transition-colors"
             >
               #{{ tag }}
@@ -112,33 +208,47 @@ useCodeHighlight(postContent)
           </div>
         </div>
 
-        <!-- Interaction Bar -->
-        <PostInteractionBar
-          :post="post"
-          :isBookmarked="isBookmarked"
-          :activeEmojiPicker="activeEmojiPicker"
-          :emojiList="emojiList"
-          @toggleBookmark="toggleBookmark"
-          @toggleEmojiPicker="toggleEmojiPicker"
-          @toggleReaction="toggleReaction"
-          @report="showReportModal = true"
-          @scrollToComments="scrollToComments"
-        />
-
-        <!-- Comments Section -->
-        <div id="comments-section">
-          <PostComments
-            :comments="comments"
-            :user="user"
-            :replyingTo="replyingTo"
+        <template v-if="(post.status || 'published').toLowerCase() === 'published'">
+          <!-- Interaction Bar -->
+          <PostInteractionBar
+            :post="post"
+            :currentUserId="user?.id"
+            :isBookmarked="isBookmarked"
+            :userVote="userVote"
+            :currentUserReaction="currentUserReaction"
             :activeEmojiPicker="activeEmojiPicker"
-            @setReplyingTo="setReplyingTo"
-            @clearReplyingTo="clearReplyingTo"
+            :emojiList="emojiList"
+            @upvote="handleUpvote"
+            @downvote="handleDownvote"
+            @toggleBookmark="toggleBookmark"
             @toggleEmojiPicker="toggleEmojiPicker"
-            @addComment="addComment"
-            @replyComment="replyComment"
-            @deleteComment="deleteComment"
+            @toggleReaction="toggleReaction"
+            @report="handleOpenReport"
+            @scrollToComments="scrollToComments"
           />
+
+          <!-- Comments Section -->
+          <div id="comments-section">
+            <PostComments
+              :comments="comments"
+              :user="user"
+              :postAuthorId="post.author?.id"
+              :replyingTo="replyingTo"
+              :activeEmojiPicker="activeEmojiPicker"
+              @setReplyingTo="setReplyingTo"
+              @clearReplyingTo="clearReplyingTo"
+              @toggleEmojiPicker="toggleEmojiPicker"
+              @addComment="addComment"
+              @replyComment="replyComment"
+              @deleteComment="deleteComment"
+            />
+          </div>
+        </template>
+        <div
+          v-else
+          class="bg-amber-50/70 dark:bg-amber-950/20 rounded-2xl border border-amber-200/80 dark:border-amber-800/40 p-5 text-center text-sm text-amber-700 dark:text-amber-300"
+        >
+          Bài viết chưa được xuất bản công khai nên tính năng bình luận và tương tác tạm thời đóng.
         </div>
       </article>
 
@@ -148,19 +258,57 @@ useCodeHighlight(postContent)
         <PostAuthorCard :author="post.author" />
 
         <!-- Related Posts -->
-        <RelatedPostsSidebar :posts="posts" />
+        <RelatedPostsSidebar :posts="posts.filter(p => p.id !== post?.id)" />
       </aside>
     </div>
     
-    <div v-else class="text-center py-20 text-gray-500">
-      Đang tải bài viết...
+    <div v-else class="text-center py-20 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-8">
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Không tìm thấy bài viết</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Bài viết này không tồn tại hoặc đã bị xóa khỏi hệ thống.</p>
+      <button
+        @click="router.push('/')"
+        class="px-5 py-2.5 rounded-xl gradient-primary text-white text-sm font-semibold shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
+      >
+        Về trang chủ
+      </button>
     </div>
 
     <!-- Report Modal -->
     <ReportPostModal
       :show="showReportModal"
       @close="showReportModal = false"
-      @submit="(reason, desc) => { reportPost(reason, desc); showReportModal = false }"
+      @submit="async (reason, desc) => { await reportPost(reason, desc); showReportModal = false }"
+    />
+
+    <!-- Image Lightbox Gallery Modal -->
+    <ImageLightboxModal
+      :show="isLightboxOpen"
+      :images="galleryImages"
+      :initialIndex="lightboxIndex"
+      @close="isLightboxOpen = false"
     />
   </div>
 </template>
+
+<style>
+.highlight-comment-target {
+  outline: 2px solid #0d9488 !important;
+  outline-offset: 4px;
+  background-color: rgba(13, 148, 136, 0.08) !important;
+  border-radius: 1rem;
+  transition: all 0.5s ease-in-out;
+}
+
+.post-prose-content > img,
+.post-prose-content p > img {
+  cursor: zoom-in;
+  border-radius: 0.75rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.post-prose-content > img:hover,
+.post-prose-content p > img:hover {
+  transform: scale(1.008);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+}
+</style>

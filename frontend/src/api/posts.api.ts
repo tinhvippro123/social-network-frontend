@@ -25,6 +25,9 @@ export interface CreatePostRequest {
   status: 'published' | 'draft'
   latitude?: number
   longitude?: number
+  locationAddress?: string
+  eventStartTime?: string
+  eventEndTime?: string
 }
 
 export interface TagSummary {
@@ -56,6 +59,12 @@ const postsApi = {
   downvote: (id: string) =>
     http.post<ApiResponse<void>>(`/posts/${id}/downvote`),
 
+  getUserVote: (postId: string) =>
+    http.get<ApiResponse<string | null>>(`/posts/${postId}/vote`),
+
+  getCurrentUserReaction: (postId: string) =>
+    http.get<ApiResponse<string | null>>(`/posts/${postId}/reactions/me`),
+
   toggleReaction: (postId: string, emoji: string) =>
     http.post<ApiResponse<any>>(`/posts/${postId}/reactions`, { emoji }),
 
@@ -81,6 +90,9 @@ const postsApi = {
 
   removeBookmark: (id: string) =>
     http.post<ApiResponse<boolean>>(`/posts/${id}/bookmarks`),
+
+  getBookmarkedPosts: (page = 1, limit = 50) =>
+    http.get<ApiResponse<Post[]>>('/bookmarks', { params: { page, limit } }),
 
   // ── Đặc biệt ─────────────────────────────
   getTrending: (limit = 10) =>

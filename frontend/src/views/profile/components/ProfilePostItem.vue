@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Clock, Eye, ArrowUp, MessageCircle } from '@lucide/vue'
 import { formatDate, formatNumber } from '@/utils/formatters'
@@ -10,8 +10,19 @@ const props = defineProps<{
   isDraft?: boolean
 }>()
 
+const emit = defineEmits<{
+  (e: 'delete', postId: string): void
+}>()
+
 const router = useRouter()
 const imageFailed = ref(false)
+
+watch(
+  () => props.post?.coverImage,
+  () => {
+    imageFailed.value = false
+  }
+)
 
 const handleClick = () => {
   if (props.isDraft) {
@@ -27,7 +38,7 @@ const handleClick = () => {
     @click="handleClick"
     :class="[
       'flex gap-4 bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-4 sm:p-5 transition-all duration-300 cursor-pointer group',
-      isDraft ? 'hover:border-yellow-500/30 hover:shadow-lg' : 'hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/5'
+      isDraft ? 'hover:border-yellow-500/30 hover:shadow-lg' : 'hover:border-primary-500/30 hover:shadow-md'
     ]"
   >
     <!-- Cover Image with Fallback -->
@@ -51,7 +62,7 @@ const handleClick = () => {
     <div
       v-else
       :class="[
-        'w-24 h-20 sm:w-32 sm:h-24 rounded-xl shrink-0 flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100/60 dark:from-primary-950/40 dark:to-primary-900/30 border border-primary-200/50 dark:border-primary-800/40',
+        'w-24 h-20 sm:w-32 sm:h-24 rounded-xl shrink-0 flex items-center justify-center bg-linear-to-br from-primary-50 to-primary-100/60 dark:from-primary-950/40 dark:to-primary-900/30 border border-primary-200/50 dark:border-primary-800/40',
         isDraft ? 'opacity-60' : 'transition-transform duration-300 group-hover:scale-105'
       ]"
     >
@@ -65,24 +76,24 @@ const handleClick = () => {
     <div class="flex-1 min-w-0">
       <div v-if="isDraft" class="flex items-center gap-2 mb-2">
         <span class="px-2 py-0.5 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full">Nháp</span>
-        <span class="text-xs text-gray-400">Lần cuối chỉnh sửa: {{ formatDate(post.createdAt) }}</span>
+        <span class="text-xs text-gray-400">Lần cuối chỉnh sửa: {{ formatDate(post.updatedAt || post.createdAt) }}</span>
       </div>
 
       <h3 :class="[
-        'font-bold text-gray-900 dark:text-white line-clamp-2 mb-2 break-words',
+        'font-bold text-gray-900 dark:text-white line-clamp-2 mb-2 wrap-break-word',
         !isDraft && 'group-hover:text-primary-500 transition-colors'
       ]">
         {{ post.title }}
       </h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mb-3 break-words">
+      <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mb-3 wrap-break-word">
         {{ post.excerpt }}
       </p>
 
       <div v-if="isDraft" class="flex items-center gap-2">
-        <button @click.stop="router.push(`/posts/${post.id}/edit`)" class="px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors">
+        <button @click.stop="router.push(`/posts/${post.id}/edit`)" class="px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors cursor-pointer">
           ✏️ Tiếp tục viết
         </button>
-        <button @click.stop class="px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+        <button @click.stop="emit('delete', post.id)" class="px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer">
           🗑️ Xóa nháp
         </button>
       </div>

@@ -13,7 +13,7 @@ const router = useRouter()
 <template>
   <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
     <h4 class="font-bold text-gray-900 dark:text-white mb-4">Bài viết liên quan</h4>
-    <div class="space-y-3">
+    <div v-if="posts.length > 0" class="space-y-3">
       <div
         v-for="p in posts.slice(0, 3)"
         :key="p.id"
@@ -34,5 +34,6 @@ const router = useRouter()
         </div>
       </div>
     </div>
+    <p v-else class="text-xs text-gray-400 italic text-center py-4">Chưa có bài viết liên quan</p>
   </div>
 </template>

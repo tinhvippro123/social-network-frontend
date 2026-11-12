@@ -46,6 +46,13 @@ const chatApi = {
   muteConversation: (conversationId: string, isMuted: boolean) =>
     http.patch<ApiResponse<void>>(`/chat/conversations/${conversationId}/mute`, { value: isMuted }),
 
+  updateNickname: (conversationId: string, nickname: string, targetUserId?: string) =>
+    http.patch<ApiResponse<void>>(
+      `/chat/conversations/${conversationId}/nickname`,
+      { nickname, targetUserId },
+      { skipErrorToast: true } as any
+    ),
+
   hideConversation: (conversationId: string) =>
     http.delete<ApiResponse<void>>(`/chat/conversations/${conversationId}`),
 
@@ -54,6 +61,9 @@ const chatApi = {
 
   searchMessages: (conversationId: string, q: string) =>
     http.get<ApiResponse<ChatMessage[]>>(`/chat/conversations/${conversationId}/messages`, { params: { q } }),
+
+  getBlockedUsers: () =>
+    http.get<ApiResponse<Array<{ id: string; name: string; avatar?: string }>>>('/chat/blocks'),
 
   blockUser: (userId: string) =>
     http.post<ApiResponse<void>>(`/chat/blocks/${userId}`),

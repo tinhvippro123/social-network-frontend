@@ -10,10 +10,7 @@ const router = useRouter()
     <div class="text-center max-w-md">
       <!-- 404 Illustration -->
       <div class="relative mb-8">
-        <div class="text-[150px] font-black leading-none bg-linear-to-br from-primary-500 via-purple-500 to-pink-500 bg-clip-text text-transparent select-none">
-          404
-        </div>
-        <div class="absolute inset-0 text-[150px] font-black leading-none text-primary-500/5 blur-2xl select-none">
+        <div class="text-[150px] font-black leading-none text-primary-600 dark:text-primary-400 select-none">
           404
         </div>
       </div>
@@ -35,7 +32,7 @@ const router = useRouter()
         </button>
         <router-link
           to="/"
-          class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 shadow-lg shadow-primary-500/25 transition-all"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 shadow-xs transition-colors"
         >
           <Home :size="16" />
           Trang chủ

@@ -11,7 +11,16 @@ import ChatCallDialog from './components/ChatCallDialog.vue'
 import ChatImagePreviewModal from './components/ChatImagePreviewModal.vue'
 
 const chatState = useChatView()
-const { showCallDialog, callType, imagePreview, closeMenus, showNewChatModal, createNewConversation } = chatState
+const {
+  showCallDialog,
+  callType,
+  imagePreview,
+  closeMenus,
+  showNewChatModal,
+  newChatInitialMode,
+  newChatPreselectedUserId,
+  createNewConversation
+} = chatState
 
 // Provide the chat state to all child components
 provide('chatState', chatState)
@@ -39,6 +48,8 @@ provide('chatState', chatState)
     <!-- New Chat Modal -->
     <NewChatModal
       :show="showNewChatModal"
+      :initial-mode="newChatInitialMode"
+      :preselected-user-id="newChatPreselectedUserId"
       @close="showNewChatModal = false"
       @create="createNewConversation"
     />

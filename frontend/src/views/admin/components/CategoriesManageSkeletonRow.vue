@@ -8,9 +8,6 @@ import Skeleton from '@/components/ui/Skeleton.vue'
       <Skeleton class="w-4 h-4 mx-auto rounded" />
     </td>
     <td class="px-5 py-4">
-      <Skeleton class="w-8 h-8 rounded-lg" />
-    </td>
-    <td class="px-5 py-4">
       <Skeleton class="h-4 w-32 rounded" />
     </td>
     <td class="px-5 py-4">

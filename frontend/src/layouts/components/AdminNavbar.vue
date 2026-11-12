@@ -25,7 +25,7 @@ const emit = defineEmits<{
     <!-- Left -->
     <div class="flex items-center gap-3">
       <button 
-        @click="emit('update:mobileSidebarOpen', true)"
+        @click="emit('update:mobileSidebarOpen', !mobileSidebarOpen)"
         class="p-2 -ml-2 mr-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors lg:hidden"
       >
         <MenuIcon v-if="!mobileSidebarOpen" :size="22" />
@@ -49,7 +49,11 @@ const emit = defineEmits<{
     <!-- Right -->
     <div class="flex items-center gap-2">
       <!-- Notifications -->
-      <button class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+      <button
+        @click="emit('navigate', '/admin/moderation')"
+        title="Kiểm duyệt & Báo cáo vi phạm"
+        class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
+      >
         <Bell :size="20" />
         <span v-if="uiStore.unreadCount > 0" class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
           {{ uiStore.unreadCount }}
@@ -65,7 +69,7 @@ const emit = defineEmits<{
           <UserAvatar v-if="user" :user="user" size="sm" class="ring-2 ring-red-500/30" />
           <div class="hidden sm:block text-left">
             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ user?.name }}</p>
-            <p class="text-[10px] text-red-500 font-medium uppercase">Administrator</p>
+            <p class="text-[10px] text-red-500 font-medium uppercase">{{ (user?.role || '').toLowerCase() === 'admin' ? 'Administrator' : 'Moderator' }}</p>
           </div>
           <ChevronDown :size="14" class="hidden sm:block text-gray-400" />
         </button>

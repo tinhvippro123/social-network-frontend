@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUiStore } from '@/stores/ui.store'
 import { useAuth } from '../auth/useAuth'
@@ -31,10 +31,19 @@ export function useMainLayout() {
 
   const initEvents = () => {
     checkMobile()
-    uiStore.fetchNotifications()
+    if (user.value) {
+      uiStore.fetchNotifications()
+    }
     window.addEventListener('resize', checkMobile)
     document.addEventListener('click', handleClickOutside)
   }
+
+  // Tự động tải thông báo khi user đăng nhập
+  watch(user, (newUser: any) => {
+    if (newUser) {
+      uiStore.fetchNotifications()
+    }
+  })
 
   const cleanupEvents = () => {
     window.removeEventListener('resize', checkMobile)

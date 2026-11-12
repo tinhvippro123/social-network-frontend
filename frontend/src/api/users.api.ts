@@ -27,8 +27,8 @@ const usersApi = {
   getRecommended: (limit: number = 5) =>
     http.get<ApiResponse<UserSummary[]>>('/users/recommended', { params: { limit } }),
 
-  getUserPosts: (id: string, page: number = 1, limit: number = 10) =>
-    http.get<ApiResponse<Post[]>>(`/users/${id}/posts`, { params: { page, limit } }),
+  getUserPosts: (id: string, page: number = 1, limit: number = 10, status: string = 'PUBLISHED') =>
+    http.get<ApiResponse<Post[]>>(`/users/${id}/posts`, { params: { page, limit, status } }),
 }
 
 export default usersApi

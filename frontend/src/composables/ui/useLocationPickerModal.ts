@@ -51,7 +51,7 @@ export function useLocationPickerModal(
   watch(() => props.modelValue, async (val) => {
     if (val) {
       if (props.initialLocation) {
-        await initMap(props.initialLocation.lat, props.initialLocation.lng)
+        await initMap(props.initialLocation.lat, props.initialLocation.lng, props.initialLocation.address)
       } else {
         await initMap()
       }

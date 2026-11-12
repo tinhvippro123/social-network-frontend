@@ -1,10 +1,12 @@
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import notificationsApi from '@/api/notifications.api'
+import { navigateToNotificationLink } from '@/utils/notificationNavigation'
+import { useUiStore } from '@/stores/ui.store'
 
 export interface Notification {
   id: string
-  type: 'upvote' | 'comment' | 'reply' | 'follow' | 'mention' | 'group_invite' | 'post_approved' | 'system'
+  type: 'upvote' | 'comment' | 'reply' | 'follow' | 'mention' | 'group_invite' | 'post_approved' | 'report' | 'system'
   title: string
   message: string
   avatar?: string
@@ -18,7 +20,7 @@ function mapBackendNotification(item: any): Notification {
   return {
     id: item.id,
     type: type as any,
-    title: item.title || (type === 'system' ? 'Hệ thống' : type.charAt(0).toUpperCase() + type.slice(1)),
+    title: item.title || (type === 'system' ? 'Hệ thống' : ''),
     message: item.message || '',
     avatar: item.avatar || '',
     link: item.link || '',
@@ -29,6 +31,7 @@ function mapBackendNotification(item: any): Notification {
 
 export function useNotifications() {
   const router = useRouter()
+  const uiStore = useUiStore()
   const isLoading = ref(true)
   const activeFilter = ref<'all' | 'unread'>('all')
   const notifications = ref<Notification[]>([])
@@ -66,6 +69,7 @@ export function useNotifications() {
       n.isRead = true
       try {
         await notificationsApi.markRead(id)
+        uiStore.fetchNotifications()
       } catch (err) {
         console.error('Lỗi đánh dấu đã đọc:', err)
       }
@@ -76,19 +80,36 @@ export function useNotifications() {
     notifications.value.forEach(n => { n.isRead = true })
     try {
       await notificationsApi.markAllRead()
+      uiStore.fetchNotifications()
     } catch (err) {
       console.error('Lỗi đánh dấu tất cả đã đọc:', err)
     }
   }
 
-  const deleteNotification = (id: string) => {
+  const deleteNotification = async (id: string) => {
     notifications.value = notifications.value.filter(n => n.id !== id)
+    try {
+      await notificationsApi.delete(id)
+      uiStore.fetchNotifications()
+    } catch (err) {
+      console.error('Lỗi xóa thông báo:', err)
+    }
   }
 
   const handleClick = (notification: Notification) => {
     markAsRead(notification.id)
-    if (notification.link) {
-      router.push(notification.link)
+    navigateToNotificationLink(router, notification)
+  }
+
+  const handleExternalMarkAllRead = () => {
+    notifications.value.forEach(n => { n.isRead = true })
+  }
+
+  const handleExternalMarkSingleRead = (e: any) => {
+    const id = e?.detail?.id
+    if (id) {
+      const target = notifications.value.find(n => n.id === id)
+      if (target) target.isRead = true
     }
   }
 
@@ -98,6 +119,13 @@ export function useNotifications() {
 
   onMounted(() => {
     fetchNotifications()
+    window.addEventListener('notifications-marked-all-read', handleExternalMarkAllRead)
+    window.addEventListener('notification-marked-read', handleExternalMarkSingleRead)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('notifications-marked-all-read', handleExternalMarkAllRead)
+    window.removeEventListener('notification-marked-read', handleExternalMarkSingleRead)
   })
 
   return {
