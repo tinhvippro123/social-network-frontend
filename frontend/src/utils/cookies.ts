@@ -20,8 +20,15 @@ export function hasAuthSessionCookie(): boolean {
   return getCookie(COOKIE_NAMES.LOGGED_IN) === '1'
 }
 
+export function setAuthIndicatorCookie(): void {
+  if (typeof document === 'undefined') return
+  const secureAttr = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `${encodeURIComponent(COOKIE_NAMES.LOGGED_IN)}=1; path=/; SameSite=Lax${secureAttr}`
+}
+
 export function clearAuthIndicatorCookie(): void {
   if (typeof document === 'undefined') return
-  document.cookie = `${encodeURIComponent(COOKIE_NAMES.LOGGED_IN)}=; Max-Age=0; path=/; SameSite=Lax`
+  const secureAttr = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `${encodeURIComponent(COOKIE_NAMES.LOGGED_IN)}=; Max-Age=0; path=/; SameSite=Lax${secureAttr}`
 }
 

@@ -5,7 +5,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User } from '@/types'
 import authApi from '@/api/auth.api'
-import { hasAuthSessionCookie, clearAuthIndicatorCookie } from '@/utils/cookies'
+import { hasAuthSessionCookie, setAuthIndicatorCookie, clearAuthIndicatorCookie } from '@/utils/cookies'
 
 const LEGACY_LOCAL_STORAGE_KEYS = [
   'vietblog_access_token',
@@ -38,6 +38,11 @@ export const useAuthStore = defineStore('auth', () => {
   function setUser(newUser: User | null) {
     user.value = newUser
     isInitialized.value = true
+    if (newUser) {
+      setAuthIndicatorCookie()
+    } else {
+      clearAuthIndicatorCookie()
+    }
     purgeLegacyLocalStorage()
   }
 
@@ -70,7 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
           skipAuthRedirect: true,
         } as any)
         if (data?.data) {
-          user.value = data.data
+          setUser(data.data)
         } else {
           clearAuth()
         }

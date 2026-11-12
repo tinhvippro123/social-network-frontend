@@ -3,6 +3,7 @@
 // Kết nối WebSocket cho Chat Real-time (/ws/chat) xác thực qua HttpOnly Cookie Handshake
 // ==========================================
 import { ref, onUnmounted, getCurrentInstance } from 'vue'
+import authApi from '@/api/auth.api'
 import { useAuthStore } from '@/stores/auth.store'
 import { hasAuthSessionCookie } from '@/utils/cookies'
 
@@ -29,9 +30,11 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
 
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null
   let pingTimer: ReturnType<typeof setInterval> | null = null
+  let authFallbackTimer: ReturnType<typeof setTimeout> | null = null
   let reconnectAttempts = 0
   const MAX_RECONNECT = 8
   const RECONNECT_DELAY = 3000
+  const WS_COOKIE_AUTH_GRACE_MS = 350
 
   function hasActiveSession(): boolean {
     if (typeof window === 'undefined') return false
@@ -46,6 +49,28 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
     }
   }
 
+  function stopAuthFallback() {
+    if (authFallbackTimer) {
+      clearTimeout(authFallbackTimer)
+      authFallbackTimer = null
+    }
+  }
+
+  async function authenticateWithTicket() {
+    if (!ws.value || ws.value.readyState !== WebSocket.OPEN || isAuthenticated.value || !hasActiveSession()) {
+      return
+    }
+    try {
+      const { data } = await authApi.getWsTicket()
+      const ticket = data?.data?.ticket
+      if (ticket && ws.value?.readyState === WebSocket.OPEN && !isAuthenticated.value) {
+        send({ type: 'auth', token: ticket })
+      }
+    } catch {
+      // Cookie handshake or session refresh will handle recovery if session is still valid
+    }
+  }
+
   function startPing() {
     stopPing()
     pingTimer = setInterval(() => {
@@ -53,7 +78,7 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
     }, 25000)
   }
 
-  /** Kết nối WebSocket — trình duyệt tự đính kèm HttpOnly Cookie trong HTTP Upgrade Handshake */
+  /** Kết nối WebSocket — ưu tiên HttpOnly Cookie Handshake, fallback WS Ticket nếu cross-domain */
   function connect(wsUrl?: string) {
     if (!hasActiveSession()) return
 
@@ -75,6 +100,10 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
         reconnectAttempts = 0
         error.value = null
         startPing()
+        stopAuthFallback()
+        authFallbackTimer = setTimeout(() => {
+          void authenticateWithTicket()
+        }, WS_COOKIE_AUTH_GRACE_MS)
       }
 
       ws.value.onmessage = (event) => {
@@ -83,6 +112,7 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
           lastMessage.value = parsed
           if (parsed?.type === 'authenticated') {
             isAuthenticated.value = true
+            stopAuthFallback()
           }
           if (onMessageCallback) {
             onMessageCallback(parsed)
@@ -99,6 +129,7 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
       ws.value.onclose = () => {
         isConnected.value = false
         isAuthenticated.value = false
+        stopAuthFallback()
         stopPing()
         attemptReconnect(finalUrl)
       }
@@ -129,6 +160,7 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
   /** Ngắt kết nối */
   function disconnect() {
     if (reconnectTimer) clearTimeout(reconnectTimer)
+    stopAuthFallback()
     stopPing()
     if (ws.value) {
       ws.value.onclose = null

@@ -43,6 +43,9 @@ const authApi = {
   refreshToken: (config?: AxiosRequestConfig) =>
     http.post<ApiResponse<AuthTokens & { user: User }>>('/auth/refresh', {}, config),
 
+  getWsTicket: () =>
+    http.post<ApiResponse<{ ticket: string }>>('/auth/ws-ticket', {}, { skipErrorToast: true, skipAuthRedirect: true } as AxiosRequestConfig),
+
   getProfile: (config?: AxiosRequestConfig) =>
     http.get<ApiResponse<User>>('/auth/me', config),
 
