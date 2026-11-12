@@ -1,28 +1,50 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { usePosts } from './usePosts'
 import { useUsers } from '../core/useUsers'
+import { useAuthStore } from '@/stores/auth.store'
 
 export function useTrendingPosts() {
+  const route = useRoute()
+  const router = useRouter()
+  const authStore = useAuthStore()
   const { posts, isLoading, fetchPosts, tags, fetchPopularTags, toggleBookmark: apiToggleBookmark } = usePosts()
   const { users, fetchUsers } = useUsers()
   
-  const selectedCategory = ref('all')
+  const selectedCategory = ref((route.query.category as string) || 'all')
   const visibleCount = ref(4)
   const loadingMore = ref(false)
   const sidebarLoading = ref(true)
 
+  watch(() => route.query.category, (newCat) => {
+    const normalized = (newCat as string) || 'all'
+    if (selectedCategory.value !== normalized) {
+      selectedCategory.value = normalized
+    }
+  })
+
+  watch(selectedCategory, (newCat) => {
+    visibleCount.value = 4
+    const currentQueryCat = (route.query.category as string) || 'all'
+    if (newCat !== currentQueryCat) {
+      const nextQuery = { ...route.query }
+      if (newCat === 'all') {
+        delete nextQuery.category
+      } else {
+        nextQuery.category = newCat
+      }
+      router.replace({ query: nextQuery })
+    }
+  })
+
+  // Preserve backend's Wilson Score + Gravity trending order from GET /api/posts?sort=trending
   const allTrendingPosts = computed(() => {
-    let sorted = posts.value
-      .map(p => ({
-        ...p,
-        score: (p.upvotesCount ?? 0) * 3 + p.viewsCount + p.commentsCount * 2
-      }))
-      .sort((a, b) => b.score - a.score)
+    let list = [...posts.value]
 
     if (selectedCategory.value !== 'all') {
-      sorted = sorted.filter(p => p.category.slug === selectedCategory.value)
+      list = list.filter(p => p.category?.slug === selectedCategory.value || p.category?.name === selectedCategory.value)
     }
-    return sorted
+    return list
   })
 
   const trendingPosts = computed(() => allTrendingPosts.value.slice(0, visibleCount.value))
@@ -37,7 +59,7 @@ export function useTrendingPosts() {
 
   const loadMore = async () => {
     loadingMore.value = true
-    await new Promise(r => setTimeout(r, 800))
+
     visibleCount.value += 4
     loadingMore.value = false
   }
@@ -59,11 +81,18 @@ export function useTrendingPosts() {
   }
 
   const initData = async () => {
-    fetchPosts({ sort: 'trending' })
     sidebarLoading.value = true
-    await Promise.all([fetchUsers(), fetchPopularTags()])
+    await Promise.all([
+      fetchPosts({ sort: 'trending', limit: 50 }),
+      fetchUsers(),
+      fetchPopularTags()
+    ])
     sidebarLoading.value = false
   }
+
+  watch(() => authStore.user?.id, () => {
+    initData()
+  })
 
   onMounted(() => {
     initData()

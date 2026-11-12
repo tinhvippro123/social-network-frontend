@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto overflow-x-hidden py-8">
+  <div class="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto overflow-x-hidden py-4">
     <!-- Background -->
     <div class="absolute inset-0 bg-surface-50 dark:bg-surface-900">
       <!-- Subtle Grid pattern -->
@@ -14,20 +17,24 @@
     <!-- Content -->
     <div class="relative z-10 w-full max-w-md mx-4">
       <!-- Logo -->
-      <div class="text-center mb-6 animate-slide-up">
-        <div class="inline-flex items-center gap-3 mb-2">
-          <div class="w-10 h-10 rounded-2xl gradient-primary flex items-center justify-center shadow-lg glow">
-            <span class="text-white font-bold text-xl">V</span>
+      <div class="text-center mb-4 animate-slide-up">
+        <div
+          @click="router.push('/')"
+          class="inline-flex items-center gap-2.5 mb-1 cursor-pointer hover:opacity-90 transition-opacity"
+          title="Về trang chủ"
+        >
+          <div class="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-sm">
+            <span class="text-white font-bold text-lg">V</span>
           </div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 class="text-xl font-bold text-gray-900 dark:text-white">
             Viet<span class="text-gradient">Blog</span>
           </h1>
         </div>
-        <p class="text-gray-500 dark:text-gray-400 text-sm">Nền tảng chia sẻ kiến thức cho cộng đồng</p>
+        <p class="text-gray-500 dark:text-gray-400 text-xs">Nền tảng chia sẻ kiến thức cho cộng đồng</p>
       </div>
 
       <!-- Auth Card -->
-      <div class="bg-white dark:bg-surface-800/80 backdrop-blur-2xl rounded-3xl p-8 border border-gray-100 dark:border-white/10 shadow-2xl animate-slide-up" style="animation-delay: 0.1s;">
+      <div class="bg-white dark:bg-surface-800/80 backdrop-blur-2xl rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-xl animate-slide-up" style="animation-delay: 0.1s;">
         <slot />
       </div>
     </div>

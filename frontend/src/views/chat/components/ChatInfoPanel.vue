@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { inject, ref } from 'vue'
+import { inject, ref, computed, onMounted, onUnmounted } from 'vue'
+import chatApi from '@/api/chat.api'
+import { useRouter } from 'vue-router'
 import {
-  X as XIcon, Image as ImageIcon, FileText as FileTextIcon,
-  Users as UsersIcon, ChevronDown as ChevronDownIcon,
+  X as XIcon,
   Ban as BanIcon, Flag as FlagIcon, Trash2 as TrashIcon,
-  Search as SearchIcon, BellOff as BellOffIcon, User as UserIcon, Lock as LockIcon,
-  Pin as PinIcon, Palette as PaletteIcon, Smile as SmileIcon, Type as TypeIcon,
-  Shield as ShieldIcon, Clock as ClockIcon, Eye as EyeIcon, MinusCircle as MinusCircleIcon
+  BellOff as BellOffIcon,
+  Pin as PinIcon, Type as TypeIcon,
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import AccordionSection from '@/components/ui/AccordionSection.vue'
@@ -14,35 +14,166 @@ import ChatInfoHeader from './ChatInfoHeader.vue'
 import ChatMediaFilesView from './ChatMediaFilesView.vue'
 import ChatInfoSharedMedia from './ChatInfoSharedMedia.vue'
 import ChatInfoSharedFiles from './ChatInfoSharedFiles.vue'
-
+import NicknameModal from '@/components/NicknameModal.vue'
+import { useChatNicknames } from '@/composables/chat/useChatNicknames'
 import { useToast } from '@/composables/ui/useToast'
+import { useConfirm } from '@/composables/ui/useConfirm'
+import http from '@/api/client'
 
 const chatState = inject<any>('chatState')
 if (!chatState) {
   throw new Error('ChatState is not provided')
 }
 
-const { addToast } = useToast()
+const toast = useToast()
+const { confirm } = useConfirm()
+const showNicknameModal = ref(false)
+const blockedUserIds = ref<Set<string>>(new Set())
+
+async function loadBlockedUsers() {
+  try {
+    const res = await chatApi.getBlockedUsers()
+    const list = res.data?.data || []
+    blockedUserIds.value = new Set(list.map((u: any) => typeof u === 'string' ? u : u.id))
+  } catch {
+    // ignore
+  }
+}
+
+onMounted(() => {
+  loadBlockedUsers()
+  window.addEventListener('chat-block-updated', loadBlockedUsers)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('chat-block-updated', loadBlockedUsers)
+})
+const { setNickname } = useChatNicknames()
 
 const {
-  router,
+  router: injectedRouter,
+  currentUser,
   selectedConversation,
   showInfoPanel,
+  showSearchInChat,
   rightSidebarView,
-  activeMediaTab,
-  showMembersSection,
-  sharedMedia,
-  sharedFiles,
-  groupedSharedMedia,
-  groupedSharedFiles,
-  formatMessageTime,
-  openMediaView,
-  viewImage,
-  downloadFile,
+  pinnedMessage,
+  scrollToMessage,
+  muteConversation,
   blockUser,
+  unblockUser,
   deleteConversation,
-  imagePreview
 } = chatState
+
+const router = injectedRouter || useRouter()
+
+const otherParticipant = computed(() => {
+  const parts = selectedConversation?.value?.participants || []
+  const myId = currentUser?.value?.id
+  return parts.find((p: any) => p.id && p.id !== myId) || null
+})
+
+const isBlocked = computed(() => {
+  const targetId = otherParticipant.value?.id
+  return targetId ? blockedUserIds.value.has(targetId) : false
+})
+
+function viewPinnedMessages() {
+  if (pinnedMessage?.value?.id) {
+    scrollToMessage(pinnedMessage.value.id)
+    if (window.innerWidth < 1024) {
+      showInfoPanel.value = false
+    }
+  } else {
+    toast.info('Hiện chưa có tin nhắn nào được ghim trong cuộc trò chuyện này')
+  }
+}
+
+function editNickname() {
+  showNicknameModal.value = true
+}
+
+function handleSaveNickname(newNick: string) {
+  if (!selectedConversation?.value) return
+  setNickname(selectedConversation.value, newNick)
+  if (newNick.trim()) {
+    toast.success(`Đã đổi biệt danh thành "${newNick.trim()}"`)
+  } else {
+    toast.info('Đã gỡ bỏ biệt danh')
+  }
+  showNicknameModal.value = false
+}
+
+async function toggleMuteNotifications() {
+  if (!selectedConversation?.value) return
+  try {
+    await muteConversation(selectedConversation.value.id)
+  } catch {
+    toast.error('Không thể cập nhật cài đặt thông báo')
+  }
+}
+
+async function handleToggleBlock() {
+  const targetId = otherParticipant.value?.id
+  if (!targetId) return
+  try {
+    if (isBlocked.value) {
+      const ok = await unblockUser(targetId)
+      if (ok !== false) {
+        const next = new Set(blockedUserIds.value)
+        next.delete(targetId)
+        blockedUserIds.value = next
+      }
+    } else {
+      const ok = await blockUser(targetId)
+      if (ok !== false) {
+        const next = new Set(blockedUserIds.value)
+        next.add(targetId)
+        blockedUserIds.value = next
+      }
+    }
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể thực hiện thao tác chặn')
+  }
+}
+
+function handleViewProfile() {
+  const targetId = otherParticipant.value?.id
+  if (targetId) {
+    router.push(`/profile/${targetId}`)
+  }
+}
+
+function handleOpenSearchInChat() {
+  if (showSearchInChat) {
+    showSearchInChat.value = true
+  }
+  if (window.innerWidth < 1024) {
+    showInfoPanel.value = false
+  }
+}
+
+async function handleReportConversation() {
+  const targetId = otherParticipant.value?.id
+  if (!targetId) return
+  const ok = await confirm({
+    title: 'Báo cáo cuộc trò chuyện',
+    message: `Bạn có chắc chắn muốn gửi báo cáo cuộc trò chuyện "${selectedConversation.value?.name || ''}" tới bộ phận kiểm duyệt?`,
+    confirmText: 'Gửi báo cáo',
+    variant: 'danger'
+  })
+  if (!ok) return
+  try {
+    await http.post('/reports', {
+      targetId,
+      type: 'USER',
+      reason: `Báo cáo cuộc trò chuyện: ${selectedConversation.value?.name || ''}`
+    })
+    toast.success('Đã gửi báo cáo cuộc trò chuyện đến bộ phận kiểm duyệt')
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể gửi báo cáo lúc này')
+  }
+}
 </script>
 
 <template>
@@ -68,14 +199,16 @@ const {
         <!-- Profile Header -->
         <ChatInfoHeader
           :conversation="selectedConversation"
-          @view-profile="router.push(`/profile/${selectedConversation.id}`)"
+          @view-profile="handleViewProfile"
+          @toggle-mute="toggleMuteNotifications"
+          @open-search="handleOpenSearchInChat"
         />
 
         <div class="border-t border-gray-100 dark:border-surface-700"></div>
 
         <!-- Accordion 1: Thông tin về đoạn chat -->
         <AccordionSection title="Thông tin về đoạn chat">
-          <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
+          <button @click="viewPinnedMessages" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50 cursor-pointer">
             <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
               <PinIcon :size="16" />
             </div>
@@ -85,10 +218,10 @@ const {
           </button>
         </AccordionSection>
 
-        <!-- Accordion 2: Tùy chỉnh đoạn chat -->
-        <AccordionSection title="Tùy chỉnh đoạn chat">
+        <!-- Accordion 2: Tùy chỉnh đoạn chat (Chỉ dành cho chat 1-1) -->
+        <AccordionSection v-if="!selectedConversation.isGroup" title="Tùy chỉnh đoạn chat">
           <div class="space-y-0.5">
-            <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
+            <button @click="editNickname" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50 cursor-pointer">
               <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
                 <TypeIcon :size="16" />
               </div>
@@ -109,29 +242,33 @@ const {
         <!-- Accordion 4: Quyền riêng tư và hỗ trợ -->
         <AccordionSection title="Quyền riêng tư và hỗ trợ">
           <div class="space-y-0.5">
-            <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50">
-              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
+            <button @click="toggleMuteNotifications" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50 cursor-pointer">
+              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0" :class="selectedConversation.isMuted ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' : ''">
                 <BellOffIcon :size="16" />
               </div>
               <div class="flex-1 text-left min-w-0">
-                <p class="truncate">Tắt thông báo</p>
+                <p class="truncate">{{ selectedConversation.isMuted ? 'Bật thông báo' : 'Tắt thông báo' }}</p>
               </div>
             </button>
 
             <button
-              v-if="!selectedConversation.isGroup"
-              @click="blockUser(selectedConversation.participants[1]?.id)"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50"
+              v-if="!selectedConversation.isGroup && otherParticipant"
+              @click="handleToggleBlock"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-surface-700/50 cursor-pointer"
             >
-              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0">
+              <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center shrink-0" :class="isBlocked ? 'text-red-500 bg-red-50 dark:bg-red-950/30' : ''">
                 <BanIcon :size="16" />
               </div>
               <div class="flex-1 text-left min-w-0">
-                <p class="truncate">Chặn</p>
+                <p class="truncate">{{ isBlocked ? 'Bỏ chặn người dùng' : 'Chặn người dùng' }}</p>
               </div>
             </button>
 
-            <button @click="addToast({ message: 'Tính năng báo cáo đang được phát triển', type: 'info' })" class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10">
+            <button
+              v-if="!selectedConversation.isGroup && otherParticipant"
+              @click="handleReportConversation"
+              class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer"
+            >
               <div class="flex items-center gap-3 w-full">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-500 dark:bg-red-900/30">
                   <FlagIcon :size="16" />
@@ -145,8 +282,8 @@ const {
 
             <button
               v-if="selectedConversation"
-              @click="deleteConversation(selectedConversation.id); selectedConversation = null; showInfoPanel = false"
-              class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10"
+              @click="deleteConversation(selectedConversation.id)"
+              class="w-full flex items-start gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-col text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer"
             >
               <div class="flex items-center gap-3 w-full">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-500 dark:bg-red-900/30">
@@ -183,4 +320,15 @@ const {
       <ChatMediaFilesView v-else-if="rightSidebarView === 'media_files'" />
     </aside>
   </Transition>
+
+  <!-- Nickname Modal -->
+  <NicknameModal
+    v-if="selectedConversation && !selectedConversation.isGroup"
+    :show="showNicknameModal"
+    :user-name="selectedConversation.originalName || selectedConversation.name"
+    :user-avatar="selectedConversation.avatar"
+    :current-nickname="selectedConversation.nickname"
+    @close="showNicknameModal = false"
+    @save="handleSaveNickname"
+  />
 </template>

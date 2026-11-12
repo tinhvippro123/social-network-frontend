@@ -4,85 +4,123 @@
 import http from './client'
 import type { ApiResponse } from './client'
 import type { AdminStats, Report, User } from '@/types'
-import { mockAdminStats, mockUsers, mockReports, mockCategories } from '@/data/mockData'
+import { slugify } from '@/utils/formatters'
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+
+/** Nhãn trục X theo độ dài khoảng: ≤7 mốc → thứ; còn lại → dd/MM */
+function growthLabel(dateStr: string, total: number): string {
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return ''
+  if (total <= 7) return WEEKDAYS[d.getDay()] ?? ''
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+function mapAdminStats(s: any): AdminStats {
+  const growth = Array.isArray(s?.growth) ? s.growth : []
+  return {
+    totalUsers: s?.totalUsers ?? 0,
+    newUsersToday: s?.newUsersToday ?? 0,
+    totalPosts: s?.totalPosts ?? 0,
+    newPostsToday: s?.newPostsToday ?? 0,
+    totalComments: s?.totalComments ?? 0,
+    totalGroups: s?.totalGroups ?? 0,
+    totalReports: s?.totalReports ?? 0,
+    pendingReports: s?.pendingReports ?? 0,
+    totalViews: s?.totalViews ?? 0,
+    growthLabels: growth.map((g: any) => growthLabel(g.date, growth.length)),
+    userGrowth: growth.map((g: any) => g.users ?? 0),
+    postGrowth: growth.map((g: any) => g.posts ?? 0),
+    newUsersInRange: s?.newUsersInRange ?? 0,
+    newPostsInRange: s?.newPostsInRange ?? 0,
+    topCategories: s?.topCategories || [],
+    recentActivities: s?.recentActivities || [],
+  }
+}
 
 const adminApi = {
   // ── Dashboard ─────────────────────────────
-  getStats: async () => {
-    await delay(500)
-    return { data: { data: mockAdminStats, success: true, message: 'Success' } } as { data: ApiResponse<AdminStats> }
+  getStats: async (days = 7) => {
+    const res = await http.get<ApiResponse<any>>('/admin/stats', { params: { days } })
+    return {
+      ...res,
+      data: {
+        ...res.data,
+        data: mapAdminStats(res.data.data),
+      },
+    }
   },
 
   // ── Users ─────────────────────────────────
-  getUsers: async (params?: { page?: number; role?: string; search?: string }) => {
-    await delay(500)
-    return { data: { data: mockUsers, success: true, message: 'Success' } } as { data: ApiResponse<User[]> }
-  },
+  getUsers: (params?: { page?: number; limit?: number; role?: string; search?: string }) =>
+    http.get<ApiResponse<User[]>>('/admin/users', { params }),
 
-  updateUserRole: async (userId: string, role: string) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  updateUserRole: (userId: string, role: string) =>
+    http.patch<ApiResponse<any>>(`/admin/users/${userId}/role`, { role: role.toUpperCase() }),
 
-  banUser: async (userId: string) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  banUser: (userId: string, banned = true) =>
+    http.patch<ApiResponse<any>>(`/admin/users/${userId}/ban`, { banned }),
 
-  deleteUser: async (userId: string) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  deleteUser: (userId: string) =>
+    http.delete<ApiResponse<void>>(`/admin/users/${userId}`),
 
-  // ── Moderation ────────────────────────────
-  getReports: async (params?: { status?: string; page?: number }) => {
-    await delay(500)
-    return { data: { data: mockReports, success: true, message: 'Success' } } as { data: ApiResponse<Report[]> }
-  },
+  // ── Posts Moderation ──────────────────────
+  getPosts: (params?: { page?: number; limit?: number; status?: string; search?: string }) =>
+    http.get<ApiResponse<any[]>>('/admin/posts', { params }),
 
-  resolveReport: async (reportId: string, action: 'keep' | 'delete' | 'ban') => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  updatePostStatus: (postId: string, status: string) =>
+    http.patch<ApiResponse<any>>(`/admin/posts/${postId}/status`, { status: status.toUpperCase() }),
 
-  dismissReport: async (reportId: string) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  // ── Moderation / Reports ──────────────────
+  getReports: (params?: { status?: string; page?: number; limit?: number }) =>
+    http.get<ApiResponse<Report[]>>('/admin/reports', { params }),
+
+  resolveReport: (reportId: string, action: 'keep' | 'delete' | 'ban') =>
+    http.patch<ApiResponse<any>>(`/admin/reports/${reportId}/resolve`, { action: action.toUpperCase() }),
+
+  dismissReport: (reportId: string) =>
+    http.patch<ApiResponse<any>>(`/admin/reports/${reportId}/dismiss`),
+
+  // ── Sentiment Analysis (AI/NLP) ───────────
+  getSentimentStats: () =>
+    http.get<ApiResponse<{ positive: number; negative: number; neutral: number }>>('/moderation/sentiment'),
 
   // ── Categories ────────────────────────────
-  getCategories: async () => {
-    await delay(500)
-    return { data: { data: mockCategories, success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  getCategories: () =>
+    http.get<ApiResponse<any[]>>('/categories'),
 
-  createCategory: async (data: { name: string; icon: string }) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  createCategory: (data: { name: string; description?: string }) =>
+    http.post<ApiResponse<any>>('/categories', {
+      name: data.name,
+      slug: slugify(data.name),
+      ...(data.description !== undefined ? { description: data.description } : {}),
+    }),
 
-  updateCategory: async (id: string, data: { name?: string; icon?: string }) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  updateCategory: (id: string, data: { name: string; description?: string }) =>
+    http.put<ApiResponse<any>>(`/categories/${id}`, {
+      name: data.name,
+      slug: slugify(data.name),
+      ...(data.description !== undefined ? { description: data.description } : {}),
+    }),
 
-  deleteCategory: async (id: string) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  deleteCategory: (id: string) =>
+    http.delete<ApiResponse<void>>(`/categories/${id}`),
+
+  // ── Tags ──────────────────────────────────
+  renameTag: (name: string, replacement: string) =>
+    http.patch<ApiResponse<void>>(`/admin/tags/${encodeURIComponent(name)}`, { name: replacement }, {
+      params: { replacement },
+    }),
+
+  deleteTag: (name: string) =>
+    http.delete<ApiResponse<void>>(`/admin/tags/${encodeURIComponent(name)}`),
 
   // ── Settings ──────────────────────────────
-  getSettings: async () => {
-    await delay(500)
-    return { data: { data: {}, success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  getSettings: () =>
+    http.get<ApiResponse<any>>('/admin/settings'),
 
-  updateSettings: async (data: Record<string, unknown>) => {
-    await delay(500)
-    return { data: { success: true, message: 'Success' } } as { data: ApiResponse }
-  },
+  updateSettings: (data: Record<string, unknown>) =>
+    http.put<ApiResponse<any>>('/admin/settings', data),
 }
 
 export default adminApi

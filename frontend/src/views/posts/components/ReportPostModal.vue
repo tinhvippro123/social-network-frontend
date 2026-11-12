@@ -17,31 +17,24 @@ const isSubmitting = ref(false)
 const isSubmitted = ref(false)
 
 const reasons = [
-  { id: 'spam', label: 'Spam hoặc quảng cáo', icon: '📢' },
-  { id: 'inappropriate', label: 'Nội dung không phù hợp', icon: '🚫' },
-  { id: 'harassment', label: 'Quấy rối hoặc bắt nạt', icon: '😡' },
-  { id: 'misinformation', label: 'Thông tin sai lệch', icon: '❌' },
-  { id: 'copyright', label: 'Vi phạm bản quyền', icon: '©️' },
-  { id: 'other', label: 'Lý do khác', icon: '📝' },
+  { id: 'spam', label: 'Spam hoặc quảng cáo' },
+  { id: 'inappropriate', label: 'Nội dung không phù hợp' },
+  { id: 'harassment', label: 'Quấy rối hoặc bắt nạt' },
+  { id: 'misinformation', label: 'Thông tin sai lệch' },
+  { id: 'copyright', label: 'Vi phạm bản quyền' },
+  { id: 'other', label: 'Lý do khác' },
 ]
 
 const handleSubmit = async () => {
   if (!selectedReason.value) return
-  isSubmitting.value = true
-  emit('submit', selectedReason.value, description.value)
-  
-  // Simulate success
-  setTimeout(() => {
-    isSubmitting.value = false
-    isSubmitted.value = true
-    // Auto close after showing success
-    setTimeout(() => {
-      isSubmitted.value = false
-      selectedReason.value = ''
-      description.value = ''
-      emit('close')
-    }, 2000)
-  }, 800)
+  const reasonObj = reasons.find(r => r.id === selectedReason.value)
+  const reason = reasonObj ? reasonObj.label : selectedReason.value
+  const desc = description.value
+  selectedReason.value = ''
+  description.value = ''
+  isSubmitting.value = false
+  isSubmitted.value = false
+  emit('submit', reason, desc)
 }
 
 const handleClose = () => {
@@ -111,7 +104,6 @@ const handleClose = () => {
                     : 'bg-gray-50 dark:bg-surface-700 border-gray-200 dark:border-surface-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-600'
                 ]"
               >
-                <span class="text-lg">{{ reason.icon }}</span>
                 {{ reason.label }}
               </button>
 
@@ -144,7 +136,7 @@ const handleClose = () => {
                   'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all',
                   !selectedReason || isSubmitting
                     ? 'bg-gray-300 dark:bg-surface-600 cursor-not-allowed'
-                    : 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/25'
+                    : 'bg-red-500 hover:bg-red-600 shadow-xs'
                 ]"
               >
                 <AlertTriangle v-if="!isSubmitting" :size="16" />

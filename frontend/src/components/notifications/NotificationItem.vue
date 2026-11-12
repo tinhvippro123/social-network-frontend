@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import {
   Bell, ArrowUp, MessageCircle, Reply, UserPlus, AtSign,
-  Users, FileCheck, Info, Trash2
+  Users, FileCheck, Info, Trash2, Flag
 } from '@lucide/vue'
 import { formatDate } from '@/utils/formatters'
 import type { Notification } from '@/composables/core/useNotifications'
@@ -15,6 +16,11 @@ const emit = defineEmits<{
   (e: 'delete', id: string): void
 }>()
 
+const imgError = ref(false)
+watch(() => props.notification.avatar, () => {
+  imgError.value = false
+})
+
 const getNotificationIcon = (type: Notification['type']) => {
   const icons: Record<string, any> = {
     upvote: ArrowUp,
@@ -24,6 +30,7 @@ const getNotificationIcon = (type: Notification['type']) => {
     mention: AtSign,
     group_invite: Users,
     post_approved: FileCheck,
+    report: Flag,
     system: Info
   }
   return icons[type] || Bell
@@ -34,10 +41,11 @@ const getNotificationColor = (type: Notification['type']) => {
     upvote: 'text-primary-500 bg-primary-500/10',
     comment: 'text-blue-500 bg-blue-500/10',
     reply: 'text-green-500 bg-green-500/10',
-    follow: 'text-purple-500 bg-purple-500/10',
+    follow: 'text-teal-500 bg-teal-500/10',
     mention: 'text-amber-500 bg-amber-500/10',
     group_invite: 'text-teal-500 bg-teal-500/10',
     post_approved: 'text-emerald-500 bg-emerald-500/10',
+    report: 'text-red-500 bg-red-500/10',
     system: 'text-gray-500 bg-gray-500/10'
   }
   return colors[type] || 'text-gray-500 bg-gray-500/10'
@@ -64,9 +72,10 @@ const getNotificationColor = (type: Notification['type']) => {
       <!-- Avatar / Icon -->
       <div class="relative shrink-0">
         <img
-          v-if="notification.avatar"
+          v-if="notification.avatar && !imgError"
           :src="notification.avatar"
           :alt="notification.title"
+          @error="imgError = true"
           class="w-12 h-12 rounded-full object-cover ring-2 ring-white dark:ring-surface-800"
         />
         <div
@@ -86,8 +95,8 @@ const getNotificationColor = (type: Notification['type']) => {
       <!-- Content -->
       <div class="flex-1 min-w-0 pr-8">
         <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-          <span class="font-semibold text-gray-900 dark:text-white">{{ notification.title }}</span>
-          {{ ' ' }}{{ notification.message }}
+          <span v-if="notification.title" class="font-semibold text-gray-900 dark:text-white">{{ notification.title }} </span>
+          <span>{{ notification.message }}</span>
         </p>
         <p class="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
           {{ formatDate(notification.createdAt) }}
@@ -96,8 +105,10 @@ const getNotificationColor = (type: Notification['type']) => {
 
       <!-- Delete button -->
       <button
+        type="button"
+        title="Xóa thông báo"
         @click.stop="emit('delete', notification.id)"
-        class="absolute top-4 right-10 opacity-0 group-hover:opacity-100 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+        class="absolute top-4 right-10 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all cursor-pointer"
       >
         <Trash2 :size="14" />
       </button>

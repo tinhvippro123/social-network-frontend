@@ -4,6 +4,7 @@
 // ==========================================
 import { ref } from 'vue'
 import searchApi from '@/api/search.api'
+import { normalizePost } from '../posts/usePosts'
 import type { Post } from '@/types'
 
 export function useSearch() {
@@ -25,7 +26,7 @@ export function useSearch() {
     searchType.value = 'keyword'
     try {
       const { data } = await searchApi.keyword(query)
-      results.value = data.data
+      results.value = Array.isArray(data.data) ? data.data.map(normalizePost) : []
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Lỗi tìm kiếm'
     } finally {
@@ -45,7 +46,7 @@ export function useSearch() {
     searchType.value = 'semantic'
     try {
       const { data } = await searchApi.semantic(query)
-      results.value = data.data
+      results.value = Array.isArray(data.data) ? data.data.map(normalizePost) : []
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Lỗi tìm kiếm ngữ nghĩa'
     } finally {
@@ -60,7 +61,7 @@ export function useSearch() {
     searchType.value = 'image'
     try {
       const { data } = await searchApi.image(file)
-      results.value = data.data
+      results.value = Array.isArray(data.data) ? data.data.map(normalizePost) : []
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Lỗi tìm kiếm hình ảnh'
     } finally {
@@ -75,7 +76,7 @@ export function useSearch() {
     searchType.value = 'document'
     try {
       const { data } = await searchApi.document(file)
-      results.value = data.data
+      results.value = Array.isArray(data.data) ? data.data.map(normalizePost) : []
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Lỗi tìm kiếm tài liệu'
     } finally {

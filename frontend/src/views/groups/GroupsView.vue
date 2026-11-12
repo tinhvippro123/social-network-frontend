@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { Search as SearchIcon, Plus, Users, Globe, Lock, ArrowRight } from '@lucide/vue'
+import { Search as SearchIcon, Plus, Users } from '@lucide/vue'
 import GroupSkeletonCard from '@/components/groups/GroupSkeletonCard.vue'
 import { GROUP_FILTERS } from '@/constants/ui'
-import { formatNumber } from '@/utils/formatters'
 import { useGroupsView } from '@/composables/groups/useGroupsView'
 import GroupCard from '@/components/groups/GroupCard.vue'
 import CreateGroupModal from '@/components/groups/CreateGroupModal.vue'
 
 const {
-  router,
   isLoading,
   showCreateModal,
   searchGroup,
   filterType,
-  filteredGroups
+  filteredGroups,
+  initData,
+  openCreateModal,
+  handleToggleJoin
 } = useGroupsView()
 </script>
 
@@ -28,8 +27,8 @@ const {
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tham gia nhóm để kết nối với cộng đồng</p>
       </div>
       <button
-        @click="showCreateModal = true"
-        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25"
+        @click="openCreateModal"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-xs cursor-pointer"
       >
         <Plus :size="16" />
         Tạo nhóm mới
@@ -53,9 +52,9 @@ const {
           :key="f.key"
           @click="filterType = f.key as any"
           :class="[
-            'px-4 py-2.5 rounded-xl text-sm font-medium transition-all',
+            'px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer',
             filterType === f.key
-              ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
+              ? 'bg-primary-600 text-white shadow-xs'
               : 'bg-white dark:bg-surface-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700'
           ]"
         >
@@ -72,16 +71,24 @@ const {
       </template>
 
       <!-- Actual Groups -->
-      <template v-else>
+      <template v-else-if="filteredGroups.length > 0">
         <GroupCard
           v-for="group in filteredGroups"
           :key="group.id"
           :group="group"
+          @toggle-join="handleToggleJoin"
         />
       </template>
+
+      <!-- Empty State -->
+      <div v-else class="col-span-full py-16 text-center bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700">
+        <Users :size="48" class="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">Không tìm thấy nhóm nào</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Hãy thử thay đổi từ khóa tìm kiếm hoặc bộ lọc nhóm.</p>
+      </div>
     </div>
 
     <!-- Create Group Modal -->
-    <CreateGroupModal v-model="showCreateModal" />
+    <CreateGroupModal v-model="showCreateModal" @created="initData" />
   </div>
 </template>

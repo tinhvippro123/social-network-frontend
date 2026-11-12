@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { BarChart3, TrendingUp, Users, FileText, Eye, ArrowUp, MessageCircle } from '@lucide/vue'
-import { useAdmin } from '@/composables/admin/useAdmin'
+import { BarChart3 } from '@lucide/vue'
 import { useAdminAnalytics } from '@/composables/admin/useAdminAnalytics'
 import AnalyticsCharts from './components/AnalyticsCharts.vue'
 import AdminStatCard from '@/components/admin/AdminStatCard.vue'
 import AdminStatCardSkeleton from './components/AdminStatCardSkeleton.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import { formatRelativeTime } from '@/utils/formatters'
 
 const { stats, isLoading, timeRange } = useAdminAnalytics()
 
+const ACTIVITY_DOT: Record<string, string> = {
+  post: 'bg-blue-500',
+  user: 'bg-green-500',
+  report: 'bg-red-500',
+}
 </script>
 
 <template>
@@ -32,33 +35,33 @@ const { stats, isLoading, timeRange } = useAdminAnalytics()
 
     <!-- Quick Stats -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <template v-if="isLoading">
+      <template v-if="isLoading && !stats">
         <AdminStatCardSkeleton v-for="i in 4" :key="i" />
       </template>
       <template v-else-if="stats">
         <AdminStatCard
           label="Tổng người dùng"
           :value="stats.totalUsers.toLocaleString()"
-          :change="'+' + stats.newUsersToday"
+          :change="`+${stats.newUsersToday} hôm nay`"
           trend="up"
         />
         <AdminStatCard
           label="Tổng bài viết"
           :value="stats.totalPosts.toLocaleString()"
-          :change="'+' + stats.newPostsToday"
+          :change="`+${stats.newPostsToday} hôm nay`"
           trend="up"
         />
         <AdminStatCard
-          label="Lượt xem hôm nay"
-          :value="stats.viewsToday.total.toLocaleString()"
-          :change="'+' + stats.viewsToday.growthPct + '%'"
+          label="Tổng lượt xem"
+          :value="stats.totalViews.toLocaleString()"
+          :change="`${stats.totalComments.toLocaleString()} bình luận`"
           trend="up"
         />
         <AdminStatCard
           label="Báo cáo chờ xử lý"
           :value="stats.pendingReports"
-          change="Cần xử lý"
-          trend="down"
+          :change="stats.pendingReports > 0 ? 'Cần xử lý' : 'Đã xử lý hết'"
+          :trend="stats.pendingReports > 0 ? 'down' : 'up'"
         />
       </template>
     </div>
@@ -70,28 +73,30 @@ const { stats, isLoading, timeRange } = useAdminAnalytics()
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
       <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
         <h3 class="font-bold text-gray-900 dark:text-white mb-4">Top danh mục</h3>
-        <div class="space-y-3" v-if="stats">
+        <div class="space-y-3" v-if="stats && stats.topCategories.length">
           <div v-for="(cat, i) in stats.topCategories" :key="i" class="flex items-center gap-3">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 w-20">{{ cat.name }}</span>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 w-36 truncate" :title="cat.name">{{ cat.name }}</span>
             <div class="flex-1 h-2 bg-gray-100 dark:bg-surface-700 rounded-full overflow-hidden">
               <div class="h-full rounded-full bg-linear-to-r from-red-500 to-orange-400 transition-all duration-700" :style="{ width: `${cat.pct}%` }" />
             </div>
             <span class="text-xs text-gray-400 w-16 text-right">{{ cat.count }} bài</span>
           </div>
         </div>
+        <p v-else-if="!isLoading" class="text-sm text-gray-400">Chưa có dữ liệu</p>
       </div>
 
       <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
         <h3 class="font-bold text-gray-900 dark:text-white mb-4">Hoạt động gần đây</h3>
-        <div class="space-y-3" v-if="stats">
+        <div class="space-y-3" v-if="stats && stats.recentActivities.length">
           <div v-for="(act, i) in stats.recentActivities" :key="i" class="flex items-start gap-3">
-            <div :class="['w-2 h-2 rounded-full mt-1.5 shrink-0', act.color.replace('text-', 'bg-')]" />
-            <div class="flex-1">
-              <p class="text-sm text-gray-700 dark:text-gray-300">{{ act.text }}</p>
-              <p class="text-xs text-gray-400">{{ act.time }}</p>
+            <div :class="['w-2 h-2 rounded-full mt-1.5 shrink-0', ACTIVITY_DOT[act.type] || 'bg-gray-400']" />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{{ act.text }}</p>
+              <p class="text-xs text-gray-400">{{ formatRelativeTime(act.time) }}</p>
             </div>
           </div>
         </div>
+        <p v-else-if="!isLoading" class="text-sm text-gray-400">Chưa có hoạt động</p>
       </div>
     </div>
   </div>

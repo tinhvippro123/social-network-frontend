@@ -1,14 +1,33 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import {
-  X, Send, Minus, Phone, Video,
+  X, Send, Minus, Maximize2,
   Smile, Paperclip, Image as ImageIcon,
-  PlusCircle, ChevronDown
+  ChevronDown, BellOff, FileText, Download, Reply, Pin
 } from '@lucide/vue'
 import type { ChatConversation, ChatMessage } from '@/types'
-import { currentUser, mockMessages } from '@/data/mockData'
 import ChatMessageActions from '@/views/chat/components/ChatMessageActions.vue'
+import ChatImagePreviewModal from '@/views/chat/components/ChatImagePreviewModal.vue'
 import ChatPopupHeaderMenu from '@/components/ChatPopupHeaderMenu.vue'
+import NicknameModal from '@/components/NicknameModal.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { useToast } from '@/composables/ui/useToast'
+import { useChatNicknames } from '@/composables/chat/useChatNicknames'
+import { useWebSocket } from '@/composables/core/useWebSocket'
+import { useAuthStore } from '@/stores/auth.store'
+import chatApi from '@/api/chat.api'
+import filesApi from '@/api/files.api'
+
+const router = useRouter()
+const toast = useToast()
+const authStore = useAuthStore()
+const { setNickname, applyNicknameToConversation } = useChatNicknames()
+const showNicknameModal = ref(false)
+const showEmojiPicker = ref(false)
+const imageInputRef = ref<HTMLInputElement | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const quickEmojis = ['😀', '😂', '🥰', '😎', '👍', '❤️', '🔥', '🎉', '🙌', '💯', '🤔', '😭']
 
 const props = defineProps<{
   conv: ChatConversation
@@ -19,49 +38,233 @@ const emit = defineEmits<{
   (e: 'minimize'): void
 }>()
 
-// Only text messages for the mini popup
-const textOnlyMessages = computed(() => {
-  return mockMessages.filter(m => m.type === 'text' && m.content.trim() !== '')
-})
-
-const messages = ref<ChatMessage[]>([...textOnlyMessages.value].slice(-5))
+const messages = ref<ChatMessage[]>([])
 const newMessage = ref('')
-const isTyping = ref(false)
+const replyingTo = ref<ChatMessage | null>(null)
+const isLoadingMessages = ref(false)
 const activeHeaderMenu = ref(false)
 const activeMessageAction = ref<string | null>(null)
 const messageContainer = ref<HTMLElement | null>(null)
+const previewImageUrl = ref<string | null>(null)
+
+function scrollToPopupMessage(msgId?: string) {
+  if (!msgId) return
+  const el = document.getElementById(`popup-msg-${msgId}`)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+}
+
+const { connect: connectWs } = useWebSocket(undefined, (event) => {
+  if (!event || event.conversationId !== props.conv.id) return
+  const payload = event.data ?? event.payload
+  if (event.type === 'message.created' && payload) {
+    const incoming = payload as ChatMessage
+    if (!messages.value.some(m => m.id === incoming.id)) {
+      messages.value.push(incoming)
+      scrollToBottom()
+    }
+    if (!incoming.isOwn) {
+      chatApi.markAsRead(props.conv.id).catch(() => {})
+    }
+    window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+  } else if ((event.type === 'message.revoked' || event.type === 'message.updated') && payload) {
+    const updated = payload as ChatMessage
+    const idx = messages.value.findIndex(m => m.id === updated.id)
+    if (idx >= 0) {
+      messages.value[idx] = { ...messages.value[idx], ...updated }
+    }
+    if (event.type === 'message.revoked') {
+      window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+    }
+  } else if (event.type === 'conversation.read') {
+    messages.value.forEach(m => {
+      if (m.isOwn && m.status !== 'revoked') {
+        m.status = 'read'
+      }
+    })
+  } else if (event.type === 'conversation.nickname' && payload) {
+    if (props.conv.isGroup) return
+    if (payload.targetUserId && String(payload.targetUserId) === String(authStore.user?.id)) return
+    if (!props.conv.originalName || props.conv.originalName === props.conv.nickname) {
+      const other = props.conv.participants?.find(p => p.id && p.id !== authStore.user?.id && p.name && p.name !== props.conv.nickname)
+      props.conv.originalName = other?.name || props.conv.name
+    }
+    props.conv.nickname = payload.nickname || ''
+    props.conv.name = payload.nickname || props.conv.originalName || props.conv.name
+  }
+})
+
+async function loadMessages() {
+  if (!props.conv?.id || props.conv.id.startsWith('new-')) return
+  isLoadingMessages.value = true
+  try {
+    const { data } = await chatApi.getMessages(props.conv.id)
+    messages.value = [...(data.data || [])]
+      .reverse()
+      .sort((a, b) => {
+        const ta = new Date(a.createdAt || a.timestamp || '').getTime()
+        const tb = new Date(b.createdAt || b.timestamp || '').getTime()
+        if (Number.isNaN(ta) || Number.isNaN(tb)) return 0
+        return ta - tb
+      })
+    scrollToBottom()
+    chatApi.markAsRead(props.conv.id).then(() => {
+      window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+    }).catch(() => {})
+  } catch {
+    // ignore
+  } finally {
+    isLoadingMessages.value = false
+  }
+}
+
+onMounted(() => {
+  applyNicknameToConversation(props.conv)
+  loadMessages()
+  connectWs()
+  document.addEventListener('click', handleDocumentClick)
+})
+
+onUnmounted(() => document.removeEventListener('click', handleDocumentClick))
+
+function handleSaveNickname(newNick: string) {
+  setNickname(props.conv, newNick)
+  if (newNick.trim()) {
+    toast.success(`Đã đổi biệt danh thành "${newNick.trim()}"`)
+  } else {
+    toast.info('Đã gỡ bỏ biệt danh')
+  }
+  showNicknameModal.value = false
+}
+
+function openInFullChat() {
+  if (props.conv.id.startsWith('new-')) {
+    router.push(`/chat?userId=${props.conv.id.replace(/^new-/, '')}`)
+  } else {
+    router.push(`/chat?id=${props.conv.id}`)
+  }
+  emit('close')
+}
 
 const toggleHeaderMenu = () => {
   activeHeaderMenu.value = !activeHeaderMenu.value
 }
 
-const toggleMessageAction = (msgId: string) => {
-  activeMessageAction.value = activeMessageAction.value === msgId ? null : msgId
+const toggleMessageAction = (msgId: string | null) => {
+  const normalized = !msgId || msgId === 'null' ? null : msgId
+  activeMessageAction.value = activeMessageAction.value === normalized ? null : normalized
 }
 
-// Global click handler to close menus
+async function handleRevokeMessage(msgId: string) {
+  try {
+    const { data } = await chatApi.revokeMessage(props.conv.id, msgId)
+    const idx = messages.value.findIndex(m => m.id === msgId)
+    if (idx >= 0) {
+      messages.value[idx] = data?.data || {
+        ...messages.value[idx],
+        isRevoked: true,
+        status: 'revoked',
+        content: 'Tin nhắn đã bị thu hồi'
+      }
+    }
+    window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+    toast.info('Đã thu hồi tin nhắn')
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể thu hồi tin nhắn')
+  }
+}
+
+async function handlePinMessage(msgId: string) {
+  try {
+    const msg = messages.value.find(m => m.id === msgId)
+    const nextPinned = !msg?.isPinned
+    await chatApi.pinMessage(props.conv.id, msgId, nextPinned)
+    if (msg) msg.isPinned = nextPinned
+    toast.success(nextPinned ? 'Đã ghim tin nhắn' : 'Đã bỏ ghim tin nhắn')
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể ghim tin nhắn')
+  }
+}
+
+function handleAddReaction(msgId: string, emoji: string) {
+  const msg = messages.value.find(m => m.id === msgId)
+  if (!msg) return
+  if (!msg.reactions) msg.reactions = []
+  const myId = authStore.user?.id || 'me'
+  const existingIdx = msg.reactions.findIndex(r => r.userId === myId || r.userId === 'me')
+  if (existingIdx >= 0) {
+    if (msg.reactions[existingIdx].emoji === emoji) {
+      msg.reactions.splice(existingIdx, 1)
+    } else {
+      msg.reactions[existingIdx].emoji = emoji
+    }
+  } else {
+    msg.reactions.push({ emoji, userId: myId, userName: authStore.user?.name || 'Bạn' })
+  }
+}
+
+function handleSetReplyTo(msg: ChatMessage) {
+  replyingTo.value = msg
+  const textarea = document.getElementById(`chat-textarea-${(props.conv as any)._popupKey || props.conv.id}`)
+  textarea?.focus()
+}
+
+function handleDeleteMessage(msgId: string) {
+  messages.value = messages.value.filter(m => m.id !== msgId)
+  toast.info('Đã xóa tin nhắn khỏi phía bạn')
+}
+
 const handleDocumentClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   if (activeHeaderMenu.value && !target.closest('.header-menu-container')) {
     activeHeaderMenu.value = false
+  }
+  if (showEmojiPicker.value && !target.closest('.popup-emoji-container')) {
+    showEmojiPicker.value = false
   }
   if (activeMessageAction.value && !target.closest('.message-action-menu')) {
     activeMessageAction.value = null
   }
 }
 
-onMounted(() => document.addEventListener('click', handleDocumentClick))
-onUnmounted(() => document.removeEventListener('click', handleDocumentClick))
+const toDate = (timeStr?: string) => {
+  if (!timeStr) return null
+  if (timeStr.includes('-') || timeStr.includes('T')) {
+    const d = new Date(timeStr)
+    return isNaN(d.getTime()) ? null : d
+  }
+  return null
+}
 
-function formatTime(timeStr: string): string {
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+const daysAgo = (d: Date) => Math.round((startOfDay(new Date()) - startOfDay(d)) / 86_400_000)
+const WEEKDAYS = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+
+function formatClockTime(timeStr?: string): string {
+  if (!timeStr) return ''
   if (/^\d{1,2}:\d{2}$/.test(timeStr)) return timeStr
-  try {
-    const date = new Date(timeStr)
-    if (!isNaN(date.getTime())) {
-      return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-    }
-  } catch {}
-  return timeStr
+  const d = toDate(timeStr)
+  if (!d) return timeStr
+  return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDayLabel(timeStr?: string): string {
+  const d = toDate(timeStr)
+  if (!d) return 'Hôm nay'
+  const diff = daysAgo(d)
+  if (diff === 0) return 'Hôm nay'
+  if (diff === 1) return 'Hôm qua'
+  if (diff < 7) return `${WEEKDAYS[d.getDay()]}, ${d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}`
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function isSameDay(a?: string, b?: string): boolean {
+  if (!a || !b) return true
+  const da = toDate(a)
+  const db = toDate(b)
+  if (!da || !db) return a === b
+  return startOfDay(da) === startOfDay(db)
 }
 
 function getStatusIcon(status: string) {
@@ -101,65 +304,106 @@ function handleKeyDown(e: KeyboardEvent) {
   }
 }
 
-function sendMessage() {
+function insertEmoji(emoji: string) {
+  newMessage.value += emoji
+  showEmojiPicker.value = false
+}
+
+async function sendMessage() {
   const content = newMessage.value.trim()
   if (!content) return
 
-  const msg: ChatMessage = {
-    id: `popup-m${Date.now()}`,
-    content,
-    sender: currentUser,
-    createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-    isOwn: true,
-    type: 'text',
-    status: 'sending'
-  }
-  messages.value.push(msg)
+  const replyTarget = replyingTo.value
   newMessage.value = ''
-
-  const textarea = document.getElementById(`chat-textarea-${props.conv.id}`)
+  replyingTo.value = null
+  showEmojiPicker.value = false
+  const textarea = document.getElementById(`chat-textarea-${(props.conv as any)._popupKey || props.conv.id}`)
   if (textarea) {
     textarea.style.height = 'auto'
   }
 
-  scrollToBottom()
-
-  setTimeout(() => { msg.status = 'sent' }, 500)
-  setTimeout(() => { msg.status = 'delivered' }, 1500)
-  setTimeout(() => { msg.status = 'read' }, 3000)
-
-  setTimeout(() => {
-    isTyping.value = true
-    scrollToBottom()
-    setTimeout(() => {
-      isTyping.value = false
-      const reply: ChatMessage = {
-        id: `popup-r${Date.now()}`,
-        content: 'OK mình hiểu rồi, cảm ơn bạn nhé! 👍',
-        sender: props.conv.participants.find(p => p.id !== currentUser.id) || props.conv.participants[0],
-        createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-        isOwn: false,
-        type: 'text',
-        status: 'read'
+  try {
+    if (props.conv.id.startsWith('new-')) {
+      const targetUserId = props.conv.id.replace('new-', '')
+      const createdRes = await chatApi.createConversation({ participantIds: [targetUserId], isGroup: false })
+      if (createdRes.data?.data?.id) {
+        props.conv.id = createdRes.data.data.id
       }
-      messages.value.push(reply)
-      scrollToBottom()
-    }, 2000)
-  }, 1500)
+    }
+    const { data } = await chatApi.sendMessage({
+      conversationId: props.conv.id,
+      content,
+      type: 'text',
+      replyToId: replyTarget?.id
+    })
+    if (data?.data && !messages.value.some(m => m.id === data.data.id)) {
+      messages.value.push(data.data)
+    }
+    window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+    scrollToBottom()
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Gửi tin nhắn thất bại')
+  }
 }
 
-onMounted(() => {
-  scrollToBottom()
-})
+async function handleUploadAttachment(e: Event, type: 'image' | 'file') {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  try {
+    const res = await filesApi.uploadFile(file)
+    const uploadedUrl = res.data?.data?.fileUrl
+    if (!uploadedUrl) throw new Error('Upload failed')
+
+    const size = file.size < 1024 * 1024
+      ? `${(file.size / 1024).toFixed(1)} KB`
+      : `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+
+    if (props.conv.id.startsWith('new-')) {
+      const targetUserId = props.conv.id.replace('new-', '')
+      const createdRes = await chatApi.createConversation({ participantIds: [targetUserId], isGroup: false })
+      if (createdRes.data?.data?.id) {
+        props.conv.id = createdRes.data.data.id
+      }
+    }
+    const replyTarget = replyingTo.value
+    replyingTo.value = null
+    const { data } = await chatApi.sendMessage({
+      conversationId: props.conv.id,
+      content: type === 'image' ? '[Hình ảnh]' : file.name,
+      type,
+      replyToId: replyTarget?.id,
+      imageUrl: type === 'image' ? uploadedUrl : undefined,
+      fileUrl: type === 'file' ? uploadedUrl : undefined,
+      fileName: type === 'file' ? file.name : undefined,
+      fileSize: type === 'file' ? size : undefined
+    })
+    if (data?.data && !messages.value.some(m => m.id === data.data.id)) {
+      messages.value.push(data.data)
+    }
+    window.dispatchEvent(new CustomEvent('chat-conversations-sync'))
+    scrollToBottom()
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể tải tệp đính kèm')
+  } finally {
+    input.value = ''
+  }
+}
 </script>
 
 <template>
-  <div class="w-82 bg-white dark:bg-surface-800 rounded-t-xl shadow-2xl border border-b-0 border-gray-200 dark:border-surface-700 flex flex-col" style="height: 455px;">
+  <div class="w-84.5 bg-white dark:bg-surface-800 rounded-t-xl shadow-2xl border border-b-0 border-gray-200 dark:border-surface-700 flex flex-col" style="height: 455px;">
     <!-- Header -->
     <div class="relative z-50 header-menu-container">
       <div class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-surface-800 border-b border-gray-200 dark:border-surface-700 shrink-0 rounded-t-xl">
         <div class="relative shrink-0">
-          <img :src="conv.avatar" class="w-8 h-8 rounded-full object-cover" />
+          <UserAvatar 
+            :user="{ avatar: conv.avatar, name: conv.name }" 
+            :is-group="conv.isGroup || (!conv.avatar && conv.name?.includes('Nhóm'))"
+            size="sm" 
+            class="w-8! h-8!" 
+          />
           <div v-if="conv.isOnline" class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-surface-800" />
         </div>
         <div 
@@ -167,23 +411,31 @@ onMounted(() => {
           @click="toggleHeaderMenu"
         >
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:underline">{{ conv.name }}</p>
-            <p class="text-xs text-gray-400">{{ conv.isOnline ? 'Đang hoạt động' : 'Ngoại tuyến' }}</p>
+            <p class="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:underline flex items-center gap-1.5">
+              <span>{{ conv.nickname || conv.name }}</span>
+              <BellOff v-if="conv.isMuted" :size="13" class="text-amber-500 shrink-0" title="Đã tắt thông báo" />
+            </p>
+            <p class="text-xs" :class="conv.isOnline ? 'text-green-500' : 'text-gray-400'">
+              {{ conv.isGroup ? `${conv.participants?.length || 0} thành viên` : (conv.isOnline ? 'Đang hoạt động' : 'Hoạt động gần đây') }}
+            </p>
           </div>
           <ChevronDown :size="16" :class="['text-primary-500 transition-transform', activeHeaderMenu ? 'rotate-180' : '']" />
         </div>
         <div class="flex items-center gap-0.5 shrink-0">
-          <button class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Phone :size="14" /></button>
-          <button class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Video :size="14" /></button>
-          <button @click="$emit('minimize')" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"><Minus :size="14" /></button>
-          <button @click="$emit('close')" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"><X :size="14" /></button>
+          <button @click="openInFullChat" title="Mở trong trang Tin nhắn" class="p-1.5 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer"><Maximize2 :size="14" /></button>
+          <button @click="$emit('minimize')" title="Thu nhỏ" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"><Minus :size="14" /></button>
+          <button @click="$emit('close')" title="Đóng" class="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"><X :size="14" /></button>
         </div>
       </div>
 
       <Transition name="fade">
         <ChatPopupHeaderMenu 
           v-if="activeHeaderMenu"
+          :conv="conv"
+          @clear-chat="messages = []"
           @close="activeHeaderMenu = false"
+          @close-window="$emit('close')"
+          @open-nickname="showNicknameModal = true"
         />
       </Transition>
     </div>
@@ -191,78 +443,190 @@ onMounted(() => {
     <!-- Messages -->
     <div
       ref="messageContainer"
+      @click="activeMessageAction = null"
+      @scroll="activeMessageAction = null"
       class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1.5 chat-messages relative z-0"
     >
-      <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center py-8">
-        <img :src="conv.avatar" class="w-16 h-16 rounded-full object-cover mb-3" />
+      <div v-if="messages.length === 0 && !isLoadingMessages" class="flex flex-col items-center justify-center h-full text-center py-8">
+        <UserAvatar 
+          :user="{ avatar: conv.avatar, name: conv.name }" 
+          :is-group="conv.isGroup || (!conv.avatar && conv.name?.includes('Nhóm'))"
+          size="lg" 
+          class="w-16! h-16! mb-3" 
+        />
         <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ conv.name }}</p>
         <p class="text-xs text-gray-400 mt-1">Bắt đầu cuộc trò chuyện mới</p>
       </div>
 
-      <div
-        v-for="msg in messages"
-        :key="msg.id"
-        :class="['flex', msg.isOwn ? 'justify-end' : 'justify-start']"
-      >
-        <div :class="['max-w-[75%] flex gap-1.5 items-end relative group/bubble', msg.isOwn ? 'flex-row-reverse' : '']">
-          <img v-if="!msg.isOwn" :src="msg.sender.avatar" class="w-6 h-6 rounded-full object-cover shrink-0" />
-          <div class="relative flex items-center min-w-0" :class="msg.isOwn ? 'flex-row-reverse' : ''">
-            <div>
-              <div :class="[
-                'px-3 py-1.5 text-[15px] leading-relaxed wrap-break-word min-w-0',
-                msg.isOwn
-                  ? 'bg-primary-500 text-white rounded-2xl rounded-br-sm'
-                  : 'bg-gray-100 dark:bg-surface-700 text-gray-900 dark:text-white rounded-2xl rounded-bl-sm'
-              ]">
-                {{ msg.content }}
-              </div>
-              <div :class="['flex items-center gap-1 mt-0.5 text-[10px] text-gray-400', msg.isOwn ? 'justify-end' : '']">
-                <span>{{ formatTime(msg.createdAt) }}</span>
-                <span v-if="msg.isOwn" :class="msg.status === 'read' ? 'text-primary-500' : ''">{{ getStatusIcon(msg.status) }}</span>
-              </div>
-            </div>
+      <template v-for="(msg, index) in messages" :key="msg.id">
+        <!-- Date separator -->
+        <div 
+          v-if="index === 0 || !isSameDay(msg.createdAt || msg.timestamp, messages[index - 1].createdAt || messages[index - 1].timestamp)"
+          class="flex justify-center my-3"
+        >
+          <span class="px-2.5 py-0.5 bg-gray-200/70 dark:bg-surface-700/70 rounded-full text-[10px] font-medium text-gray-500 dark:text-gray-400 select-none">
+            {{ formatDayLabel(msg.createdAt || msg.timestamp) }}
+          </span>
+        </div>
 
-            <!-- Hover Actions for Popup -->
-            <ChatMessageActions 
-              :msg="msg"
-              :active-action-menu="activeMessageAction"
-              @toggle-action-menu="toggleMessageAction"
+        <div :id="`popup-msg-${msg.id}`" :class="['flex', msg.isOwn ? 'justify-end' : 'justify-start']">
+          <div :class="['max-w-[calc(100%-86px)] flex gap-1.5 items-end relative group/bubble', msg.isOwn ? 'flex-row-reverse' : '']">
+            <UserAvatar
+              v-if="!msg.isOwn"
+              :user="msg.sender as any"
+              size="sm"
+              class="w-6! h-6! shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+              title="Xem trang cá nhân"
+              @click="msg.sender?.id && router.push(`/profile/${msg.sender.id}`)"
             />
-          </div>
-        </div>
-      </div>
+            <div class="relative flex items-center min-w-0" :class="msg.isOwn ? 'flex-row-reverse' : ''">
+              <div class="relative">
+                <!-- Reply reference -->
+                <div
+                  v-if="msg.replyTo && msg.status !== 'revoked' && !msg.isRevoked"
+                  @click="scrollToPopupMessage(msg.replyTo.id)"
+                  :class="[
+                    'mb-1 px-2.5 py-1 rounded-xl text-[11px] bg-gray-100/80 dark:bg-surface-700/60 border-l-2 border-primary-400 text-gray-500 dark:text-gray-400 max-w-full truncate cursor-pointer hover:bg-gray-200/70 dark:hover:bg-surface-600/70 transition-colors',
+                    msg.isOwn ? 'ml-auto' : ''
+                  ]"
+                  title="Nhấn để xem tin nhắn gốc"
+                >
+                  <span class="font-semibold">{{ msg.replyTo.senderName }}:</span> {{ msg.replyTo.content || 'Tin nhắn đính kèm / đã thu hồi' }}
+                </div>
 
-      <!-- Typing -->
-      <div v-if="isTyping" class="flex justify-start">
-        <div class="flex gap-1.5 items-end">
-          <img :src="conv.avatar" class="w-6 h-6 rounded-full object-cover shrink-0" />
-          <div class="bg-gray-100 dark:bg-surface-700 rounded-2xl rounded-bl-sm px-4 py-2.5">
-            <div class="flex gap-1">
-              <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
-              <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
-              <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                <img
+                  v-if="msg.type === 'image' && msg.imageUrl && msg.status !== 'revoked' && !msg.isRevoked"
+                  :src="msg.imageUrl"
+                  alt="Hình ảnh"
+                  class="max-h-40 rounded-xl object-cover border border-gray-200 dark:border-surface-600 mb-1 cursor-pointer hover:opacity-95 transition-opacity"
+                  @click="previewImageUrl = msg.imageUrl || null"
+                />
+                <a
+                  v-else-if="msg.type === 'file' && msg.fileName && msg.status !== 'revoked' && !msg.isRevoked"
+                  :href="msg.fileUrl || '#'"
+                  :download="msg.fileName"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  :class="[
+                    'flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs transition-colors',
+                    msg.isOwn
+                      ? 'bg-primary-500 text-white rounded-br-sm hover:bg-primary-600'
+                      : 'bg-gray-100 dark:bg-surface-700 text-gray-900 dark:text-white rounded-bl-sm hover:bg-gray-200 dark:hover:bg-surface-600'
+                  ]"
+                >
+                  <FileText :size="16" class="shrink-0" />
+                  <div class="min-w-0 flex-1">
+                    <p class="font-semibold truncate">{{ msg.fileName }}</p>
+                    <p v-if="msg.fileSize" class="text-[10px] opacity-80">{{ msg.fileSize }}</p>
+                  </div>
+                  <Download :size="14" class="shrink-0 opacity-80" />
+                </a>
+                <div
+                  v-else
+                  :class="[
+                    'px-3 py-1.5 text-[15px] leading-relaxed wrap-break-word min-w-0',
+                    msg.status === 'revoked' || msg.isRevoked
+                      ? 'italic text-gray-400 border border-dashed border-gray-300 dark:border-surface-600 rounded-2xl'
+                      : msg.isOwn
+                        ? 'bg-primary-500 text-white rounded-2xl rounded-br-sm'
+                        : 'bg-gray-100 dark:bg-surface-700 text-gray-900 dark:text-white rounded-2xl rounded-bl-sm'
+                  ]"
+                >
+                  {{ msg.status === 'revoked' || msg.isRevoked ? 'Tin nhắn đã bị thu hồi' : msg.content }}
+                </div>
+                <div
+                  v-if="msg.reactions && msg.reactions.length > 0 && msg.status !== 'revoked' && !msg.isRevoked"
+                  :class="['flex flex-wrap gap-1 mt-1', msg.isOwn ? 'justify-end' : 'justify-start']"
+                >
+                  <button
+                    v-for="r in msg.reactions"
+                    :key="r.emoji + r.userId"
+                    type="button"
+                    @click.stop="handleAddReaction(msg.id, r.emoji)"
+                    class="px-1.5 py-0.5 text-[11px] bg-white dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-full shadow-2xs cursor-pointer hover:scale-105 transition-transform"
+                  >
+                    {{ r.emoji }}
+                  </button>
+                </div>
+                <div :class="['flex items-center gap-1 mt-0.5 text-[10px] text-gray-400', msg.isOwn ? 'justify-end' : '']">
+                  <Pin v-if="msg.isPinned && msg.status !== 'revoked' && !msg.isRevoked" :size="10" class="text-amber-500" title="Tin nhắn đã ghim" />
+                  <span>{{ formatClockTime(msg.createdAt || msg.timestamp) }}</span>
+                  <span v-if="msg.isOwn" :class="msg.status === 'read' ? 'text-primary-500' : ''">{{ getStatusIcon(msg.status) }}</span>
+                </div>
+              </div>
+
+              <ChatMessageActions 
+                :msg="msg"
+                :active-action-menu="activeMessageAction"
+                @toggle-action-menu="toggleMessageAction"
+                @revoke-message="handleRevokeMessage"
+                @delete-message="handleDeleteMessage"
+                @pin-message="handlePinMessage"
+                @add-reaction="handleAddReaction"
+                @set-reply-to="handleSetReplyTo"
+              />
             </div>
           </div>
         </div>
+      </template>
+    </div>
+
+    <!-- Reply Preview Bar -->
+    <div
+      v-if="replyingTo"
+      class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700/70 border-t border-gray-200 dark:border-surface-700 flex items-center justify-between gap-2 text-xs"
+    >
+      <div class="flex items-center gap-1.5 min-w-0 text-gray-600 dark:text-gray-300">
+        <Reply :size="13" class="text-primary-500 shrink-0" />
+        <span class="truncate">Đang trả lời <strong>{{ replyingTo.sender?.name || 'tin nhắn' }}</strong>: {{ replyingTo.content || (replyingTo.type === 'image' ? '[Hình ảnh]' : `[Tệp] ${replyingTo.fileName || ''}`) }}</span>
       </div>
+      <button type="button" @click="replyingTo = null" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer shrink-0">
+        <X :size="14" />
+      </button>
     </div>
 
     <!-- Input -->
-    <div class="shrink-0 px-2 py-2.5">
+    <div class="shrink-0 px-2 py-2.5 relative">
+      <input ref="fileInputRef" type="file" class="hidden" @change="handleUploadAttachment($event, 'file')" />
+      <input ref="imageInputRef" type="file" accept="image/*" class="hidden" @change="handleUploadAttachment($event, 'image')" />
+
+      <!-- Quick Emoji Popup -->
+      <div
+        v-if="showEmojiPicker"
+        class="popup-emoji-container absolute bottom-14 right-3 z-50 bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-xl shadow-xl p-2 grid grid-cols-6 gap-1"
+      >
+        <button
+          v-for="emo in quickEmojis"
+          :key="emo"
+          type="button"
+          class="p-1.5 text-lg hover:bg-gray-100 dark:hover:bg-surface-700 rounded-lg cursor-pointer"
+          @click="insertEmoji(emo)"
+        >
+          {{ emo }}
+        </button>
+      </div>
+
       <div class="flex items-end gap-1.5">
-        <template v-if="newMessage.trim().length > 0">
-          <button class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5">
-            <PlusCircle :size="20" />
-          </button>
-        </template>
-        <template v-else>
-          <button class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5"><Paperclip :size="20" /></button>
-          <button class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5"><ImageIcon :size="20" /></button>
-        </template>
+        <button
+          type="button"
+          title="Đính kèm tệp"
+          class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5 cursor-pointer"
+          @click="fileInputRef?.click()"
+        >
+          <Paperclip :size="20" />
+        </button>
+        <button
+          type="button"
+          title="Gửi hình ảnh"
+          class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5 cursor-pointer"
+          @click="imageInputRef?.click()"
+        >
+          <ImageIcon :size="20" />
+        </button>
         
         <div class="flex-1 bg-gray-100 dark:bg-surface-700 rounded-2xl px-3 py-2 flex items-center">
           <textarea
-            :id="`chat-textarea-${conv.id}`"
+            :id="`chat-textarea-${(conv as any)._popupKey || conv.id}`"
             :value="newMessage"
             @input="handleInput"
             @keydown="handleKeyDown"
@@ -270,11 +634,43 @@ onMounted(() => {
             rows="1"
             class="bg-transparent border-none outline-none text-[15px] leading-5 w-full text-gray-700 dark:text-gray-300 placeholder-gray-500 resize-none max-h-30 py-0 flex-1 my-auto scrollbar-thin"
           />
-          <button class="text-primary-500 hover:text-primary-600 transition-colors shrink-0 ml-1"><Smile :size="20" /></button>
+          <button
+            type="button"
+            title="Biểu tượng cảm xúc"
+            class="text-primary-500 hover:text-primary-600 transition-colors shrink-0 ml-1 cursor-pointer"
+            @click.stop="showEmojiPicker = !showEmojiPicker"
+          >
+            <Smile :size="20" />
+          </button>
         </div>
-        <button @click="sendMessage" class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5"><Send :size="20" class="fill-current" /></button>
+        <button
+          type="button"
+          title="Gửi"
+          @click="sendMessage"
+          class="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-colors shrink-0 mb-0.5 cursor-pointer"
+        >
+          <Send :size="20" class="fill-current" />
+        </button>
       </div>
     </div>
+
+    <!-- Nickname Modal -->
+    <NicknameModal
+      :show="showNicknameModal"
+      :user-name="conv.originalName || conv.name"
+      :user-avatar="conv.avatar"
+      :current-nickname="conv.nickname"
+      @close="showNicknameModal = false"
+      @save="handleSaveNickname"
+    />
+
+    <!-- Image Lightbox Modal -->
+    <Teleport to="body">
+      <ChatImagePreviewModal
+        :image-preview="previewImageUrl"
+        @close="previewImageUrl = null"
+      />
+    </Teleport>
   </div>
 </template>
 

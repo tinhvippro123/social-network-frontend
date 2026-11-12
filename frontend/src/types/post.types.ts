@@ -10,7 +10,6 @@ export interface Category {
   id: string
   name: string
   slug: string
-  icon: string
   postsCount: number
 }
 
@@ -27,6 +26,7 @@ export interface Post {
   updatedAt: string
   viewsCount: number
   upvotesCount?: number
+  downvotesCount?: number
   commentsCount: number
   bookmarked: boolean
   reactions: Reaction[]

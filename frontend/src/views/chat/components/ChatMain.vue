@@ -54,14 +54,19 @@ const {
   showSearchInChat,
   searchQuery,
   searchResults,
+  currentSearchIndex,
+  nextSearchResult,
+  prevSearchResult,
   replyingTo,
   activeActionMenu,
   chatContainer,
   showScrollBottom,
   pinnedMessage,
   emojiList,
-  formatMessageTime,
+  formatDayLabel,
+  isSameDay,
   scrollToBottom,
+  scrollToMessage,
   handleSendMessage,
   handleSendImage,
   handleSendFile,
@@ -91,13 +96,14 @@ const getFileIcon = (fileName: string) => {
 
 <template>
       <!-- Chat Column -->
-      <div class="flex-1 flex flex-col min-w-0" v-if="selectedConversation || isInitialLoading">
+      <div class="flex-1 flex flex-col min-w-0 relative" v-if="selectedConversation || isInitialLoading">
       <!-- Chat Header -->
       <ChatHeader />
 
       <ChatPinnedMessageBar
         v-if="pinnedMessage"
         :pinned-message="pinnedMessage"
+        @select="scrollToMessage"
         @unpin="handlePinMessage"
       />
 
@@ -106,48 +112,57 @@ const getFileIcon = (fileName: string) => {
         :show-search-in-chat="showSearchInChat"
         :search-query="searchQuery"
         :search-results="searchResults"
+        :current-search-index="currentSearchIndex"
+        @prev-result="prevSearchResult"
+        @next-result="nextSearchResult"
         @update:search-query="val => searchQuery = val"
         @perform-search="handlePerformSearch"
         @close-search="closeSearch"
         @clear-search="searchQuery = ''; searchResults = []"
       />
 
-      <!-- Messages -->
-      <div
-        ref="chatContainer"
-        class="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 bg-gray-50/50 dark:bg-surface-900/50 relative"
-        @scroll="handleScroll"
-      >
-        <ChatMessageSkeleton v-if="isLoading" />
+      <!-- Messages Wrapper -->
+      <div class="relative flex-1 flex flex-col min-h-0">
+        <div
+          ref="chatContainer"
+          class="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 bg-gray-50/50 dark:bg-surface-900/50 relative"
+          @scroll="handleScroll"
+        >
+          <ChatMessageSkeleton v-if="isLoading" />
 
-        <template v-else>
-          <div v-for="(msg, index) in messages" :key="msg.id">
-            <template v-if="Number(index) === 0 || formatMessageTime(msg.timestamp || msg.createdAt).split(' ')[0] !== formatMessageTime(messages[Number(index) - 1].timestamp || messages[Number(index) - 1].createdAt).split(' ')[0]">
-              <div class="flex justify-center my-6">
-                <span class="px-3 py-1 bg-gray-200/50 dark:bg-surface-700/50 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {{ formatMessageTime(msg.timestamp || msg.createdAt).split(' ')[0] }}
-                </span>
-              </div>
-            </template>
-
-            <div :class="['group relative flex flex-col', msg.isOwn ? 'items-end' : 'items-start', 'mb-2']">
-              <!-- Reply indicator -->
-              <div v-if="msg.replyTo" class="flex items-center gap-1.5 mb-1 text-xs text-gray-500 opacity-80 pl-2">
-                <CornerUpLeftIcon :size="12" />
-                <span>Trả lời {{ msg.replyTo.sender?.name || 'Ai đó' }}:</span>
-                <span class="truncate max-w-37.5">{{ msg.replyTo.content || 'Đính kèm' }}</span>
-              </div>
-
-              <!-- Message bubble -->
-              <ChatMessageBubble :msg="msg" />
+          <template v-else>
+            <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center text-gray-400 dark:text-gray-500 py-12">
+              <p class="text-sm font-medium">Chưa có tin nhắn nào trong cuộc trò chuyện này</p>
+              <p class="text-xs mt-1">Hãy gửi lời chào đầu tiên để bắt đầu trò chuyện!</p>
             </div>
-          </div>
+            <div v-for="(msg, index) in messages" :key="msg.id">
+              <template v-if="Number(index) === 0 || !isSameDay(msg.timestamp || msg.createdAt, messages[Number(index) - 1].timestamp || messages[Number(index) - 1].createdAt)">
+                <div class="flex justify-center my-6">
+                  <span class="px-3 py-1 bg-gray-200/50 dark:bg-surface-700/50 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400">
+                    {{ formatDayLabel(msg.timestamp || msg.createdAt) }}
+                  </span>
+                </div>
+              </template>
 
-          <ChatTypingIndicator
-            v-if="isTyping"
-            :user="selectedConversation?.participants.find((p: any) => p.name === typingUser) || selectedConversation?.participants[1]"
-          />
-        </template>
+              <div :id="`chat-message-${msg.id}`" :class="['group relative flex flex-col scroll-mt-20', msg.isOwn ? 'items-end' : 'items-start', 'mb-2']">
+                <!-- Reply indicator -->
+                <button type="button" v-if="msg.replyTo && !msg.isRevoked && msg.status !== 'revoked'" @click="scrollToMessage(msg.replyTo.id)" title="Nhấn để xem tin nhắn gốc" class="flex items-center gap-1.5 mb-1 text-xs text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-200/60 dark:hover:bg-surface-700/60 px-2 py-0.5 rounded-lg transition-colors cursor-pointer">
+                  <CornerUpLeftIcon :size="12" />
+                  <span>Trả lời {{ msg.replyTo.senderName || msg.replyTo.sender?.name || 'Thành viên' }}:</span>
+                  <span class="truncate max-w-48">{{ msg.replyTo.content || 'Đính kèm' }}</span>
+                </button>
+
+                <!-- Message bubble -->
+                <ChatMessageBubble :msg="msg" />
+              </div>
+            </div>
+
+            <ChatTypingIndicator
+              v-if="isTyping"
+              :user="selectedConversation?.participants.find((p: any) => p.name === typingUser) || selectedConversation?.participants[1]"
+            />
+          </template>
+        </div>
 
         <!-- Scroll to bottom button -->
         <Transition
@@ -159,7 +174,7 @@ const getFileIcon = (fileName: string) => {
           <button
             v-if="showScrollBottom"
             @click="scrollToBottom"
-            class="fixed bottom-24 right-8 p-2.5 rounded-full bg-white dark:bg-surface-800 shadow-lg border border-gray-200 dark:border-surface-700 text-gray-500 hover:text-primary-500 transition-colors z-10"
+            class="absolute bottom-4 right-6 p-2.5 rounded-full bg-white dark:bg-surface-800 shadow-lg border border-gray-200 dark:border-surface-700 text-gray-500 hover:text-primary-500 transition-colors z-10 cursor-pointer"
           >
             <ArrowDownIcon :size="18" />
           </button>

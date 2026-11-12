@@ -7,7 +7,7 @@ if (!chatState) {
   throw new Error('ChatState is not provided')
 }
 
-const { sharedMedia, openMediaView, imagePreview } = chatState
+const { sharedMedia, openMediaView, viewImage } = chatState
 </script>
 
 <template>
@@ -28,7 +28,7 @@ const { sharedMedia, openMediaView, imagePreview } = chatState
           :src="media.imageUrl"
           alt=""
           class="w-full aspect-square object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity border border-gray-100 dark:border-surface-700"
-          @click="chatState.imagePreview = media.imageUrl || null"
+          @click="media.imageUrl && viewImage(media.imageUrl)"
         />
         <button
           v-if="sharedMedia.length > 3"

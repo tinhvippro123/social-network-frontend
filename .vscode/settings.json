@@ -1,11 +1,24 @@
 {
     "java.compile.nullAnalysis.mode": "disabled",
-    "java.jdt.ls.java.home": "D:\\Program Files\\Java\\jdk-17",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.jdt.ls.java.home": "D:\\Program Files\\Java\\jdk-21.0.12.1",
     "java.configuration.runtimes": [
         {
-            "name": "JavaSE-17",
-            "path": "D:\\Program Files\\Java\\jdk-17",
+            "name": "JavaSE-21",
+            "path": "D:\\Program Files\\Java\\jdk-21.0.12.1",
             "default": true
         }
-    ]
+    ],
+    "java.import.exclusions": [
+        "**/node_modules/**",
+        "**/.metadata/**",
+        "**/archetype/**",
+        "**/META-INF/maven/**",
+        "**/build/**"
+    ],
+    "files.watcherExclude": {
+        "**/build/**": true,
+        "**/bin/**": true,
+        "**/node_modules/**": true
+    }
 }

@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { Bell } from '@lucide/vue'
 import { formatRelativeTime } from '@/utils/formatters'
+import { navigateToNotificationLink } from '@/utils/notificationNavigation'
 
-defineProps<{
+const router = useRouter()
+
+const props = defineProps<{
   uiStore: any
   showNotifications: boolean
 }>()
@@ -10,20 +14,26 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'update:showNotifications', value: boolean): void
 }>()
+
+function handleNotificationClick(notif: any) {
+  props.uiStore.markNotificationRead(notif.id)
+  emit('update:showNotifications', false)
+  navigateToNotificationLink(router, notif)
+}
 </script>
 
 <template>
   <div class="relative">
     <button
-      class="notification-trigger relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
-      @click.stop="emit('update:showNotifications', !showNotifications)"
+      class="notification-trigger relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer"
+      @click.stop="if (!showNotifications) uiStore.fetchNotifications(); emit('update:showNotifications', !showNotifications)"
     >
       <Bell :size="20" />
       <span
         v-if="uiStore.unreadCount > 0"
-        class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium animate-pulse"
+        class="absolute -top-0.5 -right-0.5 min-w-5 h-5 px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium animate-pulse"
       >
-        {{ uiStore.unreadCount }}
+        {{ uiStore.unreadCount > 99 ? '99+' : uiStore.unreadCount }}
       </span>
     </button>
 
@@ -36,8 +46,9 @@ const emit = defineEmits<{
         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-surface-700">
           <h3 class="font-semibold text-sm">Thông báo</h3>
           <button
+            v-if="uiStore.unreadCount > 0"
             @click="uiStore.markAllRead"
-            class="text-xs text-primary-500 hover:text-primary-600 font-medium"
+            class="text-xs text-primary-500 hover:text-primary-600 font-medium cursor-pointer"
           >
             Đánh dấu tất cả đã đọc
           </button>
@@ -51,7 +62,7 @@ const emit = defineEmits<{
             v-else
             v-for="notif in uiStore.notifications"
             :key="notif.id"
-            @click="uiStore.markNotificationRead(notif.id); emit('update:showNotifications', false)"
+            @click="handleNotificationClick(notif)"
             :class="[
               'flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-surface-700 cursor-pointer transition-colors border-b border-gray-100 dark:border-surface-700 last:border-0',
               !notif.isRead ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''
@@ -60,17 +71,31 @@ const emit = defineEmits<{
             <img
               v-if="notif.avatar"
               :src="notif.avatar"
-              class="w-9 h-9 rounded-full shrink-0"
+              @error="notif.avatar = ''"
+              class="w-9 h-9 rounded-full shrink-0 object-cover"
             />
             <div v-else class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
               <Bell :size="16" class="text-primary-500" />
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{{ notif.message }}</p>
+              <p v-if="notif.title && notif.title !== notif.message" class="text-xs font-semibold text-gray-900 dark:text-white truncate mb-0.5">
+                {{ notif.title }}
+              </p>
+              <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{{ notif.message || notif.title }}</p>
               <p class="text-xs text-gray-400 mt-1">{{ formatRelativeTime(notif.createdAt) }}</p>
             </div>
             <div v-if="!notif.isRead" class="w-2 h-2 rounded-full bg-primary-500 shrink-0 mt-2" />
           </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t border-gray-200 dark:border-surface-700 px-4 py-2.5">
+          <button
+            @click="router.push('/notifications'); emit('update:showNotifications', false)"
+            class="w-full text-center text-sm font-medium text-primary-500 hover:text-primary-600 transition-colors cursor-pointer"
+          >
+            Xem tất cả thông báo
+          </button>
         </div>
       </div>
     </transition>

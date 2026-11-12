@@ -2,7 +2,7 @@
 import { Palette, Moon, Sun, Monitor } from '@lucide/vue'
 import { useSettings } from '@/composables/ui/useSettings'
 
-const { themeMode, uiStore, setSystemTheme } = useSettings()
+const { themeMode, setTheme, setSystemTheme } = useSettings()
 </script>
 
 <template>
@@ -17,7 +17,7 @@ const { themeMode, uiStore, setSystemTheme } = useSettings()
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <!-- Light Mode -->
         <button
-          @click="themeMode = 'light'; uiStore.isDark && uiStore.toggleTheme()"
+          @click="setTheme('light')"
           :class="[
             'relative p-5 rounded-2xl border-2 transition-all text-left',
             themeMode === 'light'
@@ -41,7 +41,7 @@ const { themeMode, uiStore, setSystemTheme } = useSettings()
 
         <!-- Dark Mode -->
         <button
-          @click="themeMode = 'dark'; !uiStore.isDark && uiStore.toggleTheme()"
+          @click="setTheme('dark')"
           :class="[
             'relative p-5 rounded-2xl border-2 transition-all text-left',
             themeMode === 'dark'
@@ -50,8 +50,8 @@ const { themeMode, uiStore, setSystemTheme } = useSettings()
           ]"
         >
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-              <Moon :size="20" class="text-indigo-600 dark:text-indigo-400" />
+            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center">
+              <Moon :size="20" class="text-slate-600 dark:text-slate-400" />
             </div>
             <div>
               <p class="font-semibold text-gray-900 dark:text-white text-sm">Chế độ tối</p>

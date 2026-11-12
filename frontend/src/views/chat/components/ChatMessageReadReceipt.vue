@@ -1,11 +1,20 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import { useAuthStore } from '@/stores/auth.store'
 import type { ChatMessage, ChatConversation } from '@/types'
 
-defineProps<{
+const props = defineProps<{
   msg: ChatMessage
   conversation: ChatConversation | null
 }>()
+
+const authStore = useAuthStore()
+
+const otherParticipant = computed(() => {
+  const parts = props.conversation?.participants || []
+  return parts.find(p => p.id && p.id !== authStore.user?.id) || parts[0] || null
+})
 </script>
 
 <template>
@@ -25,11 +34,11 @@ defineProps<{
         </div>
       </template>
       <UserAvatar
-        v-else-if="conversation"
-        :user="conversation.participants[1]"
+        v-else-if="otherParticipant"
+        :user="otherParticipant"
         class="w-5 h-5 cursor-default ring-[1.5px] ring-white dark:ring-surface-800"
         size="sm"
-        :title="conversation.participants[1].name"
+        :title="otherParticipant.name"
       />
     </div>
   </div>

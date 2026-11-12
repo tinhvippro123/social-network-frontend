@@ -83,3 +83,40 @@ export function slugify(text: string): string {
     .replace(/-+/g, '-')
     .trim()
 }
+
+/**
+ * Format thời gian theo phong cách Facebook Messenger:
+ * Vừa xong · 15 phút · 2 giờ · 1 ngày · 1 tuần · 2 tuần · 3 tuần
+ */
+export function formatMessengerTime(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return ''
+  const d = new Date(dateInput)
+  if (isNaN(d.getTime())) return ''
+
+  const now = new Date()
+  const diffMs = now.getTime() - d.getTime()
+  if (diffMs < 0) return 'Vừa xong'
+
+  const diffSec = Math.floor(diffMs / 1000)
+  if (diffSec < 60) return 'Vừa xong'
+
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) return `${diffMin} phút`
+
+  const diffHour = Math.floor(diffMin / 60)
+  if (diffHour < 24) return `${diffHour} giờ`
+
+  const diffDays = Math.floor(diffHour / 24)
+  if (diffDays === 1) return '1 ngày'
+  if (diffDays < 7) return `${diffDays} ngày`
+
+  const diffWeeks = Math.floor(diffDays / 7)
+  if (diffWeeks < 4) return `${diffWeeks} tuần`
+
+  const diffMonths = Math.floor(diffDays / 30)
+  if (diffMonths < 12) return `${diffMonths} tháng`
+
+  const diffYears = Math.floor(diffDays / 365)
+  return `${diffYears} năm`
+}
+

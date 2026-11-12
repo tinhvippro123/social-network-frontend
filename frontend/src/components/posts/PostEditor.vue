@@ -8,6 +8,7 @@ import { EditorContent } from '@tiptap/vue-3'
 import { useRouter } from 'vue-router'
 import LocationPickerModal from '@/components/LocationPickerModal.vue'
 import { useCreatePost } from '@/composables/posts/useCreatePost'
+import { formatContentWithGalleries } from '@/utils/proseGallery'
 import PostEditorSettings from './PostEditorSettings.vue'
 
 const props = defineProps<{
@@ -18,6 +19,7 @@ const props = defineProps<{
 const {
   categories,
   title,
+  excerpt,
   content,
   selectedCategory,
   tags,
@@ -65,6 +67,9 @@ const onPublish = () => {
   handlePublish(props.mode, props.initialData?.id)
 }
 
+const formattedPreviewContent = computed(() => formatContentWithGalleries(content.value))
+const contentCharCount = computed(() => content.value.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/gi, ' ').trim().length)
+
 const router = useRouter()
 </script>
 
@@ -77,6 +82,15 @@ const router = useRouter()
       </h1>
       <div class="flex items-center gap-3">
         <button
+          type="button"
+          @click="isPreview = !isPreview"
+          class="xl:hidden flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium border transition-all cursor-pointer"
+          :class="isPreview ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-primary-300 dark:border-primary-700' : 'text-gray-600 dark:text-gray-400 border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700'"
+        >
+          <Eye :size="16" />
+          <span class="hidden sm:inline">{{ isPreview ? 'Soạn thảo' : 'Xem trước' }}</span>
+        </button>
+        <button
           :disabled="isLoading"
           @click="onSaveDraft"
           class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-surface-700 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all disabled:opacity-50"
@@ -87,7 +101,7 @@ const router = useRouter()
         <button 
           :disabled="isLoading"
           @click="onPublish"
-          class="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50"
+          class="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium text-white gradient-primary hover:opacity-90 transition-all shadow-xs disabled:opacity-50"
         >
           <Loader2 v-if="isLoading" :size="16" class="animate-spin" />
           <Send v-else :size="16" />
@@ -99,6 +113,7 @@ const router = useRouter()
     <!-- TOP SECTION: Settings (Cover, Title, Tags) -->
     <PostEditorSettings
       v-model:title="title"
+      v-model:excerpt="excerpt"
       v-model:selected-category="selectedCategory"
       v-model:tag-input="tagInput"
       v-model:show-location-picker="showLocationPicker"
@@ -120,13 +135,18 @@ const router = useRouter()
     <!-- BOTTOM SECTION: Split Editor & Preview -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
       <!-- LEFT: EDITOR -->
-      <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden flex flex-col shadow-sm h-[calc(100vh-12rem)]">
+      <div
+        :class="[
+          isPreview ? 'hidden xl:flex' : 'flex',
+          'bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 overflow-hidden flex-col shadow-sm h-[calc(100vh-12rem)]'
+        ]"
+      >
         <div class="flex items-center gap-0.5 px-3 py-2 border-b border-gray-200 dark:border-surface-700 overflow-x-auto bg-gray-50 dark:bg-surface-800/80">
           <template v-for="(item, i) in toolbarItems" :key="i">
             <div v-if="item.label === 'divider'" class="w-px h-5 bg-gray-200 dark:bg-surface-700 mx-1" />
             <button
               v-else
-              :title="item.label"
+              :title="item.label" type="button"
               @click="handleToolbarAction(item.action)"
               class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
@@ -140,22 +160,29 @@ const router = useRouter()
         </div>
         
         <div class="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-surface-700 bg-gray-50 dark:bg-surface-800/50">
-          <p class="text-xs text-gray-400">{{ content.length }} ký tự</p>
-          <p class="text-xs text-gray-400">Tự động lưu</p>
+          <p class="text-xs text-gray-400">{{ contentCharCount }} ký tự</p>
+          <p :class="['text-xs font-medium', contentCharCount >= 50 ? 'text-emerald-500' : 'text-gray-400']">
+            {{ contentCharCount >= 50 ? 'Đã đạt độ dài tối thiểu' : 'Tối thiểu 50 ký tự' }}
+          </p>
         </div>
       </div>
 
       <!-- RIGHT: LIVE PREVIEW -->
-      <div class="hidden xl:flex flex-col bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 shadow-sm h-[calc(100vh-12rem)] overflow-hidden">
+      <div
+        :class="[
+          isPreview ? 'flex' : 'hidden xl:flex',
+          'flex-col bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 shadow-sm h-[calc(100vh-12rem)] overflow-hidden'
+        ]"
+      >
         <div class="px-5 py-3 border-b border-gray-200 dark:border-surface-700 flex items-center gap-2 bg-gray-50 dark:bg-surface-800/80">
           <Eye :size="16" class="text-primary-500" />
           <span class="font-semibold text-sm text-gray-700 dark:text-gray-300">Xem trước văn bản</span>
         </div>
         
         <div class="flex-1 overflow-y-auto bg-white dark:bg-surface-800 overflow-x-hidden">
-          <div class="prose dark:prose-invert max-w-none prose-img:rounded-xl break-words p-6 text-base leading-relaxed text-gray-700 dark:text-gray-300">
+          <div class="prose dark:prose-invert max-w-none prose-img:rounded-xl wrap-break-word p-6 text-base leading-relaxed text-gray-700 dark:text-gray-300">
             <p v-if="!content || content === '<p></p>'" class="text-gray-400 italic">Chưa có nội dung. Hãy nhập nội dung ở ô bên trái để xem trước...</p>
-            <div v-else v-html="content" class="tiptap-preview"></div>
+            <div v-else v-html="formattedPreviewContent" class="tiptap-preview"></div>
           </div>
         </div>
       </div>

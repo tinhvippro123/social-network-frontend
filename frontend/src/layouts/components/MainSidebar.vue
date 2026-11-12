@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { Sun, Moon } from '@lucide/vue'
+import { Sun, Moon, Shield } from '@lucide/vue'
 import { NAV_ITEMS } from '@/constants/ui'
+import { useAuthStore } from '@/stores/auth.store'
 
-defineProps<{
+const authStore = useAuthStore()
+
+const props = defineProps<{
   isMobile: boolean
   isMobileSidebarOpen: boolean
   isSidebarOpen: boolean
@@ -14,6 +17,11 @@ const emit = defineEmits<{
   (e: 'navigate', path: string): void
   (e: 'toggleTheme'): void
 }>()
+
+function isItemActive(to: string) {
+  if (to === '/') return props.currentPath === '/'
+  return props.currentPath === to || props.currentPath.startsWith(`${to}/`)
+}
 </script>
 
 <template>
@@ -26,7 +34,11 @@ const emit = defineEmits<{
     ]"
   >
     <!-- Logo -->
-    <div class="flex items-center gap-3 px-5 h-16 border-b border-gray-200 dark:border-surface-700 shrink-0">
+    <div
+      @click="emit('navigate', '/')"
+      class="flex items-center gap-3 px-5 h-16 border-b border-gray-200 dark:border-surface-700 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+      title="Về trang chủ"
+    >
       <div class="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-lg glow-sm shrink-0">
         <span class="text-white font-bold text-lg">V</span>
       </div>
@@ -44,9 +56,9 @@ const emit = defineEmits<{
         :key="item.to"
         @click="emit('navigate', item.to)"
         :class="[
-          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
-          currentPath === item.to
-            ? 'bg-primary-500/10 text-primary-500 dark:text-primary-400 shadow-sm'
+          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group cursor-pointer',
+          isItemActive(item.to)
+            ? 'bg-primary-600 text-white shadow-xs'
             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-900 dark:hover:text-gray-200'
         ]"
       >
@@ -55,7 +67,7 @@ const emit = defineEmits<{
           :size="20"
           :class="[
             'shrink-0 transition-transform duration-200 group-hover:scale-110',
-            currentPath === item.to ? 'text-primary-500' : ''
+            isItemActive(item.to) ? 'text-white' : ''
           ]"
         />
         <transition name="fade">
@@ -64,27 +76,28 @@ const emit = defineEmits<{
 
         <!-- Active indicator -->
         <div
-          v-if="currentPath === item.to"
-          class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse-glow"
+          v-if="isItemActive(item.to)"
+          class="ml-auto w-1.5 h-1.5 rounded-full bg-white"
         />
       </button>
-    </nav>
 
-    <!-- Sidebar Footer -->
-    <div class="p-3 border-t border-gray-200 dark:border-surface-700 shrink-0">
+      <!-- Admin link if user is admin -->
       <button
-        @click="emit('toggleTheme')"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all duration-200"
+        v-if="authStore.isModerator"
+        @click="emit('navigate', authStore.isAdmin ? '/admin' : '/admin/moderation')"
+        :class="[
+          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group border mt-3 cursor-pointer',
+          currentPath.startsWith('/admin')
+            ? 'bg-primary-600 text-white shadow-xs border-primary-600'
+            : 'text-primary-700 dark:text-primary-400 bg-primary-50/70 dark:bg-primary-950/30 border-primary-200 dark:border-primary-800/50 hover:bg-primary-100 dark:hover:bg-primary-900/40'
+        ]"
       >
-        <Sun v-if="isDark" :size="20" class="shrink-0 text-amber-400" />
-        <Moon v-else :size="20" class="shrink-0 text-indigo-500" />
+        <Shield :size="20" class="shrink-0 transition-transform duration-200 group-hover:scale-110" />
         <transition name="fade">
-          <span v-if="isSidebarOpen || isMobile" class="whitespace-nowrap">
-            {{ isDark ? 'Chế độ sáng' : 'Chế độ tối' }}
-          </span>
+          <span v-if="isSidebarOpen || isMobile" class="whitespace-nowrap">{{ authStore.isAdmin ? 'Trang quản trị' : 'Kiểm duyệt' }}</span>
         </transition>
       </button>
-    </div>
+    </nav>
   </aside>
 </template>
 

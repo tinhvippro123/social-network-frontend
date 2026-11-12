@@ -18,10 +18,14 @@ defineEmits<{
     leave-to-class="opacity-0"
   >
     <div v-if="imagePreview" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" @click="$emit('close')">
-      <button class="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors">
+      <button
+        type="button"
+        class="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
+        @click.stop="$emit('close')"
+      >
         <XIcon :size="24" />
       </button>
-      <img :src="imagePreview" alt="Preview" class="max-w-full max-h-full object-contain rounded-lg" />
+      <img :src="imagePreview" alt="Preview" class="max-w-full max-h-full object-contain rounded-lg" @click.stop />
     </div>
   </Transition>
 </template>

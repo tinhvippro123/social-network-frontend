@@ -7,6 +7,9 @@ import postsApi from '@/api/posts.api'
 import type { PostsQuery } from '@/api/posts.api'
 import type { Post } from '@/types'
 import { useAsyncState } from '../core/useAsyncState'
+import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
+import { useToast } from '../ui/useToast'
 
 export function mapCommentResponse(dto: any): any {
   if (!dto) return null
@@ -25,11 +28,35 @@ export function mapCommentResponse(dto: any): any {
     downvotes: dto.downvotes ?? 0,
     reactions: dto.reactions || [],
     replyTo: dto.replyTo,
+    sentiment: dto.sentiment,
+    sentimentScore: dto.sentimentScore,
     replies: Array.isArray(dto.replies) ? dto.replies.map(mapCommentResponse).filter(Boolean) : []
   }
 }
 
+export function normalizePost(dto: any): any {
+  if (!dto) return dto
+  const hasGeo = dto.latitude != null && dto.longitude != null
+  const location = dto.location || (hasGeo ? {
+    lat: Number(dto.latitude),
+    lng: Number(dto.longitude),
+    address: dto.locationAddress || ''
+  } : undefined)
+
+  return {
+    ...dto,
+    location,
+    upvotesCount: dto.upvotesCount ?? 0,
+    downvotesCount: dto.downvotesCount ?? 0,
+    commentsCount: dto.commentsCount ?? 0,
+    viewsCount: dto.viewsCount ?? 0
+  }
+}
+
 export function usePosts() {
+  const authStore = useAuthStore()
+  const uiStore = useUiStore()
+  const toast = useToast()
   const posts = ref<Post[]>([])
   const currentPost = ref<Post | null>(null)
   const comments = ref<any[]>([])
@@ -50,7 +77,7 @@ export function usePosts() {
         limit: pagination.limit,
         ...params,
       })
-      posts.value = data.data
+      posts.value = Array.isArray(data.data) ? data.data.map(normalizePost) : []
       if (data.meta) {
         pagination.page = data.meta.page
         pagination.total = data.meta.total
@@ -63,16 +90,15 @@ export function usePosts() {
   async function fetchPost(id: string) {
     await execute(async () => {
       const { data } = await postsApi.getById(id)
-      currentPost.value = data.data
+      currentPost.value = data.data ? normalizePost(data.data) : null
     }, 'Không tìm thấy bài viết')
   }
 
   /** Lấy bài viết trending */
   async function fetchTrending(limit = 10) {
-    // Không dùng execute để tránh ảnh hưởng loading state chung nếu gọi ngầm
     try {
       const { data } = await postsApi.getTrending(limit)
-      return data.data
+      return Array.isArray(data.data) ? data.data.map(normalizePost) : []
     } catch {
       return []
     }
@@ -100,7 +126,7 @@ export function usePosts() {
   async function fetchNearby(lat: number, lng: number, radius: number = 5) {
     await execute(async () => {
       const { data } = await postsApi.getNearby(lat, lng, radius)
-      posts.value = data.data
+      posts.value = Array.isArray(data.data) ? data.data.map(normalizePost) : []
     }, 'Không tìm thấy bài viết lân cận')
   }
 
@@ -113,22 +139,36 @@ export function usePosts() {
   }
 
   async function toggleBookmark(postId: string, _isBookmarked?: boolean) {
+    if (!authStore.isLoggedIn) {
+      toast.info('Vui lòng đăng nhập để lưu bài viết')
+      uiStore.openAuthModal('login')
+      throw new Error('UNAUTHENTICATED')
+    }
     try {
       const { data } = await postsApi.toggleBookmark(postId)
-      return data.data as boolean
-    } catch (err) {
+      const saved = Boolean(data.data)
+      toast.success(saved ? 'Đã lưu bài viết' : 'Đã bỏ lưu bài viết')
+      return saved
+    } catch (err: any) {
       console.error('Lỗi toggle bookmark', err)
+      toast.error(err.response?.data?.message || 'Không thể lưu bài viết')
       throw err
     }
   }
 
   /** Lấy các tag phổ biến */
-  async function fetchPopularTags() {
+  async function fetchPopularTags(limit?: number) {
     try {
-      const { data } = await postsApi.getPopularTags()
-      tags.value = data.data
+      const { data } = await postsApi.getPopularTags(limit)
+      const list = data?.data || []
+      tags.value = list.map((t: any, idx: number) => ({
+        id: t.id || String(idx + 1),
+        name: t.name,
+        count: t.postsCount ?? t.count ?? 0,
+      }))
     } catch (err) {
       console.error('Lỗi tải tags', err)
+      tags.value = []
     }
   }
 

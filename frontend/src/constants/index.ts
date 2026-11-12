@@ -25,6 +25,7 @@ export const REPORT_TYPE = {
   POST: 'post',
   COMMENT: 'comment',
   USER: 'user',
+  GROUP: 'group',
 } as const
 
 /** Trạng thái report */
@@ -63,23 +64,32 @@ export const PAGINATION = {
   ADMIN_LIMIT: 20,
 } as const
 
-/** LocalStorage keys */
+/** LocalStorage keys (chỉ lưu tùy chọn giao diện, KHÔNG lưu JWT hay thông tin nhạy cảm) */
 export const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'vietblog_access_token',
-  REFRESH_TOKEN: 'vietblog_refresh_token',
   THEME: 'vietblog_theme',
-  USER: 'vietblog_user',
+} as const
+
+/** Cookie names (JWT thật nằm trong HttpOnly Cookie do Backend quản lý) */
+export const COOKIE_NAMES = {
+  LOGGED_IN: 'vietblog_logged_in',
 } as const
 
 /** Mảng Emoji được hỗ trợ trong bình luận */
 export const COMMENT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'] as const
 
 /** Danh mục hỗ trợ gắn thẻ địa điểm */
-export const LOCATION_SUPPORTED_CATEGORIES = ['tim-tro', 'pass-do', 'review-dia-diem', 'su-kien'] as const
+export const LOCATION_SUPPORTED_CATEGORIES = [
+  'du-lich',
+  'am-thuc',
+  'su-kien',
+  'doi-song',
+  'tim-tro',
+  'pass-do',
+  'review-dia-diem',
+] as const
 
 /** Cấu hình kiểm tra độ mạnh mật khẩu */
 export const PASSWORD_STRENGTH = {
   COLORS: ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'],
   LABELS: ['Yếu', 'Trung bình', 'Khá', 'Mạnh']
 } as const
-

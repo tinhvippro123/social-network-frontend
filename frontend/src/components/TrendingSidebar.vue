@@ -1,9 +1,19 @@
 <script setup lang="ts">
-import { Hash, SmilePlus, Star, TrendingUp } from '@lucide/vue'
+import { ref, watch } from 'vue'
+import { Hash, SmilePlus, Star, TrendingUp, Check } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { formatNumber } from '@/utils/formatters'
 import { useTrendingSidebar } from '@/composables/ui/useTrendingSidebar'
+import { useToast } from '@/composables/ui/useToast'
+import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
+import usersApi from '@/api/users.api'
+
+const toast = useToast()
+const authStore = useAuthStore()
+const uiStore = useUiStore()
+const followedUserIds = ref<Set<string>>(new Set())
 
 const {
   router,
@@ -12,10 +22,50 @@ const {
   users,
   isLoading
 } = useTrendingSidebar()
+
+watch([users, () => authStore.user?.id], ([list]) => {
+  if (!authStore.isLoggedIn || !Array.isArray(list)) {
+    followedUserIds.value = new Set()
+    return
+  }
+  const next = new Set<string>()
+  for (const u of list as any[]) {
+    if (u?.isFollowing || u?.following) {
+      next.add(u.id)
+    }
+  }
+  followedUserIds.value = next
+}, { immediate: true, deep: true })
+
+async function toggleFollowUser(u: any) {
+  if (!authStore.isLoggedIn) {
+    toast.info('Vui lòng đăng nhập để theo dõi tác giả')
+    uiStore.openAuthModal('login')
+    return
+  }
+  try {
+    const res = await usersApi.toggleFollow(u.id)
+    const isNowFollowing = typeof res.data?.data === 'boolean' ? res.data.data : !followedUserIds.value.has(u.id)
+    u.isFollowing = isNowFollowing
+    u.following = isNowFollowing
+    const next = new Set<string>(followedUserIds.value)
+    if (isNowFollowing) {
+      next.add(u.id)
+      followedUserIds.value = next
+      toast.success(`Đang theo dõi ${u.name}`)
+    } else {
+      next.delete(u.id)
+      followedUserIds.value = next
+      toast.info(`Đã bỏ theo dõi ${u.name}`)
+    }
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Vui lòng đăng nhập để theo dõi tác giả')
+  }
+}
 </script>
 
 <template>
-  <aside class="w-full lg:w-80 shrink-0 space-y-5">
+  <aside class="w-full lg:w-80 shrink-0 space-y-5 pb-16">
     <!-- Trending Posts -->
     <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-5">
       <h3 class="flex items-center gap-2 text-base font-bold text-gray-900 dark:text-white mb-4">
@@ -31,7 +81,7 @@ const {
           </div>
         </div>
       </div>
-      <div v-else class="space-y-4">
+      <div v-else-if="posts.length > 0" class="space-y-4">
         <div
           v-for="(post, i) in posts.slice(0, 5)"
           :key="post.id"
@@ -46,15 +96,21 @@ const {
               {{ post.title }}
             </p>
             <div class="flex items-center gap-2 mt-1 text-xs text-gray-400">
-              <span>{{ post.author.name }}</span>
+              <span
+                @click.stop="post.author?.id && router.push(`/profile/${post.author.id}`)"
+                class="hover:text-primary-500 hover:underline transition-colors"
+              >
+                {{ post.author.name }}
+              </span>
               <span>·</span>
               <span class="flex items-center gap-0.5">
-                <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc, curr) => acc + curr.count, 0) || 0) }}
+                <SmilePlus :size="10" /> {{ formatNumber(post.reactions?.reduce((acc, curr) => acc + curr.count, 0) || ((post.upvotesCount || 0) + (post.commentsCount || 0))) }}
               </span>
             </div>
           </div>
         </div>
       </div>
+      <p v-else class="text-xs text-gray-400 text-center py-4">Chưa có bài viết thịnh hành</p>
     </div>
 
     <!-- Popular Tags -->
@@ -66,15 +122,17 @@ const {
       <div v-if="isLoading" class="flex flex-wrap gap-2">
         <Skeleton v-for="i in 6" :key="i" type="button" class="w-20 h-8 rounded-xl" />
       </div>
-      <div v-else class="flex flex-wrap gap-2">
+      <div v-else-if="tags.length > 0" class="flex flex-wrap gap-2">
         <span
-          v-for="tag in tags"
+          v-for="tag in tags.slice(0, 12)"
           :key="tag.id"
-          class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700 hover:bg-gray-100 dark:hover:bg-surface-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors cursor-pointer border border-gray-200 dark:border-surface-600"
+          @click="router.push('/tags/' + encodeURIComponent(tag.name))"
+          class="px-3 py-1.5 bg-gray-50 dark:bg-surface-700 hover:bg-primary-50 dark:hover:bg-primary-950/40 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-200 dark:hover:border-primary-800 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors cursor-pointer border border-gray-200 dark:border-surface-600"
         >
           #{{ tag.name }}
         </span>
       </div>
+      <p v-else class="text-xs text-gray-400 text-center py-4">Chưa có chủ đề phổ biến</p>
     </div>
 
     <!-- Top Authors -->
@@ -93,20 +151,31 @@ const {
           <Skeleton type="button" class="w-20 h-7 rounded-lg" />
         </div>
       </div>
-      <div v-else class="space-y-4">
-        <div v-for="user in users.slice(0, 3)" :key="user.id" class="flex items-center gap-3">
+      <div v-else-if="users.length > 0" class="space-y-4">
+        <div v-for="user in users.slice(0, 3)" :key="user.id" class="flex items-center gap-3 group">
           <UserAvatar :user="user" size="md" class="ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all cursor-pointer" @click="router.push(`/profile/${user.id}`)" />
-          <div class="flex-1 min-w-0">
+          <div class="flex-1 min-w-0 cursor-pointer" @click="router.push(`/profile/${user.id}`)">
             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary-500 transition-colors truncate">
               {{ user.name }}
             </p>
-            <p class="text-xs text-gray-400">{{ user.postsCount }} bài viết</p>
+            <p class="text-xs text-gray-400">{{ user.postsCount ?? 0 }} bài viết</p>
           </div>
-          <button class="px-3 py-1 rounded-lg text-xs font-medium border border-primary-500/30 text-primary-500 hover:bg-primary-500 hover:text-white transition-all duration-200">
-            Theo dõi
+          <button
+            v-if="user.id !== authStore.user?.id"
+            @click="toggleFollowUser(user)"
+            :class="[
+              'px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer flex items-center gap-1',
+              followedUserIds.has(user.id)
+                ? 'bg-primary-500 text-white border border-primary-500'
+                : 'border border-primary-500/30 text-primary-500 hover:bg-primary-500 hover:text-white'
+            ]"
+          >
+            <Check v-if="followedUserIds.has(user.id)" :size="12" />
+            {{ followedUserIds.has(user.id) ? 'Đang theo dõi' : 'Theo dõi' }}
           </button>
         </div>
       </div>
+      <p v-else class="text-xs text-gray-400 text-center py-4">Chưa có tác giả nổi bật</p>
     </div>
   </aside>
 </template>

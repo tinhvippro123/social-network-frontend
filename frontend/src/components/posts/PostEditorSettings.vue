@@ -6,6 +6,7 @@ import PostEditorEventSettings from './PostEditorEventSettings.vue'
 
 defineProps<{
   title: string
+  excerpt?: string
   selectedCategory: string
   tags: string[]
   tagInput: string
@@ -21,6 +22,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:title', value: string): void
+  (e: 'update:excerpt', value: string): void
   (e: 'update:selectedCategory', value: string): void
   (e: 'update:tagInput', value: string): void
   (e: 'update:showLocationPicker', value: boolean): void
@@ -34,16 +36,36 @@ const emit = defineEmits<{
 }>()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const isDraggingCover = ref(false)
 
 const triggerFileInput = () => {
   fileInputRef.value?.click()
+}
+
+const handleCoverDrop = (e: DragEvent) => {
+  isDraggingCover.value = false
+  const file = e.dataTransfer?.files?.[0]
+  if (!file) return
+  emit('coverImageChange', { target: { files: [file], value: '' } } as unknown as Event)
 }
 </script>
 
 <template>
   <div class="flex flex-col gap-6 bg-white dark:bg-surface-800 p-6 rounded-2xl border border-gray-200 dark:border-surface-700 shadow-sm">
     <!-- Cover Image Upload -->
-    <div v-if="!coverImagePreview" @click="triggerFileInput" class="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 dark:border-surface-600 rounded-xl bg-gray-50 dark:bg-surface-800/50 hover:bg-gray-100 dark:hover:bg-surface-700/50 transition-colors cursor-pointer group">
+    <div
+      v-if="!coverImagePreview"
+      @click="triggerFileInput"
+      @dragover.prevent="isDraggingCover = true"
+      @dragleave.prevent="isDraggingCover = false"
+      @drop.prevent="handleCoverDrop"
+      :class="[
+        'flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl transition-colors cursor-pointer group',
+        isDraggingCover
+          ? 'border-primary-500 bg-primary-50/40 dark:bg-primary-900/20'
+          : 'border-gray-300 dark:border-surface-600 bg-gray-50 dark:bg-surface-800/50 hover:bg-gray-100 dark:hover:bg-surface-700/50'
+      ]"
+    >
       <ImageIcon :size="32" class="text-gray-300 dark:text-surface-600 mb-3 group-hover:text-primary-500 transition-colors" />
       <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Kéo thả ảnh hoặc click để tải ảnh bìa lên</p>
       <p class="text-xs text-gray-400 mt-1">PNG, JPG tối đa 5MB</p>
@@ -54,10 +76,10 @@ const triggerFileInput = () => {
     <div v-else class="relative w-full h-48 sm:h-64 rounded-xl overflow-hidden group">
       <img :src="coverImagePreview" alt="Cover preview" class="w-full h-full object-cover" />
       <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-[2px]">
-        <button @click="triggerFileInput" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-medium backdrop-blur-md transition-colors">
+        <button @click="triggerFileInput" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-medium backdrop-blur-md transition-colors cursor-pointer">
           Thay đổi
         </button>
-        <button @click="emit('removeCoverImage')" class="px-4 py-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg text-sm font-medium backdrop-blur-md transition-colors">
+        <button @click="emit('removeCoverImage')" class="px-4 py-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg text-sm font-medium backdrop-blur-md transition-colors cursor-pointer">
           Xóa ảnh
         </button>
       </div>
@@ -72,6 +94,18 @@ const triggerFileInput = () => {
       placeholder="Tiêu đề bài viết..."
       class="w-full text-3xl font-bold text-gray-900 dark:text-white bg-transparent border-none outline-none placeholder-gray-300 dark:placeholder-surface-600"
     />
+
+    <!-- Excerpt (Optional) -->
+    <div class="relative">
+      <input
+        :value="excerpt"
+        @input="emit('update:excerpt', ($event.target as HTMLInputElement).value)"
+        type="text"
+        placeholder="Mô tả ngắn / Tóm tắt bài viết (tùy chọn - nếu để trống sẽ tự lấy từ nội dung)..."
+        maxlength="300"
+        class="w-full text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-surface-700 rounded-xl px-4 py-2.5 focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-all outline-none placeholder-gray-400 dark:placeholder-surface-500"
+      />
+    </div>
 
     <!-- Category & Tags -->
     <div class="flex flex-wrap items-center gap-3">
@@ -96,7 +130,7 @@ const triggerFileInput = () => {
           class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400"
         >
           #{{ tag }}
-          <button @click="emit('removeTag', tag)" class="hover:text-red-500 transition-colors">
+          <button @click="emit('removeTag', tag)" class="hover:text-red-500 transition-colors cursor-pointer">
             <X :size="12" />
           </button>
         </span>
@@ -106,6 +140,7 @@ const triggerFileInput = () => {
             :value="tagInput"
             @input="emit('update:tagInput', ($event.target as HTMLInputElement).value)"
             @keydown.enter.prevent="emit('addTag')"
+            @blur="emit('addTag')"
             type="text"
             placeholder="Thêm tag..."
             class="bg-transparent border-none outline-none text-sm text-gray-600 dark:text-gray-400 placeholder-gray-400 w-24"
@@ -119,7 +154,7 @@ const triggerFileInput = () => {
           v-if="!postLocation"
           @click="emit('update:showLocationPicker', true)"
           type="button"
-          class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-dashed border-gray-300 dark:border-surface-600 hover:border-red-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 border border-dashed border-gray-300 dark:border-surface-600 hover:border-red-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all cursor-pointer"
         >
           <MapPin :size="16" />
           Ghim vị trí
@@ -139,7 +174,7 @@ const triggerFileInput = () => {
           </span>
           <button
             @click="emit('removeLocation')"
-            class="p-0.5 rounded-md text-red-400 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors shrink-0"
+            class="p-0.5 rounded-md text-red-400 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors shrink-0 cursor-pointer"
           >
             <X :size="14" />
           </button>
@@ -152,7 +187,7 @@ const triggerFileInput = () => {
           <MapPin :size="14" class="text-amber-500 shrink-0" />
           <span class="text-amber-700 dark:text-amber-400">
             Danh mục này nên có vị trí! 
-            <button @click="emit('update:showLocationPicker', true)" class="font-semibold underline hover:no-underline">Ghim ngay</button>
+            <button @click="emit('update:showLocationPicker', true)" class="font-semibold underline hover:no-underline cursor-pointer">Ghim ngay</button>
           </span>
         </div>
       </Transition>

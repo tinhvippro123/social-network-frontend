@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { MessageCircle, X } from '@lucide/vue'
+import { ref, computed } from 'vue'
+import { MessageCircle, X, Sparkles, Smile, Frown, Meh } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import CommentComposer from '@/components/comments/CommentComposer.vue'
 import CommentItem from '@/components/comments/CommentItem.vue'
@@ -8,6 +8,7 @@ import CommentItem from '@/components/comments/CommentItem.vue'
 const props = defineProps<{
   comments: any[]
   user: any
+  postAuthorId?: string
   replyingTo: any
   activeEmojiPicker: string | null
 }>()
@@ -23,19 +24,64 @@ const emit = defineEmits<{
 
 const commentInputRef = ref<HTMLTextAreaElement | null>(null)
 const inlineReplyId = ref<string | null>(null)
+const inlineReplyParentId = ref<string | null>(null)
 const inlineReplyContent = ref('')
 const mainComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
 
-const handleReplyClick = (targetId: string, rootCommentId: string, authorName: string) => {
+// Tỉ lệ cảm xúc bình luận (Lexicon Sentiment Analysis) khớp Đề cương NCKH
+const sentimentStats = computed(() => {
+  const allComments: any[] = []
+  function collect(list: any[]) {
+    if (!list) return
+    for (const c of list) {
+      allComments.push(c)
+      if (c.replies && c.replies.length > 0) {
+        collect(c.replies)
+      }
+    }
+  }
+  collect(props.comments)
+
+  const total = allComments.length
+  if (total === 0) return null
+
+  let positive = 0
+  let negative = 0
+  let neutral = 0
+
+  for (const c of allComments) {
+    if (c.sentiment === 'positive') positive++
+    else if (c.sentiment === 'negative') negative++
+    else neutral++
+  }
+
+  const posPct = Math.round((positive / total) * 100)
+  const negPct = Math.round((negative / total) * 100)
+  const neuPct = Math.max(0, 100 - posPct - negPct)
+
+  return {
+    total,
+    positive,
+    negative,
+    neutral,
+    posPct,
+    negPct,
+    neuPct,
+  }
+})
+
+const handleReplyClick = (targetId: string, replyItemId: string, authorName: string) => {
   if (window.innerWidth < 640) {
     emit('setReplyingTo', targetId, authorName)
     inlineReplyId.value = null
+    inlineReplyParentId.value = null
     setTimeout(() => {
       mainComposerRef.value?.focus()
     }, 50)
   } else {
     emit('clearReplyingTo')
-    inlineReplyId.value = targetId
+    inlineReplyId.value = replyItemId || targetId
+    inlineReplyParentId.value = targetId
     inlineReplyContent.value = ''
   }
 }
@@ -46,28 +92,79 @@ const cancelReply = () => {
 
 const handleMainSubmit = (content: string, image: File | null) => {
   emit('addComment', content, image)
-  mainComposerRef.value?.clear()
-  emit('clearReplyingTo')
+  if (props.user) {
+    mainComposerRef.value?.clear()
+    emit('clearReplyingTo')
+  }
 }
 
 const handleInlineSubmit = (content: string, image: File | null) => {
-  if (inlineReplyId.value) {
-    emit('replyComment', inlineReplyId.value, content, image)
+  const parentId = inlineReplyParentId.value || inlineReplyId.value
+  if (parentId) {
+    emit('replyComment', parentId, content, image)
   }
   inlineReplyId.value = null
+  inlineReplyParentId.value = null
 }
 
 const cancelInlineReply = () => {
   inlineReplyId.value = null
+  inlineReplyParentId.value = null
 }
 </script>
 
 <template>
-  <div class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6">
-    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-      <MessageCircle :size="20" class="text-primary-500" />
-      Bình luận ({{ comments.length }})
-    </h3>
+  <div id="comments" class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-6 scroll-mt-20">
+    <!-- Header with count & Sentiment Ratio (Khớp Đề cương) -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+        <MessageCircle :size="20" class="text-primary-500" />
+        Bình luận ({{ sentimentStats?.total || comments.length }})
+      </h3>
+
+      <!-- AI Sentiment Widget (Thesis Proposal: Biểu đồ tỉ lệ cảm xúc trên mỗi bài viết) -->
+      <div
+        v-if="sentimentStats && sentimentStats.total > 0"
+        class="flex flex-col gap-1.5 px-3 py-2 rounded-xl bg-gray-50 dark:bg-surface-700/60 border border-gray-200/90 dark:border-surface-600 text-xs shadow-2xs min-w-56"
+        title="Tỉ lệ cảm xúc tự động phân tích bởi giải thuật Lexicon-based NLP"
+      >
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center gap-1 font-bold text-primary-700 dark:text-primary-300">
+            <Sparkles :size="13" class="text-primary-600 dark:text-primary-400" />
+            Cảm xúc AI:
+          </span>
+          <span v-if="sentimentStats.posPct > 0" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+            <Smile :size="13" /> {{ sentimentStats.posPct }}% Tích cực
+          </span>
+          <span v-if="sentimentStats.neuPct > 0" class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400 font-medium">
+            <Meh :size="13" /> {{ sentimentStats.neuPct }}% Trung lập
+          </span>
+          <span v-if="sentimentStats.negPct > 0" class="inline-flex items-center gap-1 text-rose-500 dark:text-rose-400 font-semibold">
+            <Frown :size="13" /> {{ sentimentStats.negPct }}% Tiêu cực
+          </span>
+        </div>
+        <div class="h-1.5 w-full bg-gray-200/80 dark:bg-surface-600 rounded-full overflow-hidden flex">
+          <div
+            v-if="sentimentStats.posPct > 0"
+            class="h-full bg-emerald-500 transition-all duration-500"
+            :style="{ width: `${sentimentStats.posPct}%` }"
+            :title="`Tích cực: ${sentimentStats.positive} bình luận (${sentimentStats.posPct}%)`"
+          />
+          <div
+            v-if="sentimentStats.neuPct > 0"
+            class="h-full bg-blue-400 dark:bg-blue-500 transition-all duration-500"
+            :style="{ width: `${sentimentStats.neuPct}%` }"
+            :title="`Trung lập: ${sentimentStats.neutral} bình luận (${sentimentStats.neuPct}%)`"
+          />
+          <div
+            v-if="sentimentStats.negPct > 0"
+            class="h-full bg-rose-500 transition-all duration-500"
+            :style="{ width: `${sentimentStats.negPct}%` }"
+            :title="`Tiêu cực: ${sentimentStats.negative} bình luận (${sentimentStats.negPct}%)`"
+          />
+        </div>
+      </div>
+    </div>
 
 
     <div class="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-surface-800 p-3 sm:p-0 border-t border-gray-200 dark:border-surface-700 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] sm:shadow-none sm:border-0 sm:static sm:bg-transparent sm:z-auto flex items-start gap-3 w-full sm:mb-6">
@@ -84,15 +181,20 @@ const cancelInlineReply = () => {
     </div>
 
     <!-- Comments List -->
+    <div v-if="comments.length === 0" class="text-center py-8 text-sm text-gray-400 dark:text-gray-500 italic">
+      Chưa có bình luận nào. Hãy là người đầu tiên chia sẻ suy nghĩ của bạn!
+    </div>
     <div class="space-y-5">
       <CommentItem
         v-for="comment in comments"
+        :id="'comment-' + comment.id"
         :key="comment.id"
         :comment="comment"
         :level="0"
         :inline-reply-id="inlineReplyId"
         :active-emoji-picker="activeEmojiPicker"
         :user="user"
+        :post-author-id="postAuthorId"
         @reply="handleReplyClick"
         @submit-reply="handleInlineSubmit"
         @cancel-reply="cancelInlineReply"

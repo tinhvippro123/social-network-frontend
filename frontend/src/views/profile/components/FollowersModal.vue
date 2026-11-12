@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { matchesQuery } from '@/utils/textSearch'
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { X, UserPlus, UserMinus, Search as SearchIcon } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import usersApi from '@/api/users.api'
+import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
+import { useToast } from '@/composables/ui/useToast'
 import type { UserSummary } from '@/types'
 
 const props = defineProps<{
@@ -17,6 +21,9 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const authStore = useAuthStore()
+const uiStore = useUiStore()
+const toast = useToast()
 const searchQuery = ref('')
 const isLoading = ref(false)
 
@@ -24,9 +31,7 @@ const listData = ref<UserSummary[]>([])
 
 const currentList = computed(() => {
   if (!searchQuery.value) return listData.value
-  return listData.value.filter(u =>
-    u.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
+  return listData.value.filter(u => matchesQuery(searchQuery.value, u.name))
 })
 
 const title = computed(() =>
@@ -40,7 +45,10 @@ async function loadList() {
     const res = props.type === 'followers'
       ? await usersApi.getFollowers(props.user.id)
       : await usersApi.getFollowing(props.user.id)
-    listData.value = res.data.data || []
+    listData.value = (res.data.data || []).map((u: any) => ({
+      ...u,
+      isFollowing: Boolean(u.isFollowing ?? u.following)
+    }))
   } catch (e) {
     listData.value = []
   } finally {
@@ -49,11 +57,26 @@ async function loadList() {
 }
 
 async function toggleFollow(user: UserSummary) {
+  if (!authStore.isLoggedIn) {
+    toast.info('Vui lòng đăng nhập để theo dõi người dùng')
+    emit('close')
+    uiStore.openAuthModal('login')
+    return
+  }
   try {
     const res = await usersApi.toggleFollow(user.id)
-    user.isFollowing = res.data.data
-  } catch (e) {
-    // ignore
+    const newFollowing = Boolean(res.data.data)
+    user.isFollowing = newFollowing
+    const delta = newFollowing ? 1 : -1
+    if (props.user?.id === authStore.user?.id && typeof props.user.followingCount === 'number') {
+      props.user.followingCount = Math.max(0, props.user.followingCount + delta)
+    }
+    if (authStore.user && typeof authStore.user.followingCount === 'number') {
+      authStore.user.followingCount = Math.max(0, authStore.user.followingCount + delta)
+    }
+    toast.success(user.isFollowing ? `Đã theo dõi ${user.name}` : `Đã bỏ theo dõi ${user.name}`)
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Không thể thực hiện thao tác')
   }
 }
 
@@ -62,8 +85,8 @@ function goToProfile(userId: string) {
   router.push(`/profile/${userId}`)
 }
 
-// Reload when modal opens or type changes
-watch(() => [props.show, props.type], ([show]) => {
+// Reload when modal opens, type changes, or user changes
+watch(() => [props.show, props.type, props.user?.id], ([show]) => {
   if (show) {
     searchQuery.value = ''
     loadList()
@@ -103,7 +126,10 @@ watch(() => [props.show, props.type], ([show]) => {
 
           <!-- Users List -->
           <div class="flex-1 overflow-y-auto px-2 pb-4">
-            <div v-if="currentList.length === 0" class="py-12 text-center">
+            <div v-if="isLoading" class="py-12 text-center text-sm text-gray-400">
+              Đang tải danh sách...
+            </div>
+            <div v-if="!isLoading && currentList.length === 0" class="py-12 text-center">
               <p class="text-sm text-gray-400">Không tìm thấy người dùng nào</p>
             </div>
 
@@ -123,12 +149,13 @@ watch(() => [props.show, props.type], ([show]) => {
               </div>
 
               <button
+                v-if="u.id !== authStore.user?.id"
                 @click.stop="toggleFollow(u)"
                 :class="[
-                  'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200',
+                  'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer',
                   u.isFollowing
                     ? 'bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400'
-                    : 'bg-primary-500 text-white hover:bg-primary-600 shadow-md shadow-primary-500/25'
+                    : 'bg-primary-500 text-white hover:bg-primary-600 shadow-xs'
                 ]"
               >
                 <component :is="u.isFollowing ? UserMinus : UserPlus" :size="12" />

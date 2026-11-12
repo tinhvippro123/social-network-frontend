@@ -5,9 +5,11 @@ import { ArrowLeft, AlertCircle } from '@lucide/vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import PostEditor from '@/components/posts/PostEditor.vue'
 import postsApi from '@/api/posts.api'
+import { useAuthStore } from '@/stores/auth.store'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const isLoadingPost = ref(true)
 const postData = ref<any>(null)
 const errorMessage = ref<string | null>(null)
@@ -21,7 +23,17 @@ onMounted(async () => {
 
   try {
     const res = await postsApi.getById(id)
-    postData.value = res.data?.data || res.data
+    const loaded = res.data?.data || res.data
+    const myId = authStore.user?.id
+    if (loaded && myId && loaded.author?.id && loaded.author.id !== myId) {
+      errorMessage.value = 'Bạn không có quyền chỉnh sửa bài viết của người khác'
+      return
+    }
+    if ((loaded?.status || '').toLowerCase() === 'hidden') {
+      errorMessage.value = 'Bài viết đã bị ẩn bởi kiểm duyệt viên nên không thể chỉnh sửa'
+      return
+    }
+    postData.value = loaded
   } catch (err: any) {
     errorMessage.value = err.response?.data?.message || 'Không tìm thấy bài viết hoặc bài viết đã bị xóa'
   } finally {
@@ -57,7 +69,7 @@ onMounted(async () => {
       <p class="text-gray-500 text-sm">{{ errorMessage }}</p>
       <button
         @click="router.push('/')"
-        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-lg shadow-primary-500/20"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-xs"
       >
         <ArrowLeft :size="16" /> Về trang chủ
       </button>
