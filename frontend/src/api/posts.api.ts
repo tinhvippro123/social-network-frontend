@@ -40,8 +40,8 @@ const postsApi = {
   getAll: (params?: PostsQuery) =>
     http.get<ApiResponse<Post[]>>('/posts', { params }),
 
-  getById: (id: string) =>
-    http.get<ApiResponse<Post>>(`/posts/${id}`),
+  getById: (id: string, params?: { trackView?: boolean }) =>
+    http.get<ApiResponse<Post>>(`/posts/${id}`, { params }),
 
   create: (data: CreatePostRequest) =>
     http.post<ApiResponse<Post>>('/posts', data),

@@ -7,6 +7,7 @@ import type { Group } from '@/types'
 
 export interface GroupQuery {
   joined?: boolean
+  userId?: string
   q?: string
   page?: number
   limit?: number

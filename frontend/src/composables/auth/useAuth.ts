@@ -88,7 +88,7 @@ export function useAuth() {
       console.warn('Lỗi khi gọi API đăng xuất:', e)
     } finally {
       authStore.clearAuth()
-      router.push('/login')
+      router.push('/')
     }
   }
 

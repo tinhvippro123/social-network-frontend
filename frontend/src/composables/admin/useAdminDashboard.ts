@@ -104,15 +104,28 @@ export function useAdminDashboard() {
   }
 
   const resolveReport = async (reportId: string, action: 'keep' | 'delete' | 'ban') => {
-    if (action === 'delete' || action === 'ban') {
-      const ok = await confirm({
-        title: action === 'ban' ? 'Cấm tác giả & xử lý báo cáo' : 'Xóa nội dung bị báo cáo',
-        message: action === 'ban' ? 'Bạn có chắc muốn cấm tài khoản vi phạm này?' : 'Bạn có chắc muốn xóa/ẩn nội dung vi phạm này?',
-        confirmText: action === 'ban' ? 'Cấm tài khoản' : 'Xóa nội dung',
-        variant: 'danger'
-      })
-      if (!ok) return
-    }
+    const confirmConfig = action === 'ban'
+      ? {
+          title: 'Cấm tác giả & xử lý báo cáo',
+          message: 'Bạn có chắc muốn cấm tài khoản vi phạm này?',
+          confirmText: 'Cấm tài khoản',
+          variant: 'danger' as const
+        }
+      : action === 'delete'
+        ? {
+            title: 'Xóa nội dung bị báo cáo',
+            message: 'Bạn có chắc muốn xóa/ẩn nội dung vi phạm này?',
+            confirmText: 'Xóa nội dung',
+            variant: 'danger' as const
+          }
+        : {
+            title: 'Giữ lại nội dung',
+            message: 'Xác nhận nội dung không vi phạm và đánh dấu đã xử lý báo cáo này?',
+            confirmText: 'Giữ lại',
+            variant: 'info' as const
+          }
+    const ok = await confirm(confirmConfig)
+    if (!ok) return
     try {
       await adminApi.resolveReport(reportId, action)
       toast.success('Đã xử lý báo cáo thành công!')
@@ -124,6 +137,13 @@ export function useAdminDashboard() {
   }
 
   const dismissReport = async (reportId: string) => {
+    const ok = await confirm({
+      title: 'Bỏ qua báo cáo',
+      message: 'Bạn có chắc muốn bỏ qua báo cáo này?',
+      confirmText: 'Bỏ qua',
+      variant: 'info'
+    })
+    if (!ok) return
     try {
       await adminApi.dismissReport(reportId)
       toast.info('Đã bỏ qua báo cáo')

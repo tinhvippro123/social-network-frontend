@@ -206,15 +206,17 @@ http.interceptors.response.use(
         console.error('Validation Errors:', error.response.data.data)
       }
       const { useToast } = await import('@/composables/ui/useToast')
-      useToast().error(errorMessage)
+      const fieldErrors = error.response?.data?.data as Record<string, string> | undefined
+      const fieldMessages = fieldErrors && typeof fieldErrors === 'object'
+        ? Object.values(fieldErrors)
+            .filter((msg): msg is string => typeof msg === 'string' && msg.trim().length > 0)
+            .map(translateErrorMessage)
+        : []
 
-      const fieldErrors = error.response?.data?.data as Record<string, string>
-      if (fieldErrors && typeof fieldErrors === 'object') {
-        Object.values(fieldErrors).forEach(msg => {
-          if (typeof msg === 'string') {
-            useToast().error(translateErrorMessage(msg))
-          }
-        })
+      if (fieldMessages.length > 0) {
+        useToast().error(fieldMessages.join(' • '))
+      } else {
+        useToast().error(errorMessage)
       }
     }
 

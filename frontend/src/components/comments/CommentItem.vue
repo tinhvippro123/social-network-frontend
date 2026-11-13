@@ -31,14 +31,14 @@
                 <span
                   v-if="comment.sentiment"
                   :class="[
-                    'inline-flex items-center px-1.5 py-0.2 rounded-full text-[10px] font-medium border',
+                    'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border',
                     comment.sentiment === 'positive' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' :
                     comment.sentiment === 'negative' ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
                     'bg-gray-100 dark:bg-surface-600 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-surface-500'
                   ]"
                   :title="'Cảm xúc: ' + (comment.sentiment === 'positive' ? 'Tích cực' : comment.sentiment === 'negative' ? 'Tiêu cực' : 'Trung lập')"
                 >
-                  {{ comment.sentiment === 'positive' ? '😊' : comment.sentiment === 'negative' ? '⚠️' : '😐' }}
+                  {{ comment.sentiment === 'positive' ? '😊 Tích cực' : comment.sentiment === 'negative' ? '⚠️ Tiêu cực' : '😐 Trung lập' }}
                 </span>
               </div>
             </div>
@@ -95,7 +95,7 @@
               </button>
               
               <!-- Emoji Picker Popup -->
-              <div v-if="activeEmojiPicker === comment.id" @click.stop class="absolute left-0 bottom-6 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 grid grid-cols-8 gap-1 w-64">
+              <div v-if="activeEmojiPicker === comment.id" @click.stop class="absolute left-0 bottom-6 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 grid grid-cols-6 gap-1 w-52">
                 <button
                   v-for="emoji in emojiList"
                   :key="emoji"
@@ -255,6 +255,7 @@ import { formatDate } from '@/utils/formatters'
 import { useUiStore } from '@/stores/ui.store'
 import { useToast } from '@/composables/ui/useToast'
 import { useConfirm } from '@/composables/ui/useConfirm'
+import { COMMENT_EMOJIS } from '@/constants'
 import http from '@/api/client'
 
 interface Props {
@@ -282,7 +283,7 @@ const emit = defineEmits<{
   (e: 'delete', commentId: string): void
 }>()
 
-const emojiList = ['😀', '😂', '🥰', '😎', '😭', '😡', '👍', '👎', '❤️', '🔥', '🎉', '✨', '🤔', '🙌', '👀', '💯']
+const emojiList = COMMENT_EMOJIS
 
 const inlineComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
 const isCollapsed = ref(false)

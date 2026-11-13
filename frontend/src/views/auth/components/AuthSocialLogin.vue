@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/auth/useAuth'
 import { useToast } from '@/composables/ui/useToast'
 import { useUiStore } from '@/stores/ui.store'
 
+const router = useRouter()
 const { loginWithGoogle, isLoggedIn, error: authError } = useAuth()
 const toast = useToast()
 const uiStore = useUiStore()
@@ -34,8 +36,12 @@ function handleGoogleLogin() {
             try {
               await loginWithGoogle({ accessToken: response.access_token })
               if (isLoggedIn.value) {
+                const pendingRedirect = uiStore.consumeAuthRedirect()
                 uiStore.closeAuthModal()
                 toast.success('Đăng nhập bằng Google thành công!')
+                if (pendingRedirect) {
+                  router.push(pendingRedirect)
+                }
               } else {
                 toast.error(authError.value || 'Đăng nhập Google không thành công')
               }

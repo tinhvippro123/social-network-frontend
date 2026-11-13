@@ -26,6 +26,7 @@ const uiStore = useUiStore()
 const toast = useToast()
 const searchQuery = ref('')
 const isLoading = ref(false)
+const activeType = ref<'followers' | 'following'>(props.type)
 
 const listData = ref<UserSummary[]>([])
 
@@ -34,15 +35,11 @@ const currentList = computed(() => {
   return listData.value.filter(u => matchesQuery(searchQuery.value, u.name))
 })
 
-const title = computed(() =>
-  props.type === 'followers' ? 'Người theo dõi' : 'Đang theo dõi'
-)
-
 async function loadList() {
   if (!props.user?.id) return
   isLoading.value = true
   try {
-    const res = props.type === 'followers'
+    const res = activeType.value === 'followers'
       ? await usersApi.getFollowers(props.user.id)
       : await usersApi.getFollowing(props.user.id)
     listData.value = (res.data.data || []).map((u: any) => ({
@@ -54,6 +51,13 @@ async function loadList() {
   } finally {
     isLoading.value = false
   }
+}
+
+function switchTab(nextType: 'followers' | 'following') {
+  if (activeType.value === nextType) return
+  activeType.value = nextType
+  searchQuery.value = ''
+  loadList()
 }
 
 async function toggleFollow(user: UserSummary) {
@@ -86,8 +90,9 @@ function goToProfile(userId: string) {
 }
 
 // Reload when modal opens, type changes, or user changes
-watch(() => [props.show, props.type, props.user?.id], ([show]) => {
+watch(() => [props.show, props.type, props.user?.id], ([show, newType]) => {
   if (show) {
+    activeType.value = (newType as 'followers' | 'following') || props.type
     searchQuery.value = ''
     loadList()
   }
@@ -103,10 +108,35 @@ watch(() => [props.show, props.type, props.user?.id], ([show]) => {
 
         <!-- Modal -->
         <div class="relative w-full max-w-md bg-white dark:bg-surface-800 rounded-2xl shadow-2xl overflow-hidden animate-fade-in max-h-[80vh] flex flex-col">
-          <!-- Header -->
-          <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-surface-700">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ title }}</h3>
-            <button @click="emit('close')" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors">
+          <!-- Header with 2-Tab Switcher -->
+          <div class="flex items-center justify-between px-4 pt-3 border-b border-gray-200 dark:border-surface-700">
+            <div class="flex items-center gap-4">
+              <button
+                type="button"
+                @click="switchTab('followers')"
+                :class="[
+                  'pb-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer',
+                  activeType === 'followers'
+                    ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                ]"
+              >
+                Người theo dõi
+              </button>
+              <button
+                type="button"
+                @click="switchTab('following')"
+                :class="[
+                  'pb-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer',
+                  activeType === 'following'
+                    ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                ]"
+              >
+                Đang theo dõi
+              </button>
+            </div>
+            <button @click="emit('close')" class="p-1.5 mb-2 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors cursor-pointer">
               <X :size="18" />
             </button>
           </div>

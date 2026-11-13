@@ -38,7 +38,7 @@ async function fetchFullPost(postId: string) {
   if (!postId) return
   isLoadingContent.value = true
   try {
-    const res = await postsApi.getById(postId)
+    const res = await postsApi.getById(postId, { trackView: false })
     if (res.data?.success && res.data.data) {
       const data = res.data.data
       detailedPost.value = {

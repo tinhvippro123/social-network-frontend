@@ -97,7 +97,7 @@ ChartJS.register(
 
         <!-- Chart bars -->
         <div class="h-64 mt-4 relative w-full">
-          <Skeleton v-if="isLoading" class="w-full h-full rounded-xl" />
+          <Skeleton v-if="isLoading && !chartData.labels.length" class="w-full h-full rounded-xl" />
           <Line v-else :data="chartData" :options="chartOptions" />
         </div>
 

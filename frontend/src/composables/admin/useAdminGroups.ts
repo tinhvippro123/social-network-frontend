@@ -25,7 +25,7 @@ export function useAdminGroups() {
   })
 
   const initData = () => {
-    fetchGroups()
+    fetchGroups({ limit: 100 })
   }
 
   const deleteGroup = async (group: any) => {
@@ -40,7 +40,7 @@ export function useAdminGroups() {
     try {
       await groupsApi.delete(group.id)
       toast.success('Đã giải tán nhóm thành công!')
-      await fetchGroups()
+      await fetchGroups({ limit: 100 })
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể giải tán nhóm')
     }

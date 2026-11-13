@@ -75,6 +75,9 @@ export function useAdminUsers() {
     try {
       const { data } = await adminApi.updateUserRole(user.id, role)
       replaceUser(data.data)
+      if (filterRole.value !== 'all') {
+        await fetchUsers()
+      }
       toast.success(`Đã đổi vai trò của ${user.name} thành ${role === 'moderator' ? 'Moderator' : role === 'admin' ? 'Admin' : 'Thành viên'}`)
     } catch (err) {
       toast.error(errorMessage(err, 'Không thể đổi vai trò người dùng'))

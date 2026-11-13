@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Search as SearchIcon, FileText, Eye, EyeOff, Trash2, ChevronLeft, ChevronRight, Clock } from '@lucide/vue'
 import { ADMIN_POST_FILTERS } from '@/constants/ui'
 import AdminPageHeader from '@/components/admin/AdminPageHeader.vue'
 import AdminPagination from '@/components/admin/AdminPagination.vue'
 import PostsManageTable from './components/PostsManageTable.vue'
-import { formatDate, formatNumber } from '@/utils/formatters'
 import { useAdminPosts } from '@/composables/admin/useAdminPosts'
 
 const {

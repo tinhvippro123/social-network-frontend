@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/auth/useAuth'
 
 import { useAdminLayout } from '@/composables/admin/useAdminLayout'
-import UserAvatar from '@/components/UserAvatar.vue'
 import AdminSidebar from './components/AdminSidebar.vue'
 import AdminNavbar from './components/AdminNavbar.vue'
 
 const router = useRouter()
-const route = useRoute()
 const { user } = useAuth()
 
 const {

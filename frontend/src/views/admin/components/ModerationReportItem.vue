@@ -103,7 +103,7 @@ function viewTarget() {
           <Check :size="12" /> Giữ lại
         </button>
         <button
-          v-if="report.type !== 'user' && (report.type !== 'group' || authStore.isAdmin)"
+          v-if="report.type !== 'user'"
           type="button"
           @click="emit('resolve', report.id, 'delete')"
           class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer"

@@ -83,6 +83,7 @@ function validateRegister(): boolean {
 async function handleRegister() {
   if (!validateRegister()) return
   if (!agreeTerms.value) {
+    toast.warning('Vui lòng đồng ý với điều khoản dịch vụ và chính sách bảo mật')
     emitError('update:error', 'Vui lòng đồng ý với Điều khoản sử dụng')
     return
   }

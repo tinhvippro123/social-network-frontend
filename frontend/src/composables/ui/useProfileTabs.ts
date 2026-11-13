@@ -21,7 +21,7 @@ export function useProfileTabs(
   const activeTab = ref('posts')
 
   watch(() => unref(isOwnProfile), (own) => {
-    if (!own && activeTab.value !== 'posts') {
+    if (!own && (activeTab.value === 'drafts' || activeTab.value === 'bookmarks')) {
       activeTab.value = 'posts'
     }
   })
@@ -36,9 +36,12 @@ export function useProfileTabs(
       baseTabs.push(
         { key: 'drafts', label: 'Nháp', icon: FilePenLine, count: drafts.value.length },
         { key: 'bookmarks', label: 'Đã lưu', icon: Bookmark, count: bookmarkedPosts.value.length },
-        { key: 'groups', label: 'Nhóm', icon: Users, count: joinedGroups.value.length }
       )
     }
+
+    baseTabs.push(
+      { key: 'groups', label: 'Nhóm', icon: Users, count: joinedGroups.value.length }
+    )
 
     return baseTabs
   })
@@ -52,7 +55,10 @@ export function useProfileTabs(
       const tasks: Promise<any>[] = [
         usersApi.getUserPosts(uid, 1, 20, 'PUBLISHED').then(res => {
           posts.value = (res.data.data || []).map(normalizePost)
-        }).catch(() => { posts.value = [] })
+        }).catch(() => { posts.value = [] }),
+        groupsApi.getAll({ joined: true, userId: uid, limit: 20 }).then(res => {
+          joinedGroups.value = res.data.data || []
+        }).catch(() => { joinedGroups.value = [] })
       ]
 
       if (own && currentUser.value?.id === uid) {
@@ -65,15 +71,11 @@ export function useProfileTabs(
               ...normalizePost(dto),
               bookmarked: true
             }))
-          }).catch(() => { bookmarkedPosts.value = [] }),
-          groupsApi.getAll({ joined: true, limit: 20 }).then(res => {
-            joinedGroups.value = res.data.data || []
-          }).catch(() => { joinedGroups.value = [] })
+          }).catch(() => { bookmarkedPosts.value = [] })
         )
       } else {
         drafts.value = []
         bookmarkedPosts.value = []
-        joinedGroups.value = []
       }
 
       await Promise.allSettled(tasks)
