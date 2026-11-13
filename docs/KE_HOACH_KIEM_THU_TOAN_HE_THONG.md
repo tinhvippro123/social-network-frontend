@@ -20,7 +20,7 @@
    ```powershell
    docker compose up -d postgres redis
    ```
-3. **Chạy bộ kiểm thử tự động Backend trước khi khởi chạy (tùy chọn, ~28 test suites / 86 tests):**
+3. **Chạy bộ kiểm thử tự động Backend trước khi khởi chạy (tùy chọn, ~87 tests):**
    ```powershell
    .\backend\gradlew.bat -p backend test
    ```
@@ -55,29 +55,28 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - Mở `F12 -> Network`: Chỉ gọi các API công khai (`/api/posts`, `/api/categories`, `/api/tags/popular`, `/api/users/top`).
   - **Không** gọi `/api/users/me` (nhờ cờ cookie `vietblog_logged_in=1`), **không** mở kết nối `/ws` WebSocket, **không** có bất kỳ lỗi đỏ `401` hay `403` nào trên Console.
 - [ ] **Thanh điều hướng trên cùng (`MainNavbar.vue`):**
-  - Hiển thị Logo **VietBlog** (bấm về `/`), ô tìm kiếm nhanh **Omni-Search** ở giữa (kèm nút chọn ảnh CBIR và chuyển sang tìm kiếm AI), nút **`Đăng nhập`** và **`Đăng ký`** trên nền giao diện sáng (**Light Mode** — tông màu **Classic Sapphire Blue `#2b579a`**).
+  - Hiển thị nút thu gọn thanh bên (`<`), ô tìm kiếm nhanh ở giữa (placeholder *"Tìm kiếm bài viết, người dùng, AI..."*, kèm nút **Camera** tìm bằng ảnh và huy hiệu **`AI`**), nút **`Đăng nhập`** và **`Đăng ký`** bên phải trên nền giao diện sáng (**chỉ Light Mode** — tông màu **Classic Sapphire Blue `#2b579a`**, không có nút chuyển Dark Mode). Logo **VietBlog** nằm ở đầu thanh bên trái (`MainSidebar`).
   - **Không** hiển thị nút `Viết bài`, chuông `Thông báo` hay Avatar cá nhân.
-- [ ] **Ô tìm kiếm nhanh Omni-Search trên Navbar:**
-  - Gõ từ khóa (VD: `"AI"`) -> sau `280ms` hiện dropdown gợi ý tối đa 5 bài viết kèm ảnh thumbnail và tên tác giả.
-  - Bấm vào 1 gợi ý -> chuyển tới `/posts/:id`.
-  - Bấm phím `Enter` -> chuyển tới `/search?q=AI`.
-  - Bấm biểu tượng **Camera** bên phải ô tìm kiếm -> mở hộp thoại chọn ảnh từ máy tính -> tự động chuyển sang `/search` ở chế độ **Tìm kiếm bằng hình ảnh (CBIR)** và hiển thị kết quả tương đồng.
+- [ ] **Ô tìm kiếm nhanh trên Navbar:**
+  - Gõ từ khóa (VD: `AI`) rồi bấm phím `Enter` -> chuyển tới `/search?q=AI` (mặc định **Tìm kiếm AI: Bật**). Ô này **không** có dropdown gợi ý tự động.
+  - Bấm huy hiệu **`AI`** -> chuyển tới `/search?q=...&type=semantic` (hoặc `/search?type=semantic` nếu ô trống).
+  - Bấm biểu tượng **Camera** -> mở hộp thoại chọn ảnh (`.png/.jpg`, tối đa 5MB) -> tự động chuyển sang `/search` ở chế độ **Tìm kiếm theo ảnh (CBIR)** và hiển thị kết quả tương đồng.
 - [ ] **Thanh điều hướng bên trái (`MainSidebar.vue`):**
   - Nhóm **Menu chính**: Hiển thị đầy đủ `Trang chủ (/)`, `Tìm kiếm AI (/search)`, `Thịnh hành (/trending)`, `Đã lưu (/bookmarks)`, `Viết bài (/posts/create)`, `Nhóm (/groups)`, `Tin nhắn (/chat)`, `Thông báo (/notifications)`, `Bản đồ (/map)`.
-  - Mục **Quản trị (`Quản trị /admin`)**: **Ẩn hoàn toàn** đối với Guest.
+  - Mục **`Trang quản trị` / `Kiểm duyệt`**: **Ẩn hoàn toàn** đối với Guest.
 - [ ] **Cơ chế Ghi nhớ Trang đích (`authRedirectPath`) khi Guest truy cập route yêu cầu đăng nhập:**
-  - Tại thanh bên trái, bấm vào mục **`Đã lưu (/bookmarks)`** (hoặc gõ trực tiếp URL `/posts/create`, `/chat`, `/notifications`, `/settings`, `/profile`).
-  - **Kỳ vọng:** Không chuyển sang trang trắng hay báo lỗi; hệ thống giữ nguyên trang hiện tại (hoặc về `/`), hiện thông báo *"Vui lòng đăng nhập để tiếp tục"* và **tự động bật `AuthModal`**. Sau khi đăng nhập thành công trên `AuthModal`, hệ thống **tự động chuyển hướng đúng vào trang vừa bấm** (VD: `/bookmarks` hoặc `/posts/create`).
+  - Tại thanh bên trái, bấm vào mục **`Đã lưu (/bookmarks)`** (hoặc gõ trực tiếp URL `/posts/create`, `/chat`, `/notifications`, `/settings`).
+  - **Kỳ vọng:** Không chuyển sang trang trắng hay báo lỗi; hệ thống giữ nguyên trang hiện tại (hoặc về `/` nếu mở thẳng URL) và **tự động bật `AuthModal`** ở tab Đăng nhập (không kèm toast). Sau khi đăng nhập thành công trên `AuthModal`, hệ thống **tự động chuyển hướng đúng vào trang vừa bấm** (VD: `/bookmarks` hoặc `/posts/create`).
 - [ ] **Nút Cuộn lên đầu trang (`ScrollToTop.vue`) & Hộp thoại Chat nổi (`ChatPopup.vue`):**
   - Cuộn xuống quá `300px` -> nút mũi tên lên (`w-10 h-10`) xuất hiện gọn ở góc phải dưới (`bottom-6 right-5`), không che khuất nút **`Theo dõi`** của khung *Tác giả nổi bật* (nhờ khoảng đệm `pb-16` cuối cột phải), bấm vào cuộn mượt lên đầu trang.
   - **Không** hiển thị nút soạn tin nhắn nổi `ChatPopup` ở góc phải dưới khi chưa đăng nhập.
 
 ### 1.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
 - [ ] **Thanh điều hướng trên cùng (`MainNavbar.vue`):**
-  - Nút `Đăng nhập / Đăng ký` biến mất; thay bằng biểu tượng **Tin nhắn (`MainNavbarChat`)**, **Chuông Thông báo** (kèm chấm đỏ số lượng chưa đọc) và **Menu Avatar người dùng**.
-  - Bấm vào Avatar -> mở menu thả xuống gồm: Tên & Email, `Trang cá nhân`, `Bài viết đã lưu`, `Cài đặt`, `Quản trị hệ thống` (chỉ hiện nếu là `ADMIN`/`MODERATOR`), và `Đăng xuất`.
+  - Nút `Đăng nhập / Đăng ký` biến mất; thay bằng nút **`Viết bài`**, biểu tượng **Tin nhắn (`MainNavbarChat`)**, **Chuông Thông báo** (kèm số lượng chưa đọc) và **Menu Avatar người dùng**.
+  - Bấm vào Avatar -> mở menu thả xuống gồm: Tên & Email, `Trang cá nhân`, `Cài đặt`, `Trang quản trị` (nếu là `ADMIN`) hoặc `Trang kiểm duyệt` (nếu là `MODERATOR`), và `Đăng xuất`.
 - [ ] **Thanh điều hướng bên trái (`MainSidebar.vue`):**
-  - Nếu đăng nhập bằng `MODERATOR` (`phamminhduc@gmail.com`) hoặc `ADMIN` (`admin@vietblog.com`), xuất hiện thêm mục **`Quản trị (/admin)`** ở cuối menu.
+  - Nếu đăng nhập bằng `ADMIN` (`admin@vietblog.com`) xuất hiện thêm mục **`Trang quản trị`** (`/admin`); nếu là `MODERATOR` (`phamminhduc@gmail.com`) xuất hiện mục **`Kiểm duyệt`** (`/admin/moderation`).
 - [ ] **Bong bóng Chat nổi (`ChatPopup.vue`) & Nút `ScrollToTop.vue`:**
   - Nút soạn tin nhắn nổi hiển thị ở góc phải dưới mọi trang (`right-6 bottom-2`, trừ khi đang ở trang `/chat`), đồng thời nút mũi tên cuộn lên đầu trang tự động xếp thẳng hàng phía trên (`sm:bottom-16 sm:right-7`) mà không đè lên nhau.
 
@@ -87,16 +86,18 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 
 ### 2.1. Khi KHÔNG ĐĂNG NHẬP (`Guest`)
 - [ ] **Đăng ký tài khoản mới (`/register` hoặc tab `Đăng ký` trên `AuthModal`):**
-  - Kiểm tra validation: Tên trống, Email sai định dạng, Mật khẩu `< 8` ký tự, Xác nhận mật khẩu không khớp, chưa tích *"Đồng ý Điều khoản"* -> Báo lỗi rõ ràng dưới từng ô, chặn gửi form.
+  - Kiểm tra validation: Tên trống, Email sai định dạng, Mật khẩu `< 8` ký tự, Xác nhận mật khẩu không khớp -> Báo lỗi rõ ràng dưới từng ô, chặn gửi form. Chưa tích ô *"Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật"* mà bấm **`Tạo tài khoản`** -> hiện toast cảnh báo *"Vui lòng đồng ý với điều khoản dịch vụ và chính sách bảo mật"* (nút không bị vô hiệu hóa sẵn).
   - Nhập email đã tồn tại (`admin@vietblog.com`) -> Backend trả về `409 Conflict` (*"Email đã được sử dụng"*).
-  - Nhập thông tin hợp lệ mới -> Đăng ký thành công (`200 OK`), tự động đăng nhập (`POST /api/auth/login`) và đính kèm `HttpOnly Cookie`.
+  - Nhập thông tin hợp lệ mới:
+    - Trên trang **`/register`** -> toast *"Đăng ký tài khoản thành công! Vui lòng đăng nhập."* và chuyển sang `/login`.
+    - Trên tab **`Đăng ký`** của `AuthModal` -> hệ thống tự động đăng nhập luôn (`POST /api/auth/login`), toast *"Chào mừng ... đến với VietBlog!"* và đính kèm `HttpOnly Cookie`.
 - [ ] **Đăng nhập (`/login` hoặc tab `Đăng nhập` trên `AuthModal`):**
   - Nhập sai mật khẩu -> Trả về `401 Unauthorized` (*"Email hoặc mật khẩu không chính xác"*).
   - Nhập đúng email/mật khẩu (VD: `nguyenvanan@gmail.com` / `Password123!`) -> Đăng nhập thành công, tự động lưu `HttpOnly Cookie` và điều hướng theo đúng vai trò (`USER` về `/` hoặc `authRedirectPath`, `MODERATOR` về `/admin/moderation`, `ADMIN` về `/admin`).
-  - Bấm nút **Google OAuth** -> Kiểm tra luồng xác thực Google (`POST /api/auth/google`).
+  - Giao diện đăng nhập có ô **`Ghi nhớ đăng nhập`** và liên kết **`Quên mật khẩu?`**. (Backend có sẵn API `POST /api/auth/google` nhưng giao diện hiện **không** hiển thị nút Google.)
 - [ ] **Quên mật khẩu 2 bước kèm OTP (`/forgot-password`):**
-  - **Bước 1:** Nhập email chưa đăng ký -> Báo lỗi `404` (*"Không tìm thấy tài khoản với email này"*). Nhập `nguyenvanan@gmail.com` -> Bấm *Gửi mã xác nhận* -> Hiển thị hộp xanh **`💡 Mã xác thực (OTP)`** gồm 6 chữ số ngay trên màn hình để phục vụ demo bảo vệ.
-  - **Bước 2:** Nhập mã OTP sai -> Báo lỗi `400` (*"Mã xác nhận không hợp lệ hoặc đã hết hạn"*). Nhập đúng mã OTP + mật khẩu mới -> Đặt lại mật khẩu thành công, chuyển về `/login`.
+  - **Bước 1:** Nhập email chưa đăng ký -> hiển thị lỗi màu đỏ ngay dưới ô email (*"Không tìm thấy tài khoản với email này"*). Nhập `nguyenvanan@gmail.com` -> Bấm **`Gửi mã xác nhận`** -> toast *"Mã xác nhận đã được tạo thành công!"* và hiển thị hộp **`💡 Mã xác thực (OTP)`** gồm 6 chữ số ngay trên màn hình để phục vụ demo bảo vệ.
+  - **Bước 2:** Nhập mã OTP sai -> lỗi đỏ dưới ô (*"Mã xác nhận không hợp lệ hoặc đã hết hạn"*). Nhập đúng mã OTP + mật khẩu mới -> toast *"Đặt lại mật khẩu thành công!"* và chuyển sang màn hình **`Thành công!`** có nút **`Đăng nhập ngay`** (bấm để về `/login`, không tự chuyển).
 - [ ] **Chặn API xác thực dành riêng cho thành viên khi gọi không có Cookie:**
   - Gọi `GET /api/auth/me`, `PUT /api/auth/me`, `PUT /api/auth/me/password` khi không có cookie -> Trả về đúng **`401 Unauthorized`** (không bao giờ trả về `400`).
 
@@ -111,7 +112,7 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - Trong `Application -> Cookies`, xóa thử dòng `vietblog_access_token` (giữ nguyên `vietblog_refresh_token`), sau đó tải lại trang `F5`.
   - Mở `Network`: Request `/api/users/me` đầu tiên trả `401` -> Axios Interceptor tự động gọi `POST /api/auth/refresh` -> cấp lại `vietblog_access_token` mới trong Cookie -> gọi lại `/api/users/me` (`200 OK`) mượt mà, người dùng không bị văng ra.
 - [ ] **Chặn người đã đăng nhập vào lại `/login`, `/register`, `/forgot-password`:**
-  - Khi đã đăng nhập, gõ `/login` hoặc `/register` trên thanh địa chỉ -> Router tự động đẩy về `/`.
+  - Khi đã đăng nhập, gõ `/login`, `/register` hoặc `/forgot-password` trên thanh địa chỉ -> Router tự động đẩy về `/` (`USER`), `/admin` (`ADMIN`) hoặc `/admin/moderation` (`MODERATOR`).
 - [ ] **Đăng xuất (`POST /api/auth/logout`):**
   - Bấm `Đăng xuất` từ menu Avatar -> Backend thu hồi Refresh Token trong DB/Redis và trả về `Set-Cookie: Max-Age=0` xóa sạch cả 3 cookie, ngắt kết nối WebSocket.
 
@@ -121,31 +122,29 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 
 ### 3.1. Khi KHÔNG ĐĂNG NHẬP (`Guest`)
 - [ ] **Trang chủ (`/`):**
-  - Xem danh sách bài viết `PUBLISHED` dạng phân trang / tải thêm (**`Tải thêm bài viết`**).
-  - Chuyển đổi bộ lọc sắp xếp: **`Mới nhất`**, **`Thịnh hành`**, **`Đề xuất`**, **`Sự kiện`**.
-  - Lọc theo dải thẻ **Danh mục (`Category Pills`)** ngang ở đầu bảng tin.
-  - Bấm vào các nút tương tác trên từng thẻ bài viết (`PostCard.vue`):
-    - Bấm **`Upvote (▲)`** hoặc **`Downvote (▼)`** -> Không gọi API lỗi, hiện thông báo *"Vui lòng đăng nhập để bình chọn"* và **bật `AuthModal`**.
-    - Bấm **`Lưu bài viết (Bookmark 🔖)`** -> Hiện thông báo *"Vui lòng đăng nhập để lưu bài viết"* và **bật `AuthModal`**.
-    - Bấm **`Chia sẻ`** -> Sao chép link bài viết vào bộ nhớ tạm bình thường (cho phép Guest chia sẻ).
+  - Đầu trang là băng chào (`HomeHeroBanner`: *"Chào buổi sáng/chiều/tối, bạn — Hôm nay có gì mới để khám phá?"*), bên dưới là dải thẻ **Danh mục** (`Tất cả`, `Công nghệ`, `Du lịch`, `Ẩm thực`, `Đời sống`, `Sự kiện`...) để lọc bảng tin. Trang chủ **không** có tab sắp xếp `Mới nhất / Thịnh hành / Đề xuất`.
+  - Xem danh sách bài viết `PUBLISHED` dạng lưới 2 cột, bấm **`Xem thêm bài viết`** để tải trang tiếp theo.
+  - Trên từng thẻ bài viết (`PostCard.vue`):
+    - Điểm vote (`▲`), số bình luận và lượt xem chỉ để **hiển thị** (không bấm được). Muốn bình chọn/chia sẻ phải mở trang chi tiết bài viết.
+    - Bấm nhãn **danh mục** -> lọc `/?category=<slug>`; bấm **địa điểm** -> mở `/map?postId=:id`; bấm **tên tác giả** -> `/profile/:id`; bấm **#tag** -> `/tags/:name`.
+    - Bấm biểu tượng **Lưu (Bookmark)** góc phải ảnh -> toast *"Vui lòng đăng nhập để lưu bài viết"* và **bật `AuthModal`**.
 - [ ] **Trang Sự kiện (`/events`):**
-  - Truy cập `/events` -> Tự động điều hướng sang `/?category=su-kien`, lọc đúng các bài viết thuộc danh mục Sự kiện kèm nhãn thời gian diễn ra (`Đang diễn ra` / `Sắp diễn ra` / `Đã kết thúc`).
+  - Truy cập `/events` -> Tự động điều hướng sang `/?category=su-kien`, lọc đúng các bài viết thuộc danh mục Sự kiện; thẻ bài hiển thị ngày giờ bắt đầu sự kiện (biểu tượng lịch).
 - [ ] **Trang Thịnh hành (`/trending`):**
-  - Hiển thị bảng xếp hạng bài viết nổi bật kèm **Huy hiệu Top 1 (`#1` vàng), Top 2 (`#2` bạc), Top 3 (`#3` đồng)** và thống kê tổng lượt xem / tổng lượt bình chọn ở đầu trang.
+  - Băng đầu trang **`Thịnh hành`** hiển thị tổng lượt xem / tổng lượt vote; có dải lọc danh mục (`Tất cả`, `Công nghệ`, ...). Bài viết xếp hạng kèm **huy hiệu số 1 (vàng), 2 (bạc), 3 (cam/đồng)**.
+  - Ẩn một bài qua trang quản trị (`/admin/posts` -> `Ẩn bài viết`) rồi tải lại `/trending` -> bài đó **biến mất ngay** (cache thịnh hành được làm mới tức thì).
 - [ ] **Trang Chủ đề / Tag (`/tags/:name`):**
-  - Bấm vào 1 tag bất kỳ (VD: `#AI`, `#SpringBoot`) -> Chuyển tới `/tags/AI`, hiển thị tiêu đề chủ đề, số lượng bài viết và danh sách bài viết thuộc tag đó.
-- [ ] **Thanh bên phải (`TrendingSidebar.vue`):**
-  - Khối **Thịnh hành**: Hiển thị top 5 bài viết xu hướng, bấm vào từng bài chuyển tới `/posts/:id`.
-  - Khối **Tags phổ biến**: Hiển thị tối đa 12 tag phổ biến nhất, bấm vào từng tag chuyển tới `/tags/:name`.
-  - Khối **Tác giả nổi bật**: Hiển thị top 3 tác giả, có khoảng đệm dưới (`pb-16`) để không bị nút nổi góc dưới che khuất; bấm vào tên/avatar tác giả chuyển tới `/profile/:id`. Bấm nút **`Theo dõi`** khi là Guest -> Bật `AuthModal`.
+  - Bấm vào 1 tag bất kỳ (VD: `#ai`, `#spring-boot`) -> Chuyển tới `/tags/ai`, hiển thị tiêu đề chủ đề, số lượng bài viết và danh sách bài viết thuộc tag đó.
+- [ ] **Thanh bên phải:**
+  - Ở **Trang chủ** (`components/TrendingSidebar.vue`): khối **`Thịnh hành`** (top 5 bài, bấm chuyển `/posts/:id`), khối **`Tags phổ biến`** (tối đa 12 tag, bấm chuyển `/tags/:name`) và khối **`Tác giả nổi bật`** (top 3).
+  - Ở **trang `/trending`** (`views/components/TrendingSidebar.vue`): chỉ có **`Tags phổ biến`** và **`Tác giả nổi bật`**.
+  - Khối **`Tác giả nổi bật`** có khoảng đệm dưới (`pb-16`) để không bị nút nổi góc dưới che khuất; bấm tên/avatar chuyển tới `/profile/:id`. Bấm **`Theo dõi`** khi là Guest -> toast *"Vui lòng đăng nhập để theo dõi tác giả"* và bật `AuthModal`.
 
 ### 3.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
-- [ ] **Khung tạo bài nhanh trên đầu Trang chủ:**
-  - Hiển thị ô *"Bạn đang nghĩ gì, [Tên User]?"* kèm nút `Hình ảnh` / `Vị trí` -> Bấm vào chuyển thẳng sang `/posts/create`.
-- [ ] **Tương tác trực tiếp trên `PostCard`:**
-  - Bấm **`Upvote` / `Downvote`**: Đổi màu tức thì (Optimistic UI), bấm lại lần 2 để hủy bình chọn.
-  - Bấm **`Bookmark (🔖)`**: Lưu/Bỏ lưu bài viết tức thì kèm thông báo toast.
-  - Bấm **`Theo dõi`** ở khối *Tác giả nổi bật* (Sidebar phải): Đổi trạng thái thành `Đang theo dõi` ngay lập tức (ẩn nút này đối với chính tài khoản của mình).
+- [ ] **Băng chào Trang chủ:** hiển thị đúng tên người dùng (*"Chào buổi ..., [Tên User]"*). Nếu bảng tin trống, có nút tạo bài viết chuyển sang `/posts/create`.
+- [ ] **Tương tác trên `PostCard`:**
+  - Bấm **Bookmark**: Lưu/Bỏ lưu bài viết tức thì kèm toast *"Đã lưu bài viết"* / *"Đã bỏ lưu bài viết"*.
+  - Bấm **`Theo dõi`** ở khối *Tác giả nổi bật*: Đổi thành `Đang theo dõi` ngay lập tức kèm toast *"Đang theo dõi ..."*; bấm lại để bỏ theo dõi.
 
 ---
 
@@ -153,24 +152,24 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 
 ### 4.1. Khi KHÔNG ĐĂNG NHẬP (`Guest`)
 - [ ] **Xem bài viết công khai (`PUBLISHED`):**
-  - Hiển thị đầy đủ tiêu đề, danh mục, ngày đăng, số phút đọc, lượt xem, nội dung HTML, thẻ vị trí địa lý (nếu có), thời gian sự kiện (nếu có), danh sách tags, thông tin tác giả và **Bài viết liên quan** ở cuối trang.
+  - Hiển thị đầy đủ tiêu đề, danh mục, ngày đăng, lượt xem, nội dung HTML, thẻ vị trí địa lý (nếu có), thời gian sự kiện (nếu có), danh sách tags, thông tin tác giả và **Bài viết liên quan** ở cuối trang. (Trang không hiển thị số phút đọc.)
 - [ ] **Trình xem ảnh Phóng to (`ImageLightboxModal.vue`) & Collage ảnh:**
   - Bấm vào ảnh bìa, ảnh trong bài viết hoặc cụm ảnh Collage -> Mở Lightbox toàn màn hình.
-  - Kiểm tra các nút: Chuyển ảnh Trước/Sau (`<` / `>`), Phóng to/Thu nhỏ (`Zoom In/Out`), Xoay ảnh, Tải ảnh xuống, đóng bằng phím `Esc`.
+  - Kiểm tra các nút: **`Ảnh trước` / `Ảnh kế tiếp`** (hoặc phím mũi tên Trái/Phải), **`Phóng to chi tiết` / `Thu nhỏ (1:1)`**, **`Tải ảnh về máy`**, **`Đóng (Esc)`**.
 - [ ] **Trợ lý Tóm tắt Bài viết bằng AI (`PostAiSummary.vue` — Thuật toán `TextRank`):**
   - Hoạt động **công khai cho cả Guest**.
-  - Bấm **`Tóm tắt bằng AI`** -> Hiển thị hiệu ứng gõ chữ từng từ (Typewriter) bản tóm tắt trích xuất từ nội dung bài viết.
-  - Chuyển đổi chế độ hiển thị: **`Đoạn văn (Paragraph)`** vs **`Ý chính (Bullet points)`**.
-  - Chuyển đổi độ dài: **`Ngắn gọn (3 câu)`** vs **`Chi tiết (5 câu)`**.
-  - Bấm **`Sao chép`** (copy bản tóm tắt) và **`Tạo lại`** (chạy lại TextRank).
+  - Bấm **`Xem tóm tắt`** -> Hiện bản tóm tắt trích xuất từ nội dung bài viết (bấm **`Thu gọn`** để đóng). Trong lúc tính hiện dòng *"Đang phân tích đồ thị câu và tính toán trọng số TextRank..."*.
+  - Chuyển đổi chế độ hiển thị: **`Đoạn văn liền mạch`** vs **`Từng câu cốt lõi`**.
+  - Chuyển đổi độ dài: **`Ngắn (3 câu)`** vs **`Chi tiết (5 câu)`**.
+  - Bấm **`Sao chép`** (chuyển thành *"Đã sao chép"*) và nút **Tạo lại tóm tắt** (chạy lại TextRank).
 - [ ] **Thanh tương tác bài viết (`PostInteractionBar.vue`) khi là Guest:**
   - Xem được số lượng Upvote/Downvote, tổng số biểu cảm (6 loại Emoji: `👍 Thích`, `❤️ Yêu thích`, `😂 Haha`, `😮 Wow`, `😢 Buồn`, `😡 Phẫn nộ`) và số bình luận.
-  - Bấm **`Upvote`**, **`Downvote`**, chọn **Emoji Reaction**, bấm **`Lưu bài viết`**, hoặc bấm **`Báo cáo bài viết (🚩)`** -> Tất cả đều chặn lại, hiện thông báo và **mở `AuthModal`**.
-  - Bấm **`Chia sẻ`** -> Sao chép URL bài viết bình thường.
+  - Bấm **`Tán thành (Upvote)`**, **`Không tán thành (Downvote)`**, chọn **Emoji Reaction**, bấm **`Lưu`**, hoặc bấm **`Báo cáo`** -> Tất cả đều chặn lại, hiện thông báo và **mở `AuthModal`**.
+  - Bấm **`Chia sẻ`** -> toast *"Đã sao chép liên kết vào bộ nhớ tạm!"*.
 - [ ] **Khu vực Bình luận (`PostComments.vue` & `CommentItem.vue`) khi là Guest:**
-  - Xem được danh sách bình luận gốc, bình luận trả lời đa cấp (Replies), ảnh đính kèm trong bình luận, nhãn cảm xúc AI (`Tích cực` / `Tiêu cực` / `Trung lập`) và **Biểu đồ Tỉ lệ Cảm xúc Bình luận** (tổng hợp % Tích cực, Trung lập, Tiêu cực).
-  - Thay vì ô nhập bình luận, hiển thị hộp kêu gọi *"Đăng nhập để tham gia thảo luận"* -> Bấm vào mở `AuthModal`.
-  - Trên từng bình luận: Bấm nút **`Thích`**, chọn **Emoji biểu cảm**, bấm **`Trả lời`**, hoặc bấm **`Báo cáo`** -> Đóng popup emoji (nếu đang mở) và **bật `AuthModal`**.
+  - Xem được danh sách bình luận gốc, bình luận phản hồi đa cấp (nút *"Xem tất cả N phản hồi"* / *"Thu gọn N phản hồi"*), ảnh đính kèm trong bình luận, nhãn cảm xúc AI và thanh **`Cảm xúc AI:`** tổng hợp `% Tích cực`, `% Trung lập`, `% Tiêu cực`.
+  - Ô **`Viết bình luận...`** vẫn hiển thị; Guest gõ nội dung và bấm **`Gửi`** -> **bật `AuthModal`**.
+  - Trên từng bình luận: Bấm biểu tượng **Thả cảm xúc** (mặt cười +), bấm **`Phản hồi`** (toast *"Vui lòng đăng nhập để phản hồi bình luận"*), hoặc bấm **`Báo cáo`** (toast *"Vui lòng đăng nhập để báo cáo bình luận"*) -> **bật `AuthModal`**.
 - [ ] **Bảo vệ bài viết Nháp (`DRAFT`) hoặc Đã ẩn (`HIDDEN`) trước Guest:**
   - Truy cập `/posts/:id` của một bài viết đang ở trạng thái `DRAFT` hoặc `HIDDEN` -> Backend trả về `404 Not Found`, Frontend hiển thị màn hình *"Không tìm thấy bài viết"*, tuyệt đối không lộ nội dung nháp.
 
@@ -178,22 +177,22 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 - [ ] **Tương tác Bài viết & Quy tắc Loại trừ lẫn nhau (Mutual Exclusivity) giữa Vote và Emoji:**
   - Bấm **`Upvote (+1)`** -> Điểm tăng 1. Sau đó thả biểu cảm **`❤️ LOVE`** vào cùng bài viết -> Hệ thống tự động gỡ `Upvote` và chuyển sang trạng thái `LOVE` (và ngược lại: đang có Emoji mà bấm `Upvote`/`Downvote` thì tự động gỡ Emoji).
   - Bấm lại chính biểu cảm `❤️ LOVE` đang chọn -> Gỡ biểu cảm về trạng thái trống.
-  - Bấm **`Lưu bài viết (Bookmark)`** -> Lưu vào `/bookmarks`.
-  - Bấm **`Báo cáo bài viết (🚩)`** -> Chỉ hiển thị trên bài viết của **người khác** (ẩn trên bài viết của chính mình). Chọn lý do báo cáo và gửi -> Tạo báo cáo `PENDING` cho Admin/Mod.
+  - Bấm **`Lưu`** -> Lưu vào `/bookmarks`.
+  - Bấm **`Báo cáo`** -> Chỉ hiển thị trên bài viết của **người khác** (ẩn trên bài viết của chính mình). Chọn lý do báo cáo (`Spam hoặc quảng cáo`, `Nội dung không phù hợp`, `Quấy rối hoặc bắt nạt`, `Thông tin sai lệch`, `Vi phạm bản quyền`, `Lý do khác` — dạng chữ, không kèm emoji) và gửi -> Tạo báo cáo `PENDING` cho Admin/Mod.
 - [ ] **Viết Bình luận, Đính kèm Ảnh & Phân tích Cảm xúc AI 4-Gram (`SentimentAnalysisService`):**
-  - Mở bảng **16 Emoji nhanh** để chèn icon vào ô bình luận.
-  - Bấm biểu tượng **Đính kèm ảnh** -> Tải ảnh lên bình luận, có nút `X` để gỡ ảnh trước khi gửi.
-  - Gửi bình luận tiếng Việt tích cực (VD: *"Bài viết rất hay, phân tích sâu sắc và cực kỳ hữu ích!"*) -> Bình luận xuất hiện ngay lập tức kèm nhãn **`Tích cực (Positive)`** màu xanh lá và cập nhật thanh **Tỉ lệ cảm xúc**.
+  - Bấm nút **`Biểu tượng cảm xúc`** để mở bảng **16 Emoji nhanh** chèn vào ô bình luận.
+  - Bấm biểu tượng **`Đính kèm ảnh`** -> Tải ảnh lên bình luận, có nút `X` để gỡ ảnh trước khi gửi.
+  - Gửi bình luận tiếng Việt tích cực (VD: *"Bài viết rất hay, phân tích sâu sắc và cực kỳ hữu ích!"*) -> Bình luận xuất hiện ngay lập tức kèm nhãn **`Tích cực`** màu xanh lá và cập nhật thanh **Cảm xúc AI**.
   - Gửi bình luận có phủ định kép / chuyển ý 4-Gram (VD: *"Tưởng không hay nhưng lại hay không tưởng"*) -> Nhãn cảm xúc nhận diện chính xác.
-  - Bấm **`Trả lời`** trên 1 bình luận -> Gửi bình luận con (Reply), hiển thị thụt lề dưới bình luận gốc.
-  - Thả biểu cảm Emoji (`LIKE`, `LOVE`, `HAHA`, `WOW`, `SAD`, `ANGRY`) lên từng bình luận.
-- [ ] **Ma trận Quyền Xóa Bình luận:**
+  - Bấm **`Phản hồi`** trên 1 bình luận -> ô nhập đổi thành *"Viết phản hồi..."*, gửi bình luận con hiển thị thụt lề dưới bình luận gốc.
+  - Bấm biểu tượng **Thả cảm xúc** để chọn 1 trong 6 emoji (`👍 ❤️ 😂 😮 😢 😡`) cho từng bình luận.
+- [ ] **Ma trận Quyền Xóa Bình luận** (nút **`Xóa`** -> hộp xác nhận *"Xóa bình luận"*):
   - **Người viết bình luận:** Thấy nút `Xóa` trên bình luận của chính mình.
   - **Tác giả của bài viết (`postAuthorId`):** Thấy nút `Xóa` trên **mọi bình luận** nằm trong bài viết của mình để tự quản lý thảo luận.
   - **`MODERATOR` / `ADMIN`:** Thấy nút `Xóa` trên **mọi bình luận** toàn hệ thống.
 - [ ] **Xem bài viết Nháp (`DRAFT`) hoặc Đã ẩn (`HIDDEN`) khi có quyền:**
   - **Tác giả bài viết** (đối với bài `DRAFT`/`HIDDEN` của mình) hoặc **`MODERATOR`/`ADMIN`**: Truy cập `/posts/:id` xem được nội dung kèm băng rôn cảnh báo trạng thái ở đầu bài; hệ thống **tự động ẩn** thanh tương tác & khu vực bình luận và **không** gọi API `/comments` (không gây lỗi `404` giả).
-  - **Tác giả bài viết**: Thấy nút **`Chỉnh sửa`** và **`Xóa bài viết`** trên bài của mình.
+  - **Tác giả bài viết**: Thấy nút **`Chỉnh sửa`** và **`Xóa`** ngay trên phần đầu bài (bấm `Xóa` -> hộp xác nhận nút **`Xóa bài viết`**).
 
 ---
 
@@ -204,24 +203,26 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 - [ ] Gọi trực tiếp `POST /api/posts`, `PUT /api/posts/{id}`, `DELETE /api/posts/{id}` hoặc `POST /api/files/upload` không có cookie -> Trả về **`401 Unauthorized`**.
 
 ### 5.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
-- [ ] **Trình soạn thảo Rich-Text TipTap (`PostFormView.vue`):**
-  - Kiểm tra đầy đủ thanh công cụ: In đậm (`B`), In nghiêng (`I`), Gạch chân (`U`), Gạch ngang (`S`), Tiêu đề (`H1`, `H2`, `H3`), Danh sách chấm & số, Trích dẫn (`Blockquote`), Khối code (`Code Block`), Căn lề (Trái/Giữa/Phải), Chèn liên kết (`Link`), Chèn ảnh vào nội dung, Hoàn tác (`Undo`/`Redo`).
+- [ ] **Trình soạn thảo Rich-Text TipTap (`CreatePostView` / `EditPostView` -> `PostEditor.vue`):**
+  - Kiểm tra đầy đủ thanh công cụ: `Hoàn tác (Undo)`, `Làm lại (Redo)`, In đậm (`Bold`), In nghiêng (`Italic`), Gạch ngang (`Strike`), Tiêu đề `Heading 1` / `Heading 2`, `Bulleted list`, `Numbered list`, `Quote`, `Code`, `Link`, và **Chèn ảnh / Bộ sưu tập ảnh** (chọn 1 hoặc nhiều ảnh). (Không có Gạch chân, `H3` hay Căn lề.)
+  - Bấm nút **Xem trước** để xem bản hiển thị trước khi đăng.
 - [ ] **Kiểm tra Ràng buộc Dữ liệu (Validation) & Chống XSS:**
-  - Để trống Tiêu đề, chưa chọn Danh mục, hoặc Nội dung văn bản thuần `< 50` ký tự -> Báo lỗi rõ ràng, không cho gửi.
+  - Để trống Tiêu đề hoặc chưa chọn Danh mục -> báo lỗi, không cho gửi. Chân trình soạn thảo hiển thị *"Tối thiểu 50 ký tự"* (đổi thành *"Đã đạt độ dài tối thiểu"* khi đủ); gửi nội dung `< 50` ký tự -> lỗi *"Nội dung bài viết quá ngắn (yêu cầu ít nhất 50 ký tự)"*.
   - Chèn thử mã độc `<script>alert(1)</script>` hoặc `onerror=...` vào nội dung -> Backend `HtmlSanitizer` tự động lọc sạch thẻ nguy hiểm trước khi lưu DB.
 - [ ] **Tải ảnh bìa & Cụm ảnh Collage (`images`):**
-  - Tải ảnh bìa chính (`coverImage`) và tải nhiều ảnh phụ để tạo lưới ảnh Collage.
+  - Tải ảnh bìa chính (`coverImage`, PNG/JPG tối đa 5MB) và chèn nhiều ảnh vào nội dung để tạo lưới ảnh Collage.
 - [ ] **Đính kèm Vị trí Địa lý (`LocationPickerModal.vue` — Leaflet + Nominatim):**
-  - Bấm **`Gắn vị trí địa điểm`** -> Mở modal bản đồ.
-  - Tìm kiếm địa điểm (VD: *"Trường Đại học Tài nguyên và Môi trường TP.HCM"* hoặc *"Chợ Bến Thành"*) hoặc bấm trực tiếp lên bản đồ / bấm **`Vị trí hiện tại của tôi`** -> Tự động lấy tọa độ `latitude`, `longitude` và tên địa điểm `locationName` gắn vào bài viết.
+  - Bấm **`Ghim vị trí`** -> Mở modal bản đồ.
+  - Tìm kiếm địa điểm (ô *"Tìm kiếm địa điểm, quán ăn, đường phố..."*, VD: *"Trường Đại học Tài nguyên và Môi trường TP.HCM"*) hoặc bấm trực tiếp lên bản đồ / bấm **`Vị trí hiện tại`** -> Bấm **`Xác nhận`** -> tọa độ và địa chỉ được gắn vào bài viết (hiển thị thẻ địa chỉ có nút `X` để gỡ).
 - [ ] **Đính kèm Thời gian Sự kiện & Thẻ Tags:**
-  - Khi chọn danh mục `Sự kiện` (hoặc bật tùy chọn sự kiện), chọn `Thời gian bắt đầu (eventStartAt)` và `Thời gian kết thúc (eventEndAt)`.
-  - Thêm các thẻ Tag (tối đa **5 tags**, bấm `Enter` để tạo tag, bấm `X` để xóa tag).
+  - Khi chọn danh mục `Sự kiện`, khung **`Thời gian sự kiện`** xuất hiện để chọn thời gian bắt đầu / kết thúc. Thời gian kết thúc trước thời gian bắt đầu -> lỗi *"Thời gian kết thúc sự kiện phải sau thời gian bắt đầu"*.
+  - Thêm thẻ Tag trong ô **`Thêm tag...`** (tối đa **5 tags**, bấm `Enter` để tạo, bấm `X` để xóa).
 - [ ] **Lưu Nháp (`DRAFT`) vs Xuất bản (`PUBLISHED`):**
-  - Bấm **`Lưu bản nháp`** -> Bài viết lưu ở trạng thái `DRAFT`, xuất hiện trong tab `Nháp` ở trang Hồ sơ cá nhân, không hiện lên trang chủ công khai.
-  - Bấm **`Xuất bản bài viết`** -> Bài viết chuyển sang `PUBLISHED`, tự động sinh vector ngữ nghĩa `TF-IDF` + đặc trưng ảnh `CBIR 51 chiều` và xuất hiện trên Trang chủ / Bản đồ.
+  - Bấm **`Lưu nháp`** -> Bài viết lưu ở trạng thái `DRAFT`, xuất hiện trong tab `Nháp` ở trang Hồ sơ cá nhân, không hiện lên trang chủ công khai.
+  - Bấm **`Xuất bản`** (ở chế độ sửa là **`Lưu thay đổi`**) -> Bài viết chuyển sang `PUBLISHED`, tự động sinh vector ngữ nghĩa `TF-IDF` (ghi vào pgvector **sau khi giao dịch DB commit**) + đặc trưng ảnh `CBIR` và xuất hiện trên Trang chủ / Bản đồ.
+  - **Kiểm tra lập chỉ mục ngay:** Vừa xuất bản bài mới có từ khóa đặc trưng (VD: tiêu đề chứa *"Thử nghiệm pgvector"*) -> vào `/search` gõ `thu nghiem pgvector` -> bài mới xuất hiện ngay, không cần khởi động lại server.
 - [ ] **Bảo vệ Quyền Chỉnh sửa & Trạng thái Bài viết (`/posts/:id/edit`):**
-  - Người dùng A cố tình truy cập `/posts/:id/edit` của bài viết thuộc Người dùng B -> Hệ thống báo lỗi *"Bạn không có quyền chỉnh sửa bài viết này"* và đẩy về trang chi tiết bài viết (Backend chặn `403 Forbidden`).
+  - Người dùng A truy cập `/posts/:id/edit` của bài viết thuộc Người dùng B -> trang hiển thị thẻ lỗi *"Bạn không có quyền chỉnh sửa bài viết của người khác"* kèm nút **`Về trang chủ`** (Backend cũng chặn `403 Forbidden` nếu gọi API).
   - Bài viết đã bị Admin/Moderator khóa (`status = HIDDEN`) -> Tác giả thường không thể tự sửa hoặc tự đổi trạng thái từ `HIDDEN` sang `PUBLISHED` (Backend trả về `400 Bad Request` nếu cố tình gửi `status: "HIDDEN"` hoặc tự mở khóa bài đã bị kiểm duyệt ẩn).
 
 ---
@@ -235,7 +236,7 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 ### 6.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
 - [ ] Hiển thị danh sách tất cả bài viết đã lưu của tài khoản hiện tại.
 - [ ] Bấm vào biểu tượng **Bookmark (`🔖`)** trên 1 bài trong trang `/bookmarks` -> Gỡ bài viết đó khỏi danh sách ngay lập tức.
-- [ ] Khi danh sách trống -> Hiển thị trạng thái trống kèm nút **`Khám phá bài viết`** (về `/`).
+- [ ] Khi danh sách trống -> Hiển thị *"Chưa có bài viết nào được lưu"* kèm nút **`Khám phá bài viết`** (về `/`).
 - [ ] **Kiểm tra Đăng xuất ngay tại trang `/bookmarks`:** Bấm `Đăng xuất` khi đang đứng ở `/bookmarks` -> Chuyển về trang chủ êm ái, **không** phát sinh bất kỳ thông báo lỗi `401` nào.
 
 ---
@@ -244,22 +245,30 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 
 ### 7.1. Khi KHÔNG ĐĂNG NHẬP (`Guest`)
 > [!TIP]
-> Toàn bộ 4 phương thức tìm kiếm AI của VietBlog đều **mở công khai 100% cho cả Guest** để giảng viên và người đọc trải nghiệm ngay mà không cần đăng nhập.
+> Toàn bộ phương thức tìm kiếm AI của VietBlog đều **mở công khai 100% cho cả Guest** để giảng viên và người đọc trải nghiệm ngay mà không cần đăng nhập.
 
 - [ ] **Phương thức 1 — Tìm kiếm Từ khóa & Ngữ nghĩa AI (`TF-IDF + Cosine Similarity / pgvector`):**
-  - Truy cập `/search`, nhập câu truy vấn tự nhiên (VD: *"xu hướng trí tuệ nhân tạo và lập trình hiện đại"*) -> Bấm `Tìm kiếm`.
-  - Chuyển đổi qua lại giữa 3 tab kết quả: **`Bài viết`**, **`Tác giả`**, **`Chủ đề (Tags)`**.
-  - Kiểm tra các **Chip từ khóa gợi ý** bên dưới thanh tìm kiếm -> Bấm vào chip tự động chạy tìm kiếm.
+  - Truy cập `/search` (hoặc bấm **`Tìm kiếm AI`** trên thanh bên trái): Mặc định công tắc **`Tìm kiếm AI`** ở trạng thái **`Bật`** (`textMode = 'semantic'`), trừ khi truy cập với `?type=keyword` (trạng thái **`Tắt`**).
+  - **Tìm từ khóa ngắn `"AI"`:** Nhập `"AI"` -> bấm **`Tìm kiếm`** -> Trả về các bài viết về AI ở cả hai chế độ `Bật` và `Tắt` (do `"ai"` không còn bị lọc trong stopword).
+  - **Tìm tiếng Việt có dấu vs không dấu:**
+    - Nhập `"da lat"` -> tìm thấy bài viết chứa `"Đà Lạt"`; nhập `"tri tue nhan tao"` -> tìm thấy bài chứa `"Trí tuệ nhân tạo"` (ở cả chế độ Tìm kiếm AI `Bật` và `Tắt`).
+    - Chuyển Tìm kiếm AI sang **`Tắt`** (chế độ từ khóa) rồi nhập từ có dấu **`"Đá Lạt"`** -> giữ so khớp chính xác dấu, **không** khớp nhầm `"Đà Lạt"`. (Chế độ từ khóa yêu cầu tất cả từ khóa truy vấn đều xuất hiện trong bài viết: tiêu đề, mô tả, nội dung, tags hoặc địa chỉ.)
+  - **3 tab kết quả (`Bài viết`, `Tác giả`, `Chủ đề`):**
+    - Huy hiệu **`AI Search`** chỉ hiển thị ở tab **`Bài viết`**.
+    - Chuyển sang tab **`Chủ đề`**: Tải tối đa 100 tag phổ biến; nhập `"AI"` chỉ khớp `#ai` và **tuyệt đối không** khớp nhầm `#saigon` (so khớp theo ranh giới từ).
+    - Chuyển sang tab **`Tác giả`**: Lọc theo tiền tố từ và không phân biệt dấu tiếng Việt.
+    - Gõ thay đổi từ khóa ở tab `Chủ đề` / `Tác giả` rồi bấm quay lại tab **`Bài viết`** -> Hệ thống **tự động chạy tìm kiếm lại** theo từ khóa đang nhập.
+  - Kiểm tra các **Chip từ khóa gợi ý** bên dưới (`Trí tuệ nhân tạo`, `Spring Boot`, `Vue 3`, ...) -> Bấm vào chip tự động chạy tìm kiếm.
 - [ ] **Phương thức 2 — Tìm kiếm bằng Hình ảnh (`CBIR 51-D HSV Color Histogram + Edge Density + Spatial Grid`):**
-  - Chuyển sang chế độ **`Tìm bằng hình ảnh`** (hoặc kéo thả file ảnh `.jpg/.png/.webp` vào vùng tải lên).
-  - Hiển thị ảnh xem trước (Preview) -> Hệ thống trích xuất vector đặc trưng thị giác **51 chiều** và trả về các bài viết có hình ảnh tương đồng kèm **điểm tương đồng (`Similarity %`)**.
+  - Bấm nút **Camera** (`Tìm bằng hình ảnh (PNG, JPG)`, tối đa `5MB`) trên thanh tìm kiếm để chọn tệp `.png` hoặc `.jpg`.
+  - Hiển thị thẻ chip **`Tìm kiếm theo ảnh`** kèm tên tệp + dung lượng (`KB`) và huy hiệu **`Tìm bằng ảnh`** -> Hệ thống trích xuất vector đặc trưng thị giác **51 chiều** và trả về danh sách `PostCard` tương đồng theo thứ tự giảm dần (lưu ý `PostCard` không hiển thị nhãn `%` và ô tìm kiếm không hỗ trợ kéo thả trực tiếp).
   - Thử tải lên file không phải ảnh (hoặc ảnh hỏng) -> Hệ thống trả lỗi `400` thân thiện, không bao giờ lỗi `500`.
-- [ ] **Phương thức 3 — Tìm kiếm bằng Tài liệu (`Document Search` — `.pdf`, `.docx`, `.txt`, `.md`):**
-  - Chuyển sang chế độ **`Tìm bằng tài liệu`**, tải lên 1 file `.pdf` hoặc `.docx` (VD: đề cương hoặc tài liệu công nghệ).
-  - Backend (`Apache PDFBox` / `Apache POI`) bóc tách văn bản từ tài liệu, hiển thị đoạn trích văn bản vừa đọc được và dùng thuật toán `TF-IDF` tìm ra các bài viết có nội dung sát nhất.
+- [ ] **Phương thức 3 — Tìm kiếm bằng Tài liệu (`Document Search` — `.pdf`, `.docx`):**
+  - Bấm nút **Tài liệu** (`Tìm bằng tài liệu (PDF, DOCX)`, tối đa `5MB`) để chọn 1 file `.pdf` hoặc `.docx`.
+  - Hiển thị thẻ chip **`Tìm kiếm theo tài liệu`** kèm tên tệp + dung lượng (`KB`) và huy hiệu **`Tìm bằng tài liệu`**; Backend (`Apache PDFBox` / `Apache POI`) bóc tách văn bản từ tài liệu và dùng `TF-IDF` xếp hạng các bài viết có nội dung sát nhất (giao diện không in đoạn trích văn bản từ tệp).
 
 ### 7.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
-- [ ] Thực hiện đầy đủ các phương thức tìm kiếm như trên; ngoài ra trên kết quả tìm kiếm có thể bấm **`Upvote`**, **`Lưu bài viết`** hoặc **`Theo dõi tác giả`** trực tiếp mà không bị chặn bởi `AuthModal`.
+- [ ] Thực hiện đầy đủ các phương thức tìm kiếm như trên; trên thẻ `PostCard` kết quả có thể bấm **Lưu (Bookmark)** trực tiếp (Upvote/Downvote thực hiện trong trang chi tiết bài viết), hoặc bấm **`Theo dõi`** trong tab **`Tác giả`** mà không bị chặn bởi `AuthModal`.
 
 ---
 
@@ -268,14 +277,14 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 ### 8.1. Khi KHÔNG ĐĂNG NHẬP (`Guest`)
 - [ ] **Hiển thị Bản đồ & Chống đè điểm ghim (Coordinate Jittering):**
   - Truy cập `/map` -> Bản đồ Leaflet tải đầy đủ các điểm ghim (Marker) bài viết có gắn tọa độ.
-  - Mỗi điểm ghim hiển thị **biểu tượng ghim bản đồ SVG (`Map Pin`)** màu xanh Sapphire (`#2b579a`) đồng bộ nhận diện thương hiệu và đổi sang màu cam (`#f97316`) khi đang chọn. Các bài viết trùng tọa độ được tự động tách nhẹ để không đè khít lên nhau.
+  - Mỗi điểm ghim hiển thị **biểu tượng ghim bản đồ SVG (`Map Pin`)** màu xanh Sapphire (`#2b579a`) và đổi sang màu xanh đậm hơn (**`#214478`**) khi đang chọn. Các bài viết trùng tọa độ được tự động tách nhẹ để không đè khít lên nhau.
 - [ ] **Tìm kiếm Bán kính Không gian (`1 km` – `50 km`):**
-  - Bấm nút **`Quanh HCMUNRE`** (hoặc bấm trực tiếp vào một điểm bất kỳ trên bản đồ, hoặc bấm **`Vị trí của tôi`**) -> Xuất hiện vòng tròn bán kính màu xanh trên bản đồ.
+  - Bấm nút **`Quanh HCMUNRE`**, **`Quanh vị trí tôi`**, hoặc bấm trực tiếp vào một điểm bất kỳ trên bản đồ -> Xuất hiện vòng tròn bán kính màu xanh trên bản đồ; bấm **`Xem tất cả`** để đặt lại chế độ toàn quốc.
   - Kéo thanh trượt **Bán kính (`1 km` -> `50 km`)** -> Danh sách bài viết bên cột trái tự động lọc theo khoảng cách thực tế (`PostGIS ST_DWithin` / `Haversine`) và hiển thị số **`km` cách tâm** trên từng bài.
 - [ ] **Bộ lọc Danh mục & Từ khóa trên Bản đồ:**
-  - Lọc theo từ khóa và chọn Danh mục trên thanh công cụ bản đồ -> Cập nhật đồng thời cả danh sách bên trái và các điểm ghim trên bản đồ.
+  - Ô lọc `"Lọc theo tiêu đề hoặc địa điểm..."` hỗ trợ tìm không phân biệt dấu tiếng Việt (VD: `"da lat"` khớp `"Đà Lạt"`). Dải lọc danh mục (`Tất cả`, `Công nghệ`, `Đời sống`, `Du lịch`, `Ẩm thực`, `Sự kiện` — dạng chữ thuần, không emoji) cập nhật đồng thời danh sách và các điểm ghim.
 - [ ] **Xem Thẻ bài viết trên Bản đồ & Điều hướng sâu (`/map?postId=:id`):**
-  - Bấm vào 1 điểm ghim hoặc 1 bài trong danh sách -> Bản đồ bay (`flyTo`) tới đúng tọa độ đó, mở thẻ chi tiết rút gọn kèm nút **`Đọc bài viết`** (chuyển sang `/posts/:id`).
+  - Bấm vào 1 điểm ghim hoặc 1 bài trong danh sách -> Bản đồ đưa tới đúng tọa độ đó, mở thẻ chi tiết rút gọn kèm nút **`Xem bài viết`** (chuyển sang `/posts/:id`).
   - Từ trang chi tiết bài viết có gắn vị trí, bấm vào tên địa điểm -> Chuyển sang `/map?postId=:id` và tự động focus đúng điểm ghim của bài viết đó.
 
 ### 8.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
@@ -289,23 +298,23 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 - [ ] **Truy cập `/profile` (không có `:id`):**
   - Khi Guest gõ `/profile` -> Hệ thống **không** báo lỗi *"Không tìm thấy người dùng"* mà tự động bật `AuthModal('login', '/profile')` và đưa về `/`. Sau khi đăng nhập xong sẽ vào thẳng `/profile` của mình.
 - [ ] **Truy cập Hồ sơ người dùng bất kỳ (`/profile/:id`):**
-  - Xem được Ảnh bìa, Avatar, Tên, Tiểu sử (`bio`), Ngày tham gia, thống kê số `Bài viết`, `Người theo dõi (Followers)`, `Đang theo dõi (Following)`.
+  - Xem được Ảnh bìa, Avatar, Tên, Tiểu sử (`bio`), Ngày tham gia, thống kê **`Bài viết`**, **`Followers`**, **`Following`**.
   - Xem được 2 tab công khai: **`Bài viết`** (các bài `PUBLISHED` của user đó) và **`Nhóm`** (các nhóm đã tham gia). **Không** hiển thị tab `Nháp` và `Đã lưu` của người khác.
-  - Bấm vào thống kê **`Người theo dõi`** hoặc **`Đang theo dõi`** -> Mở modal danh sách người dùng; bấm nút `Theo dõi` bên trong modal sẽ đóng modal và bật `AuthModal`.
-  - Trên đầu trang hồ sơ: Bấm nút **`Theo dõi`**, **`Nhắn tin`**, hoặc menu **`⋯` (`Chặn người dùng` / `Báo cáo người dùng`)** -> Tất cả đều bật `AuthModal`.
+  - Bấm vào thống kê **`Followers`** hoặc **`Following`** -> Mở modal danh sách gồm 2 tab **`Người theo dõi`** / **`Đang theo dõi`** (có ô tìm kiếm hỗ trợ không dấu tiếng Việt); bấm nút `Theo dõi` bên trong modal sẽ bật `AuthModal`.
+  - Trên đầu trang hồ sơ: Bấm nút **`Theo dõi`**, **`Nhắn tin`**, hoặc menu **`⋯` (`Chặn người dùng` / `Báo cáo`)** -> Tất cả đều bật `AuthModal`.
 - [ ] **Kiểm tra Quyền riêng tư Hồ sơ (`profileVisibility`):**
-  - Nếu chủ hồ sơ đã cài đặt quyền riêng tư là **`Riêng tư (private)`** hoặc **`Chỉ người theo dõi (followers)`** (trên cùng trình duyệt/origin) -> Khi đăng xuất về Guest hoặc xem bằng người chưa theo dõi tại `/profile/:id`, hệ thống hiển thị biểu tượng ổ khóa *"Hồ sơ này đang ở chế độ riêng tư"*, ẩn danh sách bài viết và nhóm.
+  - Nếu chủ hồ sơ đã cài đặt quyền riêng tư là **`Chỉ mình tôi` (`private`)** hoặc **`Chỉ người theo dõi` (`followers`)** -> Khi đăng xuất về Guest hoặc xem bằng người chưa theo dõi tại `/profile/:id`, hệ thống hiển thị biểu tượng ổ khóa với tiêu đề **`"Trang cá nhân riêng tư"`** và mô tả *"Người dùng này đã đặt trang cá nhân ở chế độ riêng tư."*, ẩn danh sách bài viết và nhóm.
 
 ### 9.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
 - [ ] **Khi xem Hồ sơ của CHÍNH MÌNH (`/profile` hoặc `/profile/<myId>`):**
-  - Hiển thị đầy đủ **4 Tab**: **`Bài viết`**, **`Nháp (Drafts)`**, **`Đã lưu (Bookmarks)`**, và **`Nhóm`**.
-  - Trong tab **`Nháp`**: Có thể bấm vào bài nháp để tiếp tục chỉnh sửa (`/posts/:id/edit`) hoặc xuất bản.
-  - Hiển thị nút **`Chỉnh sửa hồ sơ`** (chuyển sang `/settings`).
+  - Hiển thị đầy đủ **4 Tab**: **`Bài viết`**, **`Nháp`**, **`Đã lưu`**, và **`Nhóm`**.
+  - Trong tab **`Nháp`**: Có thể bấm vào bài nháp để tiếp tục chỉnh sửa (`/posts/:id/edit`) hoặc xóa bản nháp.
+  - Hiển thị nút **`Chỉnh sửa`** (chuyển sang `/settings`).
 - [ ] **Khi xem Hồ sơ của NGƯỜI DÙNG KHÁC (`/profile/:otherId`):**
-  - Bấm **`Theo dõi` / `Bỏ theo dõi`** -> Số lượng `Người theo dõi` tăng/giảm tức thì.
+  - Bấm **`Theo dõi` / `Đang theo dõi`** -> Số lượng `Followers` tăng/giảm tức thì.
   - Bấm **`Nhắn tin`** -> Tự động tạo hoặc mở cuộc trò chuyện 1-1 với người đó tại `/chat`.
-  - Bấm menu **`⋯` -> `Chặn người dùng`** -> Xác nhận chặn -> Đổi trạng thái thành `Đã chặn` (bấm lại để `Bỏ chặn`).
-  - Bấm menu **`⋯` -> `Báo cáo người dùng`** -> Gửi báo cáo vi phạm kiểu `USER` về trang Kiểm duyệt.
+  - Bấm menu **`⋯` -> `Chặn người dùng`** -> Xác nhận chặn -> Đổi thành **`Bỏ chặn người dùng`** (bấm lại để bỏ chặn).
+  - Bấm menu **`⋯` -> `Báo cáo`** -> Xác nhận gửi báo cáo vi phạm kiểu `USER` về trang Kiểm duyệt.
 
 ---
 
@@ -315,15 +324,16 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 - [ ] Truy cập `/settings` -> Router chặn lại, lưu `authRedirectPath = '/settings'` và bật `AuthModal`.
 
 ### 10.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
-- [ ] **Tab 1 — `Hồ sơ (ProfileTab.vue)`:**
-  - Thay đổi Tên hiển thị (`2–50` ký tự), Tiểu sử (`<= 250` ký tự), tải lên **Ảnh đại diện (`avatar`, `<= 5MB`)** từ máy tính -> Bấm `Lưu thay đổi` -> Cập nhật ngay trên Navbar và trang Hồ sơ.
-- [ ] **Tab 2 — `Tài khoản (AccountTab.vue)`:**
+- [ ] **Tab 1 — `Thông tin cá nhân` (`ProfileTab.vue`):**
+  - Thay đổi Tên hiển thị (`2–50` ký tự), Tiểu sử (`<= 250` ký tự), tải lên **Ảnh đại diện (`avatar`, `<= 5MB`)** từ máy tính -> Bấm **`Lưu thay đổi`** -> Cập nhật ngay trên Navbar và trang Hồ sơ.
+- [ ] **Tab 2 — `Tài khoản` (`AccountTab.vue`):**
   - **Đổi mật khẩu (`PUT /api/auth/me/password`):** Nhập mật khẩu hiện tại sai -> Báo lỗi `400`. Nhập đúng mật khẩu hiện tại + mật khẩu mới (`>= 8` ký tự) -> Đổi thành công.
   - **Vô hiệu hóa / Xóa tài khoản:**
-    - Nếu là **`USER` / `MODERATOR`**: Xác nhận vô hiệu hóa/xóa -> Gửi báo cáo yêu cầu tới Admin (`POST /api/reports`), gọi `POST /api/auth/logout` xóa sạch `HttpOnly Cookie`, xóa phiên hiện tại và đưa về `/login`.
-    - Nếu là **`ADMIN`**: Hệ thống cảnh báo và chặn tự vô hiệu hóa/xóa tài khoản Quản trị viên ngay lập tức.
-- [ ] **Tab 3 — `Thông báo (NotificationsTab.vue)` & Tab 4 — `Quyền riêng tư (PrivacyTab.vue)`:**
-  - Bật/tắt các công tắc nhận thông báo và chọn chế độ hiển thị hồ sơ (`Công khai` / `Chỉ người theo dõi` / `Riêng tư`) -> Lưu đồng bộ vào `localStorage` (`vb_user_prefs_<id>`) mà không ghi đè chéo dữ liệu giữa 2 tab.
+    - **`Vô hiệu hóa tài khoản`** (với `USER` / `MODERATOR`): Xác nhận -> Gửi yêu cầu tới Admin (`POST /api/reports`), gọi `POST /api/auth/logout` xóa sạch `HttpOnly Cookie`, thông báo và đưa về `/login`.
+    - **`Xóa tài khoản vĩnh viễn`** (với `USER` / `MODERATOR`): Xác nhận -> Gửi yêu cầu xóa tài khoản tới Admin (`POST /api/reports`), hiện toast *"Đã gửi yêu cầu xóa tài khoản tới Quản trị viên hệ thống."* (vẫn giữ phiên hiện tại chờ Admin xử lý).
+    - Nếu là **`ADMIN`**: Hệ thống cảnh báo (*"Tài khoản Quản trị viên (Admin) được bảo vệ và không thể tự khóa hoặc xóa"*) và chặn ngay cả hai thao tác.
+- [ ] **Tab 3 — `Thông báo` (`NotificationsTab.vue`) & Tab 4 — `Quyền riêng tư` (`PrivacyTab.vue`):**
+  - Bật/tắt các công tắc nhận thông báo và chọn chế độ hiển thị trang cá nhân (**`Tất cả mọi người`**, **`Chỉ người theo dõi`**, **`Chỉ mình tôi`**) -> Lưu đồng bộ vào `localStorage` (`vb_user_prefs_<id>`) mà không ghi đè chéo dữ liệu giữa 2 tab.
 
 ---
 
@@ -331,36 +341,36 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 
 ### 11.1. Khi KHÔNG ĐĂNG NHẬP (`Guest`)
 - [ ] **Trang Danh sách Nhóm (`/groups`):**
-  - Xem danh sách nhóm, tìm kiếm nhóm theo tên, lọc theo **`Tất cả` / `Công khai` / `Riêng tư`**.
-  - Bấm vào tab **`Nhóm của tôi`** hoặc nút **`+ Tạo nhóm mới`** -> Hiện thông báo và **bật `AuthModal`**.
-  - Trên thẻ nhóm (`GroupCard.vue`): Bấm **`Tham gia nhóm`** (nhóm công khai) hoặc **`Nhóm riêng tư`** -> Bật `AuthModal`; sau khi đăng nhập xong trên `AuthModal`, danh sách nhóm tự động làm mới trạng thái `Đã tham gia`.
+  - Xem danh sách nhóm, tìm kiếm nhóm trong ô `"Tìm kiếm nhóm..."` (hỗ trợ không phân biệt dấu tiếng Việt), lọc theo 3 nút **`Tất cả`**, **`Đã tham gia`**, **`Khám phá`**. (Khi là Guest bấm **`Đã tham gia`** sẽ hiển thị danh sách trống *"Không tìm thấy nhóm nào"*.)
+  - Bấm nút **`Tạo nhóm mới`** -> Hiện toast *"Vui lòng đăng nhập để tạo nhóm mới"* và **bật `AuthModal`**.
+  - Trên thẻ nhóm (`GroupCard.vue`): Bấm nút **`Tham gia`** -> Hiện toast *"Vui lòng đăng nhập để tham gia nhóm"* và **bật `AuthModal`**.
 - [ ] **Trang Chi tiết Nhóm CÔNG KHAI (`/groups/:id` với `isPublic = true`):**
   - Guest xem được đầy đủ cả 3 tab: **`Bài viết`**, **`Thành viên`** (kèm huy hiệu `Trưởng nhóm`, `Quản trị viên`, `Kiểm duyệt viên`, `Thành viên`), và **`Giới thiệu`**.
-  - Bấm vào 1 bài thảo luận -> Mở `GroupPostModal` hoặc trang `/groups/:id/posts/:postId`: Guest đọc được nội dung và bình luận thảo luận nhóm, nhưng khi bấm **`Thích`**, **`Gửi bình luận`**, **`Tham gia nhóm`** hoặc **`Báo cáo nhóm`** -> Bật `AuthModal`.
+  - Bấm vào 1 bài thảo luận -> Mở modal hoặc trang `/groups/:id/posts/:postId`: Guest đọc được nội dung và bình luận thảo luận nhóm, nhưng khi bấm **`Thích`**, **`Gửi bình luận`**, **`Tham gia nhóm`** hoặc **`Báo cáo`** -> Bật `AuthModal`.
 - [ ] **Trang Chi tiết Nhóm RIÊNG TƯ (`/groups/:id` với `isPublic = false`):**
-  - Guest xem được ảnh bìa, tên nhóm và tab **`Giới thiệu`**, nhưng ở tab **`Bài viết`** và **`Thành viên`** hiển thị màn hình khóa **`🔒 Nhóm riêng tư`** kèm nút **`Đăng nhập để kiểm tra quyền thành viên`** (không gọi API `/posts` gây lỗi).
+  - Guest xem được ảnh bìa, tên nhóm và tab **`Giới thiệu`**, nhưng ở tab **`Bài viết`** và **`Thành viên`** hiển thị màn hình khóa **`Nhóm riêng tư`** kèm nút **`Đăng nhập để kiểm tra quyền thành viên`** (không gọi API `/posts` gây lỗi).
   - Guest gõ trực tiếp URL `/groups/:id/posts/:postId` của một nhóm riêng tư -> Hệ thống tự động kiểm tra quyền đọc nhóm trước, hiện thông báo *"Nhóm riêng tư chỉ dành cho thành viên"* và điều hướng về `/groups/:id` êm ái (không bắn toast lỗi đỏ).
   - Gọi trực tiếp API `GET /api/groups/{privateId}/posts` hoặc `GET /api/groups/{privateId}/members` không có cookie -> Backend trả về đúng **`401 Unauthorized`**.
 
 ### 11.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / Thành viên / Trưởng nhóm / `MODERATOR` / `ADMIN`)
 - [ ] **Tạo nhóm mới (`CreateGroupModal.vue`):**
-  - Nhập tên nhóm, mô tả, tải ảnh đại diện & ảnh bìa, chọn **`Công khai`** hoặc **`Riêng tư`** -> Tạo thành công, người tạo tự động là **`Trưởng nhóm (OWNER)`**.
+  - Bấm **`Tạo nhóm mới`** -> Tải **`Ảnh đại diện nhóm`**, nhập **`Tên nhóm`**, **`Mô tả`**, chọn **`Chủ đề`**, chọn **`Loại nhóm`** (**`Công khai`** hoặc **`Riêng tư`**) -> Bấm **`Tạo nhóm`** thành công, người tạo tự động là **`Trưởng nhóm (OWNER)`**. (Ảnh bìa nhóm được cập nhật sau bằng nút **`Chỉnh sửa`** trong trang chi tiết nhóm.)
 - [ ] **Tham gia & Rời nhóm Công khai vs Ràng buộc Nhóm Riêng tư:**
-  - Với **Nhóm công khai**: Bấm **`Tham gia nhóm`** -> Trở thành thành viên ngay (`isJoined = true`), hiện nút **`Viết bài thảo luận`**. Bấm lại **`Đã tham gia`** -> Rời nhóm (Trưởng nhóm không thể tự rời nhóm của mình trước khi giải tán/chuyển quyền).
-  - Với **Nhóm riêng tư** (khi đăng nhập bằng tài khoản chưa phải thành viên): Hiển thị nhãn **`🔒 Liên hệ Trưởng nhóm / Quản trị viên để được thêm vào nhóm`** (Backend chặn tự bấm join vào nhóm riêng tư với mã `403 Forbidden`, chỉ cho phép Quản lý nhóm thêm thành viên qua `POST /api/groups/{id}/members`).
+  - Với **Nhóm công khai**: Bấm **`Tham gia`** / **`Tham gia nhóm`** -> Trở thành thành viên ngay (`isJoined = true`), hiện nút **`Viết bài thảo luận`**. Bấm lại **`Đã tham gia`** -> Rời nhóm (Trưởng nhóm không thể tự rời nhóm của mình trước khi giải tán/chuyển quyền).
+  - Với **Nhóm riêng tư** (khi đăng nhập bằng tài khoản chưa phải thành viên): Thẻ nhóm hiện nhãn **`Cần lời mời`**, trang chi tiết hiển thị **`Liên hệ Trưởng nhóm / Quản trị viên để được thêm vào nhóm`** (Backend chặn tự join nhóm riêng tư với mã `403 Forbidden`, chỉ cho phép Quản lý nhóm thêm thành viên qua `POST /api/groups/{id}/members`).
 - [ ] **Đăng bài thảo luận, Thích & Bình luận trong Nhóm:**
   - Thành viên đã tham gia bấm **`Viết bài thảo luận`** (`CreateGroupPostModal.vue`) -> Nhập tiêu đề, nội dung, ảnh đính kèm -> Đăng bài thành công.
-  - Mở chi tiết thảo luận (`GroupPostModal` hoặc `/groups/:id/posts/:postId`): Bấm **`Thích`** bài thảo luận, viết **Bình luận** và **Xóa bình luận** của mình.
+  - Mở chi tiết thảo luận (`/groups/:id/posts/:postId` hoặc modal): Bấm **`Thích`** bài thảo luận, viết **Bình luận** và **Xóa bình luận** của mình.
 - [ ] **Quản trị Nhóm (Dành cho `OWNER` / `ADMIN` nhóm / Hệ thống `MODERATOR` & `ADMIN`):**
-  - **Chỉnh sửa thông tin nhóm (`Edit Group Modal`):** Đổi tên, mô tả, ảnh đại diện, ảnh bìa, đổi chế độ `Công khai <-> Riêng tư`.
+  - **Chỉnh sửa thông tin nhóm (nút **`Chỉnh sửa`** trên đầu trang nhóm):** Đổi tên, mô tả, ảnh đại diện, ảnh bìa, đổi quyền riêng tư (`Công khai` / `Riêng tư`).
   - **Quản lý thành viên (Tab `Thành viên`):**
-    - `OWNER` bấm biểu tượng **Khiên (`🛡️`)** trên thành viên -> **Bổ nhiệm làm Quản trị viên (`ADMIN`)** hoặc **Hạ quyền về Thành viên (`MEMBER`)**.
-    - `OWNER` / `ADMIN` nhóm bấm biểu tượng **Mời ra khỏi nhóm (`UserMinus`)** -> Xóa thành viên khỏi nhóm.
-  - **Xóa bài thảo luận & Giải tán nhóm:** Tác giả bài viết hoặc Quản lý nhóm xóa được bài thảo luận; `OWNER` hoặc Hệ thống `ADMIN`/`MODERATOR` bấm **`Giải tán`** xóa toàn bộ nhóm.
+    - `OWNER` bấm nút biểu tượng **Khiên** (`Bổ nhiệm quản trị viên` / `Hạ quyền quản trị`) để nâng hoặc hạ quyền `ADMIN` trong nhóm.
+    - `OWNER` / `ADMIN` nhóm bấm nút **`UserMinus`** để mời thành viên ra khỏi nhóm.
+  - **Xóa bài thảo luận & Giải tán nhóm:** Tác giả bài viết hoặc Quản lý nhóm xóa được bài thảo luận; `OWNER` hoặc Hệ thống `ADMIN`/`MODERATOR` bấm **`Giải tán`** để xóa toàn bộ nhóm.
 
 ---
 
-## PHẦN 12: Nhắn Tin Thời Gian Thực (`/chat`, `ChatPopupWindow` & `MainNavbarChat` — WebSocket + Redis Pub/Sub)
+## PHẦN 12: Nhắn Tin Thời Gian Thực (`/chat`, `ChatPopup` & `MainNavbarChat` — WebSocket + Redis Pub/Sub)
 
 ### 12.1. Khi KHÔNG ĐĂNG NHẬP (`Guest`)
 - [ ] Biểu tượng Messenger (`MainNavbarChat`) trên Navbar và bong bóng `ChatPopup` ở góc dưới bên phải **ẩn hoàn toàn**.
@@ -380,12 +390,12 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
     - Thấy kết nối **`ws://localhost:8080/ws/chat`** đạt trạng thái **`101 Switching Protocols`** (xác thực trực tiếp qua `Cookie: vietblog_access_token=...` bởi `ChatWebSocketHandler` + `AuthCookieService`, hoàn toàn không lộ `?token=...` trên URL).
     - Bấm vào tab **`Messages`** của kết nối WS: Thấy ngay gói tin đầu tiên từ Server gửi về là `{"type":"authenticated","userId":"..."}`, và cứ mỗi **`25 giây`** Client tự gửi `{"type":"ping"}` -> Server phản hồi `{"type":"pong"}`.
 - [ ] **2. Test Real-time Sự kiện `conversation.created` (Tạo hội thoại 1-1 & Nhóm chat):**
-  - Bên máy `User A`: Mở `/chat` -> Bấm **`Tạo cuộc trò chuyện mới`** (`NewChatModal.vue`) -> Chọn `User B` (hoặc chọn nhiều người để tạo **Nhóm chat** có đặt tên riêng).
+  - Bên máy `User A`: Mở `/chat` -> Mở modal **`Tin nhắn mới`** (`NewChatModal.vue`) -> Tìm kiếm người dùng (ô `"Tìm kiếm người dùng..."`, hỗ trợ không dấu tiếng Việt), chọn `User B` hoặc bấm **`Nhóm`** để chọn nhiều người tạo nhóm chat -> Bấm **`Bắt đầu trò chuyện`**.
   - **Kết quả Real-time bên máy `User B` (không cần F5):** Cột danh sách hội thoại bên trái trang `/chat` và menu thả xuống `MainNavbarChat` tự động nhảy cuộc trò chuyện mới lên đầu danh sách ngay lập tức.
-- [ ] **3. Test Real-time Sự kiện `message.created` trên cả 3 vị trí (`MainNavbarChat`, `ChatPopupWindow`, `/chat`):**
+- [ ] **3. Test Real-time Sự kiện `message.created` trên cả 3 vị trí (`MainNavbarChat`, `ChatPopup`, `/chat`):**
   - **Trường hợp A (`User B` đang ở trang chủ `/` và đóng khung chat):**
     - `User A` gửi 1 tin nhắn văn bản (kèm Emoji) -> Ngay lập tức biểu tượng Messenger (`MainNavbarChat`) trên thanh Navbar của `User B` hiện **badge đỏ số đếm chưa đọc (`1`) nhấp nháy (`animate-pulse`)**.
-  - **Trường hợp B (`User B` mở cửa sổ chat thu nhỏ `ChatPopupWindow` ở góc dưới phải hoặc mở trang `/chat`):**
+  - **Trường hợp B (`User B` mở cửa sổ chat thu nhỏ `ChatPopup` ở góc dưới phải hoặc mở trang `/chat`):**
     - `User A` lần lượt gửi **Tin nhắn chữ**, **Hình ảnh**, **Tệp đính kèm (`File`)**, và **Trả lời trích dẫn (`Reply`)** 1 tin nhắn cũ.
     - **Kết quả Real-time bên máy `User B`:** Tin nhắn, ảnh, file và khung trích dẫn hiện ra tức thì trong khung chat và tự động cuộn xuống cuối (`scrollToBottom`).
 - [ ] **4. Test Real-time Sự kiện `conversation.read` (Trạng thái "Đã xem" / Read Receipt):**
@@ -393,16 +403,16 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - **Kết quả Real-time bên máy `User A`:** Trạng thái dưới chân tin nhắn của `User A` tự động chuyển từ `Đã gửi` sang **`Đã xem`** (`status = "read"`) ngay lập tức.
 - [ ] **5. Test Real-time Sự kiện `message.revoked` (Thu hồi tin nhắn 2 chiều):**
   - Bên máy `User A`: Di chuột vào tin nhắn vừa gửi -> Bấm **`Thu hồi`**.
-  - **Kết quả Real-time bên máy `User B`:** Nội dung tin nhắn (cả trong trang `/chat`, cửa sổ nổi `ChatPopupWindow` và dòng preview hội thoại) lập tức biến thành ***"Tin nhắn đã bị thu hồi"*** mà không cần tải lại trang.
+  - **Kết quả Real-time bên máy `User B`:** Nội dung tin nhắn (cả trong trang `/chat`, cửa sổ nổi `ChatPopup` và dòng preview hội thoại) lập tức biến thành ***"Tin nhắn đã bị thu hồi"*** mà không cần tải lại trang.
 - [ ] **6. Test Real-time Sự kiện `message.updated` (Ghim / Bỏ ghim tin nhắn):**
-  - Bên máy `User A`: Bấm **`Ghim`** 1 tin nhắn quan trọng -> Thanh ghim trên đầu khung chat và biểu tượng ghim (`📌`) xuất hiện ngay lập tức ở cả màn hình `User A` và `User B`. Bấm **`Bỏ ghim`** -> Biến mất tức thì ở cả 2 bên.
+  - Bên máy `User A`: Bấm **`Ghim`** 1 tin nhắn quan trọng -> Thanh ghim trên đầu khung chat và danh sách **`Xem tin nhắn đã ghim`** cập nhật ngay lập tức ở cả màn hình `User A` và `User B`. Bấm **`Bỏ ghim`** -> Biến mất tức thì ở cả 2 bên.
 - [ ] **7. Test Real-time Sự kiện `conversation.nickname` (Đổi biệt danh 1-1):**
-  - Trong hội thoại 1-1, `User A` mở panel phải (`ChatInfoSidebar`) hoặc menu cửa sổ popup -> Đổi biệt danh cho `User B` -> Sự kiện `conversation.nickname` được đồng bộ qua WebSocket tức thì.
-- [ ] **8. Các tính năng Quản lý Hội thoại & Chặn 2 chiều (`ChatInfoSidebar`):**
-  - **Tìm kiếm tin nhắn trong hội thoại:** Nhập từ khóa để lọc các tin nhắn cũ trong cuộc trò chuyện.
-  - **Ghim hội thoại (`Pin`), Tắt thông báo (`Mute`), Đánh dấu chưa đọc (`Mark Unread`), Ẩn/Xóa hội thoại.**
-  - **Kho lưu trữ chung:** Xem lại toàn bộ **Ảnh/Video**, **Tệp đính kèm (`Files`)** và **Liên kết (`Links`)** đã gửi trong hội thoại.
-  - **Chặn & Bỏ chặn 2 chiều trong Chat:** Khi `User A` chặn `User B` -> Khung nhập tin nhắn khóa lại và nếu cố gửi API `POST /api/conversations/{id}/messages` sẽ bị Backend chặn **`403 Forbidden`**; bấm `Bỏ chặn` để nhắn tin trở lại.
+  - Trong hội thoại 1-1, `User A` mở panel phải (`ChatInfoPanel.vue`) bấm **`Chỉnh sửa biệt danh`** (hoặc trong menu `ChatPopup`) -> Đổi biệt danh cho `User B` -> Sự kiện `conversation.nickname` được đồng bộ qua WebSocket tức thì.
+- [ ] **8. Các tính năng Quản lý Hội thoại & Chặn 2 chiều (`ChatConversationItem` & `ChatInfoPanel`):**
+  - **Tìm kiếm cuộc trò chuyện & tìm tin nhắn trong hội thoại:** Thanh tìm kiếm hội thoại ở cột trái, `MainNavbarChat` và `ChatPopup` đều hỗ trợ gõ tiếng Việt không dấu; nút **`Tìm kiếm trong cuộc trò chuyện`** trên `ChatHeader` lọc các tin nhắn cũ.
+  - **Menu dấu `⋯` trên từng hội thoại cột trái (`ChatConversationItem.vue`):** **`Ghim cuộc trò chuyện` / `Bỏ ghim`**, **`Tắt thông báo` / `Bật thông báo`**, và **`Xóa đoạn chat`**.
+  - **Panel thông tin bên phải (`ChatInfoPanel.vue`):** **`Xem tin nhắn đã ghim`**, **`Chỉnh sửa biệt danh`**, **`File phương tiện và file`**, **`Tắt thông báo` / `Bật thông báo`**, **`Chặn người dùng` / `Bỏ chặn người dùng`**, **`Báo cáo`**, và **`Xóa cuộc trò chuyện`**. (Không có nút gọi thoại/video trên `ChatHeader`.)
+  - **Chặn & Bỏ chặn 2 chiều trong Chat:** Khi `User A` chặn `User B` -> Khung nhập tin nhắn khóa lại và nếu cố gửi API `POST /api/conversations/{id}/messages` sẽ bị Backend chặn **`403 Forbidden`**; bấm **`Bỏ chặn người dùng`** để nhắn tin trở lại.
 - [ ] **9. (Điểm cộng khi vấn đáp) Kiểm tra Redis Pub/Sub Relay & Cơ chế Tự phục hồi (`ChatEventRelay`):**
   - Mặc định mọi sự kiện `ChatEvent` sau khi commit DB (`TransactionPhase.AFTER_COMMIT`) được phát qua kênh Redis Pub/Sub **`vietblog.chat.events`**.
   - Nếu thử dừng container Redis (`docker stop vietblog-redis`), `ChatEventRelay` tự động bắt ngoại lệ và chuyển sang `deliverLocal(...)` -> Nhắn tin Real-time giữa `User A` và `User B` **vẫn hoạt động 100% không bị gián đoạn**.
@@ -419,12 +429,11 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 ### 13.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
 - [ ] **Kích hoạt & Kiểm tra Thông báo giữa 2 tài khoản (`User A` tác động -> `User B` nhận):**
   - Bên máy `User A`: Thả cảm xúc vào bài viết của `User B`, bình luận vào bài viết của `User B`, trả lời bình luận của `User B`, hoặc bấm **`Theo dõi`** `User B` -> Backend (`NotificationService.notify`) tự động ghi nhận thông báo mới vào DB.
-  - Bên máy `User B`: Bấm vào biểu tượng **Chuông (`🔔`)** trên Navbar (hoặc mở trang `/notifications` / tải lại trang) -> `uiStore.fetchNotifications()` tự động gọi `GET /api/notifications`, cập nhật số đếm badge đỏ trên chuông và hiển thị đầy đủ các thông báo vừa phát sinh.
+  - Bên máy `User B`: Bấm vào biểu tượng **Chuông** trên Navbar (hoặc mở trang `/notifications` / tải lại trang) -> `uiStore.fetchNotifications()` tự động gọi `GET /api/notifications`, cập nhật số đếm badge đỏ trên chuông và hiển thị đầy đủ các thông báo vừa phát sinh.
 - [ ] **Trang `/notifications` & Panel Chuông Navbar (`MainNavbarNotifications.vue`):**
-  - Chuyển đổi bộ lọc **`Tất cả`** và **`Chưa đọc`**.
+  - Trên dropdown chuông Navbar: Hiển thị các thông báo gần nhất, nút **`Đánh dấu tất cả đã đọc`** và nút **`Xem tất cả thông báo`** (chuyển tới `/notifications`). (Nút xóa từng thông báo nằm ở trang `/notifications`, không có trong dropdown.)
+  - Trên trang `/notifications` (`NotificationsView.vue`): Chuyển đổi bộ lọc **`Tất cả`** và **`Chưa đọc`**, bấm **`Đánh dấu tất cả đã đọc`** (`PUT /api/notifications/read-all`) hoặc bấm nút **Xóa (`Trash2`)** trên từng thông báo (`DELETE /api/notifications/{id}`).
   - Bấm vào 1 thông báo -> Tự động đánh dấu đã đọc (`PUT /api/notifications/{id}/read`), giảm số đếm chưa đọc và điều hướng chính xác tới bài viết (cuộn tới đúng `#comment-id` nếu là thông báo bình luận) hoặc hồ sơ người theo dõi.
-  - Bấm **`Đánh dấu tất cả đã đọc`** (`PUT /api/notifications/read-all`) -> Toàn bộ chấm xanh biến mất, badge về `0`.
-  - Bấm nút **Thùng rác (`🗑️`)** trên thông báo -> Xóa thông báo (`DELETE /api/notifications/{id}`).
 
 ---
 
@@ -432,45 +441,45 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
 
 ### 14.1. Kiểm tra Chặn Truy cập Trái phép (`Guest`, `USER`, `MODERATOR`)
 - [ ] **Khi là `Guest` (Chưa đăng nhập):**
-  - Truy cập bất kỳ đường dẫn `/admin/*` -> Đẩy về `/` và bật `AuthModal`.
+  - Truy cập bất kỳ đường dẫn `/admin/*` -> Router chuyển hướng về `/login?redirect=/admin...`.
   - Gọi bất kỳ API `/api/admin/**` hoặc `/api/moderation/**` -> Trả về **`401 Unauthorized`**.
 - [ ] **Khi là `USER` thường (`nguyenvanan@gmail.com`):**
   - Gõ trực tiếp `/admin` hoặc `/admin/moderation` trên thanh địa chỉ -> Router chặn và đẩy về `/`.
   - Gọi bất kỳ API `/api/admin/**`, `/api/moderation/**`, hoặc `POST/PUT/DELETE /api/categories` -> Backend trả về **`403 Forbidden`** chuẩn JSON (`errorCode: "FORBIDDEN"`).
 - [ ] **Khi là `MODERATOR` (`phamminhduc@gmail.com`):**
   - Truy cập `/admin` -> Tự động điều hướng vào **`/admin/moderation`** (trang mặc định của Kiểm duyệt viên).
-  - Thanh menu bên trái của Moderator **CHỈ hiển thị đúng 3 mục**: **`Kiểm duyệt (/admin/moderation)`**, **`Bài viết (/admin/posts)`**, và **`Nhóm (/admin/groups)`**.
+  - Thanh menu bên trái (`AdminSidebar.vue`) của Moderator **CHỈ hiển thị đúng 3 mục**: **`Bài viết (/admin/posts)`**, **`Kiểm duyệt (/admin/moderation)`**, và **`Nhóm (/admin/groups)`** (kèm nút **`Về trang chính`** ở đầu thanh bên).
   - Nếu Moderator cố tình gõ URL `/admin/users`, `/admin/categories`, `/admin/analytics`, hoặc `/admin/settings` -> Router tự động chặn và đẩy về `/admin/moderation`; gọi API `/api/admin/**` tương ứng bị Backend chặn **`403 Forbidden`**.
 
 ### 14.2. Kiểm tra 3 Phân hệ dùng chung cho `MODERATOR` & `ADMIN`
 - [ ] **1. Quản lý Kiểm duyệt & Báo cáo (`/admin/moderation`):**
-  - Xem danh sách báo cáo vi phạm (`POST`, `COMMENT`, `USER`, `GROUP`), lọc theo trạng thái **`Chờ xử lý (PENDING)`**, **`Đã giải quyết (RESOLVED)`**, **`Đã bác bỏ (DISMISSED)`**.
-  - Bấm **`Giải quyết (Resolve)`** hoặc **`Bác bỏ (Dismiss)`** kèm ghi chú kiểm duyệt -> Cập nhật trạng thái báo cáo ngay lập tức.
-  - **Công cụ Phân tích Cảm xúc Trực tiếp (`Live Sentiment Widget`):** Nhập thử 1 câu tiếng Việt bất kỳ vào hộp công cụ kiểm tra nhanh ở trang Kiểm duyệt -> Trả về nhãn cảm xúc (`Tích cực - positive` / `Tiêu cực - negative` / `Trung lập - neutral`) và điểm số ngay tại chỗ.
+  - Lọc danh sách báo cáo vi phạm (`POST`, `COMMENT`, `USER`, `GROUP`) theo 4 nút: **`Tất cả`**, **`Đang chờ`**, **`Đã xử lý`**, **`Bỏ qua`**.
+  - Trên từng thẻ báo cáo (`ModerationReportItem.vue`) kiểm tra 5 nút hành động: **`Xem nội dung`**, **`Giữ lại`**, **`Xóa nội dung`**, **`Cấm tài khoản` / `Cấm người đăng`**, và **`Bỏ qua`**.
+  - Khi bấm **`Xóa nội dung`** đối với báo cáo bài viết -> bài chuyển sang `HIDDEN`, đồng thời xóa khỏi chỉ mục tìm kiếm `pgvector` và làm mới cache `Thịnh hành` ngay lập tức.
+  - **Công cụ Phân tích Cảm xúc Trực tiếp (`ModerationSentimentWidget`):** Nhập thử 1 câu tiếng Việt bất kỳ vào hộp kiểm tra nhanh ở trang Kiểm duyệt -> Trả về nhãn cảm xúc (`Tích cực` / `Tiêu cực` / `Trung lập`) và điểm số ngay tại chỗ.
 - [ ] **2. Quản lý Bài viết (`/admin/posts`):**
-  - Tìm kiếm bài viết, lọc theo trạng thái (`Tất cả`, `Đã xuất bản`, `Bản nháp`, `Đã ẩn`).
-  - Bấm **`Ẩn bài viết (Hide)`** trên bài viết đang xuất bản -> Bài viết chuyển sang `HIDDEN` và biến mất khỏi trang chủ công khai.
-  - Bấm **`Hiện lại (Restore / Publish)`** trên bài viết đã ẩn -> Bài viết quay trở lại `PUBLISHED`.
-  - Bấm **`Xóa vĩnh viễn`** -> Xóa bài viết khỏi hệ thống.
+  - Tìm kiếm bài viết, lọc theo 4 trạng thái: **`Tất cả`**, **`Đã đăng`**, **`Nháp`**, **`Đã ẩn`**.
+  - Kiểm tra các nút trên từng dòng (`PostsManageTable.vue`): **`Xem trước bài viết`**, **`Xem trên trang web`**, **`Ẩn bài viết` / `Mở lại (Hiện bài)`** (nút này ẩn đối với bài `Nháp`), và **`Xóa bài viết`**.
+  - Bấm **`Ẩn bài viết`** trên bài đang xuất bản -> Bài chuyển sang `HIDDEN` và biến mất ngay khỏi Trang chủ, `/trending` và kết quả `/search` (cả semantic và keyword).
+  - Bấm **`Mở lại (Hiện bài)`** trên bài đã ẩn -> Bài quay trở lại `PUBLISHED` và được lập chỉ mục tìm kiếm lại ngay.
 - [ ] **3. Quản lý Hội nhóm (`/admin/groups`):**
-  - Tìm kiếm nhóm, xem số lượng thành viên/bài viết, bấm vào tên nhóm để kiểm tra nội dung bên trong (Mod/Admin xem được cả nhóm riêng tư), và bấm **`Giải tán nhóm`** đối với nhóm vi phạm.
+  - Lọc theo quyền riêng tư (`Tất cả`, `Công khai`, `Riêng tư`), tìm kiếm nhóm (hỗ trợ không dấu tiếng Việt), bấm **`Xem chi tiết nhóm`** (Mod/Admin xem được cả nhóm riêng tư) và **`Giải tán nhóm`** đối với nhóm vi phạm.
 
 ### 14.3. Kiểm tra 5 Phân hệ Độc quyền của `ADMIN` (`admin@vietblog.com`)
-- [ ] **4. Bảng điều khiển Tổng quan (`/admin` — `AdminOverviewView.vue`):**
-  - Xem các thẻ KPI tổng hợp (Tổng người dùng, Bài viết, Bình luận, Lượt xem, Báo cáo chờ xử lý), biểu đồ tăng trưởng, danh sách báo cáo mới nhất và nhật ký hoạt động quản trị (`Audit Logs`).
-- [ ] **5. Quản lý Người dùng (`/admin/users` — `AdminUsersView.vue`):**
-  - Tìm kiếm người dùng, lọc theo vai trò (`ADMIN`, `MODERATOR`, `USER`) và trạng thái (`Đang hoạt động`, `Đã khóa`).
-  - **Đổi vai trò (`Role`):** Nâng quyền 1 `USER` lên `MODERATOR` hoặc hạ về `USER`.
-  - **Khóa / Mở khóa tài khoản (`Ban / Unban`):** Khóa 1 tài khoản `USER` -> Tài khoản đó lập tức không thể đăng nhập hoặc gọi API (nhận `403 Tài khoản đã bị khóa`).
-  - **Bảo vệ tự khóa mình:** Admin không thể tự khóa hoặc tự hạ quyền của chính mình.
-- [ ] **6. Quản lý Danh mục & Thẻ Tag (`/admin/categories` — `CategoriesView.vue`):**
-  - **Danh mục (`Categories`):** Thêm danh mục mới (**tên danh mục** và **mô tả**, hệ thống tự động sinh `slug` chuẩn SEO, không dùng emoji/icon), chỉnh sửa danh mục, xóa danh mục (tự động chặn xóa nếu danh mục đang chứa bài viết).
-  - **Thẻ (`Tags`):** Xem thống kê các thẻ tag phổ biến và lọc danh mục theo trạng thái có/chưa có bài viết.
-- [ ] **7. Phân tích Chuyên sâu (`/admin/analytics` — `AdminAnalyticsView.vue`):**
-  - Xem biểu đồ thống kê bài viết theo danh mục, xu hướng tương tác, tỉ lệ cảm xúc bình luận toàn hệ thống và top tác giả có đóng góp cao nhất.
-- [ ] **8. Cài đặt Hệ thống (`/admin/settings` — `AdminSettingsView.vue`):**
-  - Chỉnh sửa tên website, mô tả, ngưỡng tự động kiểm duyệt AI.
-  - **Kiểm tra khóa Đăng ký thành viên mới (`allowRegistration`):** Tắt công tắc **`Cho phép đăng ký mới`** -> Bấm `Lưu cài đặt` -> Sang cửa sổ Ẩn danh (`Guest`) thử đăng ký tài khoản mới -> Backend chặn ngay với thông báo *"Hệ thống hiện đang tạm khóa chức năng đăng ký tài khoản mới"*. (Sau khi test xong, bật lại công tắc này về `true`).
+- [ ] **4. Bảng điều khiển Tổng quan (`/admin` — `DashboardView.vue`, mục `Dashboard` trên `AdminSidebar`):**
+  - Tiêu đề **`Dashboard Quản trị`**, xem các thẻ KPI tổng hợp (Tổng người dùng, Bài viết, Bình luận, Lượt xem, Báo cáo chờ xử lý), biểu đồ tăng trưởng, danh sách báo cáo mới nhất và hoạt động gần đây.
+- [ ] **5. Quản lý Người dùng (`/admin/users` — `UsersView.vue`):**
+  - Tìm kiếm người dùng (ô `"Tìm theo tên hoặc email..."`, hỗ trợ không dấu tiếng Việt) và lọc theo 4 nút vai trò: **`Tất cả`**, **`Admin`**, **`Mod`**, **`User`** (không có bộ lọc trạng thái riêng).
+  - Trên từng dòng (`UsersTable.vue`): Thao tác **`Phân quyền`** (nâng `USER` <-> `MODERATOR`), **`Cấm` / `Gỡ cấm`**, và **`Xóa`**.
+  - **Bảo vệ tài khoản Admin & chính mình:** Các tài khoản `ADMIN` và chính mình hiển thị **`Tài khoản được bảo vệ`** (không thể tự khóa, tự xóa hay hạ quyền); khi bị `Cấm`, tài khoản `USER` nhận `403` ngay khi đăng nhập hoặc gọi API.
+- [ ] **6. Quản lý Danh mục & Thẻ Tag (`/admin/categories` — `CategoriesView.vue`, mục `Danh mục & Tag` trên sidebar):**
+  - **Danh mục:** Bấm **`Thêm danh mục`** (nhập tên danh mục và mô tả, tự động sinh `slug`, không dùng emoji/icon), chỉnh sửa danh mục, xóa danh mục (tự động chặn xóa nếu danh mục đang chứa bài viết).
+  - **Quản lý thẻ Tag phổ biến:** Xem danh sách thẻ đang hoạt động, **đổi tên tag** hoặc **xóa tag** -> Hệ thống tự động cập nhật lại vector tìm kiếm và xóa cache danh mục/thịnh hành cho các bài viết bị ảnh hưởng.
+- [ ] **7. Thống kê (`/admin/analytics` — `AnalyticsView.vue`, mục `Thống kê` trên sidebar):**
+  - Xem 2 biểu đồ cột **`Người dùng mới`** và **`Bài viết mới`**, thẻ **`Top danh mục`**, và bảng **`Hoạt động gần đây`**.
+- [ ] **8. Cài đặt Hệ thống (`/admin/settings` — `SettingsView.vue`):**
+  - Chỉnh sửa **`Tên website`**, **`Mô tả`**, bật/tắt tính năng (`Chat real-time (Redis + WebSocket)`, `Bài viết theo vị trí (PostGIS)`, `Tìm kiếm ngữ nghĩa (pgvector)`), **`Cho phép đăng ký`**, **`Yêu cầu xác thực email`**, **`Ngưỡng tự động ẩn bài (số report)`**, và **`Bật chế độ bảo trì`** -> Bấm **`Lưu cài đặt`**.
+  - **Kiểm tra khóa Đăng ký thành viên mới (`allowRegistration`):** Tắt **`Cho phép đăng ký`** -> Bấm **`Lưu cài đặt`** -> Sang cửa sổ Ẩn danh (`Guest`) thử đăng ký tài khoản mới -> Backend chặn ngay với thông báo *"Hệ thống hiện đang tạm khóa chức năng đăng ký tài khoản mới"*. (Sau khi test xong, bật lại công tắc này về `true`.)
 
 ---
 
@@ -491,14 +500,14 @@ Khi đưa lên server/cloud có tên miền HTTPS thực tế, cấu hình các 
 1. **Phút 1–2 (Bảo mật Hạ tầng & `HttpOnly Cookie`):**
    - Mở `F12 -> Application`: Chứng minh `Local Storage` không chứa JWT; mở tab `Cookies` chỉ rõ `vietblog_access_token` và `vietblog_refresh_token` đều gắn cờ **`HttpOnly = ✓`**, kết hợp Docker chạy **PostgreSQL (`PostGIS` + `pgvector`)** và **Redis 7+**.
 2. **Phút 3–4 (Trải nghiệm Guest vs Auth & Tóm tắt AI `TextRank`):**
-   - Trên cửa sổ Ẩn danh (`Guest`), mở 1 bài viết dài -> Bấm **`Tóm tắt bằng AI`** trình diễn thuật toán `TextRank` (`Đoạn văn` / `Ý chính`, `3 câu` / `5 câu`).
-   - Bấm thử `Bookmark` khi là Guest -> Trình diễn `AuthModal` bật lên, đăng nhập bằng tài khoản **`User`** (`nguyenvanan@gmail.com` / `Password123!`) để tự động hoàn tất thao tác.
+   - Trên cửa sổ Ẩn danh (`Guest`), mở 1 bài viết dài -> Bấm **`Xem tóm tắt`** trình diễn thuật toán `TextRank` (**`Đoạn văn liền mạch`** / **`Từng câu cốt lõi`**, **`Ngắn (3 câu)`** / **`Chi tiết (5 câu)`**).
+   - Bấm thử `Bookmark` khi là Guest -> Trình diễn `AuthModal` bật lên, đăng nhập bằng tài khoản **`User`** (`nguyenvanan@gmail.com` / `Password123!`) để hoàn tất thao tác.
 3. **Phút 5–6 (AI Phân tích Cảm xúc 4-Gram & Tìm kiếm Đa phương thức `TF-IDF` + `CBIR 51 chiều`):**
-   - Viết bình luận có cấu trúc phủ định/chuyển ý tiếng Việt -> Chỉ rõ nhãn cảm xúc AI và thanh **Biểu đồ Tỉ lệ Cảm xúc**.
-   - Chuyển sang `/search`: Trình diễn tìm kiếm ngữ nghĩa văn bản, tải 1 tấm ảnh để tìm bài viết có ảnh tương đồng (**`CBIR 51 chiều`**), và tải 1 file `.pdf`/`.docx` để tìm bài viết liên quan.
+   - Viết bình luận có cấu trúc phủ định/chuyển ý tiếng Việt -> Chỉ rõ nhãn cảm xúc AI và thanh **`Cảm xúc AI`** (`% Tích cực / Trung lập / Tiêu cực`).
+   - Chuyển sang `/search` (`Tìm kiếm AI: Bật`): Trình diễn tìm kiếm `"AI"`, tìm không dấu `"da lat"` / `"tri tue nhan tao"`, tab **`Chủ đề`** (`"AI"` chỉ khớp `#ai`, không khớp `#saigon`), tải 1 tấm ảnh qua nút **Camera** (**`CBIR 51 chiều`**), và tải 1 file `.pdf`/`.docx` để tìm bài viết liên quan.
 4. **Phút 7–8 (Bản đồ Địa lý `PostGIS` & Chat Thời gian thực WebSocket):**
    - Mở `/map`, bấm **`Quanh HCMUNRE`**, kéo thanh bán kính `1–50 km` để lọc bài viết theo không gian.
    - Mở `/chat` (hoặc `ChatPopup`), gửi tin nhắn/hình ảnh real-time qua WebSocket xác thực bằng `HttpOnly Cookie`.
 5. **Phút 9–10 (Phân quyền 3 Cấp `USER` / `MODERATOR` / `ADMIN`):**
-   - Đăng nhập bằng tài khoản **`Moderator`** (`phamminhduc@gmail.com` / `Password123!`) -> Chỉ rõ giao diện giới hạn đúng 3 mục kiểm duyệt.
+   - Đăng nhập bằng tài khoản **`Moderator`** (`phamminhduc@gmail.com` / `Password123!`) -> Chỉ rõ giao diện giới hạn đúng 3 mục kiểm duyệt (`Bài viết`, `Kiểm duyệt`, `Nhóm`).
    - Đăng nhập bằng tài khoản **`Admin`** (`admin@vietblog.com` / `Password123!`) -> Mở `/admin` trình diễn toàn bộ 8 phân hệ quản trị, thống kê và công cụ kiểm tra cảm xúc NLP trực tiếp.
