@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { matchesQuery } from '@/utils/textSearch'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { X, UserPlus, UserMinus, Search as SearchIcon } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -75,6 +75,9 @@ async function toggleFollow(user: UserSummary) {
     if (props.user?.id === authStore.user?.id && typeof props.user.followingCount === 'number') {
       props.user.followingCount = Math.max(0, props.user.followingCount + delta)
     }
+    if (props.user && user.id === props.user.id && typeof props.user.followersCount === 'number') {
+      props.user.followersCount = Math.max(0, props.user.followersCount + delta)
+    }
     if (authStore.user && typeof authStore.user.followingCount === 'number') {
       authStore.user.followingCount = Math.max(0, authStore.user.followingCount + delta)
     }
@@ -89,6 +92,24 @@ function goToProfile(userId: string) {
   router.push(`/profile/${userId}`)
 }
 
+function onKeydown(e: KeyboardEvent) {
+  if (props.show && e.key === 'Escape') {
+    emit('close')
+  }
+}
+
+watch(() => props.show, (open) => {
+  if (open) {
+    window.addEventListener('keydown', onKeydown)
+  } else {
+    window.removeEventListener('keydown', onKeydown)
+  }
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
+
 // Reload when modal opens, type changes, or user changes
 watch(() => [props.show, props.type, props.user?.id], ([show, newType]) => {
   if (show) {
@@ -96,7 +117,7 @@ watch(() => [props.show, props.type, props.user?.id], ([show, newType]) => {
     searchQuery.value = ''
     loadList()
   }
-})
+}, { immediate: true })
 </script>
 
 <template>

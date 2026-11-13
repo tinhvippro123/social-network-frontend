@@ -58,7 +58,7 @@ const authApi = {
   forgotPassword: (data: { email: string }) =>
     http.post<ApiResponse<{ message: string; resetToken?: string; otp?: string; expiresInSeconds?: number }>>('/auth/forgot-password', data),
 
-  resetPassword: (data: { token: string; newPassword: string }) =>
+  resetPassword: (data: { token: string; newPassword: string; email?: string }) =>
     http.post<ApiResponse<void>>('/auth/reset-password', data),
 }
 

@@ -74,7 +74,8 @@ async function handleResetPassword() {
   try {
     await authApi.resetPassword({
       token: otpOrToken.value.trim(),
-      newPassword: newPassword.value
+      newPassword: newPassword.value,
+      email: email.value.trim(),
     })
     toast.success('Đặt lại mật khẩu thành công!')
     step.value = 3

@@ -517,7 +517,7 @@ export const mockConversations: ChatConversation[] = [
   {
     id: 'conv5', name: '🎨 CLB UI/UX & Frontend HCMUNRE', avatar: 'https://api.dicebear.com/9.x/identicon/svg?seed=uiuxclub',
     lastMessage: 'Trang: Design system mới bo góc rounded-2xl rất xịn!', lastMessageTime: 'Hôm qua', unreadCount: 0,
-    isGroup: true, isOnline: false, isPinned: false, isMuted: false, participants: [mockUsers[0], mockUsers[1], mockUsers[2], mockUsers[5]]
+    isGroup: true, isOnline: false, isPinned: false, isMuted: false, participants: [mockUsers[0], mockUsers[1], mockUsers[2], mockUsers[4]]
   },
   {
     id: 'conv6', name: 'Nguyễn Thu Trang', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=mai',

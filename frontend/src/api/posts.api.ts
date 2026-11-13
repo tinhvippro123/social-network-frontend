@@ -11,6 +11,7 @@ export interface PostsQuery {
   category?: string
   sort?: 'latest' | 'trending' | 'popular'
   search?: string
+  tag?: string
   status?: string
   authorId?: string
 }

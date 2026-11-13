@@ -70,6 +70,12 @@ watch(() => [props.isOpen, props.post?.id], ([open, id]) => {
   }
 }, { immediate: true })
 
+watch(() => props.post?.status, (newStatus) => {
+  if (detailedPost.value && newStatus) {
+    detailedPost.value = { ...detailedPost.value, status: newStatus }
+  }
+})
+
 function openInNewTab(path: string) {
   window.open(router.resolve(path).href, '_blank', 'noopener')
 }

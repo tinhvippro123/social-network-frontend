@@ -6,6 +6,7 @@ import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosErr
 import type { User } from '@/types'
 import { hasAuthSessionCookie } from '@/utils/cookies'
 import router from '@/router'
+import { useAuthStore } from '@/stores/auth.store'
 
 /** Response chuẩn từ Backend */
 export interface ApiResponse<T = unknown> {
@@ -140,7 +141,6 @@ http.interceptors.response.use(
         return Promise.reject(error)
       }
 
-      const { useAuthStore } = await import('@/stores/auth.store')
       const authStore = useAuthStore()
       const hadSession = authStore.isLoggedIn || hasAuthSessionCookie()
 

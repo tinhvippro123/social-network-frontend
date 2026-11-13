@@ -29,16 +29,21 @@ async function handleToggleBookmark(postId: string) {
   }
 }
 
+function loadTagPosts() {
+  if (!tagName.value) return
+  fetchPosts({ tag: tagName.value, limit: 100 })
+}
+
 onMounted(() => {
-  fetchPosts({ limit: 100 })
+  loadTagPosts()
 })
 
 watch(tagName, () => {
-  fetchPosts({ limit: 100 })
+  loadTagPosts()
 })
 
 watch(() => authStore.user?.id, () => {
-  fetchPosts({ limit: 100 })
+  loadTagPosts()
 })
 
 // Lọc chính xác các bài viết có gắn thẻ tag này

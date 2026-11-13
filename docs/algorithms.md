@@ -1,347 +1,117 @@
 # 🔬 Giải thuật nghiên cứu — VietBlog
 
-> **Lưu ý**: Tất cả giải thuật trong bài được **tự viết** theo hướng nghiên cứu khoa học (NCKH), không sử dụng thư viện AI/ML có sẵn, không train/test mô hình AI.
+> **Lưu ý**: Toàn bộ 6 giải thuật trong hệ thống được **tự cài đặt thuần Java/SQL** từ cơ sở lý thuyết, không sử dụng dịch vụ LLM hay mô hình AI/ML đóng gói sẵn bên ngoài. Tài liệu này mô tả chính xác kiến trúc và công thức đang vận hành trong mã nguồn Backend.
 
 ---
 
 ## 1. Giải thuật xếp hạng bài viết xu hướng (Trending Ranking)
 
+> Cài đặt tại: `com.vietblog.domain.service.PostDomainService`
+
 ### 1.1 Bài toán
 
-Xác định bài viết nào đang "hot" (trending) tại một thời điểm, cân bằng giữa:
-- **Popularity** (số vote, view, comment)
-- **Freshness** (bài mới được ưu tiên hơn bài cũ)
-- **Engagement rate** (tốc độ tương tác)
+Xác định bài viết đang thịnh hành tại một thời điểm, cân bằng giữa:
+- **Popularity & Engagement** (lượt upvote, downvote, bình luận và lượt xem)
+- **Statistical Confidence** (tránh bài mới có 1-2 lượt vote áp đảo bài có nhiều tương tác ổn định)
+- **Freshness** (phân rã theo thời gian đăng bài)
 
-### 1.2 Nghiên cứu tham khảo
+### 1.2 Công thức cài đặt
 
-| Platform | Công thức | Đặc điểm |
-|---|---|---|
-| **Reddit Hot** | `score = log10(max(abs(s), 1)) + sign(s) × t / 45000` | Logarithmic voting + linear time |
-| **Hacker News** | `score = (votes - 1)^0.8 / (age + 2)^1.8` | Gravity-based decay |
-| **Wilson Score** | Lower bound of Wilson confidence interval | Statistical approach |
+Kết hợp **Wilson Score Lower Bound** (khoảng tin cậy 95%, $z = 1.96$) với **Hacker News Gravity Decay** ($G = 1.8$):
 
-### 1.3 Công thức VietBlog (Tự phát triển)
+$$\text{baseScore} = \max(0, \text{upvotes} - \text{downvotes}) \times 2.0 + \text{comments} \times 3.0 + \text{views} \times 0.1$$
 
-Kết hợp ưu điểm của Reddit Hot và Hacker News, thêm trọng số cho engagement:
+$$\text{wilson}(p, n) = \frac{\hat{p} + \frac{z^2}{2n} - z\sqrt{\frac{\hat{p}(1-\hat{p}) + \frac{z^2}{4n}}{n}}}{1 + \frac{z^2}{n}}, \quad n = \text{upvotes} + \text{downvotes},\; \hat{p} = \frac{\text{upvotes}}{n},\; z = 1.96$$
 
-```
-trending_score = popularity_score × time_decay × engagement_boost
+$$\text{agePenalty} = (\text{hoursAge} + 2)^{1.8}$$
 
-Trong đó:
-  popularity_score = log10(1 + upvotes×3 + comments×2 + views×0.01)
-  
-  time_decay = 1 / (hours_since_post + 2)^gravity
-    • gravity = 1.5 (điều chỉnh tốc độ giảm)
-    
-  engagement_boost = 1 + min(comment_rate / view_rate, 2) × 0.3
-    • comment_rate = comments_in_last_hour
-    • view_rate = max(views_in_last_hour, 1)
-```
+$$\text{trendingScore} = \frac{\text{baseScore} \times \big(0.5 + \text{wilson}(\text{upvotes}, \text{downvotes})\big)}{\text{agePenalty}}$$
 
-### 1.4 Pseudocode
-
-```java
-public double calculateTrendingScore(Post post) {
-    // 1. Popularity: logarithmic scale để tránh bài nhiều vote quá áp đảo
-    double rawScore = post.getUpvotes() * 3.0
-                    + post.getComments() * 2.0
-                    + post.getViews() * 0.01;
-    double popularityScore = Math.log10(1 + Math.max(rawScore, 0));
-    
-    // 2. Time Decay: bài cũ hơn thì score giảm dần
-    double hoursAge = ChronoUnit.HOURS.between(post.getCreatedAt(), Instant.now());
-    double gravity = 1.5;
-    double timeDecay = 1.0 / Math.pow(hoursAge + 2, gravity);
-    
-    // 3. Engagement Boost: bài có tương tác sôi nổi được bonus
-    double commentRate = getCommentsInLastHour(post.getId());
-    double viewRate = Math.max(getViewsInLastHour(post.getId()), 1);
-    double engagementBoost = 1.0 + Math.min(commentRate / viewRate, 2.0) * 0.3;
-    
-    return popularityScore * timeDecay * engagementBoost;
-}
-```
-
-### 1.5 Cập nhật Score
-
-- **Cron job** chạy mỗi 5 phút
-- Tính lại `trending_score` cho các bài viết trong 72h gần nhất
-- Lưu vào cột `posts.trending_score`
-- Client query: `ORDER BY trending_score DESC`
+Điểm `trending_score` được cập nhật trực tiếp mỗi khi bài viết được tạo/sửa, vote, bình luận hoặc tăng lượt xem (với `PESSIMISTIC_WRITE` lock khi đếm view), kết hợp cache trending có cơ chế vô hiệu hóa tức thời.
 
 ---
 
-## 2. Tìm kiếm ngữ nghĩa (Semantic Search)
+## 2. Tìm kiếm ngữ nghĩa & Tài liệu (Hybrid Hashed TF-IDF + pgvector)
 
-### 2.1 Bài toán
+> Cài đặt tại: `com.vietblog.domain.search.TextAlgorithms` và `com.vietblog.application.service.SearchApplicationService`
 
-Tìm bài viết theo **ý nghĩa** chứ không chỉ khớp từ khóa.
-Ví dụ: search "cách deploy ứng dụng" → tìm được bài "Hướng dẫn triển khai app lên server"
+### 2.1 Kiến trúc 2 tầng (Two-stage Retrieval & Re-ranking)
 
-### 2.2 Phương pháp: TF-IDF + Cosine Similarity (tự viết)
-
-> Không dùng thư viện NLP. Tự implement từ đầu.
-
-#### Bước 1: Tiền xử lý văn bản (Text Preprocessing)
-
-```
-Input: "Hướng dẫn xây dựng REST API với Spring Boot 3"
-
-1. Lowercase: "hướng dẫn xây dựng rest api với spring boot 3"
-2. Remove stopwords: "hướng dẫn xây dựng rest api spring boot"
-3. Tokenize: ["hướng", "dẫn", "xây", "dựng", "rest", "api", "spring", "boot"]
-4. N-grams (bi-gram): ["hướng dẫn", "xây dựng", "rest api", "spring boot"]
-```
-
-#### Bước 2: TF-IDF Vector
-
-```
-TF(t, d) = (Số lần term t xuất hiện trong document d) / (Tổng số terms trong d)
-
-IDF(t) = log(N / (1 + df(t)))
-  • N = tổng số documents
-  • df(t) = số documents chứa term t
-
-TF-IDF(t, d) = TF(t, d) × IDF(t)
-```
-
-#### Bước 3: Cosine Similarity
-
-```
-similarity(A, B) = (A · B) / (||A|| × ||B||)
-
-         Σ(Ai × Bi)
-    = ─────────────────────
-      √(Σ Ai²) × √(Σ Bi²)
-```
-
-#### Bước 4: Lưu trữ với pgvector
-
-```sql
--- Tạo extension
-CREATE EXTENSION vector;
-
--- Thêm cột vector vào bảng posts
-ALTER TABLE posts ADD COLUMN content_vector vector(384);
-
--- Tạo index cho tìm kiếm nhanh
-CREATE INDEX ON posts USING ivfflat (content_vector vector_cosine_ops)
-  WITH (lists = 100);
-
--- Query tìm kiếm
-SELECT id, title, 1 - (content_vector <=> query_vector) AS similarity
-FROM posts
-WHERE 1 - (content_vector <=> query_vector) > 0.3
-ORDER BY content_vector <=> query_vector
-LIMIT 20;
-```
-
-### 2.3 Pseudocode
-
-```java
-public class SemanticSearchEngine {
-    private Map<String, Double> idfCache;  // Pre-computed IDF values
-    
-    // Tính TF-IDF vector cho một document
-    public double[] computeVector(String text) {
-        List<String> tokens = preprocess(text);
-        Map<String, Double> tfMap = computeTF(tokens);
-        
-        double[] vector = new double[VOCAB_SIZE];
-        for (Map.Entry<String, Double> entry : tfMap.entrySet()) {
-            int index = getVocabIndex(entry.getKey());
-            if (index >= 0) {
-                vector[index] = entry.getValue() * idfCache.getOrDefault(entry.getKey(), 0.0);
-            }
-        }
-        return normalize(vector);
-    }
-    
-    // Tìm kiếm
-    public List<SearchResult> search(String query, int topK) {
-        double[] queryVector = computeVector(query);
-        // Sử dụng pgvector để tìm nearest neighbors
-        return postRepository.findByCosineSimilarity(queryVector, topK);
-    }
-}
-```
+1. **Tiền xử lý tiếng Việt**: Loại bỏ thẻ HTML (`script`/`style`/tags), giải mã HTML entities, chuẩn hóa Unicode `NFC`, tách từ (`[\p{L}\p{N}]+`), loại bỏ stopwords từ `/nlp/stopwords.txt`.
+2. **Stage 1 — Dense `256-D` Signed FNV-1a Hashed TF-IDF (`hashedTfIdfVector`)**:
+   - Biểu diễn unigram với trọng số sublinear TF: $1 + \ln(\text{tf})$ và bigram với trọng số $0.75 \times (1 + \ln(\text{tf}))$.
+   - Ánh xạ vào vector cố định **256 chiều** bằng hàm băm có dấu 64-bit FNV-1a để giảm va chạm và chuẩn hóa L2.
+   - Lưu trong PostgreSQL dưới kiểu `vector(256)` (`pgvector`) để truy xuất top ứng viên nhanh theo Cosine distance.
+3. **Stage 2 — Sparse TF-IDF Re-ranking + Accent Folding**:
+   - Với tập ứng viên (hoặc tối đa 2.000 bài viết gần nhất), dựng từ điển IDF chung từ corpus (`1 + ln((1 + N) / (1 + df(t)))`) và xếp hạng lại bằng Cosine Similarity chính xác.
+   - Hỗ trợ **Unaccented Query Folding** (`Đà Lạt` → `da lat`): khi truy vấn không chứa dấu tiếng Việt, hệ thống tự động đối chiếu trên văn bản đã bỏ dấu và mở rộng tập ứng viên để tìm kiếm tiếng Việt không dấu vẫn chính xác.
+4. **Tìm kiếm theo tài liệu (`.txt`, `.pdf`, `.docx`)**: Trích xuất văn bản thuần từ tệp tải lên qua `SearchFileReader` (Apache PDFBox / POI) và đưa qua cùng pipeline tìm kiếm ngữ nghĩa ở trên.
 
 ---
 
-## 3. Tìm kiếm theo hình ảnh / tài liệu (Image & Document Search)
+## 3. Tìm kiếm hình ảnh theo nội dung (CBIR — `51-D` Multi-modal Feature Vector)
 
-### 3.1 Bài toán
+> Cài đặt tại: `com.vietblog.domain.search.ImageAlgorithms` và `com.vietblog.application.service.SearchApplicationService`
 
-Cho phép upload hình ảnh hoặc tài liệu → tìm bài viết liên quan.
+### 3.1 Trích xuất đặc trưng (`DIMENSIONS = 51`)
 
-### 3.2 Phương pháp: Feature Extraction → Vector → Similarity Search
+Ảnh tải lên được lấy mẫu chuẩn về lưới **64×64** và trích xuất vector **51 chiều** chia thành 3 nhóm đặc trưng, mỗi nhóm chuẩn hóa L2 và gán trọng số riêng:
 
-#### Hình ảnh: Color Histogram + Edge Detection (tự viết)
+| Nhóm đặc trưng | Số chiều | Chi tiết cài đặt | Trọng số |
+|---|---:|---|---:|
+| **HSV Color Histogram** | `32` | Không gian HSV lượng tử hóa **8 bins Hue × 2 bins Saturation × 2 bins Value** | `0.7` |
+| **Sobel Edge Orientation** | `16` | Gradient Sobel $G_x, G_y$ trên ảnh xám, cộng dồn biên độ $\sqrt{G_x^2 + G_y^2}$ vào **16 bins góc** $[-\pi, \pi]$ | `0.2` |
+| **GLCM Texture** | `3` | Ma trận đồng xuất hiện mức xám ngang (8 mức): **Contrast** (chuẩn hóa $/49$), **Energy / ASM** ($\sum p^2$), **Homogeneity** ($\sum \frac{p}{1 + \|i-j\|}$) | `0.1` |
 
-```
-1. Resize ảnh về 224×224
-2. Trích xuất Color Histogram (HSV, 64 bins)
-3. Trích xuất Edge features (Sobel operator)
-4. Concatenate → vector 384 chiều
-5. Normalize vector
-6. Lưu vào pgvector → search bằng Cosine Similarity
-```
-
-#### Tài liệu: Text Extraction → TF-IDF
-
-```
-1. Đọc file (PDF/DOCX) → extract raw text
-2. Tiền xử lý → TF-IDF vector (giống Section 2)
-3. Search trong pgvector
-```
-
-### 3.3 Pseudocode (Image)
-
-```java
-public class ImageVectorizer {
-    
-    public double[] extractFeatures(BufferedImage image) {
-        // Resize
-        BufferedImage resized = resize(image, 224, 224);
-        
-        // 1. Color Histogram (HSV space, 64 bins)
-        double[] colorHist = computeColorHistogram(resized, 64);  // 64-dim
-        
-        // 2. Edge features (Sobel operator)
-        double[] edgeFeatures = computeEdgeHistogram(resized);    // 64-dim
-        
-        // 3. Texture features (Gray-Level Co-occurrence Matrix)
-        double[] textureFeatures = computeGLCM(resized);          // 256-dim
-        
-        // Concatenate all features
-        double[] vector = concatenate(colorHist, edgeFeatures, textureFeatures); // 384-dim
-        
-        return normalize(vector);
-    }
-    
-    private double[] computeColorHistogram(BufferedImage img, int bins) {
-        double[] histogram = new double[bins];
-        for (int y = 0; y < img.getHeight(); y++) {
-            for (int x = 0; x < img.getWidth(); x++) {
-                int rgb = img.getRGB(x, y);
-                float[] hsv = rgbToHsv(rgb);
-                int bin = (int)(hsv[0] / 360.0 * bins);
-                histogram[Math.min(bin, bins - 1)]++;
-            }
-        }
-        // Normalize
-        double total = Arrays.stream(histogram).sum();
-        return Arrays.stream(histogram).map(v -> v / total).toArray();
-    }
-}
-```
+Vector `51-D` của ảnh bìa bài viết được lập chỉ mục bất đồng bộ sau khi commit vào bảng `post_image_features` và `pgvector` (`vector(51)`). Khi tìm kiếm, ảnh truy vấn được so khớp bằng **Cosine Similarity**.
 
 ---
 
-## 4. Bản đồ hóa bài viết & Tìm kiếm xung quanh (Geo Search)
+## 4. Tóm tắt văn bản trích xuất (Extractive TextRank)
 
-### 4.1 Bài toán
+> Cài đặt tại: `com.vietblog.domain.search.TextAlgorithms.summarize`
 
-- Đính kèm tọa độ GPS vào bài viết
-- Tìm bài viết trong bán kính N km quanh một điểm
-
-### 4.2 Phương pháp: PostGIS Spatial Queries
-
-#### Lưu trữ
-
-```sql
--- Cột location kiểu GEOMETRY (Point, SRID 4326 = WGS84)
-ALTER TABLE posts ADD COLUMN location GEOMETRY(Point, 4326);
-
--- Spatial index
-CREATE INDEX idx_posts_location ON posts USING GIST (location);
-
--- Insert với tọa độ
-INSERT INTO posts (title, location)
-VALUES ('Quán cafe Quận 1', ST_SetSRID(ST_MakePoint(106.6953, 10.7769), 4326));
-```
-
-#### Tìm kiếm trong bán kính
-
-```sql
--- Tìm bài viết trong bán kính 5km từ vị trí người dùng
-SELECT id, title,
-       ST_Distance(location::geography, 
-                   ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography) AS distance_meters
-FROM posts
-WHERE ST_DWithin(location::geography,
-                 ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
-                 :radius_meters)
-ORDER BY distance_meters ASC;
-```
-
-### 4.3 Haversine Formula (tự viết — backup khi không dùng PostGIS)
-
-```java
-public double haversineDistance(double lat1, double lng1, double lat2, double lng2) {
-    final double R = 6371; // Bán kính Trái Đất (km)
-    
-    double dLat = Math.toRadians(lat2 - lat1);
-    double dLng = Math.toRadians(lng2 - lng1);
-    
-    double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-             + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-             * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    
-    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    
-    return R * c; // Khoảng cách tính bằng km
-}
-```
+1. Lọc bỏ khối mã nguồn (`<pre>`) và tiêu đề (`<h1>..<h6>`) để tập trung vào đoạn văn xuôi (fallback về toàn văn nếu bài chỉ chứa code/heading).
+2. Tách câu nhận biết viết tắt tiếng Việt/Anh (`TP.`, `TS.`, `PGS.`, `ThS.`, `Dr.`, `Mr.`, ...), giới hạn tối đa 200 câu.
+3. Tính ma trận trọng số đồ thị câu $w_{ij} = \text{Cosine}(\text{TF-IDF}(S_i), \text{TF-IDF}(S_j))$ với $i \neq j$.
+4. Chạy thuật toán **Weighted PageRank (TextRank)** với hệ số giảm chấn $d = 0.85$, xử lý nút treo (dangling nodes), tối đa 100 vòng lặp cho tới khi hội tụ ($\Delta < 10^{-8}$).
+5. Chọn $k$ câu có điểm cao nhất và sắp xếp lại theo đúng **thứ tự xuất hiện gốc** trong bài viết để bảo toàn mạch đọc tự nhiên.
 
 ---
 
-## 5. Chat Real-time (Redis Pub/Sub + WebSocket)
+## 5. Phân tích cảm xúc bình luận tiếng Việt (Hybrid Lexicon + Prototype Embedding)
 
-### 5.1 Kiến trúc
+> Cài đặt tại: `com.vietblog.domain.search.TextAlgorithms.sentiment`
 
-```
-Client A                    Server                     Client B
-   │                          │                           │
-   │── WebSocket CONNECT ────>│                           │
-   │                          │<── WebSocket CONNECT ─────│
-   │                          │                           │
-   │── SEND message ─────────>│                           │
-   │                          │── Save to DB              │
-   │                          │── PUBLISH Redis channel ──│
-   │                          │                           │
-   │                          │── SUBSCRIBE notification ─│
-   │                          │── WebSocket PUSH ─────────>│
-   │<── ACK ──────────────────│                           │
-```
+1. **Tách mệnh đề & N-gram (1..4-gram)**: Văn bản được tách theo dấu ngắt mệnh đề (`,`, `.`, `;`, `:`, `!`, `?`, xuống dòng) để phạm vi phủ định không tràn qua mệnh đề khác; khớp cụm từ dài nhất từ 4-gram xuống 1-gram dựa trên bộ từ điển `/nlp/positive_words.txt` và `/nlp/offensive_words.txt`.
+2. **Xử lý phủ định & Phủ định kép**: Kiểm tra tối đa 2 từ liền trước trong cùng mệnh đề (`không`, `chẳng`, `chưa`, `hổng`, `chả`, `not`, `never`, `no`), đồng thời nhận diện mẫu phủ định kép khẳng định (ví dụ `"không phải không..."`, `"không hề không..."`).
+3. **Từ chuyển ý đối lập (Contrastive Conjunctions)**: Các từ chuyển ý (`nhưng`, `tuy`, `song`, `mà` — loại trừ cụm `"mượt mà"`, `"mặn mà"`, `ngược`) nhân đôi trọng số ($\times 2$) cho các biểu đạt cảm xúc đứng phía sau.
+4. **Kết hợp Lexicon & `256-D` Prototype Embedding**:
 
-### 5.2 Redis Pub/Sub
+$$\text{lexiconScore} = \frac{\text{posWeight} - \text{negWeight}}{\text{posWeight} + \text{negWeight}}$$
 
-```
-Channel naming: chat:{conversationId}
+$$\text{embScore} = \text{Cosine}(\vec{e}_{\text{text}}, \vec{P}_{\text{positive}}) - \text{Cosine}(\vec{e}_{\text{text}}, \vec{P}_{\text{negative}})$$
 
-PUBLISH chat:conv_001 '{"senderId":"u1","content":"Hello","timestamp":1234567890}'
-
-SUBSCRIBE chat:conv_001
-```
-
-### 5.3 Lý do dùng Redis thay vì chỉ WebSocket
-
-| | Chỉ WebSocket | WebSocket + Redis |
-|---|---|---|
-| Single server | ✅ OK | ✅ OK |
-| Multiple servers | ❌ Mất tin nhắn | ✅ Pub/Sub đồng bộ |
-| Offline users | ❌ Mất | ✅ Queue trong Redis |
-| Performance | Bình thường | ✅ Cache + fast delivery |
+$$\text{finalScore} = \text{clamp}_{[-1, 1]}\big(0.85 \times \text{lexiconScore} + 0.15 \times \text{embScore}\big)$$
 
 ---
 
-## Tham khảo
+## 6. Tìm kiếm bài viết lân cận (Geospatial Search: PostGIS + Haversine)
 
-1. Reddit Ranking Algorithm — https://medium.com/hacking-and-gonzo/how-reddit-ranking-algorithms-work-ef111e33d0d9
-2. Hacker News Ranking — https://medium.com/hacking-and-gonzo/how-hacker-news-ranking-algorithm-works-1d9b0cf2c08d
-3. TF-IDF — Manning, C.D., Raghavan, P., Schütze, H. (2008). Introduction to Information Retrieval. Cambridge University Press.
-4. Cosine Similarity — Wikipedia
+> Cài đặt tại: `com.vietblog.domain.search.GeoAlgorithms` và `SearchApplicationService.nearby`
+
+1. **Tầng CSDL (Spatial Index)**: Khi có `PostGIS`, sử dụng chỉ mục không gian `GIST` và truy vấn `ST_DWithin` / `ST_Distance` trên hệ quy chiếu WGS 84 (`SRID 4326`).
+2. **Tầng Domain (Haversine Exact Filtering & Sorting)**: Tính khoảng cách đường tròn lớn chính xác trên mặt cầu (bán kính Trái Đất $R = 6371.0088\text{ km}$) để lọc và sắp xếp bài viết tăng dần theo khoảng cách thực tế:
+
+$$a = \sin^2\left(\frac{\Delta\varphi}{2}\right) + \cos(\varphi_1)\cos(\varphi_2)\sin^2\left(\frac{\Delta\lambda}{2}\right), \quad d = 2 R \arcsin\left(\sqrt{\min(1, \max(0, a))}\right)$$
+
+---
+
+## Tài liệu tham khảo
+
+1. Manning, C. D., Raghavan, P., & Schütze, H. (2008). *Introduction to Information Retrieval*. Cambridge University Press.
+2. Mihalcea, R., & Tarau, P. (2004). *TextRank: Bringing Order into Text*. EMNLP.
+3. Haralick, R. M., Shanmugam, K., & Dinstein, I. (1973). *Textural Features for Image Classification* (GLCM). IEEE Transactions on Systems, Man, and Cybernetics.
+4. Wilson, E. B. (1927). *Probable inference, the law of succession, and statistical inference*. Journal of the American Statistical Association.
 5. PostGIS Documentation — https://postgis.net/docs/
 6. pgvector — https://github.com/pgvector/pgvector

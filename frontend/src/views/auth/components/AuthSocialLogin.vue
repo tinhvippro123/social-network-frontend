@@ -6,7 +6,7 @@ import { useToast } from '@/composables/ui/useToast'
 import { useUiStore } from '@/stores/ui.store'
 
 const router = useRouter()
-const { loginWithGoogle, isLoggedIn, error: authError } = useAuth()
+const { loginWithGoogle, isLoggedIn, isAdmin, isModerator, error: authError } = useAuth()
 const toast = useToast()
 const uiStore = useUiStore()
 const isGoogleLoading = ref(false)
@@ -37,10 +37,16 @@ function handleGoogleLogin() {
               await loginWithGoogle({ accessToken: response.access_token })
               if (isLoggedIn.value) {
                 const pendingRedirect = uiStore.consumeAuthRedirect()
+                const queryRedirect = router.currentRoute.value.query.redirect as string | undefined
+                const currentPath = router.currentRoute.value.path
                 uiStore.closeAuthModal()
                 toast.success('Đăng nhập bằng Google thành công!')
                 if (pendingRedirect) {
                   router.push(pendingRedirect)
+                } else if (queryRedirect) {
+                  router.push(queryRedirect)
+                } else if (['/login', '/register', '/forgot-password'].includes(currentPath)) {
+                  router.push(isAdmin.value ? '/admin' : isModerator.value ? '/admin/moderation' : '/')
                 }
               } else {
                 toast.error(authError.value || 'Đăng nhập Google không thành công')
