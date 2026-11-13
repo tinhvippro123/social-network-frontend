@@ -2,10 +2,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from '@lucide/vue'
+import EmailVerificationPanel from './EmailVerificationPanel.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
 import { useToast } from '@/composables/ui/useToast'
 import authApi from '@/api/auth.api'
+import type { User as UserType } from '@/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -19,6 +21,7 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const emailError = ref('')
 const passwordError = ref('')
+const verificationEmail = ref('')
 
 defineProps<{
   error?: string
@@ -52,6 +55,23 @@ function validateLogin(): boolean {
   return valid
 }
 
+function completeModalAuth(loggedInUser?: UserType | null, welcomeMessage?: string) {
+  if (loggedInUser) {
+    authStore.setUser(loggedInUser)
+  }
+  const pendingRedirect = uiStore.consumeAuthRedirect()
+  uiStore.closeAuthModal()
+  toast.success(welcomeMessage || `Chào mừng trở lại, ${loggedInUser?.name || 'bạn'}!`)
+  const role = (loggedInUser?.role || '').toLowerCase()
+  if (pendingRedirect) {
+    router.push(pendingRedirect)
+  } else if (role === 'admin') {
+    router.push('/admin')
+  } else if (role === 'moderator') {
+    router.push('/admin/moderation')
+  }
+}
+
 async function handleLogin() {
   if (!validateLogin()) return
   
@@ -63,28 +83,36 @@ async function handleLogin() {
       email: email.value.trim(),
       password: password.value
     })
-    authStore.setUser(data.data.user)
-    const pendingRedirect = uiStore.consumeAuthRedirect()
-    uiStore.closeAuthModal()
-    toast.success(`Chào mừng trở lại, ${data.data.user?.name || 'bạn'}!`)
-    const role = (data.data.user?.role || '').toLowerCase()
-    if (pendingRedirect) {
-      router.push(pendingRedirect)
-    } else if (role === 'admin') {
-      router.push('/admin')
-    } else if (role === 'moderator') {
-      router.push('/admin/moderation')
-    }
+    completeModalAuth(data.data.user)
   } catch (err: any) {
-    emitError('update:error', err.response?.data?.message || 'Email hoặc mật khẩu không chính xác')
+    if (err.response?.data?.errorCode === 'EMAIL_NOT_VERIFIED') {
+      verificationEmail.value = email.value.trim()
+      emitError('update:error', '')
+    } else {
+      emitError('update:error', err.response?.data?.message || 'Email hoặc mật khẩu không chính xác')
+    }
   } finally {
     isLoading.value = false
   }
 }
+
+function handleEmailVerified(verifiedUser: UserType) {
+  verificationEmail.value = ''
+  completeModalAuth(verifiedUser, `Chào mừng ${verifiedUser.name || 'bạn'} đến với VietBlog!`)
+}
 </script>
 
 <template>
-  <form @submit.prevent="handleLogin" class="px-6 pb-3 space-y-3">
+  <EmailVerificationPanel
+    v-if="verificationEmail"
+    :email="verificationEmail"
+    :compact="true"
+    back-label="Quay lại đăng nhập"
+    @verified="handleEmailVerified"
+    @back="verificationEmail = ''"
+  />
+
+  <form v-else @submit.prevent="handleLogin" class="px-6 pb-3 space-y-3">
     <!-- Email -->
     <div>
       <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>

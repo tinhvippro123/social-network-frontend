@@ -3,7 +3,7 @@ import { Bell, Mail, Save } from '@lucide/vue'
 import SettingToggle from '@/components/ui/SettingToggle.vue'
 import { useSettings } from '@/composables/ui/useSettings'
 
-const { notificationSettings, saveSettings } = useSettings()
+const { notificationSettings, isSaving, saveSettings } = useSettings()
 </script>
 
 <template>
@@ -37,35 +37,49 @@ const { notificationSettings, saveSettings } = useSettings()
       </div>
     </div>
 
-    <!-- Push Notifications -->
+    <!-- In-app Notifications -->
     <div>
-      <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <Bell :size="16" class="text-gray-400" /> Thông báo đẩy (Push)
-      </h3>
+      <div class="mb-4">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <Bell :size="16" class="text-gray-400" /> Thông báo trực tiếp trên web (Trong ứng dụng)
+        </h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          Hiển thị ở biểu tượng chuông thông báo hoặc thông báo nổi khi bạn đang sử dụng VietBlog
+        </p>
+      </div>
       <div class="space-y-4">
         <SettingToggle
           v-model="notificationSettings.pushNewFollower"
           title="Người theo dõi mới"
+          description="Hiển thị trên chuông thông báo khi có người theo dõi bạn"
         />
         <SettingToggle
           v-model="notificationSettings.pushNewComment"
           title="Bình luận mới"
+          description="Hiển thị trên chuông thông báo khi có người bình luận hoặc phản hồi bài viết"
         />
         <SettingToggle
           v-model="notificationSettings.pushNewMessage"
           title="Tin nhắn mới"
+          description="Hiển thị thông báo trực tiếp trên màn hình khi có tin nhắn mới"
         />
         <SettingToggle
           v-model="notificationSettings.pushTrending"
           title="Bài viết thịnh hành"
-          description="Thông báo khi có bài viết nổi bật trong cộng đồng"
+          description="Hiển thị trên chuông thông báo khi bài viết của bạn đạt mức nổi bật trong cộng đồng"
         />
       </div>
     </div>
 
     <div class="mt-6 pt-6 border-t border-gray-200 dark:border-surface-700 flex justify-end">
-      <button @click="saveSettings" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all shadow-xs cursor-pointer">
-        <Save :size="16" /> Lưu thay đổi
+      <button
+        @click="saveSettings"
+        :disabled="isSaving"
+        class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+      >
+        <span v-if="isSaving" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <Save v-else :size="16" />
+        {{ isSaving ? 'Đang lưu...' : 'Lưu thay đổi' }}
       </button>
     </div>
   </div>

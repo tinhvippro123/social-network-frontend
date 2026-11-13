@@ -7,7 +7,7 @@ import { useSettings } from '@/composables/ui/useSettings'
 import { useToast } from '@/composables/ui/useToast'
 import chatApi from '@/api/chat.api'
 
-const { privacySettings, saveSettings } = useSettings()
+const { privacySettings, isSaving, saveSettings } = useSettings()
 const toast = useToast()
 const blockedUsers = ref<Array<{ id: string; name: string; avatar?: string }>>([])
 const isLoadingBlocked = ref(false)
@@ -121,8 +121,14 @@ onMounted(() => {
         <p class="text-xs text-gray-400 mt-1">Khi bạn chặn ai đó, họ sẽ không thể gửi tin nhắn trực tiếp cho bạn.</p>
       </div>
       <div class="mt-6 flex justify-end">
-        <button @click="saveSettings" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all shadow-xs cursor-pointer">
-          <Save :size="16" /> Lưu thay đổi
+        <button
+          @click="saveSettings"
+          :disabled="isSaving"
+          class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+        >
+          <span v-if="isSaving" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <Save v-else :size="16" />
+          {{ isSaving ? 'Đang lưu...' : 'Lưu thay đổi' }}
         </button>
       </div>
     </div>

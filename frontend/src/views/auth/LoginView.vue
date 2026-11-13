@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from '@lucide/vue'
 import AuthSocialLogin from './components/AuthSocialLogin.vue'
+import EmailVerificationPanel from '@/components/EmailVerificationPanel.vue'
 import { useLogin } from '@/composables/auth/useLogin'
 
 const {
@@ -11,16 +12,32 @@ const {
   showPassword,
   isLoading,
   rememberMe,
-  handleLogin
+  verificationEmail,
+  handleLogin,
+  handleVerified,
+  cancelVerification,
 } = useLogin()
 </script>
 
 <template>
   <div>
-    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Chào mừng trở lại</h2>
-    <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Đăng nhập để tiếp tục hành trình của bạn</p>
+    <template v-if="verificationEmail">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Xác thực tài khoản</h2>
+      <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Hoàn tất xác thực email để đăng nhập vào VietBlog</p>
 
-    <form @submit.prevent="handleLogin" class="space-y-4">
+      <EmailVerificationPanel
+        :email="verificationEmail"
+        back-label="Quay lại đăng nhập"
+        @verified="handleVerified"
+        @back="cancelVerification"
+      />
+    </template>
+
+    <template v-else>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Chào mừng trở lại</h2>
+      <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Đăng nhập để tiếp tục hành trình của bạn</p>
+
+      <form @submit.prevent="handleLogin" class="space-y-4">
       <!-- Email -->
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
@@ -97,12 +114,13 @@ const {
     <!-- Social Login -->
     <AuthSocialLogin />
 
-    <!-- Register link -->
-    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-      Chưa có tài khoản?
-      <router-link to="/register" class="text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 font-semibold transition-colors">
-        Đăng ký ngay
-      </router-link>
-    </p>
+      <!-- Register link -->
+      <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+        Chưa có tài khoản?
+        <router-link to="/register" class="text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 font-semibold transition-colors">
+          Đăng ký ngay
+        </router-link>
+      </p>
+    </template>
   </div>
 </template>

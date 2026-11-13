@@ -10,7 +10,6 @@ const toast = useToast()
 
 const step = ref<1 | 2 | 3>(1)
 const email = ref('')
-const issuedOtp = ref('')
 const otpOrToken = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
@@ -32,19 +31,12 @@ async function handleSendOtp() {
 
   isLoading.value = true
   try {
-    const res = await authApi.forgotPassword({ email: email.value.trim() })
-    const data = res.data?.data
-    if (data?.otp) {
-      issuedOtp.value = data.otp
-      otpOrToken.value = data.otp
-    } else if (data?.resetToken) {
-      issuedOtp.value = data.resetToken
-      otpOrToken.value = data.resetToken
-    }
-    toast.success('Mã xác nhận đã được tạo thành công!')
+    await authApi.forgotPassword({ email: email.value.trim() })
+    otpOrToken.value = ''
+    toast.success('Mã xác nhận đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư!')
     step.value = 2
   } catch (err: any) {
-    emailError.value = err.response?.data?.message || 'Không tìm thấy tài khoản với email này'
+    emailError.value = err.response?.data?.message || 'Không thể gửi mã xác nhận qua email lúc này'
   } finally {
     isLoading.value = false
   }
@@ -131,15 +123,10 @@ async function handleResetPassword() {
     <!-- Bước 2: Nhập mã xác nhận & Mật khẩu mới -->
     <template v-else-if="step === 2">
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Đặt lại mật khẩu</h2>
-      <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">
-        Nhập mã xác nhận được cấp cho email <span class="font-semibold text-primary-500">{{ email }}</span>
+      <p class="text-gray-500 dark:text-gray-400 text-sm mb-5">
+        Nhập mã OTP 6 chữ số đã được gửi tới email <span class="font-semibold text-primary-500">{{ email }}</span>
+        (hiệu lực 15 phút, kiểm tra thêm thư mục Spam nếu chưa thấy).
       </p>
-
-      <!-- Demo helper badge -->
-      <div class="mb-5 p-3 rounded-xl bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800/40 text-xs text-primary-700 dark:text-primary-300 flex items-center justify-between">
-        <span>💡 Mã xác thực (OTP): <strong class="font-mono text-sm">{{ issuedOtp || otpOrToken }}</strong></span>
-        <span class="text-[11px] opacity-75">Hiệu lực 15 phút</span>
-      </div>
 
       <form @submit.prevent="handleResetPassword" class="space-y-4">
         <!-- OTP / Token -->

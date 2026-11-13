@@ -27,6 +27,17 @@ export interface GoogleLoginPayload {
   idToken?: string
 }
 
+export interface RegisterResponse {
+  requiresVerification: boolean
+  email: string
+  message: string
+}
+
+export interface VerifyEmailRequest {
+  email: string
+  otp: string
+}
+
 const authApi = {
   login: (data: LoginRequest) =>
     http.post<ApiResponse<AuthTokens & { user: User }>>('/auth/login', data),
@@ -35,7 +46,13 @@ const authApi = {
     http.post<ApiResponse<AuthTokens & { user: User }>>('/auth/google', data),
 
   register: (data: RegisterRequest) =>
-    http.post<ApiResponse<{ message: string }>>('/auth/register', data),
+    http.post<ApiResponse<RegisterResponse>>('/auth/register', data),
+
+  verifyEmail: (data: VerifyEmailRequest) =>
+    http.post<ApiResponse<AuthTokens & { user: User }>>('/auth/verify-email', data),
+
+  resendVerification: (data: { email: string }) =>
+    http.post<ApiResponse<void>>('/auth/resend-verification', data),
 
   logout: () =>
     http.post<ApiResponse>('/auth/logout'),
@@ -56,7 +73,7 @@ const authApi = {
     http.put<ApiResponse>('/auth/me/password', data),
 
   forgotPassword: (data: { email: string }) =>
-    http.post<ApiResponse<{ message: string; resetToken?: string; otp?: string; expiresInSeconds?: number }>>('/auth/forgot-password', data),
+    http.post<ApiResponse<{ message: string; expiresInSeconds?: number }>>('/auth/forgot-password', data),
 
   resetPassword: (data: { token: string; newPassword: string; email?: string }) =>
     http.post<ApiResponse<void>>('/auth/reset-password', data),

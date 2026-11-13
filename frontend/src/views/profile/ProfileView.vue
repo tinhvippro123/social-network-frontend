@@ -43,10 +43,15 @@ const {
   deleteDraft
 } = useProfileTabs(isOwnProfile, profileUser)
 
-// Privacy setting
-const privacySetting = ref<'public' | 'followers' | 'private'>('public')
+// Privacy setting (computed from backend UserProfileResponse)
+const privacySetting = computed<'public' | 'followers' | 'private'>(() =>
+  (profileUser.value?.profileVisibility as 'public' | 'followers' | 'private') || 'public'
+)
 const isAllowedToView = computed(() => {
   if (isOwnProfile.value) return true
+  if (typeof profileUser.value?.canViewProfile === 'boolean') {
+    return profileUser.value.canViewProfile
+  }
   if (privacySetting.value === 'public') return true
   if (privacySetting.value === 'followers') return Boolean(profileUser.value?.isFollowing ?? (profileUser.value as any)?.following)
   return false
@@ -62,21 +67,16 @@ async function loadProfile() {
       router.replace('/')
       return
     }
-    try {
-      const rawPrefs = localStorage.getItem(`vb_user_prefs_${targetId}`)
-      if (rawPrefs) {
-        const parsed = JSON.parse(rawPrefs)
-        const vis = parsed?.privacySettings?.profileVisibility || parsed?.privacySetting
-        privacySetting.value = vis || 'public'
-      } else {
-        privacySetting.value = 'public'
-      }
-    } catch {
-      privacySetting.value = 'public'
-    }
     const res = await usersApi.getProfile(targetId)
     profileUser.value = res.data.data
-    await fetchPosts(targetId)
+    if (isOwnProfile.value || profileUser.value?.canViewProfile !== false) {
+      await fetchPosts(targetId)
+    } else {
+      posts.value = []
+      drafts.value = []
+      bookmarkedPosts.value = []
+      joinedGroups.value = []
+    }
   } catch (err) {
     profileUser.value = null
   } finally {
@@ -149,6 +149,7 @@ watch(() => [route.params.id, authUser.value?.id], () => {
       :is-own-profile="isOwnProfile"
       :can-view-connections="isAllowedToView"
       @message="handleMessage"
+      @follow-changed="loadProfile"
     />
 
     <!-- Privacy block (if not allowed to view) -->

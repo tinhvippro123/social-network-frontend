@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useSettings } from '@/composables/ui/useSettings'
 import { ChevronDown } from '@lucide/vue'
 
@@ -10,9 +10,13 @@ import AppearanceTab from './tabs/AppearanceTab.vue'
 import NotificationsTab from './tabs/NotificationsTab.vue'
 import PrivacyTab from './tabs/PrivacyTab.vue'
 
-const { activeTab, tabs } = useSettings()
+const { activeTab, tabs, loadPreferences } = useSettings()
 const isDropdownOpen = ref(false)
 const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0])
+
+onMounted(() => {
+  loadPreferences(true)
+})
 
 const selectTab = (tabId: string) => {
   activeTab.value = tabId

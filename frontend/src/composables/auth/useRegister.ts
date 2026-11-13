@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-
+import type { User } from '@/types'
 import { useAuth } from './useAuth'
 import { useToast } from '../ui/useToast'
 import { PASSWORD_STRENGTH } from '@/constants'
@@ -8,12 +8,13 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 
 export function useRegister() {
-  const { register } = useAuth()
+  const { register, redirectByRole } = useAuth()
   const toast = useToast()
 
   const showPassword = ref(false)
   const isLoading = ref(false)
   const agreeTerms = ref(false)
+  const verificationEmail = ref('')
 
   const schema = toTypedSchema(
     z.object({
@@ -60,16 +61,28 @@ export function useRegister() {
     }
     isLoading.value = true
     try {
-      await register({ 
-        name: values.name, 
-        email: values.email, 
+      const result = await register({
+        name: values.name,
+        email: values.email,
         password: values.password,
         passwordConfirm: values.confirmPassword
       })
+      if (result?.requiresVerification) {
+        verificationEmail.value = result.email || values.email.trim()
+      }
     } finally {
       isLoading.value = false
     }
   })
+
+  function handleVerified(user: User) {
+    verificationEmail.value = ''
+    redirectByRole(user.role)
+  }
+
+  function cancelVerification() {
+    verificationEmail.value = ''
+  }
 
   return {
     name,
@@ -86,6 +99,9 @@ export function useRegister() {
     passwordStrength,
     strengthColors,
     strengthLabels,
-    handleRegister
+    verificationEmail,
+    handleRegister,
+    handleVerified,
+    cancelVerification,
   }
 }

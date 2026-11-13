@@ -21,6 +21,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'message', userId: string): void
+  (e: 'followChanged', isFollowing: boolean): void
 }>()
 
 const router = useRouter()
@@ -173,6 +174,7 @@ async function toggleFollow() {
       }
       addToast({ message: 'Đã hủy theo dõi', type: 'info' })
     }
+    emit('followChanged', newStatus)
   } catch (err: any) {
     addToast({ message: err.response?.data?.message || 'Không thể thực hiện thao tác', type: 'error' })
   } finally {
@@ -184,6 +186,10 @@ function handleMessage() {
   if (!authStore.isLoggedIn) {
     addToast({ message: 'Vui lòng đăng nhập để nhắn tin', type: 'info' })
     uiStore.openAuthModal('login')
+    return
+  }
+  if (props.currentUser?.canMessage === false) {
+    addToast({ message: 'Người dùng này đang giới hạn người có thể nhắn tin cho họ', type: 'info' })
     return
   }
   emit('message', props.currentUser.id)
@@ -249,7 +255,11 @@ function handleMessage() {
 
             <button
               @click="handleMessage"
-              class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all cursor-pointer"
+              :title="currentUser?.canMessage === false ? 'Người dùng này đang giới hạn quyền nhắn tin' : 'Nhắn tin'"
+              :class="[
+                'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 transition-all cursor-pointer',
+                currentUser?.canMessage === false ? 'opacity-60' : ''
+              ]"
             >
               <MessageCircle :size="14" /> Nhắn tin
             </button>

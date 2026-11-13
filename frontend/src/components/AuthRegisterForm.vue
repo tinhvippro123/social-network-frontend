@@ -5,8 +5,10 @@ import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Check } from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUiStore } from '@/stores/ui.store'
 import AuthPasswordStrength from './AuthPasswordStrength.vue'
+import EmailVerificationPanel from './EmailVerificationPanel.vue'
 import authApi from '@/api/auth.api'
 import { useToast } from '@/composables/ui/useToast'
+import type { User as UserType } from '@/types'
 
 const router = useRouter()
 const toast = useToast()
@@ -21,6 +23,7 @@ const confirmPassword = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
 const agreeTerms = ref(false)
+const verificationEmail = ref('')
 
 const emailError = ref('')
 const passwordError = ref('')
@@ -93,35 +96,61 @@ async function handleRegister() {
 
   try {
     // 1. Tạo tài khoản thật trên Backend
-    await authApi.register({
+    const { data: regRes } = await authApi.register({
       name: name.value.trim(),
       email: email.value.trim(),
       password: password.value,
       passwordConfirm: confirmPassword.value
     })
 
-    // 2. Đăng nhập luôn bằng tài khoản vừa tạo để người dùng không phải nhập lại
+    if (regRes.data?.requiresVerification) {
+      verificationEmail.value = regRes.data.email || email.value.trim()
+      toast.success(regRes.data.message || 'Mã xác thực đã được gửi tới email của bạn!')
+      return
+    }
+
+    // 2. Trường hợp tắt xác thực email: đăng nhập luôn
     const { data } = await authApi.login({
       email: email.value.trim(),
       password: password.value
     })
-    authStore.setUser(data.data.user)
-    const pendingRedirect = uiStore.consumeAuthRedirect()
-    uiStore.closeAuthModal()
-    toast.success(`Chào mừng ${data.data.user?.name || name.value.trim()} đến với VietBlog!`)
-    if (pendingRedirect) {
-      router.push(pendingRedirect)
-    }
+    finishModalSignup(data.data.user)
   } catch (err: any) {
     emitError('update:error', err.response?.data?.message || 'Đăng ký thất bại, vui lòng thử lại')
   } finally {
     isLoading.value = false
   }
 }
+
+function finishModalSignup(signedInUser?: UserType | null) {
+  if (signedInUser) {
+    authStore.setUser(signedInUser)
+  }
+  const pendingRedirect = uiStore.consumeAuthRedirect()
+  uiStore.closeAuthModal()
+  toast.success(`Chào mừng ${signedInUser?.name || name.value.trim()} đến với VietBlog!`)
+  if (pendingRedirect) {
+    router.push(pendingRedirect)
+  }
+}
+
+function handleEmailVerified(verifiedUser: UserType) {
+  verificationEmail.value = ''
+  finishModalSignup(verifiedUser)
+}
 </script>
 
 <template>
-  <form @submit.prevent="handleRegister" class="px-6 pb-3 space-y-2.5">
+  <EmailVerificationPanel
+    v-if="verificationEmail"
+    :email="verificationEmail"
+    :compact="true"
+    back-label="Quay lại sửa thông tin"
+    @verified="handleEmailVerified"
+    @back="verificationEmail = ''"
+  />
+
+  <form v-else @submit.prevent="handleRegister" class="px-6 pb-3 space-y-2.5">
     <!-- Name -->
     <div>
       <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Họ và tên</label>

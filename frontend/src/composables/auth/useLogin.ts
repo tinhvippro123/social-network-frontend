@@ -1,17 +1,18 @@
 import { ref } from 'vue'
-
+import type { User } from '@/types'
 import { useAuth } from './useAuth'
 import { useForm, useField } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 
 export function useLogin() {
-  const { login } = useAuth()
+  const { login, redirectByRole } = useAuth()
 
   const savedEmail = typeof window !== 'undefined' ? localStorage.getItem('vb_remember_email') || '' : ''
   const showPassword = ref(false)
   const isLoading = ref(false)
   const rememberMe = ref(Boolean(savedEmail))
+  const verificationEmail = ref('')
 
   const schema = toTypedSchema(
     z.object({
@@ -37,11 +38,23 @@ export function useLogin() {
           localStorage.removeItem('vb_remember_email')
         }
       }
-      await login({ email: values.email, password: values.password })
+      const result = await login({ email: values.email, password: values.password })
+      if (!result.ok && result.errorCode === 'EMAIL_NOT_VERIFIED') {
+        verificationEmail.value = values.email.trim()
+      }
     } finally {
       isLoading.value = false
     }
   })
+
+  function handleVerified(user: User) {
+    verificationEmail.value = ''
+    redirectByRole(user.role)
+  }
+
+  function cancelVerification() {
+    verificationEmail.value = ''
+  }
 
   return {
     email,
@@ -51,6 +64,9 @@ export function useLogin() {
     showPassword,
     isLoading,
     rememberMe,
-    handleLogin
+    verificationEmail,
+    handleLogin,
+    handleVerified,
+    cancelVerification,
   }
 }

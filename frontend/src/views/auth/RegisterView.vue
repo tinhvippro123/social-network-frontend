@@ -2,6 +2,7 @@
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Check } from '@lucide/vue'
 import AuthSocialLogin from './components/AuthSocialLogin.vue'
 import AuthPasswordStrength from '@/components/AuthPasswordStrength.vue'
+import EmailVerificationPanel from '@/components/EmailVerificationPanel.vue'
 import { useRegister } from '@/composables/auth/useRegister'
 import { useToast } from '@/composables/ui/useToast'
 
@@ -19,7 +20,10 @@ const {
   showPassword,
   isLoading,
   agreeTerms,
-  handleRegister
+  verificationEmail,
+  handleRegister,
+  handleVerified,
+  cancelVerification,
 } = useRegister()
 
 function showTermsNotice(title: string) {
@@ -29,10 +33,23 @@ function showTermsNotice(title: string) {
 
 <template>
   <div>
-    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-0.5">Tạo tài khoản mới</h2>
-    <p class="text-gray-500 dark:text-gray-400 text-xs mb-4">Tham gia cộng đồng VietBlog ngay hôm nay</p>
+    <template v-if="verificationEmail">
+      <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-0.5">Xác thực email</h2>
+      <p class="text-gray-500 dark:text-gray-400 text-xs mb-4">Nhập mã OTP đã gửi về hộp thư của bạn để kích hoạt tài khoản</p>
 
-    <form @submit.prevent="handleRegister" class="space-y-2.5">
+      <EmailVerificationPanel
+        :email="verificationEmail"
+        back-label="Quay lại sửa thông tin"
+        @verified="handleVerified"
+        @back="cancelVerification"
+      />
+    </template>
+
+    <template v-else>
+      <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-0.5">Tạo tài khoản mới</h2>
+      <p class="text-gray-500 dark:text-gray-400 text-xs mb-4">Tham gia cộng đồng VietBlog ngay hôm nay</p>
+
+      <form @submit.prevent="handleRegister" class="space-y-2.5">
       <!-- Name -->
       <div>
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Họ và tên</label>
@@ -152,12 +169,13 @@ function showTermsNotice(title: string) {
     <!-- Social Login -->
     <AuthSocialLogin />
 
-    <!-- Login link -->
-    <p class="text-center text-xs text-gray-500 dark:text-gray-400 mt-4">
-      Đã có tài khoản?
-      <router-link to="/login" class="text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 font-semibold transition-colors">
-        Đăng nhập
-      </router-link>
-    </p>
+      <!-- Login link -->
+      <p class="text-center text-xs text-gray-500 dark:text-gray-400 mt-4">
+        Đã có tài khoản?
+        <router-link to="/login" class="text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 font-semibold transition-colors">
+          Đăng nhập
+        </router-link>
+      </p>
+    </template>
   </div>
 </template>

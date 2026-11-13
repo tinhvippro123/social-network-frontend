@@ -11,6 +11,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import { formatMessengerTime } from '@/utils/formatters'
 import { useChatNicknames } from '@/composables/chat/useChatNicknames'
 import { useWebSocket } from '@/composables/core/useWebSocket'
+import { useToast } from '@/composables/ui/useToast'
 
 const props = defineProps<{
   showChat: boolean
@@ -23,6 +24,7 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 const searchQuery = ref('')
 const triggerRef = ref<HTMLElement | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
@@ -48,6 +50,28 @@ async function loadConversations() {
 
 const { connect: connectWs } = useWebSocket(undefined, (event) => {
   if (!event || !event.type) return
+  if (event.type === 'message.created') {
+    const msg = event.data
+    if (
+      msg &&
+      !msg.isOwn &&
+      authStore.user?.preferences?.pushNewMessage !== false &&
+      !liveConversations.value.find(c => c.id === event.conversationId)?.isMuted
+    ) {
+      const currentChatId = router.currentRoute.value.path.startsWith('/chat')
+        ? String(router.currentRoute.value.query.id || '')
+        : ''
+      if (currentChatId !== event.conversationId) {
+        const senderName = msg.sender?.name || 'Ai đó'
+        const preview = msg.content?.trim()
+          ? msg.content.trim().slice(0, 60)
+          : msg.type === 'image'
+            ? 'đã gửi một hình ảnh'
+            : 'đã gửi một tệp đính kèm'
+        toast.info(`Tin nhắn mới từ ${senderName}: ${preview}`)
+      }
+    }
+  }
   if (
     event.type === 'message.created' ||
     event.type === 'message.revoked' ||

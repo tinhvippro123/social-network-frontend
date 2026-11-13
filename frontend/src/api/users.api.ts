@@ -1,6 +1,6 @@
 import http from './client'
 import type { ApiResponse } from './client'
-import type { User, UserProfile, UserSummary, Post } from '@/types'
+import type { UserProfile, UserSummary, UserPreferences, Post } from '@/types'
 
 const usersApi = {
   getProfile: (id: string) =>
@@ -11,6 +11,12 @@ const usersApi = {
 
   updateProfile: (data: { name: string; bio?: string; avatar?: string }) =>
     http.put<ApiResponse<UserProfile>>('/users/me', data),
+
+  getPreferences: () =>
+    http.get<ApiResponse<UserPreferences>>('/users/me/preferences'),
+
+  updatePreferences: (data: Partial<UserPreferences>) =>
+    http.put<ApiResponse<UserPreferences>>('/users/me/preferences', data),
 
   toggleFollow: (id: string) =>
     http.post<ApiResponse<boolean>>(`/users/${id}/follow`),

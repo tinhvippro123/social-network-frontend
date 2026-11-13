@@ -8,6 +8,51 @@ import { SETTINGS_TABS } from '@/constants/ui'
 
 import filesApi from '@/api/files.api'
 import usersApi from '@/api/users.api'
+import type { UserPreferences } from '@/types'
+
+const DEFAULT_NOTIFICATION_SETTINGS = {
+  emailNewFollower: true,
+  emailNewComment: true,
+  emailNewMessage: false,
+  pushNewFollower: true,
+  pushNewComment: true,
+  pushNewMessage: true,
+  pushTrending: false,
+}
+
+const DEFAULT_PRIVACY_SETTINGS = {
+  profileVisibility: 'public' as 'public' | 'followers' | 'private',
+  allowMessages: 'everyone' as 'everyone' | 'followers' | 'nobody',
+  showOnlineStatus: true,
+  showReadReceipts: true,
+}
+
+const notificationSettings = ref({ ...DEFAULT_NOTIFICATION_SETTINGS })
+const privacySettings = ref({ ...DEFAULT_PRIVACY_SETTINGS })
+let syncedUserId: string | null = null
+
+function applyPreferences(prefs?: Partial<UserPreferences> | null) {
+  if (!prefs) {
+    notificationSettings.value = { ...DEFAULT_NOTIFICATION_SETTINGS }
+    privacySettings.value = { ...DEFAULT_PRIVACY_SETTINGS }
+    return
+  }
+  notificationSettings.value = {
+    emailNewFollower: prefs.emailNewFollower ?? DEFAULT_NOTIFICATION_SETTINGS.emailNewFollower,
+    emailNewComment: prefs.emailNewComment ?? DEFAULT_NOTIFICATION_SETTINGS.emailNewComment,
+    emailNewMessage: prefs.emailNewMessage ?? DEFAULT_NOTIFICATION_SETTINGS.emailNewMessage,
+    pushNewFollower: prefs.pushNewFollower ?? DEFAULT_NOTIFICATION_SETTINGS.pushNewFollower,
+    pushNewComment: prefs.pushNewComment ?? DEFAULT_NOTIFICATION_SETTINGS.pushNewComment,
+    pushNewMessage: prefs.pushNewMessage ?? DEFAULT_NOTIFICATION_SETTINGS.pushNewMessage,
+    pushTrending: prefs.pushTrending ?? DEFAULT_NOTIFICATION_SETTINGS.pushTrending,
+  }
+  privacySettings.value = {
+    profileVisibility: prefs.profileVisibility ?? DEFAULT_PRIVACY_SETTINGS.profileVisibility,
+    allowMessages: prefs.allowMessages ?? DEFAULT_PRIVACY_SETTINGS.allowMessages,
+    showOnlineStatus: prefs.showOnlineStatus ?? DEFAULT_PRIVACY_SETTINGS.showOnlineStatus,
+    showReadReceipts: prefs.showReadReceipts ?? DEFAULT_PRIVACY_SETTINGS.showReadReceipts,
+  }
+}
 
 export function useSettings() {
   const uiStore = useUiStore()
@@ -36,6 +81,37 @@ export function useSettings() {
     avatar: user.value?.avatar || '',
   })
 
+  if (authStore.user?.id && syncedUserId !== authStore.user.id) {
+    syncedUserId = authStore.user.id
+    if (authStore.user.preferences) {
+      applyPreferences(authStore.user.preferences)
+    }
+  }
+
+  async function loadPreferences(force = false) {
+    if (!authStore.isLoggedIn || !authStore.user?.id) {
+      syncedUserId = null
+      applyPreferences(null)
+      return
+    }
+    if (!force && syncedUserId === authStore.user.id && authStore.user.preferences) {
+      applyPreferences(authStore.user.preferences)
+      return
+    }
+    try {
+      const { data } = await usersApi.getPreferences()
+      if (data?.data) {
+        syncedUserId = authStore.user.id
+        applyPreferences(data.data)
+        authStore.setUser({ ...authStore.user, preferences: data.data })
+      }
+    } catch {
+      if (authStore.user.preferences) {
+        applyPreferences(authStore.user.preferences)
+      }
+    }
+  }
+
   watch(user, (newUser) => {
     if (newUser) {
       profileForm.value = {
@@ -44,7 +120,13 @@ export function useSettings() {
         email: newUser.email || '',
         avatar: newUser.avatar || '',
       }
-      loadPersistedPrefs(newUser.id)
+      if (syncedUserId !== newUser.id || newUser.preferences) {
+        syncedUserId = newUser.id
+        applyPreferences(newUser.preferences)
+      }
+    } else {
+      syncedUserId = null
+      applyPreferences(null)
     }
   })
 
@@ -56,75 +138,6 @@ export function useSettings() {
   const showCurrentPassword = ref(false)
   const showNewPassword = ref(false)
   const showConfirmPassword = ref(false)
-
-  const notificationSettings = ref({
-    emailNewFollower: true,
-    emailNewComment: true,
-    emailNewMessage: false,
-    pushNewFollower: true,
-    pushNewComment: true,
-    pushNewMessage: true,
-    pushTrending: false,
-  })
-
-  const privacySettings = ref({
-    profileVisibility: 'public',
-    allowMessages: 'everyone',
-    showOnlineStatus: true,
-    showReadReceipts: true,
-  })
-
-  function getPrefsKey(userId?: string) {
-    return `vb_user_prefs_${userId || user.value?.id || 'default'}`
-  }
-
-  function loadPersistedPrefs(userId?: string) {
-    if (typeof window === 'undefined') return
-    try {
-      const raw = localStorage.getItem(getPrefsKey(userId))
-      if (!raw) return
-      const parsed = JSON.parse(raw)
-      if (parsed?.notificationSettings) {
-        notificationSettings.value = { ...notificationSettings.value, ...parsed.notificationSettings }
-      }
-      if (parsed?.privacySettings) {
-        privacySettings.value = { ...privacySettings.value, ...parsed.privacySettings }
-      }
-    } catch {
-      // ignore invalid JSON
-    }
-  }
-
-  loadPersistedPrefs()
-
-  function updatePersistedPrefsSection(section: 'notificationSettings' | 'privacySettings', value: any) {
-    if (typeof window === 'undefined') return
-    try {
-      const key = getPrefsKey()
-      const existing = JSON.parse(localStorage.getItem(key) || '{}')
-      localStorage.setItem(
-        key,
-        JSON.stringify({
-          ...existing,
-          [section]: value,
-        })
-      )
-    } catch {
-      // ignore storage errors
-    }
-  }
-
-  watch(
-    notificationSettings,
-    (val) => updatePersistedPrefsSection('notificationSettings', val),
-    { deep: true }
-  )
-
-  watch(
-    privacySettings,
-    (val) => updatePersistedPrefsSection('privacySettings', val),
-    { deep: true }
-  )
 
   const setSystemTheme = () => {
     themeMode.value = 'system'
@@ -234,18 +247,23 @@ export function useSettings() {
   }
 
   const saveSettings = async () => {
+    if (!authStore.isLoggedIn || !authStore.user) {
+      toast.error('Vui lòng đăng nhập để lưu cấu hình!')
+      return
+    }
     isSaving.value = true
     try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(
-          getPrefsKey(),
-          JSON.stringify({
-            notificationSettings: notificationSettings.value,
-            privacySettings: privacySettings.value,
-          })
-        )
+      const { data } = await usersApi.updatePreferences({
+        ...privacySettings.value,
+        ...notificationSettings.value,
+      })
+      if (data?.data) {
+        applyPreferences(data.data)
+        authStore.setUser({ ...authStore.user, preferences: data.data })
       }
       toast.success('Đã lưu cấu hình cá nhân!')
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Không thể lưu cấu hình cá nhân!')
     } finally {
       isSaving.value = false
     }
@@ -267,6 +285,7 @@ export function useSettings() {
     uploadAvatar,
     notificationSettings,
     privacySettings,
+    loadPreferences,
     setSystemTheme,
     setTheme,
     saveProfile,

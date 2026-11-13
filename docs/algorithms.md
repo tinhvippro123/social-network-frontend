@@ -45,7 +45,7 @@ $$\text{trendingScore} = \frac{\text{baseScore} \times \big(0.5 + \text{wilson}(
 3. **Stage 2 — Sparse TF-IDF Re-ranking + Accent Folding**:
    - Với tập ứng viên (hoặc tối đa 2.000 bài viết gần nhất), dựng từ điển IDF chung từ corpus (`1 + ln((1 + N) / (1 + df(t)))`) và xếp hạng lại bằng Cosine Similarity chính xác.
    - Hỗ trợ **Unaccented Query Folding** (`Đà Lạt` → `da lat`): khi truy vấn không chứa dấu tiếng Việt, hệ thống tự động đối chiếu trên văn bản đã bỏ dấu và mở rộng tập ứng viên để tìm kiếm tiếng Việt không dấu vẫn chính xác.
-4. **Tìm kiếm theo tài liệu (`.txt`, `.pdf`, `.docx`)**: Trích xuất văn bản thuần từ tệp tải lên qua `SearchFileReader` (Apache PDFBox / POI) và đưa qua cùng pipeline tìm kiếm ngữ nghĩa ở trên.
+4. **Tìm kiếm theo tài liệu (`.txt`, `.pdf`, `.docx`)**: Trích xuất văn bản thuần từ tệp tải lên qua `SearchFileReader` (Apache PDFBox cho `.pdf`, `ZipInputStream` + StAX `XMLInputFactory` cho `.docx`, đọc trực tiếp UTF-8 cho `.txt`) và đưa qua cùng pipeline tìm kiếm ngữ nghĩa ở trên.
 
 ---
 

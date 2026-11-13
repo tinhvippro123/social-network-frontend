@@ -2,16 +2,23 @@
 // Composable — useAuth
 // Login/Logout/Session management (HttpOnly Cookie)
 // ==========================================
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import authApi from '@/api/auth.api'
-import type { LoginRequest, RegisterRequest, GoogleLoginPayload } from '@/api/auth.api'
+import type { LoginRequest, RegisterRequest, RegisterResponse, GoogleLoginPayload } from '@/api/auth.api'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAsyncState } from '../core/useAsyncState'
 import { useToast } from '../ui/useToast'
 
+export interface AuthActionResult {
+  ok: boolean
+  errorCode?: string | null
+  message?: string | null
+}
+
 // Shared state (singleton across components)
 const { isLoading, error, execute } = useAsyncState()
+const errorCode = ref<string | null>(null)
 
 export function useAuth() {
   const router = useRouter()
@@ -24,59 +31,71 @@ export function useAuth() {
   const isAdmin = computed(() => authStore.isAdmin)
   const isModerator = computed(() => authStore.isModerator)
 
+  function redirectByRole(userRole?: string, fallbackRoute: string | null = '/') {
+    const redirectUrl = route.query.redirect as string
+    const normalized = (userRole || '').toLowerCase()
+    if (redirectUrl) {
+      router.push(redirectUrl)
+    } else if (normalized === 'admin') {
+      router.push('/admin')
+    } else if (normalized === 'moderator') {
+      router.push('/admin/moderation')
+    } else if (fallbackRoute) {
+      router.push(fallbackRoute)
+    }
+  }
+
   /** Đăng nhập (Backend tự cấp HttpOnly Access & Refresh Cookie) */
-  async function login(credentials: LoginRequest) {
+  async function login(credentials: LoginRequest): Promise<AuthActionResult> {
     error.value = null
-    await execute(async () => {
+    errorCode.value = null
+    isLoading.value = true
+    try {
       const { data } = await authApi.login(credentials)
       authStore.setUser(data.data.user)
       toast.success(`Chào mừng ${data.data.user.name || 'bạn'} quay trở lại!`)
-
-      const redirectUrl = route.query.redirect as string
-      const userRole = (data.data.user.role || '').toLowerCase()
-      if (redirectUrl) {
-        router.push(redirectUrl)
-      } else if (userRole === 'admin') {
-        router.push('/admin')
-      } else if (userRole === 'moderator') {
-        router.push('/admin/moderation')
-      } else {
-        router.push('/')
-      }
-    }, 'Đăng nhập thất bại')
+      redirectByRole(data.data.user.role)
+      return { ok: true }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Đăng nhập thất bại'
+      const code = err.response?.data?.errorCode || null
+      error.value = msg
+      errorCode.value = code
+      return { ok: false, errorCode: code, message: msg }
+    } finally {
+      isLoading.value = false
+    }
   }
 
   /** Đăng nhập Google (Backend tự cấp HttpOnly Access & Refresh Cookie) */
   async function loginWithGoogle(payload: GoogleLoginPayload) {
     error.value = null
+    errorCode.value = null
     await execute(async () => {
       const { data } = await authApi.loginWithGoogle(payload)
       authStore.setUser(data.data.user)
 
-      const redirectUrl = route.query.redirect as string
-      const userRole = (data.data.user.role || '').toLowerCase()
       const isAuthPage = Boolean(route.meta?.guestOnly) || ['/login', '/register', '/forgot-password'].includes(route.path)
-      if (redirectUrl) {
-        router.push(redirectUrl)
-      } else if (isAuthPage) {
-        if (userRole === 'admin') {
-          router.push('/admin')
-        } else if (userRole === 'moderator') {
-          router.push('/admin/moderation')
-        } else {
-          router.push('/')
-        }
+      if (isAuthPage || route.query.redirect) {
+        redirectByRole(data.data.user.role)
       }
     }, 'Đăng nhập Google thất bại')
   }
 
   /** Đăng ký */
-  async function register(data: RegisterRequest) {
+  async function register(data: RegisterRequest): Promise<RegisterResponse | undefined> {
     error.value = null
-    await execute(async () => {
-      await authApi.register(data)
-      toast.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập.')
-      router.push('/login')
+    errorCode.value = null
+    return await execute(async () => {
+      const res = await authApi.register(data)
+      const result = res.data.data
+      if (result?.requiresVerification) {
+        toast.success(result.message || 'Mã xác thực đã được gửi tới email của bạn!')
+      } else {
+        toast.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập.')
+        router.push('/login')
+      }
+      return result
     }, 'Đăng ký thất bại')
   }
 
@@ -111,9 +130,11 @@ export function useAuth() {
     user,
     isLoading,
     error,
+    errorCode,
     isLoggedIn,
     isAdmin,
     isModerator,
+    redirectByRole,
     login,
     loginWithGoogle,
     register,
