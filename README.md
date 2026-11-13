@@ -3,7 +3,7 @@
 <div align="center">
 
 ![Vue.js](https://img.shields.io/badge/Vue.js-3.5-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.8-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7.x-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
@@ -39,7 +39,7 @@ Hệ thống tích hợp các giải thuật và công nghệ tự nghiên cứu
 └─────────────────────────┬───────────────────────────────────┘
                           │ REST API / WebSocket
 ┌─────────────────────────▼───────────────────────────────────┐
-│                    BACKEND (Spring Boot 3)                   │
+│                    BACKEND (Spring Boot 4)                  │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐  │
 │  │Controller│  │ Use Case │  │  Domain  │  │Infrastructure│ │
 │  │ (REST)   │→ │ (Service)│→ │ (Entity) │← │(Repository) │ │
@@ -69,27 +69,27 @@ Hệ thống tích hợp các giải thuật và công nghệ tự nghiên cứu
 ### 👤 Người dùng (Client)
 | Tính năng | Mô tả | Trạng thái |
 |---|---|---|
-| Đăng ký / Đăng nhập | JWT + OAuth2 (Google, GitHub) | 🔲 Backend |
-| Trang chủ | Feed bài viết, filter danh mục, trending sidebar | ✅ UI |
-| Viết bài | Rich text editor, tags, cover image, location | ✅ UI |
-| Chi tiết bài | Article view, threaded comments, vote, bookmark | ✅ UI |
-| Chat real-time | 1-1 & nhóm, Redis Pub/Sub + WebSocket | ✅ UI |
-| Nhóm | Tạo/tham gia nhóm, bài viết nhóm | ✅ UI |
-| Bản đồ | PostGIS, tìm bài viết quanh vị trí | ✅ UI |
-| Profile | Thông tin cá nhân, bài viết, followers | ✅ UI |
-| Tìm kiếm ngữ nghĩa | pgvector, cosine similarity | 🔲 Backend |
-| Tìm kiếm hình ảnh | Vector embedding từ ảnh → search | 🔲 Backend |
+| Đăng ký / Đăng nhập | JWT HttpOnly Cookie + Google OAuth2 | ✅ Hoàn thành |
+| Trang chủ | Feed bài viết, filter danh mục, trending sidebar | ✅ Hoàn thành |
+| Viết bài | Rich text editor, tags, cover image, location | ✅ Hoàn thành |
+| Chi tiết bài | Article view, threaded comments, vote, bookmark, AI tóm tắt & cảm xúc | ✅ Hoàn thành |
+| Chat real-time | 1-1 & nhóm, Redis Pub/Sub + WebSocket | ✅ Hoàn thành |
+| Nhóm | Tạo/tham gia nhóm, bài viết nhóm | ✅ Hoàn thành |
+| Bản đồ | PostGIS + Haversine + Leaflet, tìm bài viết quanh vị trí | ✅ Hoàn thành |
+| Profile | Thông tin cá nhân, bài viết, followers | ✅ Hoàn thành |
+| Tìm kiếm ngữ nghĩa | TF-IDF + pgvector, cosine similarity | ✅ Hoàn thành |
+| Tìm kiếm hình ảnh | Vector đặc trưng 51-D (HSV + Sobel + GLCM) → search | ✅ Hoàn thành |
 
 ### 🛡️ Quản trị (Admin)
 | Tính năng | Mô tả | Trạng thái |
 |---|---|---|
-| Dashboard | Thống kê tổng quan, biểu đồ | ✅ UI |
-| Quản lý người dùng | CRUD, phân quyền, cấm | ✅ UI |
-| Quản lý bài viết | Duyệt, ẩn, xóa bài | ✅ UI |
-| Kiểm duyệt | Hàng đợi report, xử lý vi phạm | ✅ UI |
-| Quản lý danh mục | CRUD danh mục bài viết | ✅ UI |
-| Thống kê chi tiết | Biểu đồ tăng trưởng, top danh mục | ✅ UI |
-| Cài đặt hệ thống | Toggle tính năng, bảo trì | ✅ UI |
+| Dashboard | Thống kê tổng quan, biểu đồ | ✅ Hoàn thành |
+| Quản lý người dùng | CRUD, phân quyền, cấm | ✅ Hoàn thành |
+| Quản lý bài viết | Duyệt, ẩn, xóa bài | ✅ Hoàn thành |
+| Kiểm duyệt | Hàng đợi report, xử lý vi phạm, thống kê cảm xúc | ✅ Hoàn thành |
+| Quản lý danh mục | CRUD danh mục bài viết | ✅ Hoàn thành |
+| Thống kê chi tiết | Biểu đồ tăng trưởng, top danh mục | ✅ Hoàn thành |
+| Cài đặt hệ thống | Toggle tính năng, chế độ bảo trì | ✅ Hoàn thành |
 
 ---
 
@@ -106,15 +106,15 @@ Hệ thống tích hợp các giải thuật và công nghệ tự nghiên cứu
 | @lucide/vue | latest | Icon library |
 | Vite | ^8.2 | Build tool + HMR |
 
-### Backend (Planned)
+### Backend
 | Công nghệ | Phiên bản | Mục đích |
 |---|---|---|
-| Spring Boot | 3.x | REST API + WebSocket |
+| Spring Boot | 4.0.8 | REST API + WebSocket (Java 21) |
 | PostgreSQL | 16 | Database chính |
 | PostGIS | 3.x | Spatial queries (bản đồ) |
 | pgvector | 0.7+ | Vector similarity search |
 | Redis | 7.x | Cache + Pub/Sub (chat) |
-| Spring Security | 6.x | JWT + OAuth2 |
+| Spring Security | tích hợp Spring Boot 4 | HttpOnly Cookie JWT + Google OAuth2 |
 
 ---
 
@@ -123,6 +123,7 @@ Hệ thống tích hợp các giải thuật và công nghệ tự nghiên cứu
 ### Yêu cầu
 - Node.js >= 18
 - npm >= 9
+- Java 21 LTS
 
 ### Frontend
 
@@ -134,11 +135,11 @@ npm run dev
 
 Truy cập: **http://localhost:5173/**
 
-### Backend (sẽ bổ sung)
+### Backend
 
 ```bash
 cd backend
-./mvnw spring-boot:run
+.\gradlew.bat bootRun
 ```
 
 ---
@@ -161,10 +162,9 @@ Specialized_Project/
 │   │   ├── stores/              # Pinia stores
 │   │   ├── router/              # Vue Router config
 │   │   ├── types/               # TypeScript interfaces
-│   │   ├── data/                # Mock data
 │   │   └── style.css            # Tailwind theme + utilities
 │   └── package.json
-├── backend/                     # Spring Boot (planned)
+├── backend/                     # Spring Boot 4 (Clean Architecture)
 ├── docs/                        # Documentation
 │   ├── architecture.md          # Kiến trúc chi tiết
 │   ├── algorithms.md            # Giải thuật nghiên cứu

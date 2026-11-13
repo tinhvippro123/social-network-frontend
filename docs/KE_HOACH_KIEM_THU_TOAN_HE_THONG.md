@@ -265,7 +265,7 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - Thử tải lên file không phải ảnh (hoặc ảnh hỏng) -> Hệ thống trả lỗi `400` thân thiện, không bao giờ lỗi `500`.
 - [ ] **Phương thức 3 — Tìm kiếm bằng Tài liệu (`Document Search` — `.pdf`, `.docx`):**
   - Bấm nút **Tài liệu** (`Tìm bằng tài liệu (PDF, DOCX)`, tối đa `5MB`) để chọn 1 file `.pdf` hoặc `.docx`.
-  - Hiển thị thẻ chip **`Tìm kiếm theo tài liệu`** kèm tên tệp + dung lượng (`KB`) và huy hiệu **`Tìm bằng tài liệu`**; Backend (`Apache PDFBox` / `Apache POI`) bóc tách văn bản từ tài liệu và dùng `TF-IDF` xếp hạng các bài viết có nội dung sát nhất (giao diện không in đoạn trích văn bản từ tệp).
+  - Hiển thị thẻ chip **`Tìm kiếm theo tài liệu`** kèm tên tệp + dung lượng (`KB`) và huy hiệu **`Tìm bằng tài liệu`**; Backend (`Apache PDFBox` / `ZipInputStream + XMLInputFactory (StAX)`) bóc tách văn bản từ tài liệu và dùng `TF-IDF` xếp hạng các bài viết có nội dung sát nhất (giao diện không in đoạn trích văn bản từ tệp).
 
 ### 7.2. Khi ĐÃ ĐĂNG NHẬP (`USER` / `MODERATOR` / `ADMIN`)
 - [ ] Thực hiện đầy đủ các phương thức tìm kiếm như trên; trên thẻ `PostCard` kết quả có thể bấm **Lưu (Bookmark)** trực tiếp (Upvote/Downvote thực hiện trong trang chi tiết bài viết), hoặc bấm **`Theo dõi`** trong tab **`Tác giả`** mà không bị chặn bởi `AuthModal`.
@@ -399,7 +399,7 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
     - `User A` lần lượt gửi **Tin nhắn chữ**, **Hình ảnh**, **Tệp đính kèm (`File`)**, và **Trả lời trích dẫn (`Reply`)** 1 tin nhắn cũ.
     - **Kết quả Real-time bên máy `User B`:** Tin nhắn, ảnh, file và khung trích dẫn hiện ra tức thì trong khung chat và tự động cuộn xuống cuối (`scrollToBottom`).
 - [ ] **4. Test Real-time Sự kiện `conversation.read` (Trạng thái "Đã xem" / Read Receipt):**
-  - Khi `User B` bấm vào cuộc trò chuyện (hoặc đang mở sẵn khung chat khi nhận tin nhắn của `User A`) -> Frontend tự động gọi `PUT /api/conversations/{id}/read`.
+  - Khi `User B` bấm vào cuộc trò chuyện (hoặc đang mở sẵn khung chat khi nhận tin nhắn của `User A`) -> Frontend tự động gọi `POST /api/chat/conversations/{id}/read`.
   - **Kết quả Real-time bên máy `User A`:** Trạng thái dưới chân tin nhắn của `User A` tự động chuyển từ `Đã gửi` sang **`Đã xem`** (`status = "read"`) ngay lập tức.
 - [ ] **5. Test Real-time Sự kiện `message.revoked` (Thu hồi tin nhắn 2 chiều):**
   - Bên máy `User A`: Di chuột vào tin nhắn vừa gửi -> Bấm **`Thu hồi`**.
@@ -412,7 +412,7 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - **Tìm kiếm cuộc trò chuyện & tìm tin nhắn trong hội thoại:** Thanh tìm kiếm hội thoại ở cột trái, `MainNavbarChat` và `ChatPopup` đều hỗ trợ gõ tiếng Việt không dấu; nút **`Tìm kiếm trong cuộc trò chuyện`** trên `ChatHeader` lọc các tin nhắn cũ.
   - **Menu dấu `⋯` trên từng hội thoại cột trái (`ChatConversationItem.vue`):** **`Ghim cuộc trò chuyện` / `Bỏ ghim`**, **`Tắt thông báo` / `Bật thông báo`**, và **`Xóa đoạn chat`**.
   - **Panel thông tin bên phải (`ChatInfoPanel.vue`):** **`Xem tin nhắn đã ghim`**, **`Chỉnh sửa biệt danh`**, **`File phương tiện và file`**, **`Tắt thông báo` / `Bật thông báo`**, **`Chặn người dùng` / `Bỏ chặn người dùng`**, **`Báo cáo`**, và **`Xóa cuộc trò chuyện`**. (Không có nút gọi thoại/video trên `ChatHeader`.)
-  - **Chặn & Bỏ chặn 2 chiều trong Chat:** Khi `User A` chặn `User B` -> Khung nhập tin nhắn khóa lại và nếu cố gửi API `POST /api/conversations/{id}/messages` sẽ bị Backend chặn **`403 Forbidden`**; bấm **`Bỏ chặn người dùng`** để nhắn tin trở lại.
+  - **Chặn & Bỏ chặn 2 chiều trong Chat:** Khi `User A` chặn `User B` -> Khung nhập tin nhắn khóa lại và nếu cố gửi API `POST /api/chat/conversations/{id}/messages` sẽ bị Backend chặn **`403 Forbidden`**; bấm **`Bỏ chặn người dùng`** để nhắn tin trở lại.
 - [ ] **9. (Điểm cộng khi vấn đáp) Kiểm tra Redis Pub/Sub Relay & Cơ chế Tự phục hồi (`ChatEventRelay`):**
   - Mặc định mọi sự kiện `ChatEvent` sau khi commit DB (`TransactionPhase.AFTER_COMMIT`) được phát qua kênh Redis Pub/Sub **`vietblog.chat.events`**.
   - Nếu thử dừng container Redis (`docker stop vietblog-redis`), `ChatEventRelay` tự động bắt ngoại lệ và chuyển sang `deliverLocal(...)` -> Nhắn tin Real-time giữa `User A` và `User B` **vẫn hoạt động 100% không bị gián đoạn**.
@@ -432,8 +432,8 @@ Tất cả tài khoản mẫu dùng chung mật khẩu: **`Password123!`**
   - Bên máy `User B`: Bấm vào biểu tượng **Chuông** trên Navbar (hoặc mở trang `/notifications` / tải lại trang) -> `uiStore.fetchNotifications()` tự động gọi `GET /api/notifications`, cập nhật số đếm badge đỏ trên chuông và hiển thị đầy đủ các thông báo vừa phát sinh.
 - [ ] **Trang `/notifications` & Panel Chuông Navbar (`MainNavbarNotifications.vue`):**
   - Trên dropdown chuông Navbar: Hiển thị các thông báo gần nhất, nút **`Đánh dấu tất cả đã đọc`** và nút **`Xem tất cả thông báo`** (chuyển tới `/notifications`). (Nút xóa từng thông báo nằm ở trang `/notifications`, không có trong dropdown.)
-  - Trên trang `/notifications` (`NotificationsView.vue`): Chuyển đổi bộ lọc **`Tất cả`** và **`Chưa đọc`**, bấm **`Đánh dấu tất cả đã đọc`** (`PUT /api/notifications/read-all`) hoặc bấm nút **Xóa (`Trash2`)** trên từng thông báo (`DELETE /api/notifications/{id}`).
-  - Bấm vào 1 thông báo -> Tự động đánh dấu đã đọc (`PUT /api/notifications/{id}/read`), giảm số đếm chưa đọc và điều hướng chính xác tới bài viết (cuộn tới đúng `#comment-id` nếu là thông báo bình luận) hoặc hồ sơ người theo dõi.
+  - Trên trang `/notifications` (`NotificationsView.vue`): Chuyển đổi bộ lọc **`Tất cả`** và **`Chưa đọc`**, bấm **`Đánh dấu tất cả đã đọc`** (`PATCH /api/notifications/read-all`) hoặc bấm nút **Xóa (`Trash2`)** trên từng thông báo (`DELETE /api/notifications/{id}`).
+  - Bấm vào 1 thông báo -> Tự động đánh dấu đã đọc (`PATCH /api/notifications/{id}/read`), giảm số đếm chưa đọc và điều hướng chính xác tới bài viết (cuộn tới đúng `#comment-id` nếu là thông báo bình luận) hoặc hồ sơ người theo dõi.
 
 ---
 
