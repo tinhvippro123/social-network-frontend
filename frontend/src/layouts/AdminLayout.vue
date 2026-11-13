@@ -15,6 +15,7 @@ const {
   sidebarOpen,
   mobileSidebarOpen,
   showUserMenu,
+  pendingReportsCount,
   navigateTo,
   logout,
   isActive
@@ -52,6 +53,7 @@ const {
       <AdminNavbar
         :user="user"
         :ui-store="uiStore"
+        :pending-reports-count="pendingReportsCount"
         v-model:mobile-sidebar-open="mobileSidebarOpen"
         v-model:sidebar-open="sidebarOpen"
         v-model:show-user-menu="showUserMenu"

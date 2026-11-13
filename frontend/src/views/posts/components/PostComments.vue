@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SentimentDoughnutChart from '@/components/comments/SentimentDoughnutChart.vue'
 import { ref, computed } from 'vue'
 import { MessageCircle, X, Sparkles, Smile, Frown, Meh } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -10,13 +11,11 @@ const props = defineProps<{
   user: any
   postAuthorId?: string
   replyingTo: any
-  activeEmojiPicker: string | null
 }>()
 
 const emit = defineEmits<{
   (e: 'setReplyingTo', targetId: string, authorName: string): void
   (e: 'clearReplyingTo'): void
-  (e: 'toggleEmojiPicker', targetId: string | null): void
   (e: 'addComment', content: string, image: File | null): void
   (e: 'replyComment', parentId: string, content: string, image: File | null): void
   (e: 'deleteComment', commentId: string): void
@@ -125,43 +124,51 @@ const cancelInlineReply = () => {
       <!-- AI Sentiment Widget (Thesis Proposal: Biểu đồ tỉ lệ cảm xúc trên mỗi bài viết) -->
       <div
         v-if="sentimentStats && sentimentStats.total > 0"
-        class="flex flex-col gap-1.5 px-3 py-2 rounded-xl bg-gray-50 dark:bg-surface-700/60 border border-gray-200/90 dark:border-surface-600 text-xs shadow-2xs min-w-56"
-        title="Tỉ lệ cảm xúc tự động phân tích bởi giải thuật Lexicon-based NLP"
+        class="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-surface-700/60 border border-gray-200/90 dark:border-surface-600 text-xs shadow-2xs"
+        title="Biểu đồ Chart.js phân tích tỉ lệ cảm xúc bình luận (Lexicon + 256-D Embedding, UIT-VSFC)"
       >
-        <div class="flex flex-wrap items-center gap-2.5">
-          <span class="inline-flex items-center gap-1 font-bold text-primary-700 dark:text-primary-300">
-            <Sparkles :size="13" class="text-primary-600 dark:text-primary-400" />
-            Cảm xúc AI:
-          </span>
-          <span v-if="sentimentStats.posPct > 0" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
-            <Smile :size="13" /> {{ sentimentStats.posPct }}% Tích cực
-          </span>
-          <span v-if="sentimentStats.neuPct > 0" class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400 font-medium">
-            <Meh :size="13" /> {{ sentimentStats.neuPct }}% Trung lập
-          </span>
-          <span v-if="sentimentStats.negPct > 0" class="inline-flex items-center gap-1 text-rose-500 dark:text-rose-400 font-semibold">
-            <Frown :size="13" /> {{ sentimentStats.negPct }}% Tiêu cực
-          </span>
-        </div>
-        <div class="h-1.5 w-full bg-gray-200/80 dark:bg-surface-600 rounded-full overflow-hidden flex">
-          <div
-            v-if="sentimentStats.posPct > 0"
-            class="h-full bg-emerald-500 transition-all duration-500"
-            :style="{ width: `${sentimentStats.posPct}%` }"
-            :title="`Tích cực: ${sentimentStats.positive} bình luận (${sentimentStats.posPct}%)`"
-          />
-          <div
-            v-if="sentimentStats.neuPct > 0"
-            class="h-full bg-blue-400 dark:bg-blue-500 transition-all duration-500"
-            :style="{ width: `${sentimentStats.neuPct}%` }"
-            :title="`Trung lập: ${sentimentStats.neutral} bình luận (${sentimentStats.neuPct}%)`"
-          />
-          <div
-            v-if="sentimentStats.negPct > 0"
-            class="h-full bg-rose-500 transition-all duration-500"
-            :style="{ width: `${sentimentStats.negPct}%` }"
-            :title="`Tiêu cực: ${sentimentStats.negative} bình luận (${sentimentStats.negPct}%)`"
-          />
+        <SentimentDoughnutChart
+          size="sm"
+          :positive="sentimentStats.positive"
+          :neutral="sentimentStats.neutral"
+          :negative="sentimentStats.negative"
+        />
+        <div class="flex flex-col gap-1.5 min-w-48">
+          <div class="flex flex-wrap items-center gap-2.5">
+            <span class="inline-flex items-center gap-1 font-bold text-primary-700 dark:text-primary-300">
+              <Sparkles :size="13" class="text-primary-600 dark:text-primary-400" />
+              Cảm xúc AI:
+            </span>
+            <span v-if="sentimentStats.posPct > 0" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+              <Smile :size="13" /> {{ sentimentStats.posPct }}% Tích cực ({{ sentimentStats.positive }})
+            </span>
+            <span v-if="sentimentStats.neuPct > 0" class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium">
+              <Meh :size="13" /> {{ sentimentStats.neuPct }}% Trung lập ({{ sentimentStats.neutral }})
+            </span>
+            <span v-if="sentimentStats.negPct > 0" class="inline-flex items-center gap-1 text-rose-500 dark:text-rose-400 font-semibold">
+              <Frown :size="13" /> {{ sentimentStats.negPct }}% Tiêu cực ({{ sentimentStats.negative }})
+            </span>
+          </div>
+          <div class="h-1.5 w-full bg-gray-200/80 dark:bg-surface-600 rounded-full overflow-hidden flex">
+            <div
+              v-if="sentimentStats.posPct > 0"
+              class="h-full bg-emerald-500 transition-all duration-500"
+              :style="{ width: `${sentimentStats.posPct}%` }"
+              :title="`Tích cực: ${sentimentStats.positive} bình luận (${sentimentStats.posPct}%)`"
+            />
+            <div
+              v-if="sentimentStats.neuPct > 0"
+              class="h-full bg-blue-400 dark:bg-blue-500 transition-all duration-500"
+              :style="{ width: `${sentimentStats.neuPct}%` }"
+              :title="`Trung lập: ${sentimentStats.neutral} bình luận (${sentimentStats.neuPct}%)`"
+            />
+            <div
+              v-if="sentimentStats.negPct > 0"
+              class="h-full bg-rose-500 transition-all duration-500"
+              :style="{ width: `${sentimentStats.negPct}%` }"
+              :title="`Tiêu cực: ${sentimentStats.negative} bình luận (${sentimentStats.negPct}%)`"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -192,13 +199,11 @@ const cancelInlineReply = () => {
         :comment="comment"
         :level="0"
         :inline-reply-id="inlineReplyId"
-        :active-emoji-picker="activeEmojiPicker"
         :user="user"
         :post-author-id="postAuthorId"
         @reply="handleReplyClick"
         @submit-reply="handleInlineSubmit"
         @cancel-reply="cancelInlineReply"
-        @toggle-emoji="emit('toggleEmojiPicker', $event)"
         @delete="emit('deleteComment', $event)"
       />
     </div>

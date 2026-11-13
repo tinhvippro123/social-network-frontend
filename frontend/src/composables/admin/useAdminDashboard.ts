@@ -129,6 +129,7 @@ export function useAdminDashboard() {
     try {
       await adminApi.resolveReport(reportId, action)
       toast.success('Đã xử lý báo cáo thành công!')
+      window.dispatchEvent(new CustomEvent('admin:reports-updated'))
       const days = selectedPeriod.value === '90d' ? 90 : selectedPeriod.value === '30d' ? 30 : 7
       await Promise.all([fetchStats(days), fetchReports({ limit: 100 })])
     } catch (err: any) {
@@ -147,6 +148,7 @@ export function useAdminDashboard() {
     try {
       await adminApi.dismissReport(reportId)
       toast.info('Đã bỏ qua báo cáo')
+      window.dispatchEvent(new CustomEvent('admin:reports-updated'))
       const days = selectedPeriod.value === '90d' ? 90 : selectedPeriod.value === '30d' ? 30 : 7
       await Promise.all([fetchStats(days), fetchReports({ limit: 100 })])
     } catch (err: any) {

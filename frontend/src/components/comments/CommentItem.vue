@@ -66,47 +66,6 @@
               Phản hồi
             </button>
 
-            <!-- Emoji Reactions -->
-            <div v-if="comment.reactions && comment.reactions.length > 0" class="flex items-center gap-1">
-              <button
-                v-for="reaction in comment.reactions"
-                :key="reaction.emoji"
-                @click="toggleReaction(reaction.emoji)"
-                :title="reaction.reacted ? 'Bỏ cảm xúc' : 'Thả cảm xúc'"
-                :class="[
-                  'flex items-center gap-1 rounded-full font-medium transition-all border px-1.5 py-0.2 text-[10px] cursor-pointer hover:scale-105',
-                  reaction.reacted
-                    ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400 font-semibold'
-                    : 'bg-gray-50 dark:bg-surface-600 border-gray-200 dark:border-surface-500 text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-500'
-                ]"
-              >
-                {{ reaction.emoji }} {{ reaction.count }}
-              </button>
-            </div>
-            
-            <!-- Add Reaction Button -->
-            <div class="relative">
-              <button
-                @click.stop="$emit('toggle-emoji', comment.id)"
-                class="text-gray-400 hover:text-primary-500 transition-colors p-0.5 cursor-pointer"
-                title="Thả cảm xúc"
-              >
-                <SmilePlus :size="13" />
-              </button>
-              
-              <!-- Emoji Picker Popup -->
-              <div v-if="activeEmojiPicker === comment.id" @click.stop class="absolute left-0 bottom-6 z-50 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-gray-200 dark:border-surface-700 p-2 grid grid-cols-6 gap-1 w-52">
-                <button
-                  v-for="emoji in emojiList"
-                  :key="emoji"
-                  @click="toggleReaction(emoji)"
-                  class="w-7 h-7 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center justify-center text-base transition-colors cursor-pointer hover:scale-110"
-                >
-                  {{ emoji }}
-                </button>
-              </div>
-            </div>
-
             <!-- Report / Delete Buttons -->
             <button
               v-if="!user || (user.id !== comment.author?.id && user.id !== comment.authorId)"
@@ -192,13 +151,11 @@
             :comment="reply"
             :level="1"
             :inline-reply-id="inlineReplyId"
-            :active-emoji-picker="activeEmojiPicker"
             :user="user"
             :post-author-id="postAuthorId"
             @reply="(tid, rid, aname) => $emit('reply', tid, rid, aname)"
             @submit-reply="(content, image) => $emit('submit-reply', content, image)"
             @cancel-reply="$emit('cancel-reply')"
-            @toggle-emoji="(cid) => $emit('toggle-emoji', cid)"
             @delete="(cid) => $emit('delete', cid)"
           />
         </div>
@@ -248,21 +205,19 @@
 <script setup lang="ts">
 import { ref, computed, watchEffect, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { SmilePlus, ChevronDown, ChevronRight } from '@lucide/vue'
+import { ChevronDown, ChevronRight } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import CommentComposer from '@/components/comments/CommentComposer.vue'
 import { formatDate } from '@/utils/formatters'
 import { useUiStore } from '@/stores/ui.store'
 import { useToast } from '@/composables/ui/useToast'
 import { useConfirm } from '@/composables/ui/useConfirm'
-import { COMMENT_EMOJIS } from '@/constants'
 import http from '@/api/client'
 
 interface Props {
   comment: any
   level?: number
   inlineReplyId?: string | null
-  activeEmojiPicker?: string | null
   user?: any
   postAuthorId?: string
 }
@@ -270,7 +225,6 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   level: 0,
   inlineReplyId: null,
-  activeEmojiPicker: null,
   user: null,
   postAuthorId: undefined
 })
@@ -279,11 +233,8 @@ const emit = defineEmits<{
   (e: 'reply', targetId: string, rootCommentId: string, authorName: string): void
   (e: 'submit-reply', content: string, image: File | null): void
   (e: 'cancel-reply'): void
-  (e: 'toggle-emoji', commentId: string | null): void
   (e: 'delete', commentId: string): void
 }>()
-
-const emojiList = COMMENT_EMOJIS
 
 const inlineComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
 const isCollapsed = ref(false)
@@ -384,20 +335,12 @@ const handleJumpToComment = (e: any) => {
   }
 }
 
-const handleOutsideCommentEmojiClick = () => {
-  if (props.activeEmojiPicker === props.comment.id) {
-    emit('toggle-emoji', null)
-  }
-}
-
 onMounted(() => {
   window.addEventListener('jump-to-comment', handleJumpToComment)
-  document.addEventListener('click', handleOutsideCommentEmojiClick)
 })
 
 onUnmounted(() => {
   window.removeEventListener('jump-to-comment', handleJumpToComment)
-  document.removeEventListener('click', handleOutsideCommentEmojiClick)
 })
 
 const handleReplyClick = () => {
@@ -414,17 +357,6 @@ const handleSubmitReply = (content: string, image: File | null) => {
   isCollapsed.value = false
   emit('submit-reply', content, image)
   inlineComposerRef.value?.clear()
-}
-
-function toggleReaction(emoji: string) {
-  if (!props.user) {
-    emit('toggle-emoji', null)
-    toast.info('Vui lòng đăng nhập để thả cảm xúc')
-    uiStore.openAuthModal('login')
-    return
-  }
-
-  toggleReactionInner(emoji)
 }
 
 async function handleDeleteComment() {
@@ -461,23 +393,6 @@ async function handleReportComment() {
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Không thể gửi báo cáo lúc này')
   }
-}
-
-function toggleReactionInner(emoji: string) {
-  if (!props.comment.reactions) {
-    props.comment.reactions = []
-  }
-  const existing = props.comment.reactions.find((r: any) => r.emoji === emoji)
-  if (existing) {
-    existing.reacted = !existing.reacted
-    existing.count += existing.reacted ? 1 : -1
-    if (existing.count <= 0) {
-      props.comment.reactions = props.comment.reactions.filter((r: any) => r.emoji !== emoji)
-    }
-  } else {
-    props.comment.reactions.push({ emoji, count: 1, reacted: true })
-  }
-  emit('toggle-emoji', null)
 }
 </script>
 

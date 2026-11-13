@@ -99,8 +99,6 @@ export function useChatView() {
   const currentSearchIndex = ref(0)
   const replyingTo = ref<ChatMessage | null>(null)
   const activeActionMenu = ref<string | null>(null)
-  const showCallDialog = ref(false)
-  const callType = ref<'audio' | 'video'>('audio')
 
   const searchChat = ref('')
   const imagePreview = ref<string | null>(null)
@@ -448,15 +446,6 @@ export function useChatView() {
     }
   }
 
-  const startCall = (type: 'audio' | 'video') => {
-    callType.value = type
-    showCallDialog.value = true
-  }
-
-  const endCall = () => {
-    showCallDialog.value = false
-  }
-
   const viewImage = (url: string) => {
     imagePreview.value = url
   }
@@ -594,8 +583,6 @@ export function useChatView() {
     prevSearchResult,
     replyingTo,
     activeActionMenu,
-    showCallDialog,
-    callType,
     chatContainer,
     showScrollBottom,
     searchChat,
@@ -632,8 +619,6 @@ export function useChatView() {
     closeSearch,
     backToConversations,
     toggleInfoPanel,
-    startCall,
-    endCall,
     viewImage,
     closeImagePreview,
     downloadFile,

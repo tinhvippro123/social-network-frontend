@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SentimentDoughnutChart from '@/components/comments/SentimentDoughnutChart.vue'
 import { ref, computed, onMounted } from 'vue'
 import {
   Sparkles,
@@ -111,7 +112,7 @@ onMounted(() => {
             </h2>
             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary-50 dark:bg-primary-950/40 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800/50">
               <Sparkles :size="10" />
-              Lexicon-based NLP
+              Lexicon + 256-D Embedding (UIT-VSFC)
             </span>
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -207,32 +208,54 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Distribution Bar -->
-    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-surface-700">
-      <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
-        <span>Tỷ lệ phân bố cảm xúc trên toàn hệ thống ({{ totalComments }} bình luận)</span>
-        <span class="font-medium">
-          Tích cực: <strong class="text-emerald-600">{{ positivePercent }}%</strong> |
-          Trung lập: <strong class="text-blue-600">{{ neutralPercent }}%</strong> |
-          Tiêu cực: <strong class="text-rose-600">{{ negativePercent }}%</strong>
-        </span>
-      </div>
-      <div class="h-3 w-full bg-gray-100 dark:bg-surface-700 rounded-full overflow-hidden flex shadow-inner">
-        <div
-          class="h-full bg-linear-to-r from-emerald-500 to-teal-400 transition-all duration-700"
-          :style="{ width: `${positivePercent}%` }"
-          :title="`Tích cực: ${stats.positive} (${positivePercent}%)`"
-        />
-        <div
-          class="h-full bg-linear-to-r from-blue-500 to-cyan-400 transition-all duration-700"
-          :style="{ width: `${neutralPercent}%` }"
-          :title="`Trung lập: ${stats.neutral} (${neutralPercent}%)`"
-        />
-        <div
-          class="h-full bg-linear-to-r from-rose-500 to-red-500 transition-all duration-700"
-          :style="{ width: `${negativePercent}%` }"
-          :title="`Tiêu cực: ${stats.negative} (${negativePercent}%)`"
-        />
+    <!-- Chart.js Doughnut & Distribution Panel -->
+    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-surface-700 flex flex-col sm:flex-row items-center gap-5">
+      <SentimentDoughnutChart
+        size="md"
+        :positive="stats.positive"
+        :neutral="stats.neutral"
+        :negative="stats.negative"
+      />
+      <div class="flex-1 w-full">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
+          <span>Tỷ lệ phân bố cảm xúc trên toàn hệ thống ({{ totalComments }} bình luận)</span>
+          <span class="font-medium">
+            Tích cực: <strong class="text-emerald-600 dark:text-emerald-400">{{ positivePercent }}%</strong> |
+            Trung lập: <strong class="text-blue-600 dark:text-blue-400">{{ neutralPercent }}%</strong> |
+            Tiêu cực: <strong class="text-rose-600 dark:text-rose-400">{{ negativePercent }}%</strong>
+          </span>
+        </div>
+        <div class="h-3 w-full bg-gray-100 dark:bg-surface-700 rounded-full overflow-hidden flex shadow-inner">
+          <div
+            class="h-full bg-linear-to-r from-emerald-500 to-teal-400 transition-all duration-700"
+            :style="{ width: `${positivePercent}%` }"
+            :title="`Tích cực: ${stats.positive} (${positivePercent}%)`"
+          />
+          <div
+            class="h-full bg-linear-to-r from-blue-500 to-cyan-400 transition-all duration-700"
+            :style="{ width: `${neutralPercent}%` }"
+            :title="`Trung lập: ${stats.neutral} (${neutralPercent}%)`"
+          />
+          <div
+            class="h-full bg-linear-to-r from-rose-500 to-red-500 transition-all duration-700"
+            :style="{ width: `${negativePercent}%` }"
+            :title="`Tiêu cực: ${stats.negative} (${negativePercent}%)`"
+          />
+        </div>
+        <div class="mt-3 grid grid-cols-3 gap-2 text-[11px] text-gray-600 dark:text-gray-300">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+            <span>Tích cực ({{ stats.positive }})</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
+            <span>Trung lập ({{ stats.neutral }})</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
+            <span>Tiêu cực ({{ stats.negative }})</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -244,11 +267,11 @@ onMounted(() => {
       <div class="flex items-center gap-2 mb-2">
         <Sparkles :size="16" class="text-primary-600 dark:text-primary-400" />
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
-          Thử nghiệm trực tiếp giải thuật Lexicon-based Sentiment Analysis
+          Thử nghiệm trực tiếp giải thuật Lexicon + 256-D Embedding (UIT-VSFC)
         </h3>
       </div>
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-        Nhập câu văn bản tiếng Việt bất kỳ để kiểm tra khả năng tách từ (tokenization), nhận diện từ điển cảm xúc và xử lý phủ định (negation handling).
+        Nhập câu văn bản tiếng Việt bất kỳ để kiểm tra khả năng tách từ (tokenization), nhận diện từ điển cảm xúc UIT-VSFC và xử lý phủ định (negation handling).
       </p>
 
       <!-- Quick sample prompts for defense demo -->
@@ -267,6 +290,14 @@ onMounted(() => {
           class="text-xs px-2.5 py-1 rounded-lg bg-rose-100/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-200 transition-colors"
         >
           👎 Tiêu cực mẫu
+        </button>
+        <button
+          type="button"
+          @click="runLiveTest('Hướng dẫn hơi nhanh và còn ít ví dụ thực tế, cần bổ sung thêm để dễ hiểu hơn.')"
+          class="text-xs px-2.5 py-1 rounded-lg bg-orange-100/70 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 hover:bg-orange-200 transition-colors"
+          title="Mẫu góp ý phê bình chuẩn UIT-VSFC (không từ tục tĩu)"
+        >
+          🎓 UIT-VSFC góp ý
         </button>
         <button
           type="button"

@@ -19,7 +19,6 @@ export function usePostDetail() {
   const newComment = ref('')
   const isBookmarked = ref(false)
   const replyingTo = ref<{ commentId: string; authorName: string } | null>(null)
-  const activeEmojiPicker = ref<string | null>(null)
   const emojiList = COMMENT_EMOJIS
   const userVote = ref<'UPVOTE' | 'DOWNVOTE' | null>(null)
   const currentUserReaction = ref<string | null>(null)
@@ -38,7 +37,6 @@ export function usePostDetail() {
     currentUserReaction.value = null
     isBookmarked.value = false
     replyingTo.value = null
-    activeEmojiPicker.value = null
     showReportModal.value = false
     await Promise.all([
       fetchPost(postId),
@@ -285,14 +283,6 @@ export function usePostDetail() {
         post.value.bookmarked = previousState
       }
       console.error('Failed to toggle bookmark', e)
-    }
-  }
-
-  const toggleEmojiPicker = (commentId: string | null) => {
-    if (commentId === null || activeEmojiPicker.value === commentId) {
-      activeEmojiPicker.value = null
-    } else {
-      activeEmojiPicker.value = commentId
     }
   }
 
@@ -650,12 +640,10 @@ export function usePostDetail() {
     handleUpvote,
     handleDownvote,
     replyingTo,
-    activeEmojiPicker,
     emojiList,
     showReportModal,
     initData,
     toggleBookmark,
-    toggleEmojiPicker,
     toggleReaction,
     reportPost,
     scrollToComments,

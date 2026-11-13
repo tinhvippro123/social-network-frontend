@@ -2,8 +2,6 @@
 import { inject } from 'vue'
 import {
   ChevronLeft as ChevronLeftIcon,
-  Phone as PhoneIcon,
-  Video as VideoIcon,
   Info as InfoIcon,
   Pin as PinIcon,
   X as XIcon,
@@ -78,7 +76,6 @@ const {
   handleRevokeMessage,
   handlePinMessage,
   closeSearch,
-  startCall,
   viewImage,
   downloadFile,
   insertEmoji,

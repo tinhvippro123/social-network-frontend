@@ -7,13 +7,10 @@ import ChatSidebar from './components/ChatSidebar.vue'
 import ChatMain from './components/ChatMain.vue'
 import ChatInfoPanel from './components/ChatInfoPanel.vue'
 import NewChatModal from './components/NewChatModal.vue'
-import ChatCallDialog from './components/ChatCallDialog.vue'
 import ChatImagePreviewModal from './components/ChatImagePreviewModal.vue'
 
 const chatState = useChatView()
 const {
-  showCallDialog,
-  callType,
   imagePreview,
   closeMenus,
   showNewChatModal,
@@ -31,13 +28,6 @@ provide('chatState', chatState)
     <ChatSidebar />
     <ChatMain />
     <ChatInfoPanel />
-
-    <!-- Call Dialog -->
-    <ChatCallDialog
-      :show="showCallDialog"
-      :type="callType"
-      @close="showCallDialog = false"
-    />
 
     <!-- Image Preview Modal -->
     <ChatImagePreviewModal

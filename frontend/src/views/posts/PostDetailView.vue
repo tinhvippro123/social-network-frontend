@@ -37,11 +37,9 @@ const {
   handleUpvote,
   handleDownvote,
   replyingTo,
-  activeEmojiPicker,
   emojiList,
   showReportModal,
   toggleBookmark,
-  toggleEmojiPicker,
   toggleReaction,
   reportPost,
   scrollToComments,
@@ -216,12 +214,10 @@ function handleProseClick(e: MouseEvent) {
             :isBookmarked="isBookmarked"
             :userVote="userVote"
             :currentUserReaction="currentUserReaction"
-            :activeEmojiPicker="activeEmojiPicker"
             :emojiList="emojiList"
             @upvote="handleUpvote"
             @downvote="handleDownvote"
             @toggleBookmark="toggleBookmark"
-            @toggleEmojiPicker="toggleEmojiPicker"
             @toggleReaction="toggleReaction"
             @report="handleOpenReport"
             @scrollToComments="scrollToComments"
@@ -234,10 +230,8 @@ function handleProseClick(e: MouseEvent) {
               :user="user"
               :postAuthorId="post.author?.id"
               :replyingTo="replyingTo"
-              :activeEmojiPicker="activeEmojiPicker"
               @setReplyingTo="setReplyingTo"
               @clearReplyingTo="clearReplyingTo"
-              @toggleEmojiPicker="toggleEmojiPicker"
               @addComment="addComment"
               @replyComment="replyComment"
               @deleteComment="deleteComment"

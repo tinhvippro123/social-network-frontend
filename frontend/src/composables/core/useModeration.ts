@@ -46,6 +46,7 @@ export function useModeration() {
     try {
       await adminApi.resolveReport(reportId, action)
       toast.success('Đã xử lý báo cáo vi phạm thành công!')
+      window.dispatchEvent(new CustomEvent('admin:reports-updated'))
       await fetchReports({ limit: 100 })
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể xử lý báo cáo')
@@ -64,6 +65,7 @@ export function useModeration() {
     try {
       await adminApi.dismissReport(reportId)
       toast.success('Đã bỏ qua báo cáo!')
+      window.dispatchEvent(new CustomEvent('admin:reports-updated'))
       await fetchReports({ limit: 100 })
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể bỏ qua báo cáo')

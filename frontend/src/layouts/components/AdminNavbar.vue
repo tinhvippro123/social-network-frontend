@@ -5,6 +5,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 defineProps<{
   user: any
   uiStore: any
+  pendingReportsCount?: number
   mobileSidebarOpen: boolean
   sidebarOpen: boolean
   showUserMenu: boolean
@@ -55,8 +56,8 @@ const emit = defineEmits<{
         class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
       >
         <Bell :size="20" />
-        <span v-if="uiStore.unreadCount > 0" class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
-          {{ uiStore.unreadCount }}
+        <span v-if="(pendingReportsCount ?? 0) > 0" class="absolute -top-0.5 -right-0.5 min-w-5 h-5 px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+          {{ (pendingReportsCount ?? 0) > 99 ? '99+' : pendingReportsCount }}
         </span>
       </button>
 

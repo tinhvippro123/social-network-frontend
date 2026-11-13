@@ -2,6 +2,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '../auth/useAuth'
 import { useUiStore } from '@/stores/ui.store'
+import adminApi from '@/api/admin.api'
 
 export function useAdminLayout() {
   const router = useRouter()
@@ -13,6 +14,16 @@ export function useAdminLayout() {
   const sidebarOpen = ref(true)
   const mobileSidebarOpen = ref(false)
   const showUserMenu = ref(false)
+  const pendingReportsCount = ref(0)
+
+  const fetchPendingReportsCount = async () => {
+    try {
+      const { data } = await adminApi.getReports({ status: 'PENDING', page: 1, limit: 1 })
+      pendingReportsCount.value = data.meta?.total ?? (Array.isArray(data.data) ? data.data.length : 0)
+    } catch {
+      // Keep last known count on transient errors
+    }
+  }
 
   const checkMobile = () => {
     isMobile.value = window.innerWidth < 1024
@@ -29,12 +40,15 @@ export function useAdminLayout() {
   const initEvents = () => {
     checkMobile()
     uiStore.fetchNotifications()
+    fetchPendingReportsCount()
     window.addEventListener('resize', checkMobile)
+    window.addEventListener('admin:reports-updated', fetchPendingReportsCount)
     document.addEventListener('click', handleClickOutside)
   }
 
   const cleanupEvents = () => {
     window.removeEventListener('resize', checkMobile)
+    window.removeEventListener('admin:reports-updated', fetchPendingReportsCount)
     document.removeEventListener('click', handleClickOutside)
   }
 
@@ -67,6 +81,8 @@ export function useAdminLayout() {
     sidebarOpen,
     mobileSidebarOpen,
     showUserMenu,
+    pendingReportsCount,
+    fetchPendingReportsCount,
     initEvents,
     cleanupEvents,
     navigateTo,
