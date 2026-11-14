@@ -602,15 +602,28 @@ export function usePostDetail() {
     try {
       await postsApi.deleteComment(post.value.id, commentId)
       let removedTotal = 1
-      const removeFromTree = (list: any[]): boolean => {
+      const removeFromTree = (list: any[], isRootLevel = true): boolean => {
         const idx = list.findIndex(c => c.id === commentId)
         if (idx !== -1) {
-          removedTotal = countCommentBranch(list[idx])
-          list.splice(idx, 1)
+          const target = list[idx]
+          if (isRootLevel) {
+            removedTotal = countCommentBranch(target)
+            list.splice(idx, 1)
+          } else {
+            const promotedReplies = Array.isArray(target.replies) ? target.replies : []
+            for (const child of promotedReplies) {
+              if (!child.replyTo && target.author?.name && child.author?.name !== target.author.name) {
+                child.replyTo = target.author.name
+                child.replyToAuthorId = target.author.id
+              }
+            }
+            list.splice(idx, 1, ...promotedReplies)
+            removedTotal = 1
+          }
           return true
         }
         for (const item of list) {
-          if (item.replies && removeFromTree(item.replies)) {
+          if (item.replies && removeFromTree(item.replies, false)) {
             return true
           }
         }

@@ -270,7 +270,7 @@ const commentImageUrl = computed(() => {
 
 const cleanCommentText = computed(() => {
   const raw = props.comment?.content || ''
-  return raw.replace(/\[img:[^\]]+\]/g, '').trim()
+  return raw.replace(/\[replyTo:[^\]]+\]\s*/g, '').replace(/\[img:[^\]]+\]/g, '').trim()
 })
 
 const containerClass = computed(() => {
