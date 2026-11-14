@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Users } from '@lucide/vue'
 import type { User } from '@/types'
 import { useUserAvatar } from '@/composables/ui/useUserAvatar'
+import { resolveUserAvatar } from '@/utils/avatar'
 
 const props = withDefaults(defineProps<{
   user?: Pick<User, 'name' | 'avatar'> | null
@@ -19,7 +20,11 @@ const props = withDefaults(defineProps<{
 const { sizeClasses } = useUserAvatar(props)
 const imageError = ref(false)
 
-watch(() => props.user?.avatar, () => {
+const resolvedAvatar = computed(() =>
+  resolveUserAvatar(props.user?.avatar, props.user?.name, props.isGroup)
+)
+
+watch(resolvedAvatar, () => {
   imageError.value = false
 })
 
@@ -45,8 +50,8 @@ function getInitialsColor(name?: string) {
 <template>
   <!-- 1. Ảnh hợp lệ và chưa bị lỗi -->
   <img
-    v-if="user?.avatar && !imageError"
-    :src="user.avatar"
+    v-if="resolvedAvatar && !imageError"
+    :src="resolvedAvatar"
     :alt="user?.name || 'Avatar'"
     @error="imageError = true"
     :class="[

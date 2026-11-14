@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   Bell, ArrowUp, MessageCircle, Reply, UserPlus, AtSign,
   Users, FileCheck, Info, Trash2, Flag
 } from '@lucide/vue'
 import { formatDate } from '@/utils/formatters'
+import { resolveUserAvatar } from '@/utils/avatar'
 import type { Notification } from '@/composables/core/useNotifications'
 
 const props = defineProps<{
@@ -17,7 +18,13 @@ const emit = defineEmits<{
 }>()
 
 const imgError = ref(false)
-watch(() => props.notification.avatar, () => {
+const resolvedAvatar = computed(() =>
+  props.notification.avatar
+    ? resolveUserAvatar(props.notification.avatar, props.notification.title || props.notification.message)
+    : ''
+)
+
+watch(resolvedAvatar, () => {
   imgError.value = false
 })
 
@@ -72,8 +79,8 @@ const getNotificationColor = (type: Notification['type']) => {
       <!-- Avatar / Icon -->
       <div class="relative shrink-0">
         <img
-          v-if="notification.avatar && !imgError"
-          :src="notification.avatar"
+          v-if="resolvedAvatar && !imgError"
+          :src="resolvedAvatar"
           :alt="notification.title"
           @error="imgError = true"
           class="w-12 h-12 rounded-full object-cover ring-2 ring-white dark:ring-surface-800"

@@ -27,18 +27,26 @@
                 <span @click="goToProfile(comment.author?.id)" class="font-bold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 hover:underline cursor-pointer" :class="level === 0 ? 'text-[13px]' : 'text-xs'">
                   {{ comment.author.name }}
                 </span>
-                <!-- AI Lexicon Sentiment Badge -->
+                <!-- AI Lexicon Sentiment Badge (Chỉ hiển thị cho Admin/Moderator phục vụ kiểm duyệt) -->
                 <span
-                  v-if="comment.sentiment"
+                  v-if="canViewModerationSentiment && comment.sentiment"
                   :class="[
-                    'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border',
-                    comment.sentiment === 'positive' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' :
-                    comment.sentiment === 'negative' ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
-                    'bg-gray-100 dark:bg-surface-600 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-surface-500'
+                    'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border',
+                    comment.sentiment === 'positive' ? 'bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/60' :
+                    comment.sentiment === 'negative' ? 'bg-amber-50/90 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/60' :
+                    'bg-gray-100/90 dark:bg-surface-600 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-surface-500'
                   ]"
-                  :title="'Cảm xúc: ' + (comment.sentiment === 'positive' ? 'Tích cực' : comment.sentiment === 'negative' ? 'Tiêu cực' : 'Trung lập')"
+                  :title="'Phân tích sắc thái kiểm duyệt: ' + (comment.sentiment === 'positive' ? 'Tích cực' : comment.sentiment === 'negative' ? 'Tiêu cực' : 'Trung lập')"
                 >
-                  {{ comment.sentiment === 'positive' ? '😊 Tích cực' : comment.sentiment === 'negative' ? '⚠️ Tiêu cực' : '😐 Trung lập' }}
+                  <span
+                    :class="[
+                      'w-1.5 h-1.5 rounded-full shrink-0',
+                      comment.sentiment === 'positive' ? 'bg-emerald-500' :
+                      comment.sentiment === 'negative' ? 'bg-amber-500' :
+                      'bg-gray-400'
+                    ]"
+                  />
+                  {{ comment.sentiment === 'positive' ? 'Tích cực' : comment.sentiment === 'negative' ? 'Tiêu cực' : 'Trung lập' }}
                 </span>
               </div>
             </div>
@@ -243,6 +251,10 @@ const router = useRouter()
 const uiStore = useUiStore()
 const toast = useToast()
 const { confirm } = useConfirm()
+
+const canViewModerationSentiment = computed(() =>
+  ['admin', 'moderator'].includes((props.user?.role || '').toLowerCase())
+)
 
 function goToProfile(userId?: string) {
   if (userId && userId !== 'guest') {

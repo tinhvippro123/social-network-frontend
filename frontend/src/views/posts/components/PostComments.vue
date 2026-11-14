@@ -27,6 +27,10 @@ const inlineReplyParentId = ref<string | null>(null)
 const inlineReplyContent = ref('')
 const mainComposerRef = ref<InstanceType<typeof CommentComposer> | null>(null)
 
+const canViewModerationSentiment = computed(() =>
+  ['admin', 'moderator'].includes((props.user?.role || '').toLowerCase())
+)
+
 // Tỉ lệ cảm xúc bình luận (Lexicon Sentiment Analysis) khớp Đề cương NCKH
 const sentimentStats = computed(() => {
   const allComments: any[] = []
@@ -121,9 +125,9 @@ const cancelInlineReply = () => {
         Bình luận ({{ sentimentStats?.total || comments.length }})
       </h3>
 
-      <!-- AI Sentiment Widget (Thesis Proposal: Biểu đồ tỉ lệ cảm xúc trên mỗi bài viết) -->
+      <!-- AI Sentiment Widget (Chỉ hiển thị cho Admin/Moderator phục vụ kiểm duyệt theo Đề cương) -->
       <div
-        v-if="sentimentStats && sentimentStats.total > 0"
+        v-if="canViewModerationSentiment && sentimentStats && sentimentStats.total > 0"
         class="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-surface-700/60 border border-gray-200/90 dark:border-surface-600 text-xs shadow-2xs"
         title="Biểu đồ Chart.js phân tích tỉ lệ cảm xúc bình luận (Lexicon + 256-D Embedding, UIT-VSFC)"
       >
@@ -137,7 +141,7 @@ const cancelInlineReply = () => {
           <div class="flex flex-wrap items-center gap-2.5">
             <span class="inline-flex items-center gap-1 font-bold text-primary-700 dark:text-primary-300">
               <Sparkles :size="13" class="text-primary-600 dark:text-primary-400" />
-              Cảm xúc AI:
+              Phân tích sắc thái (Kiểm duyệt):
             </span>
             <span v-if="sentimentStats.posPct > 0" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
               <Smile :size="13" /> {{ sentimentStats.posPct }}% Tích cực ({{ sentimentStats.positive }})

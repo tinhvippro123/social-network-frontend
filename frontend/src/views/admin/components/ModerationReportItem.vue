@@ -47,8 +47,7 @@ function viewTarget() {
 
 <template>
   <div
-    :class="['bg-white dark:bg-surface-800 rounded-2xl border p-5 transition-all',
-      report.status === 'pending' ? 'border-red-200 dark:border-red-900/30' : 'border-gray-200 dark:border-surface-700']">
+    class="bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 hover:border-gray-300 dark:hover:border-surface-600 p-5 transition-all">
     <div class="flex items-start justify-between gap-4">
       <div class="flex-1">
         <!-- Badges -->
@@ -61,10 +60,10 @@ function viewTarget() {
             {{ report.type === 'post' ? 'Bài viết' : report.type === 'comment' ? 'Bình luận' : report.type === 'group' ? 'Nhóm' : 'Người dùng' }}
           </span>
           <span :class="['px-2.5 py-1 rounded-lg text-xs font-semibold',
-            report.status === 'pending' ? 'bg-red-100 dark:bg-red-900/20 text-red-600' :
+            report.status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/50' :
             report.status === 'resolved' ? 'bg-green-100 dark:bg-green-900/20 text-green-600' :
             'bg-gray-100 dark:bg-surface-700 text-gray-500']">
-            {{ report.status === 'pending' ? 'Đang chờ' : report.status === 'resolved' ? 'Đã xử lý' : 'Đã bỏ qua' }}
+            {{ report.status === 'pending' ? 'Chờ duyệt' : report.status === 'resolved' ? 'Đã xử lý' : 'Đã bỏ qua' }}
           </span>
         </div>
 

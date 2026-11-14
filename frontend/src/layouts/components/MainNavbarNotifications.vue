@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Bell } from '@lucide/vue'
 import { formatRelativeTime } from '@/utils/formatters'
 import { navigateToNotificationLink } from '@/utils/notificationNavigation'
+import { resolveUserAvatar } from '@/utils/avatar'
 
 const router = useRouter()
 
@@ -14,6 +16,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:showNotifications', value: boolean): void
 }>()
+
+const failedAvatarIds = ref<Record<string, boolean>>({})
+
+function getNotificationAvatar(notif: any): string {
+  if (!notif?.avatar || failedAvatarIds.value[notif.id]) return ''
+  return resolveUserAvatar(notif.avatar, notif.title || notif.message)
+}
 
 function handleNotificationClick(notif: any) {
   props.uiStore.markNotificationRead(notif.id)
@@ -69,9 +78,9 @@ function handleNotificationClick(notif: any) {
             ]"
           >
             <img
-              v-if="notif.avatar"
-              :src="notif.avatar"
-              @error="notif.avatar = ''"
+              v-if="getNotificationAvatar(notif)"
+              :src="getNotificationAvatar(notif)"
+              @error="failedAvatarIds[notif.id] = true"
               class="w-9 h-9 rounded-full shrink-0 object-cover"
             />
             <div v-else class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
