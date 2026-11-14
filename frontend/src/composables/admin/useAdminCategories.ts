@@ -44,7 +44,7 @@ export function useAdminCategories() {
   }
 
   const initData = () => {
-    fetchCategories()
+    fetchCategories(true)
     fetchTags()
   }
 
@@ -63,7 +63,7 @@ export function useAdminCategories() {
       showAddModal.value = false
       newCategoryName.value = ''
       newCategoryDescription.value = ''
-      await fetchCategories()
+      await fetchCategories(true)
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể tạo danh mục')
     }
@@ -92,7 +92,7 @@ export function useAdminCategories() {
       toast.success('Đã cập nhật danh mục thành công!')
       showEditModal.value = false
       editingCategory.value = null
-      await fetchCategories()
+      await fetchCategories(true)
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể cập nhật danh mục')
     }
@@ -111,7 +111,7 @@ export function useAdminCategories() {
       const targetId = category.id || category.slug
       await adminApi.deleteCategory(targetId)
       toast.success('Đã xóa danh mục thành công!')
-      await fetchCategories()
+      await fetchCategories(true)
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Xóa danh mục thất bại')
     }
