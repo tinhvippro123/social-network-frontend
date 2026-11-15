@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useSkeleton } from '@/composables/ui/useSkeleton'
 
 const props = defineProps<{
   type?: 'text' | 'avatar' | 'card' | 'image' | 'button' | 'title'
@@ -7,8 +8,6 @@ const props = defineProps<{
   height?: string
   rounded?: string
 }>()
-
-import { useSkeleton } from '@/composables/ui/useSkeleton'
 
 const { skeletonClass } = useSkeleton(props)
 </script>

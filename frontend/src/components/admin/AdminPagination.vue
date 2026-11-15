@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight } from '@lucide/vue'
+import { useAdminPagination } from '@/composables/admin/useAdminPagination'
 
 const props = defineProps<{
   currentPage: number
@@ -11,8 +12,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:currentPage', value: number): void
 }>()
-
-import { useAdminPagination } from '@/composables/admin/useAdminPagination'
 
 const {
   totalPages,

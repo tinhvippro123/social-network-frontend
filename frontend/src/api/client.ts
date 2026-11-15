@@ -7,6 +7,7 @@ import type { User } from '@/types'
 import { hasAuthSessionCookie } from '@/utils/cookies'
 import router from '@/router'
 import { useAuthStore } from '@/stores/auth.store'
+import { useToast } from '@/composables/ui/useToast'
 
 /** Response chuẩn từ Backend */
 export interface ApiResponse<T = unknown> {
@@ -130,7 +131,6 @@ http.interceptors.response.use(
       // 1. Lỗi đăng nhập / đăng ký (sai mật khẩu...)
       if (isCredentialAuthEndpoint) {
         if (!originalConfig?.skipErrorToast) {
-          const { useToast } = await import('@/composables/ui/useToast')
           useToast().error(errorMessage || 'Email hoặc mật khẩu không chính xác')
         }
         return Promise.reject(error)
@@ -170,7 +170,6 @@ http.interceptors.response.use(
           router.push('/login')
         }
         if (!originalConfig?.skipErrorToast) {
-          const { useToast } = await import('@/composables/ui/useToast')
           useToast().error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
         }
         return Promise.reject(error)
@@ -186,7 +185,6 @@ http.interceptors.response.use(
           router.push('/login')
         }
         if (!originalConfig?.skipErrorToast) {
-          const { useToast } = await import('@/composables/ui/useToast')
           useToast().error('Vui lòng đăng nhập để tiếp tục')
         }
       }
@@ -199,13 +197,11 @@ http.interceptors.response.use(
     }
 
     if (status === 403) {
-      const { useToast } = await import('@/composables/ui/useToast')
       useToast().error(errorMessage || 'Bạn không có quyền thực hiện hành động này!')
     } else if (status) {
       if (error.response?.data?.data && typeof error.response.data.data === 'object') {
         console.error('Validation Errors:', error.response.data.data)
       }
-      const { useToast } = await import('@/composables/ui/useToast')
       const fieldErrors = error.response?.data?.data as Record<string, string> | undefined
       const fieldMessages = fieldErrors && typeof fieldErrors === 'object'
         ? Object.values(fieldErrors)
