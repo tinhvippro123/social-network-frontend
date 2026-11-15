@@ -266,4 +266,13 @@ router.beforeEach(async (to, from, next) => {
   next()
 })
 
+router.afterEach((to, from) => {
+  if (to.path !== from.path && !to.hash && typeof document !== 'undefined') {
+    const mainEl = document.querySelector('main')
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, left: 0 })
+    }
+  }
+})
+
 export default router

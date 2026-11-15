@@ -115,7 +115,7 @@ export function useCreatePost() {
   const editor = useEditor({
     content: content.value,
     extensions: [
-      StarterKit,
+      StarterKit.configure({ link: false }),
       ImageExtension,
       LinkExtension.configure({ openOnClick: false })
     ],

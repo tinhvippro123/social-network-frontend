@@ -146,7 +146,7 @@ const sharePost = async () => {
 </script>
 
 <template>
-  <div class="relative flex items-center justify-between bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-2 sm:p-2.5 mb-6 sm:sticky sm:bottom-4 sm:shadow-lg sm:z-30">
+  <div class="relative flex items-center justify-between bg-white dark:bg-surface-800 rounded-2xl border border-gray-200 dark:border-surface-700 p-2 sm:p-2.5 mb-6 shadow-xs z-20">
     <!-- Left Section: Vote Pill + Facebook-Style Grouped Reactions -->
     <div class="flex items-center gap-2 sm:gap-2.5 min-w-0 mr-2">
       <!-- Reddit-style Upvote/Downvote Cluster -->
@@ -292,11 +292,12 @@ const sharePost = async () => {
           'flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer',
           isBookmarked ? 'bg-amber-500/10 text-amber-500' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700'
         ]"
-        title="Lưu bài viết"
+        :title="isBookmarked ? 'Bỏ lưu bài viết' : 'Lưu bài viết'"
+        :aria-label="isBookmarked ? 'Đã lưu bài viết' : 'Lưu bài viết'"
       >
         <BookmarkCheck v-if="isBookmarked" :size="18" />
         <Bookmark v-else :size="18" />
-        <span class="hidden sm:inline text-xs font-semibold">Lưu</span>
+        <span class="hidden sm:inline text-xs font-semibold">{{ isBookmarked ? 'Đã lưu' : 'Lưu' }}</span>
       </button>
 
       <button 

@@ -91,4 +91,10 @@ const {
   background: none !important;
   border: none !important;
 }
+
+/* Prevent floating ChatPopup button (bottom-right) from overlapping Leaflet attribution */
+:deep(.leaflet-bottom.leaflet-right) {
+  margin-right: 4.5rem;
+  margin-bottom: 0.25rem;
+}
 </style>

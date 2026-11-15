@@ -162,9 +162,18 @@ export function useWebSocket(url?: string, onMessageCallback?: (payload: any) =>
     if (reconnectTimer) clearTimeout(reconnectTimer)
     stopAuthFallback()
     stopPing()
-    if (ws.value) {
-      ws.value.onclose = null
-      ws.value.close()
+    const socket = ws.value
+    if (socket) {
+      socket.onclose = null
+      socket.onerror = null
+      socket.onmessage = null
+      if (socket.readyState === WebSocket.CONNECTING) {
+        socket.onopen = () => {
+          socket.close()
+        }
+      } else if (socket.readyState === WebSocket.OPEN) {
+        socket.close()
+      }
     }
     ws.value = null
     isConnected.value = false
