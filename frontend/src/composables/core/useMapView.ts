@@ -1,5 +1,5 @@
 import { matchesQuery } from '@/utils/textSearch'
-import { ref, computed, watch, onMounted, onUnmounted, type Ref } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -21,11 +21,11 @@ export interface SearchCenter {
   label: string
 }
 
-/** Tọa độ mặc định: Trường ĐH Tài nguyên và Môi trường TP.HCM (236B Lê Văn Sỹ). */
-export const HCMUNRE_CENTER: SearchCenter = {
-  lat: 10.7965,
-  lng: 106.6668,
-  label: 'Trường ĐH Tài nguyên và Môi trường TP.HCM'
+/** Tọa độ mặc định: Khu vực trung tâm TP.HCM. */
+export const DEFAULT_MAP_CENTER: SearchCenter = {
+  lat: 10.775,
+  lng: 106.69,
+  label: 'khu vực trung tâm TP.HCM'
 }
 
 const CATEGORY_META: Record<string, { label: string }> = {
@@ -253,8 +253,7 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
 
   const goToCurrentLocation = () => {
     if (!('geolocation' in navigator)) {
-      toast.info('Trình duyệt không hỗ trợ định vị. Đang tìm quanh HCMUNRE.')
-      searchNearby(HCMUNRE_CENTER)
+      toast.info('Trình duyệt không hỗ trợ định vị. Bạn có thể bấm trực tiếp lên bản đồ để chọn điểm tìm kiếm.')
       return
     }
     isLocating.value = true
@@ -265,30 +264,34 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
       },
       () => {
         isLocating.value = false
-        toast.info('Chưa được cấp quyền vị trí. Đang tìm quanh HCMUNRE.')
-        searchNearby(HCMUNRE_CENTER)
+        toast.info('Chưa được cấp quyền vị trí. Bạn có thể bấm trực tiếp lên bản đồ để chọn điểm tìm kiếm.')
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60_000 }
     )
   }
-
-  const searchAroundCampus = () => searchNearby(HCMUNRE_CENTER)
 
   const clearNearby = () => {
     if (radiusTimer) {
       clearTimeout(radiusTimer)
       radiusTimer = null
     }
+    const hadSelectedPost = selectedPost.value !== null
     searchCenter.value = null
     nearbyPosts.value = []
     selectedPost.value = null
     renderRadius()
-    renderMarkers()
-    map?.setView([10.775, 106.69], 12, { animate: true })
+    if (!hadSelectedPost) {
+      renderMarkers()
+    }
   }
 
   watch([selectedFilter, searchLocation], () => renderMarkers())
-  watch(selectedPost, () => renderMarkers())
+  watch(selectedPost, () => {
+    renderMarkers()
+    nextTick(() => {
+      map?.invalidateSize({ pan: false })
+    })
+  })
 
   // Kéo thanh bán kính → gọi lại API (debounce để không spam request khi đang kéo)
   watch(searchRadius, () => {
@@ -297,13 +300,13 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
         const c = map.getCenter()
         searchCenter.value = { lat: c.lat, lng: c.lng, label: 'tâm bản đồ hiện tại' }
       } else {
-        searchCenter.value = HCMUNRE_CENTER
+        searchCenter.value = DEFAULT_MAP_CENTER
       }
     }
     renderRadius()
     if (radiusTimer) clearTimeout(radiusTimer)
     radiusTimer = setTimeout(() => {
-      if (searchCenter.value) searchNearby(searchCenter.value)
+      if (searchCenter.value) searchNearby(searchCenter.value, false)
     }, 400)
   })
 
@@ -421,7 +424,6 @@ export function useMapView(mapContainer: Ref<HTMLElement | null>) {
     zoomOut,
     formatEventTime,
     goToCurrentLocation,
-    searchAroundCampus,
     clearNearby
   }
 }

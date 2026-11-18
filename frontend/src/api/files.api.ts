@@ -13,11 +13,10 @@ const filesApi = {
     const formData = new FormData()
     formData.append('file', file)
     
-    // We must ensure the client does not set Content-Type header manually to allow the browser to set it with boundary
-    // The axios instance usually handles this if we pass FormData
+    // Let the browser set multipart/form-data Content-Type with the generated boundary automatically
     return await http.post('/files/upload', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
+        'Content-Type': undefined
       }
     })
   }

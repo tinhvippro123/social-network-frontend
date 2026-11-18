@@ -34,11 +34,13 @@ const {
   isEventCategory,
   toolbarItems,
   editor,
+  inlineImageInputRef,
   isLoading,
   coverImagePreview,
   loadInitialData,
   handleCoverImageChange,
   removeCoverImage,
+  handleInlineImageChange,
   handleLocationConfirm,
   removeLocation,
   addTag,
@@ -148,11 +150,19 @@ const router = useRouter()
               v-else
               :title="item.label" type="button"
               @click="handleToolbarAction(item.action)"
-              class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer"
             >
               <component :is="item.icon" :size="16" />
             </button>
           </template>
+          <input
+            ref="inlineImageInputRef"
+            type="file"
+            accept="image/*"
+            multiple
+            class="hidden"
+            @change="handleInlineImageChange"
+          />
         </div>
         
         <div class="flex-1 overflow-y-auto bg-white dark:bg-surface-800 cursor-text" @click="editor?.commands.focus()">

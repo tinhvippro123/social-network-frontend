@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import {
   MapPin, Search as SearchIcon, Navigation, Clock, Eye, ArrowUp,
-  ChevronUp, ChevronDown, X, List, GraduationCap, Loader2, MousePointerClick
+  ChevronUp, ChevronDown, X, List, Loader2, MousePointerClick
 } from '@lucide/vue'
 import { formatNumber } from '@/utils/formatters'
 import { formatDistance, type SearchCenter } from '@/composables/core/useMapView'
@@ -25,7 +25,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'goToCurrentLocation'): void
-  (e: 'searchAroundCampus'): void
   (e: 'clearNearby'): void
   (e: 'selectPostFromList', post: Post): void
 }>()
@@ -108,22 +107,15 @@ function distanceLabel(post: Post) {
         class="w-full h-1.5 bg-gray-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer accent-primary-500"
       />
 
-      <div class="grid grid-cols-2 gap-2 mt-3">
+      <div class="mt-3">
         <button
           @click="emit('goToCurrentLocation')"
           :disabled="isLocating"
-          class="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-white gradient-primary hover:opacity-90 transition-all disabled:opacity-60"
+          class="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-white gradient-primary hover:opacity-90 transition-all disabled:opacity-60 cursor-pointer"
         >
           <Loader2 v-if="isLocating" :size="14" class="animate-spin" />
           <Navigation v-else :size="14" />
           Quanh vị trí tôi
-        </button>
-        <button
-          @click="emit('searchAroundCampus')"
-          class="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 border border-primary-200/70 dark:border-primary-800/50 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-all"
-        >
-          <GraduationCap :size="14" />
-          Quanh HCMUNRE
         </button>
       </div>
       <p class="mt-2 flex items-center gap-1.5 text-[11px] text-gray-400">
@@ -133,12 +125,17 @@ function distanceLabel(post: Post) {
     </div>
 
     <!-- Active nearby search banner -->
-    <div v-if="searchCenter" class="mx-4 mt-3 px-3 py-2 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-200/70 dark:border-primary-800/50 flex items-start gap-2">
+    <div v-if="searchCenter" class="mx-4 mt-3 px-3 py-2 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-200/70 dark:border-primary-800/50 flex items-center gap-2">
       <div class="flex-1 min-w-0 text-xs text-primary-700 dark:text-primary-300">
         <p class="font-semibold">Đang tìm trong bán kính {{ searchRadius }} km</p>
         <p class="truncate opacity-80">quanh {{ searchCenter.label }}</p>
       </div>
-      <button @click="emit('clearNearby')" class="text-xs font-semibold text-primary-700 dark:text-primary-300 hover:underline shrink-0">
+      <button
+        @click="emit('clearNearby')"
+        title="Tắt vòng bán kính và xem tất cả bài viết"
+        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-surface-800 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-700 hover:bg-primary-100/70 dark:hover:bg-surface-700 transition-colors shrink-0 cursor-pointer"
+      >
+        <X :size="13" />
         Xem tất cả
       </button>
     </div>
@@ -285,27 +282,20 @@ function distanceLabel(post: Post) {
           </div>
 
           <!-- Location buttons -->
-          <div class="px-4 pb-3 grid grid-cols-2 gap-2">
+          <div class="px-4 pb-3 flex gap-2">
             <button
               @click="emit('goToCurrentLocation'); showMobileSidebar = false"
-              class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-white gradient-primary hover:opacity-90 transition-all"
+              class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-white gradient-primary hover:opacity-90 transition-all cursor-pointer"
             >
               <Navigation :size="14" />
               Quanh vị trí tôi
             </button>
             <button
-              v-if="!searchCenter"
-              @click="emit('searchAroundCampus'); showMobileSidebar = false"
-              class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-primary-600 bg-primary-50 dark:bg-primary-900/20"
-            >
-              <GraduationCap :size="14" />
-              Quanh HCMUNRE
-            </button>
-            <button
-              v-else
+              v-if="searchCenter"
               @click="emit('clearNearby')"
-              class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-primary-700 bg-primary-50 dark:bg-primary-900/20"
+              class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-primary-700 bg-primary-50 dark:bg-primary-900/20 cursor-pointer"
             >
+              <X :size="14" />
               Xem tất cả
             </button>
           </div>

@@ -112,11 +112,87 @@ export function useCreatePost() {
     { icon: ImageIcon, label: 'Chèn ảnh / Bộ sưu tập ảnh (chọn 1 hoặc nhiều ảnh)', action: 'image' },
   ]
 
+  const inlineImageInputRef = ref<HTMLInputElement | null>(null)
+
+  const normalizeUploadFile = (file: File): File => {
+    if (file.name && file.name.trim().length > 0 && file.name !== 'blob') {
+      return file
+    }
+    const mimeSubtype = file.type?.split('/')[1]?.split('+')[0] || 'png'
+    const ext = mimeSubtype === 'jpeg' ? 'jpg' : mimeSubtype
+    return new File([file], `image-${Date.now()}.${ext}`, { type: file.type || 'image/png' })
+  }
+
+  const extractClipboardImages = (clipboardData: DataTransfer | null): File[] => {
+    if (!clipboardData) return []
+    const itemFiles = Array.from(clipboardData.items || [])
+      .filter(item => item.kind === 'file' && item.type.startsWith('image/'))
+      .map(item => item.getAsFile())
+      .filter((file): file is File => Boolean(file))
+    if (itemFiles.length > 0) return itemFiles
+    return Array.from(clipboardData.files || []).filter(file => file.type.startsWith('image/'))
+  }
+
+  const uploadAndInsertImages = async (rawFiles: File[], insertAtPos?: number) => {
+    const files = rawFiles.filter(file => !file.type || file.type.startsWith('image/'))
+    if (files.length === 0) return
+
+    for (const file of files) {
+      if (file.size > 5 * 1024 * 1024) {
+        error(`Ảnh "${file.name || 'dán từ clipboard'}" vượt quá kích thước tối đa 5MB`)
+        return
+      }
+    }
+
+    try {
+      info('Đang tải ảnh lên...')
+      const uploadResponses = await Promise.all(
+        files.map(file => filesApi.uploadFile(normalizeUploadFile(file)))
+      )
+      const urls = uploadResponses
+        .map(res => res.data?.data?.fileUrl || res.data?.fileUrl)
+        .filter((url): url is string => Boolean(url))
+
+      if (urls.length === 0) {
+        error('Không nhận được đường dẫn ảnh sau khi tải lên.')
+        return
+      }
+
+      if (!editor.value || editor.value.isDestroyed) return
+
+      const imageNodes = urls.map(url => ({
+        type: 'image',
+        attrs: { src: url, alt: title.value || 'Ảnh bài viết' }
+      }))
+
+      if (typeof insertAtPos === 'number') {
+        editor.value.chain().focus().insertContentAt(insertAtPos, imageNodes).run()
+      } else {
+        editor.value.chain().focus().insertContent(imageNodes).run()
+      }
+
+      success(
+        urls.length > 1
+          ? `Đã tải và tạo cụm Gallery (${urls.length} ảnh) thành công!`
+          : 'Đã tải và chèn ảnh thành công!'
+      )
+    } catch (err: any) {
+      if (!err?.response) {
+        error('Không thể tải ảnh lên. Vui lòng thử lại.')
+      }
+    }
+  }
+
   const editor = useEditor({
     content: content.value,
     extensions: [
       StarterKit.configure({ link: false }),
-      ImageExtension,
+      ImageExtension.configure({
+        allowBase64: true,
+        HTMLAttributes: {
+          class: 'rounded-xl max-w-full h-auto my-3'
+        }
+      }),
       LinkExtension.configure({ openOnClick: false })
     ],
     onUpdate: ({ editor }) => {
@@ -125,6 +201,22 @@ export function useCreatePost() {
     editorProps: {
       attributes: {
         class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-full h-full p-6 text-base leading-relaxed text-gray-700 dark:text-gray-300'
+      },
+      handlePaste: (_view, event) => {
+        const images = extractClipboardImages(event.clipboardData)
+        if (images.length === 0) return false
+        event.preventDefault()
+        void uploadAndInsertImages(images)
+        return true
+      },
+      handleDrop: (view, event, _slice, moved) => {
+        if (moved || !event.dataTransfer?.files?.length) return false
+        const images = Array.from(event.dataTransfer.files).filter(file => file.type.startsWith('image/'))
+        if (images.length === 0) return false
+        event.preventDefault()
+        const coords = view.posAtCoords({ left: event.clientX, top: event.clientY })
+        void uploadAndInsertImages(images, coords?.pos)
+        return true
       }
     }
   })
@@ -183,44 +275,40 @@ export function useCreatePost() {
     }
   })
 
-  // Trigger file picker to upload 1 or multiple inline images to Cloudinary (auto-forms Gallery if >= 2 images)
+  const handleInlineImageChange = async (e: Event) => {
+    const input = e.target as HTMLInputElement
+    const files = Array.from(input.files || [])
+    input.value = ''
+    if (files.length === 0) return
+    await uploadAndInsertImages(files)
+  }
+
+  // Trigger DOM-attached file picker to upload 1 or multiple inline images (auto-forms Gallery if >= 2 images)
   const insertInlineImage = () => {
+    if (inlineImageInputRef.value) {
+      inlineImageInputRef.value.value = ''
+      inlineImageInputRef.value.click()
+      return
+    }
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
     input.multiple = true
-    input.onchange = async (e) => {
-      const files = Array.from((e.target as HTMLInputElement).files || [])
-      if (files.length === 0) return
-      for (const file of files) {
-        if (file.size > 5 * 1024 * 1024) {
-          error(`Ảnh "${file.name}" vượt quá kích thước tối đa 5MB`)
-          return
-        }
-      }
-      try {
-        info('Đang tải ảnh lên...')
-        const uploadResponses = await Promise.all(files.map(file => filesApi.uploadFile(file)))
-        const urls = uploadResponses
-          .map(res => res.data?.data?.fileUrl || res.data?.fileUrl)
-          .filter((url): url is string => Boolean(url))
-
-        if (urls.length > 0 && editor.value) {
-          const imageNodes = urls.map(url => ({
-            type: 'image',
-            attrs: { src: url, alt: title.value || 'Ảnh bài viết' }
-          }))
-          editor.value.chain().focus().insertContent(imageNodes).run()
-          success(
-            urls.length > 1
-              ? `Đã tải và tạo cụm Gallery (${urls.length} ảnh) thành công!`
-              : 'Đã tải và chèn ảnh thành công!'
-          )
-        }
-      } catch (err) {
-        error('Không thể tải ảnh lên. Vui lòng thử lại.')
+    input.style.display = 'none'
+    document.body.appendChild(input)
+    const cleanup = () => {
+      if (input.parentNode) {
+        input.parentNode.removeChild(input)
       }
     }
+    input.onchange = async (e) => {
+      try {
+        await handleInlineImageChange(e)
+      } finally {
+        cleanup()
+      }
+    }
+    input.addEventListener('cancel', cleanup, { once: true })
     input.click()
   }
 
@@ -364,10 +452,12 @@ export function useCreatePost() {
     isEventCategory,
     toolbarItems,
     editor,
+    inlineImageInputRef,
     isLoading,
     loadInitialData,
     handleCoverImageChange,
     removeCoverImage,
+    handleInlineImageChange,
     handleLocationConfirm,
     removeLocation,
     addTag,
